@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "dev": "vite",
+    "dev-colony": "vite ./colony_root --config=vite.config.ts --base=/colony",
+    "dev-menu": "vite ./main_menu_root --config=vite.config.ts --base=/menu",
+    "dev-tutorial": "vite ./tutorial_root --config=vite.config.ts --base=/tutorial",
     "build-colony": "vite build --config=vite.config.ts ./colony_root --outDir=\"../../dist/colony\" --emptyOutDir",
     "build-menu": "vite build --config=vite.config.ts ./main_menu_root --outDir=\"../../dist/main_menu\" --emptyOutDir",
     "build-tutorial": "vite build --config=vite.config.ts ./tutorial_root --outDir=\"../../dist/tutorial\" --emptyOutDir",
