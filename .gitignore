@@ -1,3 +1,14 @@
+otte/frontend/node_modules
+
+dist/colony/*
+!dist/colony/keep_me
+dist/tutorial/*
+!dist/tutorial/keep_me
+dist/main_menu/*
+!dist/main_menu/keep_me
+
+otte_frontend/dist
+
 # Logs
 logs
 *.log
@@ -89,7 +100,6 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
 
 # Gatsby files
 .cache/

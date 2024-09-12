@@ -1,0 +1,26 @@
+{
+  "name": "vite-template-solid",
+  "version": "0.0.0",
+  "description": "",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build-colony": "vite build ./colony_root --outDir=\"../../dist/colony\" --outFile=\"colonyIndex.js\" --emptyOutDir",
+    "build-menu": "vite build ./main_menu_root --outDir=\"../../dist/main_menu\" --emptyOutDir",
+    "build-tutorial": "vite build ./tutorial_root --outDir=\"../../dist/tutorial\" --emptyOutDir",
+    "super-build": "npm run build-colony && npm run build-menu && npm run build-tutorial",
+    "serve": "vite preview"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "solid-devtools": "^0.29.2",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11",
+    "vite-plugin-solid": "^2.8.2"
+  },
+  "dependencies": {
+    "@emotion/css": "^11.13.0",
+    "@emotion/react": "^11.13.3",
+    "solid-js": "^1.8.11"
+  }
+}
