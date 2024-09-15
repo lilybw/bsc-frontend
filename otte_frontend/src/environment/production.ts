@@ -1,6 +1,9 @@
 import { ENV } from "./manager";
-import { RuntimeMode } from "../meta/types";
+import { LogLevel, RuntimeMode } from "../meta/types";
 
 export const PROD_ENVIRONMENT: ENV = {
-    runtimeMode: RuntimeMode.PRODUCTION
+    runtimeMode: RuntimeMode.PRODUCTION,
+    mainBackendIP: "localhost",
+    mainBackendPort: 5386,
+    logLevel: LogLevel.ERROR
 }

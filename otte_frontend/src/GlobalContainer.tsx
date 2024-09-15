@@ -1,6 +1,8 @@
 import { css } from "@emotion/css";
 import { Component, JSX } from "solid-js";
 import { initializeEnvironment } from "./environment/manager";
+import { initializeLogger } from "./logging/filteredLogger";
+import { initializeBackendIntegration } from "./integrations/main_backend/mainBackend";
 
 interface GlobalContainerProps {
     children: JSX.Element | JSX.Element[];
@@ -9,6 +11,8 @@ interface GlobalContainerProps {
 export default function GlobalContainer(props: GlobalContainerProps): JSX.Element {
     console.log("[delete me] GlobalContainer mounted")
     const environment = initializeEnvironment();
+    const log = initializeLogger(environment);
+    const backendIntegration = initializeBackendIntegration(environment, log);
     console.log(environment);
 
     //Time to do auth and stuff

@@ -1,7 +1,9 @@
 import { ENV } from "./manager";
-import { RuntimeMode } from "../meta/types";
+import { LogLevel, RuntimeMode } from "../meta/types";
 
 export const DEV_ENVIRONMENT: ENV = {
     runtimeMode: RuntimeMode.DEVELOPMENT,
-    thisIsUndefined: undefined
+    mainBackendIP: "localhost",
+    mainBackendPort: 5386,
+    logLevel: LogLevel.INFO
 }

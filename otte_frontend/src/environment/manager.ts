@@ -1,32 +1,38 @@
 import { DEV_ENVIRONMENT } from "./development";
 import { PROD_ENVIRONMENT } from "./production";
-import { RuntimeMode } from "../meta/types";
+import { LogLevel, RuntimeMode } from "../meta/types";
 
 export type ENV = {
     runtimeMode: RuntimeMode;
-    thisIsUndefined?: string;
+    mainBackendIP: string;
+    mainBackendPort: number;
+    logLevel?: string;
 }
 const BASE_ENV: ENV = {
-    runtimeMode: RuntimeMode.UNKNOWN
+    runtimeMode: RuntimeMode.UNKNOWN,
+    mainBackendIP: "not_provided",
+    mainBackendPort: 9999,
+    logLevel: LogLevel.INFO
 }
 
-export let environment: ENV = BASE_ENV;
+let environment: ENV = BASE_ENV;
 
 export const initializeEnvironment = (): ENV => {
     const runtimeMode = import.meta.env.MODE as RuntimeMode;
-    let overwritingEnv;
+    let overwritingEnv: ENV;
     switch (runtimeMode) {
         case RuntimeMode.DEVELOPMENT: overwritingEnv = DEV_ENVIRONMENT; break;
         case RuntimeMode.PRODUCTION: overwritingEnv = PROD_ENVIRONMENT; break;
         default:
             console.error(`Unknown runtime mode: ${runtimeMode}`);
+            return BASE_ENV;
     }
     for (const key in overwritingEnv) {
         const value = overwritingEnv[key as keyof typeof overwritingEnv];
         if (value === undefined || value === null) {
             console.error(`Environment variable ${key} is present but has no value`);
         }
-        environment[key as keyof ENV] = overwritingEnv[key as keyof ENV] as any;
+        (environment as any)[key] = overwritingEnv[key as keyof ENV];
     }
     return environment;
 }
