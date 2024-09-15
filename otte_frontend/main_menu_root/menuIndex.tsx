@@ -1,7 +1,8 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
-
+import 'solid-devtools';
 import MainMenuApp from './MainMenuApp';
+import GlobalContainer from '../src/GlobalContainer';
 
 const root = document.getElementById('solidjs-inlay-root');
 
@@ -11,4 +12,4 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   );
 }
 
-render(() => <MainMenuApp />, root!);
+render(() => <GlobalContainer children={<MainMenuApp />} />, root!);

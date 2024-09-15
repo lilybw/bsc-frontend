@@ -1,14 +1,14 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
-
+import 'solid-devtools';
 import TutorialApp from './TutorialApp';
+import GlobalContainer from '../src/GlobalContainer';
 
 const root = document.getElementById('solidjs-inlay-root');
 
 if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   throw new Error(
-    'Root element not found. Did you forget to add it to your index.html? Or maybe the id attribute got misspelled?',
+    'Root element not found.',
   );
 }
-
-render(() => <TutorialApp />, root!);
+render(() => <GlobalContainer children={<TutorialApp />} />, root!);
