@@ -22,8 +22,9 @@ export const initializeEnvironment = (): ENV => {
             console.error(`Unknown runtime mode: ${runtimeMode}`);
     }
     for (const key in overwritingEnv) {
-        if (overwritingEnv[key as keyof typeof overwritingEnv] === undefined) {
-            console.error(`Environment variable ${key} is not defined`);
+        const value = overwritingEnv[key as keyof typeof overwritingEnv];
+        if (value === undefined || value === null) {
+            console.error(`Environment variable ${key} is present but has no value`);
         }
         environment[key as keyof ENV] = overwritingEnv[key as keyof ENV] as any;
     }
