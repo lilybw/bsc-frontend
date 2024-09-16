@@ -1,8 +1,9 @@
-import type { Component } from 'solid-js';
+import type { Component, JSX } from 'solid-js';
 
 import { SHARED_CSS, SHARED_CSS_STR } from '../src/sharedCSS';
 
 import {injectGlobal, css} from '@emotion/css'
+import { ApplicationContext } from '../src/meta/types';
 
 const testTyles = css`
     background-color: #000000;
@@ -11,7 +12,7 @@ const testTyles = css`
 injectGlobal(SHARED_CSS)
 
 
-const ColonyApp: Component = () => {
+export default function ColonyApp(context: ApplicationContext): JSX.Element {
   return (
     <div class={testTyles}>
       <header>
@@ -20,5 +21,3 @@ const ColonyApp: Component = () => {
     </div>
   );
 };
-
-export default ColonyApp;

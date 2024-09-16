@@ -12,4 +12,4 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   );
 }
 
-render(() => <GlobalContainer children={<ColonyApp />} />, root!);
+render(() => <GlobalContainer app={ColonyApp} />, root!);

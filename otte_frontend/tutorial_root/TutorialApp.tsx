@@ -1,12 +1,13 @@
-import type { Component } from 'solid-js';
+import type { Component, JSX } from 'solid-js';
 
 import { SHARED_CSS_STR } from '../src/sharedCSS';
 
 import {injectGlobal, css} from '@emotion/css'
+import { ApplicationContext } from '../src/meta/types';
 
 injectGlobal`${SHARED_CSS_STR}`
 
-const TutorialApp: Component = () => {
+export default function TutorialApp(context: ApplicationContext): JSX.Element {
   return (
     <div>
       <header>
@@ -15,5 +16,3 @@ const TutorialApp: Component = () => {
     </div>
   );
 };
-
-export default TutorialApp;

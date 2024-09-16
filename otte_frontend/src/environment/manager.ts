@@ -6,7 +6,7 @@ export type ENV = {
     runtimeMode: RuntimeMode;
     mainBackendIP: string;
     mainBackendPort: number;
-    logLevel?: string;
+    logLevel?: LogLevel;
 }
 const BASE_ENV: ENV = {
     runtimeMode: RuntimeMode.UNKNOWN,

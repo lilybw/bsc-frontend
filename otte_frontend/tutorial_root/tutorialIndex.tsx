@@ -11,4 +11,4 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
     'Root element not found.',
   );
 }
-render(() => <GlobalContainer children={<TutorialApp />} />, root!);
+render(() => <GlobalContainer app={TutorialApp} />, root!);
