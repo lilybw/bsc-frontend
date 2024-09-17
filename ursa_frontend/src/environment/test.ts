@@ -5,7 +5,7 @@ export const TEST_ENVIRONMENT: ENV = {
     runtimeMode: RuntimeMode.TEST,
     mainBackendIP: "localhost",
     mainBackendPort: 5386,
-    logLevel: LogLevel.INFO,
+    logLevel: LogLevel.TRACE,
     authHeaderName: 'URSA-Token',
     proxyMainBackendRequests: true,
     testUser: {

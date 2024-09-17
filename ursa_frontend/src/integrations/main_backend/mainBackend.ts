@@ -57,21 +57,24 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
     return {res: integration, err: null};
 }
 
-async function handleArbitraryRequest<T>(integration: BackendIntegration, method: HTTPMethod, suburl: string, retrieveAs?: ParseMethod): Promise<ResCodeErr<T>> {
+async function handleArbitraryRequest<T>(integration: BackendIntegration, method: HTTPMethod, suburl: string, retrieveAs?: ParseMethod, body?: any): Promise<ResCodeErr<T>> {
     const parserType = retrieveAs ?? ParseMethod.JSON;
     const userToken = integration.userToken;
     const headers: HeadersInit = {
         'Origin': 'URSA-Frontend',
     };
     headers[integration.authHeaderName] = userToken ?? '';
+    headers['Content-Type'] = 'application/json';
     
     if ((!userToken || userToken === '' || userToken === null) && !suburl.includes('session')) {
         integration.logger.log('User is not authorized yet a request for: ' + suburl + " was made");
         return { res: null, code: 400, err: USER_NOT_AUTHORIZED_ERROR };
     }
     try {
+        integration.logger.trace(`OUT: ${method} ${integration.mainBackendRootUrl}${suburl}`);
         const response = await fetch(integration.mainBackendRootUrl + suburl, {
             method: method,
+            body: body ? JSON.stringify(body) : undefined,
             headers: headers
         });
         const ddh = response.headers.get('Ursa-Ddh');
@@ -107,7 +110,7 @@ async function handleArbitraryRequest<T>(integration: BackendIntegration, method
 
 async function beginSession(integration: BackendIntegration, data: SessionInitiationRequestDTO): Promise<ResErr<string>> {
     const response = await handleArbitraryRequest<SessionInitiationResponseDTO>(
-        integration, HTTPMethod.POST, '/api/v1/session', ParseMethod.JSON
+        integration, HTTPMethod.POST, '/api/v1/session', ParseMethod.JSON, data
     );
     //Falsy values, undefined, 0, '', NaN, false
     if (response.err != null) {

@@ -19,6 +19,7 @@ export enum LogLevel {
     ERROR = 'error',
     WARN = 'warn',
     INFO = 'info',
+    TRACE = 'trace'
 }
 export enum ParseMethod {
     JSON = 'json',
