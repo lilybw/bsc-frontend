@@ -4,7 +4,10 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "npm run dev-colony",
+    "start": "npm run dev-menu",
+    "test-colony": "vite ./colony_root --config=vite.config.ts --base=/colony --mode test",
+    "test-menu": "vite ./main_menu_root --config=vite.config.ts --base=/menu --mode test",
+    "test-tutorial": "vite ./tutorial_root --config=vite.config.ts --base=/tutorial --mode test",
     "dev-colony": "vite ./colony_root --config=vite.config.ts --base=/colony --mode development",
     "dev-menu": "vite ./main_menu_root --config=vite.config.ts --base=/menu --mode development",
     "dev-tutorial": "vite ./tutorial_root --config=vite.config.ts --base=/tutorial --mode development",

@@ -1,12 +1,14 @@
 import { DEV_ENVIRONMENT } from "./development";
 import { PROD_ENVIRONMENT } from "./production";
 import { LogLevel, RuntimeMode } from "../meta/types";
+import { SessionInitiationRequestDTO } from "../integrations/main_backend/mainBackendDTOs";
 
 export type ENV = {
     runtimeMode: RuntimeMode;
     mainBackendIP: string;
     mainBackendPort: number;
     logLevel?: LogLevel;
+    testUser?: SessionInitiationRequestDTO;
 }
 const BASE_ENV: ENV = {
     runtimeMode: RuntimeMode.UNKNOWN,
