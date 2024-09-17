@@ -4,6 +4,7 @@ import { SHARED_CSS, SHARED_CSS_STR } from '../src/sharedCSS';
 
 import {injectGlobal, css} from '@emotion/css'
 import { ApplicationContext } from '../src/meta/types';
+import SectionTitle from '../src/components/SectionTitle';
 
 const testTyles = css`
     background-color: #000000;
@@ -16,7 +17,7 @@ export default function ColonyApp(context: ApplicationContext): JSX.Element {
   return (
     <div class={testTyles}>
       <header>
-        <h1>Colony</h1>
+        <SectionTitle>Colony</SectionTitle>
       </header>
     </div>
   );

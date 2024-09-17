@@ -1,21 +1,23 @@
 import type { Component, JSX } from 'solid-js';
-import { SHARED_CSS, SHARED_CSS_STR } from '../src/sharedCSS';
+import { SHARED_CSS, SHARED_CSS_STR, Styles } from '../src/sharedCSS';
 
 import {injectGlobal, css} from '@emotion/css'
+import BigMenuButton from '../src/components/BigMenuButton';
+import SectionTitle from '../src/components/SectionTitle';
 
 export default function MainMenuApp(): JSX.Element {
   console.log("[delete me] MainMenuApp mounted")
   return (
-    <>
-      <div class={gameTitleStyle}>U.R.S.A.</div>
+    <div class={Styles.NO_OVERFLOW} id="the-main-menu-app">
+      <SectionTitle>U.R.S.A.</SectionTitle>
       <div class={menuOptionsListStyle}>
-        <button class={menuOptionStyle}>New</button>
-        <button class={menuOptionStyle}>Continue</button>
-        <button class={menuOptionStyle}>Join</button>
-        <button class={menuOptionStyle}>Tutorial</button>
+        <BigMenuButton>New</BigMenuButton>
+        <BigMenuButton>Continue</BigMenuButton>
+        <BigMenuButton>Join</BigMenuButton>
+        <BigMenuButton>Tutorial</BigMenuButton>
       </div>
       <div class={menuBackground}></div>
-    </>
+    </div>
   );
 };
 
@@ -29,37 +31,6 @@ const menuOptionsListStyle = css`
     left: 50%;
     width: 33%;
     transform: translate(-50%, -50%);
-`
-
-const menuOptionStyle = css`
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    font-size: 2rem;
-    padding: 1rem;
-    margin: 1rem;
-    border-radius: 1rem;
-    border: 1px solid black;
-    box-shadow: inset 0 0 4px white;  
-    cursor: pointer;
-    text-shadow: none;
-    scale: 1;
-    transition: all 0.3s ease-out;
-    &:hover {
-        scale: 1.1;
-        border: 1px solid white;
-        box-shadow: inset 0 0 10px white;
-        background-color: rgba(0, 0, 0, 0.7);
-        text-shadow: 2px 2px 4px white;
-    }
-`
-
-const gameTitleStyle = css`
-    color: white;
-    margin: 2rem;
-    font-size: 5rem;
-    letter-spacing: 1rem;
-    font-family: system-ui;
-    text-shadow: .75rem .3rem .3rem rgba(255, 255, 255, .3);
 `
 
 const menuBackground = css`

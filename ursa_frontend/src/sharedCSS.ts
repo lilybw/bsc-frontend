@@ -1,5 +1,14 @@
 import { css } from '@emotion/css'
 
+/**
+ * Small style fragments
+ */
+export const Styles = {
+    NO_OVERFLOW: css`
+        overflow: hidden !important;
+    `
+}
+
 export const SHARED_CSS_STR =`
 body {
     margin: 0;

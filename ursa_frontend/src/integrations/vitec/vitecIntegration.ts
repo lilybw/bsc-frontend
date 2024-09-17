@@ -5,23 +5,47 @@ import { SessionInitiationRequestDTO } from "../main_backend/mainBackendDTOs";
 
 const SESSION_COOKIE_NAME = 'mvf_session_id';
 
+export type VitecUserInfo = {
+    /**
+     * Losslessly hashed vitec user identifier
+     */
+    userIdentifier: string;
+    /**
+     * Current Vitec Session Token
+     */
+    currentSessionToken: string;
+    /**
+     * Username
+     */
+    IGN: string;
+    LanguagePreference: string;
+}
+
 export type VitecIntegration = {
-    getUserInfo: () => Promise<ResErr<SessionInitiationRequestDTO>>
+    log: Logger,
+    env: ENV,
+    userInfo: VitecUserInfo
 }
 
 
 export async function initializeVitecIntegration(environment: ENV, log: Logger): Promise<ResErr<VitecIntegration>> {
-    document.cookie = `${SESSION_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-    const integration: VitecIntegration = {
-        getUserInfo: () => getUserInfo(environment, log)
-    };
-    if (environment.runtimeMode === RuntimeMode.TEST) {
-        integration.getUserInfo = () => Promise.resolve({res: environment.testUser!, err: null });
+    const userInfoRes = await getUserInfo(environment, log);
+    if (userInfoRes.err != null) {
+        return {res: null, err: userInfoRes.err};
     }
-
+    const integration: VitecIntegration = {
+        log: log,
+        env: environment,
+        userInfo: userInfoRes.res
+    };
     return {res: integration, err: null};
 }
 
-const getUserInfo = async (environment: ENV, log: Logger): Promise<ResErr<SessionInitiationRequestDTO>> => {
+const getUserInfo = async (environment: ENV, log: Logger): Promise<ResErr<VitecUserInfo>> => {
+
+    if (environment.runtimeMode === RuntimeMode.TEST) {
+        return Promise.resolve({res: environment.testUser!, err: null });
+    }
+
     return {res: null, err: "VitecMV integration not implemented"};  
 }

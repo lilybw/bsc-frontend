@@ -3,6 +3,7 @@ import { Component, createResource, createSignal, ErrorBoundary, JSX, Show } fro
 import { ApplicationContext, ResErr } from "./meta/types";
 import { init } from "./setup";
 import ErrorPage from "./ErrorPage";
+import { Styles } from "./sharedCSS";
 
 interface GlobalContainerProps {
     app: (context: ApplicationContext) => JSX.Element;
@@ -15,7 +16,7 @@ export default function GlobalContainer(props: GlobalContainerProps): JSX.Elemen
 
     //Time to do auth and stuff
     return (
-        <div class={appContainerStyle}>
+        <div class={appContainerStyle} id="the-global-container">
             <ErrorBoundary fallback={(error) => <ErrorPage content={error.message} />}>
                 <Show when={contextResult.loading}>
                     <div>Loading...</div>
@@ -33,11 +34,13 @@ export default function GlobalContainer(props: GlobalContainerProps): JSX.Elemen
 
 
 const appContainerStyle = css`
-    display: flex;
-    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
     height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    background-color: black;
+    ${Styles.NO_OVERFLOW}
 `

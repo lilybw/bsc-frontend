@@ -14,13 +14,7 @@ export const init = async (): Promise<ResErr<ApplicationContext>> => {
         return Promise.reject({res: null, err: vitecIntegrationResult.err});
     }
 
-    const vitecIntegration = vitecIntegrationResult.res;
-    const userInfoResult = await vitecIntegration.getUserInfo();
-    if (userInfoResult.err != null) {
-        return Promise.reject({res: null, err: userInfoResult.err});
-    }
-
-    const backendIntegrationInit = await initializeBackendIntegration(environment, log, userInfoResult.res);
+    const backendIntegrationInit = await initializeBackendIntegration(environment, log, vitecIntegrationResult.res.userInfo);
     if (backendIntegrationInit.err != null) {
         return Promise.reject({res: null, err: backendIntegrationInit.err});
     }

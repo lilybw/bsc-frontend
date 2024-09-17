@@ -3,13 +3,14 @@ import { PROD_ENVIRONMENT } from "./production";
 import { LogLevel, RuntimeMode } from "../meta/types";
 import { SessionInitiationRequestDTO } from "../integrations/main_backend/mainBackendDTOs";
 import { TEST_ENVIRONMENT } from "./test";
+import { VitecUserInfo } from "../integrations/vitec/vitecIntegration";
 
 export type ENV = {
     runtimeMode: RuntimeMode;
     mainBackendIP: string;
     mainBackendPort: number;
     logLevel?: LogLevel;
-    testUser?: SessionInitiationRequestDTO;
+    testUser?: VitecUserInfo;
     authHeaderName: string;
     /**
      * When the backend is proxied, any request to the backend shall omit "<protocol>://<ip>:<port>/<suburl>"
