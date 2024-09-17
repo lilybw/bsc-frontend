@@ -2,6 +2,7 @@ import { DEV_ENVIRONMENT } from "./development";
 import { PROD_ENVIRONMENT } from "./production";
 import { LogLevel, RuntimeMode } from "../meta/types";
 import { SessionInitiationRequestDTO } from "../integrations/main_backend/mainBackendDTOs";
+import { TEST_ENVIRONMENT } from "./test";
 
 export type ENV = {
     runtimeMode: RuntimeMode;
@@ -9,22 +10,31 @@ export type ENV = {
     mainBackendPort: number;
     logLevel?: LogLevel;
     testUser?: SessionInitiationRequestDTO;
+    authHeaderName: string;
+    /**
+     * When the backend is proxied, any request to the backend shall omit "<protocol>://<ip>:<port>/<suburl>"
+     * and just go with "/backend/<suburl>"
+     */
+    proxyMainBackendRequests?: boolean;
 }
 const BASE_ENV: ENV = {
     runtimeMode: RuntimeMode.UNKNOWN,
     mainBackendIP: "not_provided",
     mainBackendPort: 9999,
-    logLevel: LogLevel.INFO
+    logLevel: LogLevel.INFO,
+    authHeaderName: 'URSA-Token',
+    proxyMainBackendRequests: true
 }
 
 let environment: ENV = BASE_ENV;
 
 export const initializeEnvironment = (): ENV => {
-    const runtimeMode = import.meta.env.MODE as RuntimeMode;
+    const runtimeMode = import.meta.env.MODE;
     let overwritingEnv: ENV;
     switch (runtimeMode) {
         case RuntimeMode.DEVELOPMENT: overwritingEnv = DEV_ENVIRONMENT; break;
         case RuntimeMode.PRODUCTION: overwritingEnv = PROD_ENVIRONMENT; break;
+        case RuntimeMode.TEST: overwritingEnv = TEST_ENVIRONMENT; break;
         default:
             console.error(`Unknown runtime mode: ${runtimeMode}`);
             return BASE_ENV;

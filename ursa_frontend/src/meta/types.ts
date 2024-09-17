@@ -11,6 +11,7 @@ export type ResCodeErr<T> = | { res: null, err: Error, code: number } | { res: T
 export enum RuntimeMode {
     DEVELOPMENT = 'development',
     PRODUCTION = 'production',
+    TEST = 'test',
     UNKNOWN = 'unknown'
 }
 

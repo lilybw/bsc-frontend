@@ -1,4 +1,4 @@
-import { ResErr } from "../../meta/types";
+import { ResErr, RuntimeMode } from "../../meta/types";
 import { ENV } from "../../environment/manager";
 import { Logger } from "../../logging/filteredLogger";
 import { SessionInitiationRequestDTO } from "../main_backend/mainBackendDTOs";
@@ -15,6 +15,9 @@ export async function initializeVitecIntegration(environment: ENV, log: Logger):
     const integration: VitecIntegration = {
         getUserInfo: () => getUserInfo(environment, log)
     };
+    if (environment.runtimeMode === RuntimeMode.TEST) {
+        integration.getUserInfo = () => Promise.resolve({res: environment.testUser!, err: null });
+    }
 
     return {res: integration, err: null};
 }

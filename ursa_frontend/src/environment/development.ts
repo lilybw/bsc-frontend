@@ -5,5 +5,7 @@ export const DEV_ENVIRONMENT: ENV = {
     runtimeMode: RuntimeMode.DEVELOPMENT,
     mainBackendIP: "localhost",
     mainBackendPort: 5386,
-    logLevel: LogLevel.INFO
+    logLevel: LogLevel.INFO,
+    authHeaderName: 'URSA-Token',
+    proxyMainBackendRequests: true
 }

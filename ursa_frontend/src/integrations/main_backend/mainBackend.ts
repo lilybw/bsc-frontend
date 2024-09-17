@@ -16,6 +16,7 @@ export const BACKEND_INTERNAL_ERROR = 'Backend internal error'
 export type BackendIntegration = {
     mainBackendRootUrl: string;
     userToken?: string;
+    authHeaderName: string;
     logger: Logger;
     /**
      * The request will be prefixed with the root url ("protocol://ip:port") of the main backend and
@@ -32,12 +33,17 @@ export type BackendIntegration = {
 
 export async function initializeBackendIntegration(environment: ENV, log: Logger, userData: SessionInitiationRequestDTO): Promise<ResErr<BackendIntegration>> {
     const { mainBackendIP, mainBackendPort } = environment;
-    const mainBackendRootUrl = `http://${mainBackendIP}:${mainBackendPort}`;
+    let mainBackendRootUrl = `https://${mainBackendIP}:${mainBackendPort}`;
+    if (environment.proxyMainBackendRequests) {
+        log.log('Proxying main backend requests');
+        mainBackendRootUrl = '/backend';
+    }
     log.log(`Main backend root url: ${mainBackendRootUrl}`);
     const integration: BackendIntegration = {
         mainBackendRootUrl,
         userToken: undefined,
         request: undefined as any,
+        authHeaderName: environment.authHeaderName,
         logger: log
     };
     const tokenRes = await beginSession(integration, userData);
@@ -56,8 +62,9 @@ async function handleArbitraryRequest<T>(integration: BackendIntegration, method
     const userToken = integration.userToken;
     const headers: HeadersInit = {
         'Origin': 'URSA-Frontend',
-        'URSA-Token': userToken || ''
     };
+    headers[integration.authHeaderName] = userToken ?? '';
+    
     if ((!userToken || userToken === '' || userToken === null) && !suburl.includes('session')) {
         integration.logger.log('User is not authorized yet a request for: ' + suburl + " was made");
         return { res: null, code: 400, err: USER_NOT_AUTHORIZED_ERROR };
