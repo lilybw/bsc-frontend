@@ -27,18 +27,11 @@ export default function GlobalContainer(props: GlobalContainerProps): JSX.Elemen
                 </Show>
                 <Show when={contextResult.state === "ready"}>
                     {props.app(contextResult.latest?.res!)}
-                </Show>
-
+                </Show> 
             </ErrorBoundary>
         </div>
     );
 }
-
-/*
-            
-
-
-*/
 
 const appContainerStyle = css`
     position: fixed;

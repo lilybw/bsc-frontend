@@ -45,7 +45,7 @@ const getUserInfo = async (environment: ENV, log: Logger): Promise<ResErr<VitecU
     if (environment.runtimeMode === RuntimeMode.TEST) {
         return Promise.resolve({res: environment.testUser!, err: null });
     }
-    const sessionRes = parseForSessionCookie();
+    const sessionRes = parseForSessionCookie(log);
     if (sessionRes.err != null) {
         return {res: null, err: sessionRes.err};
     }
@@ -60,12 +60,17 @@ const getUserInfo = async (environment: ENV, log: Logger): Promise<ResErr<VitecU
     return {res: user, err: null};  
 }
 
-const parseForSessionCookie = (): ResErr<string> => {
+const parseForSessionCookie = (log: Logger): ResErr<string> => {
     const cookies = document.cookie.split(';');
+    log.trace(`[mv int] Available cookies: ${cookies}`);
     for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
         if (cookie.startsWith(SESSION_COOKIE_NAME)) {
-            return {res: cookie, err: null};
+            const splitOnEquals = cookie.split('=');
+            if (splitOnEquals.length < 2) {
+                return {res: null, err: `Session cookie found, but no value found for cookie: ${cookie}`};
+            }
+            return {res: splitOnEquals[1], err: null};
         }
     }
     return {res: null, err: "No session cookie found"};

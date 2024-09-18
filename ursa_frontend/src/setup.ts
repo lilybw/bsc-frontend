@@ -8,8 +8,6 @@ export const init = async (): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
     const log = initializeLogger(environment);
     log.log('[setup] Initializing application context');
-
-    await delaySetupIfDevOrTest(environment);
     
     const vitecIntegrationResult = await initializeVitecIntegration(environment, log);
     if (vitecIntegrationResult.err != null) {
@@ -23,6 +21,8 @@ export const init = async (): Promise<ResErr<ApplicationContext>> => {
     }
     log.log('[setup] Main backend integration complete');
 
+
+    await delaySetupIfDevOrTest(environment);
     console.log(environment);
     const context: ApplicationContext = {
         backend: backendIntegrationInit.res,

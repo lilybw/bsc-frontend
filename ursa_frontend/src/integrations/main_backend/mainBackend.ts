@@ -35,10 +35,10 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
     const { mainBackendIP, mainBackendPort } = environment;
     let mainBackendRootUrl = `https://${mainBackendIP}:${mainBackendPort}`;
     if (environment.proxyMainBackendRequests) {
-        log.log('Proxying main backend requests');
+        log.log('[umb int] Proxying main backend requests');
         mainBackendRootUrl = environment.mainBackendURLWhenProxied!;
     }
-    log.log(`Main backend root url: ${mainBackendRootUrl}`);
+    log.log(`[umb int] Main backend root url: ${mainBackendRootUrl}`);
     const integration: BackendIntegration = {
         mainBackendRootUrl,
         userToken: undefined,
@@ -67,11 +67,11 @@ async function handleArbitraryRequest<T>(integration: BackendIntegration, method
     headers['Content-Type'] = 'application/json';
     
     if ((!userToken || userToken === '' || userToken === null) && !suburl.includes('session')) {
-        integration.logger.log('User is not authorized yet a request for: ' + suburl + " was made");
+        integration.logger.log('[umb int] User is not authorized yet a request for: ' + suburl + " was made");
         return { res: null, code: 400, err: USER_NOT_AUTHORIZED_ERROR };
     }
     try {
-        integration.logger.trace(`OUT: ${method} ${integration.mainBackendRootUrl}${suburl}`);
+        integration.logger.trace(`[umb int] OUT: ${method} ${integration.mainBackendRootUrl}${suburl}`);
         const response = await fetch(integration.mainBackendRootUrl + suburl, {
             method: method,
             body: body ? JSON.stringify(body) : undefined,
@@ -79,7 +79,7 @@ async function handleArbitraryRequest<T>(integration: BackendIntegration, method
         });
         const ddh = response.headers.get('Ursa-Ddh');
         if (ddh != null) {
-            integration.logger.warn('DDH: ' + ddh);
+            integration.logger.warn('[umb int] DDH: ' + ddh);
         }
         const code = response.status;
         if (!(code >= 200 && code < 300)) {
@@ -103,7 +103,7 @@ async function handleArbitraryRequest<T>(integration: BackendIntegration, method
         }
         
     } catch (error) {
-        integration.logger.error('Error: ' + error as string);
+        integration.logger.error('[umb int] Error: ' + error as string);
         return { res: null, code: 600, err: error as string };
     }
 }

@@ -3,17 +3,17 @@ import { css, keyframes } from '@emotion/css';
 import StarryBackground from './StarryBackground';
 import SectionTitle from './SectionTitle';
 
-const orbit = keyframes`
+const animOrbit = keyframes`
   from { transform: translate(-50%, -50%) rotate(var(--start-position)); }
   to { transform: translate(-50%, -50%) rotate(calc(var(--start-position) + 360deg)); }
 `;
 
-const pulse = keyframes`
+const animPulse = keyframes`
   0%, 100% { 
     transform: scale(1) translate(-50%, -50%); 
     box-shadow: 0 0 0rem white;
     background: radial-gradient(circle, white 0%, #f7971e 100%);
-    filter: brightness(.6);
+    filter: brightness(.8);
   }
   50% { 
     transform: scale(1.1) translate(-50%, -50%); 
@@ -22,6 +22,15 @@ const pulse = keyframes`
     filter: brightness(1);
   }
 `;
+
+const animAtmosphericDisturbance = keyframes`
+  0%, 100% { 
+    filter: drop-shadow(.3rem 0 .5rem rgba(255, 255, 255, .2));
+  }
+  50% { 
+    filter: drop-shadow(.3rem 0 .5rem white);
+  }
+`
 
 const spinnerStyles = css`
   position: fixed;
@@ -52,7 +61,7 @@ const sunStyles = css`
   height: var(--sun-radius);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  animation: ${pulse} 4s ease-in-out infinite;
+  animation: ${animPulse} 4s ease-in-out infinite;
 `;
 
 const orbitStyles = css`
@@ -61,8 +70,7 @@ const orbitStyles = css`
   top: 50%;
   left: 50%;
   border-radius: 50%;
-  border-style: solid;
-  filter: drop-shadow(0 0 .5rem white);
+  border-style: dashed;
 `;
 
 const textStyles = css`
@@ -81,12 +89,12 @@ const textStyles = css`
 
 const color = '30';
 const planets = [
-  { name: 'Mercury', color: `hsl(${color}, 50%, 70%)`, size: .333, orbitSize: 16, speed: 6 },
-  { name: 'Venus', color: `hsl(${color}, 50%, 60%)`, size: .5, orbitSize: 20, speed: 10 },
-  { name: 'Earth', color: `hsl(${color}, 50%, 50%)`, size: .533, orbitSize: 26, speed: 14 },
-  { name: 'Mars', color: `hsl(${color}, 50%, 40%)`, size: .466, orbitSize: 32, speed: 22 },
-  { name: 'Jupiter', color: `hsl(${color}, 50%, 30%)`, size: 1, orbitSize: 40, speed: 42 },
-  { name: 'Saturn', color: `hsl(${color}, 50%, 20%)`, size: 0.933, orbitSize: 48, speed: 62 },
+  { name: 'mercury', color: `hsl(${color}, 50%, 60%)`, size: .333, orbitSize: 16, speed: 6 },
+  { name: 'venus', color: `hsl(${color}, 50%, 60%)`, size: .5, orbitSize: 20, speed: 10 },
+  { name: 'earth', color: `hsl(${color}, 50%, 50%)`, size: .533, orbitSize: 26, speed: 14 },
+  { name: 'mars', color: `hsl(${color}, 50%, 40%)`, size: .466, orbitSize: 32, speed: 22 },
+  { name: 'jupiter', color: `hsl(${color}, 50%, 30%)`, size: 1, orbitSize: 40, speed: 42 },
+  { name: 'saturn', color: `hsl(${color}, 50%, 20%)`, size: 0.933, orbitSize: 48, speed: 62 },
 ];
 
 interface LoadingSpinnerProps {
@@ -97,26 +105,38 @@ const LoadingSpinner: Component<LoadingSpinnerProps> = (props: LoadingSpinnerPro
   const getRandomStartPosition = () => Math.floor(Math.random() * 360);
 
   return (
-    <div class={spinnerStyles}>
+    <div class={spinnerStyles} id="solar-system-loading-spinner">
       <StarryBackground styleOverwrite={css`filter: brightness(.3);`}/>
       <div class={solarSystemStyles}>
-        <div class={sunStyles}></div>
+        <div class={sunStyles} id="the-sun"></div>
         <SectionTitle styleOverwrite={textStyles}>{props.loadingText ?? "Loading..."}</SectionTitle>
         <For each={planets}>
           {(planet) => {
             const startPosition = getRandomStartPosition();
             return (
-              <div
-                class={orbitStyles}
+                <>
+                <div class={orbitStyles} id={planet.name + "-trace"}
+                    style={{ 
+                        "border-width": `0px 1px 0px 0px`,
+                        "border-color": planet.color,
+                        '--start-position': `${startPosition}deg`,
+                        width: `${planet.orbitSize}rem`,
+                        height: `${planet.orbitSize}rem`,
+                        "animation": `${animOrbit} ${planet.speed}s linear infinite`,
+                    }}>
+
+                </div>
+              <div class={orbitStyles} id={planet.name}
                 style={{
                   width: `${planet.orbitSize}rem`,
                   height: `${planet.orbitSize}rem`,
-                  "border-width": `1px 1px 1px ${planet.size}rem`,
+                  "border-width": `0px 0px 0px ${planet.size}rem`,
                   "border-color": planet.color,
                   '--start-position': `${startPosition}deg`,
-                  "animation": `${orbit} ${planet.speed}s linear infinite`,
+                  "animation": `${animOrbit} ${planet.speed}s linear infinite, ${animAtmosphericDisturbance} 4s ease-in-out infinite`,
                 }}
               ></div>
+              </>
             );
           }}
         </For>

@@ -41,13 +41,13 @@ export const initializeEnvironment = (): ENV => {
         case RuntimeMode.PRODUCTION: overwritingEnv = PROD_ENVIRONMENT; break;
         case RuntimeMode.TEST: overwritingEnv = TEST_ENVIRONMENT; break;
         default:
-            console.error(`Unknown runtime mode: ${runtimeMode}`);
+            console.error(`[env man] Unknown runtime mode: ${runtimeMode}`);
             return BASE_ENV;
     }
     for (const key in overwritingEnv) {
         const value = overwritingEnv[key as keyof typeof overwritingEnv];
         if (value === undefined || value === null) {
-            console.error(`Environment variable ${key} is present but has no value`);
+            console.error(`[env man] Environment variable ${key} is present but has no value`);
         }
         (environment as any)[key] = overwritingEnv[key as keyof ENV];
     }

@@ -8,7 +8,6 @@ interface BigMenuButtonProps {
 }
 
 export default function BigMenuButton(props: BigMenuButtonProps): JSX.Element {
-    
     return (
         <button class={css`${menuOptionStyle} ${props.styleOverwrite}`} onClick={props.onClick}>{props.children}</button>
     );
