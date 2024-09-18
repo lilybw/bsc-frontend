@@ -13,10 +13,12 @@ export default function SectionTitle(props: SectionTitleProps): JSX.Element {
 }
 
 const gameTitleStyle = css`
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1rem;
+    text-transform: uppercase;
     color: white;
     margin: 2rem;
-    font-size: 5rem;
-    letter-spacing: 1rem;
-    font-family: system-ui;
+    font-size: 3rem;
     text-shadow: .75rem .3rem .3rem rgba(255, 255, 255, .3);
 `
