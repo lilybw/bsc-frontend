@@ -4,6 +4,7 @@ import { ApplicationContext, ResErr } from "./meta/types";
 import { init } from "./setup";
 import ErrorPage from "./ErrorPage";
 import { Styles } from "./sharedCSS";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 interface GlobalContainerProps {
     app: (context: ApplicationContext) => JSX.Element;
@@ -19,7 +20,7 @@ export default function GlobalContainer(props: GlobalContainerProps): JSX.Elemen
         <div class={appContainerStyle} id="the-global-container">
             <ErrorBoundary fallback={(error) => <ErrorPage content={error.message} />}>
                 <Show when={contextResult.loading}>
-                    <div>Loading...</div>
+                    <LoadingSpinner />
                 </Show>
                 <Show when={contextResult.error}>
                     <ErrorPage content={contextResult.latest?.err} />
@@ -27,11 +28,17 @@ export default function GlobalContainer(props: GlobalContainerProps): JSX.Elemen
                 <Show when={contextResult.state === "ready"}>
                     {props.app(contextResult.latest?.res!)}
                 </Show>
+
             </ErrorBoundary>
         </div>
     );
 }
 
+/*
+            
+
+
+*/
 
 const appContainerStyle = css`
     position: fixed;

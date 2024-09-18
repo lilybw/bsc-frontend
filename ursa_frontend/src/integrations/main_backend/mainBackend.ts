@@ -36,7 +36,7 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
     let mainBackendRootUrl = `https://${mainBackendIP}:${mainBackendPort}`;
     if (environment.proxyMainBackendRequests) {
         log.log('Proxying main backend requests');
-        mainBackendRootUrl = '/ursa_backend';
+        mainBackendRootUrl = environment.mainBackendURLWhenProxied!;
     }
     log.log(`Main backend root url: ${mainBackendRootUrl}`);
     const integration: BackendIntegration = {
@@ -112,7 +112,6 @@ async function beginSession(integration: BackendIntegration, data: SessionInitia
     const response = await handleArbitraryRequest<SessionInitiationResponseDTO>(
         integration, HTTPMethod.POST, '/api/v1/session', ParseMethod.JSON, data
     );
-    //Falsy values, undefined, 0, '', NaN, false
     if (response.err != null) {
         if (response.code === 401) {
             return { res: null, err: USER_NOT_AUTHORIZED_ERROR };

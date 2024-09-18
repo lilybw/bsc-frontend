@@ -1,13 +1,15 @@
-import { initializeEnvironment } from "./environment/manager";
+import { ENV, initializeEnvironment } from "./environment/manager";
 import { initializeBackendIntegration } from "./integrations/main_backend/mainBackend";
 import { initializeVitecIntegration } from "./integrations/vitec/vitecIntegration";
 import { initializeLogger } from "./logging/filteredLogger";
-import { ApplicationContext, ResErr } from "./meta/types";
+import { ApplicationContext, ResErr, RuntimeMode } from "./meta/types";
 
 export const init = async (): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
     const log = initializeLogger(environment);
     log.log('[setup] Initializing application context');
+
+    await delaySetupIfDevOrTest(environment);
     
     const vitecIntegrationResult = await initializeVitecIntegration(environment, log);
     if (vitecIntegrationResult.err != null) {
@@ -29,4 +31,11 @@ export const init = async (): Promise<ResErr<ApplicationContext>> => {
         multiplayer: undefined as any
     };
     return Promise.resolve({res: context, err: null});
+}
+const delayTimeMS = 5000;
+const delaySetupIfDevOrTest = async (environment: ENV) => {
+    if (environment.runtimeMode === RuntimeMode.DEVELOPMENT || environment.runtimeMode === RuntimeMode.TEST) {
+        console.log('[setup] Delaying setup for '+delayTimeMS+' seconds');
+        await new Promise((resolve) => setTimeout(resolve, delayTimeMS));
+    }
 }

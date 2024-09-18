@@ -4,6 +4,7 @@ import { SHARED_CSS, SHARED_CSS_STR, Styles } from '../src/sharedCSS';
 import {injectGlobal, css} from '@emotion/css'
 import BigMenuButton from '../src/components/BigMenuButton';
 import SectionTitle from '../src/components/SectionTitle';
+import StarryBackground from '../src/components/StarryBackground';
 
 export default function MainMenuApp(): JSX.Element {
   console.log("[delete me] MainMenuApp mounted")
@@ -16,7 +17,7 @@ export default function MainMenuApp(): JSX.Element {
         <BigMenuButton>Join</BigMenuButton>
         <BigMenuButton>Tutorial</BigMenuButton>
       </div>
-      <div class={menuBackground}></div>
+      <StarryBackground />
     </div>
   );
 };
@@ -31,19 +32,4 @@ const menuOptionsListStyle = css`
     left: 50%;
     width: 33%;
     transform: translate(-50%, -50%);
-`
-
-const menuBackground = css`
-    z-index: -1000;
-    position: fixed;
-    top: -1px;
-    left: -1px;
-    width: 101%;
-    height: 101%;  
-    background-image: url('https://cdn.mos.cms.futurecdn.net/BfemybeKVXCf9pgX9WCxsc-1200-80.jpg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    transition: all 1.5s ease-out; 
-    filter: blur(2px);
-    overflow: clip;
 `

@@ -18,6 +18,7 @@ export type ENV = {
      * and just go with "/backend/<suburl>"
      */
     proxyMainBackendRequests?: boolean;
+    mainBackendURLWhenProxied?: string;
 }
 const BASE_ENV: ENV = {
     runtimeMode: RuntimeMode.UNKNOWN,
@@ -26,7 +27,8 @@ const BASE_ENV: ENV = {
     logLevel: LogLevel.INFO,
     authHeaderName: 'URSA-Token',
     proxyMainBackendRequests: true,
-    mainBackendTLS: true
+    mainBackendTLS: true,
+    mainBackendURLWhenProxied: "/ursa_backend"
 }
 
 let environment: ENV = BASE_ENV;

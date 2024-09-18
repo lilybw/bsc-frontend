@@ -3,11 +3,12 @@ import { JSX } from "solid-js/jsx-runtime";
 
 interface SectionTitleProps {
     children: JSX.Element;
+    styleOverwrite?: string;
 }
 
 export default function SectionTitle(props: SectionTitleProps): JSX.Element {
     return (
-        <div class={gameTitleStyle}>{props.children}</div>
+        <div class={css`${gameTitleStyle} ${props.styleOverwrite}`}>{props.children}</div>
     )
 }
 
