@@ -1,4 +1,6 @@
 # URSA Frontend
+v. 0.0.1
+Last update (DD/MM/YYYY): 18/09/2024
 
 Build with Solid see [Solid Website](https://solidjs.com)
 
