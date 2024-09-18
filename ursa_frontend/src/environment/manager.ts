@@ -9,6 +9,7 @@ export type ENV = {
     runtimeMode: RuntimeMode;
     mainBackendIP: string;
     mainBackendPort: number;
+    mainBackendTLS?: boolean;
     logLevel?: LogLevel;
     testUser?: VitecUserInfo;
     authHeaderName: string;
@@ -24,7 +25,8 @@ const BASE_ENV: ENV = {
     mainBackendPort: 9999,
     logLevel: LogLevel.INFO,
     authHeaderName: 'URSA-Token',
-    proxyMainBackendRequests: true
+    proxyMainBackendRequests: true,
+    mainBackendTLS: true
 }
 
 let environment: ENV = BASE_ENV;

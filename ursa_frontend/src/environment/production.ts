@@ -7,5 +7,6 @@ export const PROD_ENVIRONMENT: ENV = {
     mainBackendPort: 5386,
     logLevel: LogLevel.ERROR,
     authHeaderName: 'URSA-Token',
-    proxyMainBackendRequests: false
+    proxyMainBackendRequests: false,
+    mainBackendTLS: true
 }

@@ -42,10 +42,31 @@ export async function initializeVitecIntegration(environment: ENV, log: Logger):
 }
 
 const getUserInfo = async (environment: ENV, log: Logger): Promise<ResErr<VitecUserInfo>> => {
-
     if (environment.runtimeMode === RuntimeMode.TEST) {
         return Promise.resolve({res: environment.testUser!, err: null });
     }
+    const sessionRes = parseForSessionCookie();
+    if (sessionRes.err != null) {
+        return {res: null, err: sessionRes.err};
+    }
 
-    return {res: null, err: "VitecMV integration not implemented"};  
+    const user: VitecUserInfo = {
+        userIdentifier: "test",
+        currentSessionToken: sessionRes.res,
+        IGN: "none",
+        LanguagePreference: "en"
+    }
+
+    return {res: user, err: null};  
+}
+
+const parseForSessionCookie = (): ResErr<string> => {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(SESSION_COOKIE_NAME)) {
+            return {res: cookie, err: null};
+        }
+    }
+    return {res: null, err: "No session cookie found"};
 }

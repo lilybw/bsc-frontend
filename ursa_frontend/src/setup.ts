@@ -13,11 +13,13 @@ export const init = async (): Promise<ResErr<ApplicationContext>> => {
     if (vitecIntegrationResult.err != null) {
         return Promise.reject({res: null, err: vitecIntegrationResult.err});
     }
+    log.log('[setup] Vitec integration complete');
 
     const backendIntegrationInit = await initializeBackendIntegration(environment, log, vitecIntegrationResult.res.userInfo);
     if (backendIntegrationInit.err != null) {
         return Promise.reject({res: null, err: backendIntegrationInit.err});
     }
+    log.log('[setup] Main backend integration complete');
 
     console.log(environment);
     const context: ApplicationContext = {

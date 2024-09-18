@@ -22,7 +22,7 @@ export default function GlobalContainer(props: GlobalContainerProps): JSX.Elemen
                     <div>Loading...</div>
                 </Show>
                 <Show when={contextResult.error}>
-                    <ErrorPage content={contextResult.latest?.err!} />
+                    <ErrorPage content={contextResult.latest?.err} />
                 </Show>
                 <Show when={contextResult.state === "ready"}>
                     {props.app(contextResult.latest?.res!)}

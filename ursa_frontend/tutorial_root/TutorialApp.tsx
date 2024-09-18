@@ -9,7 +9,7 @@ import SectionTitle from '../src/components/SectionTitle';
 injectGlobal`${SHARED_CSS_STR}`
 
 export default function TutorialApp(context: ApplicationContext): JSX.Element {
-  const [currentSlide, setCurrentSlide] = createSignal(0);
+  const [currentSlide, setCurrentSlide] = createSignal();
   return (
     <div>
       <header>

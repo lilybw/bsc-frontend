@@ -7,11 +7,11 @@ export default defineConfig(({ mode }) => {
   const serverConfig = {
     port: mode === 'production' ? 3001 : 3000,
     proxy: mode !== 'production' ? {
-      '/backend': {
+      '/ursa_backend': {
         target: 'https://localhost:5386',
         changeOrigin: true,
         secure: false,
-        rewrite: (path: string) => path.replace(/^\/backend/, ''),
+        rewrite: (path: string) => path.replace(/^\/ursa_backend/, ''),
         agent: new https.Agent({ rejectUnauthorized: false })
       },
     } : undefined

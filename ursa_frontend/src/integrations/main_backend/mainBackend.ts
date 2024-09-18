@@ -36,7 +36,7 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
     let mainBackendRootUrl = `https://${mainBackendIP}:${mainBackendPort}`;
     if (environment.proxyMainBackendRequests) {
         log.log('Proxying main backend requests');
-        mainBackendRootUrl = '/backend';
+        mainBackendRootUrl = '/ursa_backend';
     }
     log.log(`Main backend root url: ${mainBackendRootUrl}`);
     const integration: BackendIntegration = {
