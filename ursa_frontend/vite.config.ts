@@ -11,8 +11,7 @@ export default defineConfig(({ mode }) => {
         target: 'https://localhost:5386',
         changeOrigin: true,
         secure: false,
-        rewrite: (path: string) => path.replace(/^\/ursa_backend/, ''),
-        agent: new https.Agent({ rejectUnauthorized: false })
+        rewrite: (path: string) => path.replace(/^\/ursa_backend/, '')
       },
     } : undefined
   };
