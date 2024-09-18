@@ -1,7 +1,7 @@
 import { Logger } from "../../logging/filteredLogger";
 import { ENV } from "../../environment/manager";
 import { ParseMethod, ResCodeErr, ResErr, ResErrSet } from "../../meta/types";
-import { SessionInitiationRequestDTO, SessionInitiationResponseDTO } from "./mainBackendDTOs";
+import { AssetResponseDTO, SessionInitiationRequestDTO, SessionInitiationResponseDTO } from "./mainBackendDTOs";
 
 export enum HTTPMethod {
     GET = 'GET',
@@ -18,6 +18,8 @@ export type BackendIntegration = {
     userToken?: string;
     authHeaderName: string;
     logger: Logger;
+    getAssetMetadata: (assetId: number) => Promise<ResCodeErr<AssetResponseDTO>>;
+    getAssetLOD: (assetId: number, lod: number) => Promise<ResCodeErr<Blob>>;
     /**
      * The request will be prefixed with the root url ("protocol://ip:port") of the main backend and
      * have the auth header set. Notably not including api versioning.
@@ -41,8 +43,10 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
     log.log(`[umb int] Main backend root url: ${mainBackendRootUrl}`);
     const integration: BackendIntegration = {
         mainBackendRootUrl,
-        userToken: undefined,
-        request: undefined as any,
+        userToken: "backend integration not initialized",
+        request: () => { throw new Error('Not initialized') },
+        getAssetMetadata: () => { throw new Error('Not initialized') },
+        getAssetLOD: () => { throw new Error('Not initialized') },
         authHeaderName: environment.authHeaderName,
         logger: log
     };
@@ -50,10 +54,10 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
     if (tokenRes.err != null) {
         return { res: null, err: tokenRes.err };
     }
-
     integration.userToken = tokenRes.res;
     integration.request = <T>(method: HTTPMethod, suburl: string, retrieveAs: ParseMethod) => handleArbitraryRequest(integration, method, suburl, retrieveAs)
-
+    integration.getAssetMetadata = (assetId: number) => integration.request<AssetResponseDTO>(HTTPMethod.GET, "/api/v1/" + assetId, ParseMethod.JSON);
+    integration.getAssetLOD = (assetId: number, lod: number) => integration.request<Blob>(HTTPMethod.GET, `/api/v1/${assetId}/lod/${lod}`, ParseMethod.BLOB);
     return {res: integration, err: null};
 }
 

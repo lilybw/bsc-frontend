@@ -23,6 +23,7 @@ export const init = async (): Promise<ResErr<ApplicationContext>> => {
 
 
     await delaySetupIfDevOrTest(environment);
+    
     console.log(environment);
     const context: ApplicationContext = {
         backend: backendIntegrationInit.res,

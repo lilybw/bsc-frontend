@@ -7,10 +7,19 @@ import { ApplicationContext } from '../src/meta/types';
 import SectionTitle from '../src/components/SectionTitle';
 import BigMenuButton from '../src/components/BigMenuButton';
 import ProgressTracker from './ProgressTracker';
-import LanguagePage from './LanguagePage';
+import LanguagePage from './slides/LanguagePage';
 import ErrorPage from '../src/ErrorPage';
 import { createStore } from 'solid-js/store';
 import SlideIcon, { SlideIconProps } from './SlideIcon';
+import WelcomePage from './slides/WelcomePage';
+import LocationDemoPage from './slides/LocationDemo';
+import LocationTrial from './slides/LocationTrial';
+import NavigationDemo from './slides/NavigationDemo';
+import NavigationTrial from './slides/NavigationTrial';
+import LocationDemo from './slides/LocationDemo';
+import MultiplayerTrial from './slides/MultiplayerTrial';
+import TutorialCompletePage from './slides/TutorialCompletePage';
+import StarryBackground from '../src/components/StarryBackground';
 
 injectGlobal`${SHARED_CSS_STR}`
 
@@ -72,20 +81,34 @@ export default function TutorialApp(context: ApplicationContext): JSX.Element {
 
   return (
     <div class={containerStyle} id="the-tutorial-app">
+        <StarryBackground />
         <ProgressTracker currentSlide={currentSlide} slideStore={slideStore} setSlideStore={setSlides} previousSlide={previousSlide}/>
         <Switch fallback= {<ErrorPage content="OOC: Out of Cases" />}>
           <Match when={currentSlide() === 0}>
             <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={() => onSlideCompleted(currentSlide())} />
           </Match>
           <Match when={currentSlide() === 1}>
-            <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <WelcomePage onSlideCompleted={() => onSlideCompleted(currentSlide())} />
           </Match>
           <Match when={currentSlide() === 2}>
-            <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <NavigationDemo onSlideCompleted={() => onSlideCompleted(currentSlide())} />
           </Match>
           <Match when={currentSlide() === 3}>
-            <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <NavigationTrial onSlideCompleted={() => onSlideCompleted(currentSlide())} />
           </Match>
+          <Match when={currentSlide() === 4}>
+            <LocationDemo onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+          </Match>
+          <Match when={currentSlide() === 5}>
+            <LocationTrial onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+          </Match>
+          <Match when={currentSlide() === 6}>
+            <MultiplayerTrial onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+          </Match>
+          <Match when={currentSlide() === 7}>
+            <TutorialCompletePage onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+          </Match>
+          
         </Switch>
         <div class={navigationFooterStyle}>
             {currentSlide() < slideStore.length && hasCompletedSlide() ? 

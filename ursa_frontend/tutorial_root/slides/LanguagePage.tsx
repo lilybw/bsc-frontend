@@ -1,5 +1,5 @@
 import { JSX } from "solid-js/jsx-runtime";
-import BigMenuButton from "../src/components/BigMenuButton";
+import BigMenuButton from "../../src/components/BigMenuButton";
 import { For } from "solid-js";
 
 interface LanguagePageProps {
