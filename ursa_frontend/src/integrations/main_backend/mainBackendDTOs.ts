@@ -19,20 +19,14 @@ export type PlayerInfoResponseDTO = {
     achievements: uint32[];
     hasCompletedTutorial: boolean;
 }
-
+export type PlayerPreferenceDTO = {
+    id: uint32;
+    key: string;
+    chosenValue: string;
+    availableValues: string[];
+}
 export type PlayerPreferencesResponseDTO = {
-    preferences: {
-        id: uint32;
-        /**
-         * E.g. "language"
-         */
-        key: string;
-        /**
-         * E.g. "DK"
-         */
-        chosenValue: string;
-        availableValues: string[];
-    }
+    preferences: PlayerPreferenceDTO[]
 }
 
 export type InternationalizationCatalogueResponseDTO = {[key: string]: string}
@@ -223,4 +217,8 @@ export type MinimizedAssetDTO = {
         detailLevel: uint32;
         id: AssetID;
     }[]
+}
+
+export type CreateColonyRequestDTO = {
+    name: string;
 }

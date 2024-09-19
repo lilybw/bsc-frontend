@@ -7,7 +7,7 @@ interface ProgressiveImageProps {
   backend: BackendIntegration;
 }
 
-const ProgressiveImage: Component<ProgressiveImageProps> = (props) => {
+const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
   const [currentSrc, setCurrentSrc] = createSignal<string | null>(null);
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal<string | null>(null);
@@ -100,4 +100,4 @@ const ProgressiveImage: Component<ProgressiveImageProps> = (props) => {
   );
 };
 
-export default ProgressiveImage;
+export default GraphicalAsset;

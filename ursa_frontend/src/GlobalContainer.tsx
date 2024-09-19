@@ -18,7 +18,7 @@ export default function GlobalContainer(props: GlobalContainerProps): JSX.Elemen
     //Time to do auth and stuff
     return (
         <div class={appContainerStyle} id="the-global-container">
-            <ErrorBoundary fallback={(error) => <ErrorPage content={error.message} />}>
+            <ErrorBoundary fallback={(error) => <ErrorPage content={JSON.stringify(error)} />}>
                 <Show when={contextResult.loading}>
                     <LoadingSpinner />
                 </Show>

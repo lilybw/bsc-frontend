@@ -1,6 +1,7 @@
 import { JSX } from "solid-js/jsx-runtime";
 import BigMenuButton from "../../src/components/BigMenuButton";
 import { For } from "solid-js";
+import StarryBackground from "../../src/components/StarryBackground";
 
 interface LanguagePageProps {
     styleOverwrite?: string;
@@ -19,6 +20,7 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
 
     return (
         <div class="language-tutorial-page">
+            <StarryBackground />
             <For each={languages}>{(language) => (
                 <BigMenuButton onClick={() => onLanguageSelected(language)}>{language}</BigMenuButton>
             )}

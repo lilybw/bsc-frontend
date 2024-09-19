@@ -51,7 +51,7 @@ const solarSystemStyles = css`
   width: 100%;
   height: 100%;
 `;
-
+//rem vmin vw % px em
 const sunStyles = css`
   position: fixed;
   --sun-radius: 3rem;
@@ -123,19 +123,18 @@ const LoadingSpinner: Component<LoadingSpinnerProps> = (props: LoadingSpinnerPro
                         width: `${planet.orbitSize}rem`,
                         height: `${planet.orbitSize}rem`,
                         "animation": `${animOrbit} ${planet.speed}s linear infinite`,
-                    }}>
-
-                </div>
-              <div class={orbitStyles} id={planet.name}
-                style={{
-                  width: `${planet.orbitSize}rem`,
-                  height: `${planet.orbitSize}rem`,
-                  "border-width": `0px 0px 0px ${planet.size}rem`,
-                  "border-color": planet.color,
-                  '--start-position': `${startPosition}deg`,
-                  "animation": `${animOrbit} ${planet.speed}s linear infinite, ${animAtmosphericDisturbance} 4s ease-in-out infinite`,
-                }}
-              ></div>
+                    }}
+                />
+                <div class={orbitStyles} id={planet.name}
+                  style={{
+                    width: `${planet.orbitSize}rem`,
+                    height: `${planet.orbitSize}rem`,
+                    "border-width": `0px 0px 0px ${planet.size}rem`,
+                    "border-color": planet.color,
+                    '--start-position': `${startPosition}deg`,
+                    "animation": `${animOrbit} ${planet.speed}s linear infinite, ${animAtmosphericDisturbance} 4s ease-in-out infinite`,
+                  }}
+                />
               </>
             );
           }}

@@ -3,12 +3,12 @@ import { JSX } from "solid-js/jsx-runtime";
 
 interface StarryBackgroundProps {
     styleOverwrite?: string;
+    children?: JSX.Element;
 }
 
 export default function StarryBackground(props: StarryBackgroundProps): JSX.Element {
- 
     return (
-        <div class={css`${starBackground} ${props.styleOverwrite}`}></div>
+        <div class={css`${starBackground} ${props.styleOverwrite}`}>{props.children}</div>
     );
 }
 const starBackground = css`

@@ -81,7 +81,6 @@ export default function TutorialApp(context: ApplicationContext): JSX.Element {
 
   return (
     <div class={containerStyle} id="the-tutorial-app">
-        <StarryBackground />
         <ProgressTracker currentSlide={currentSlide} slideStore={slideStore} setSlideStore={setSlides} previousSlide={previousSlide}/>
         <Switch fallback= {<ErrorPage content="OOC: Out of Cases" />}>
           <Match when={currentSlide() === 0}>
@@ -108,7 +107,6 @@ export default function TutorialApp(context: ApplicationContext): JSX.Element {
           <Match when={currentSlide() === 7}>
             <TutorialCompletePage onSlideCompleted={() => onSlideCompleted(currentSlide())} />
           </Match>
-          
         </Switch>
         <div class={navigationFooterStyle}>
             {currentSlide() < slideStore.length && hasCompletedSlide() ? 

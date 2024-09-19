@@ -1,4 +1,5 @@
 import { JSX } from "solid-js/jsx-runtime";
+import StarryBackground from "../../src/components/StarryBackground";
 
 interface LocationDemoProps {
     styleOverwrite?: string;
@@ -12,6 +13,7 @@ export default function LocationDemoPage(props: LocationDemoProps): JSX.Element 
     }, 10_000);
     return (
         <div class="location-demo">
+            <StarryBackground />
             <h1>Location Demo</h1>
             <p>
                 This is a demo of a location component.

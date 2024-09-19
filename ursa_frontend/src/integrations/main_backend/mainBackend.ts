@@ -1,8 +1,20 @@
 import { Logger } from "../../logging/filteredLogger";
 import { ENV } from "../../environment/manager";
 import { ParseMethod, ResCodeErr, ResErr, ResErrSet } from "../../meta/types";
-import { AssetResponseDTO, SessionInitiationRequestDTO, SessionInitiationResponseDTO } from "./mainBackendDTOs";
-
+import { 
+    AssetCollectionID, AssetCollectionResponseDTO, AssetID, 
+    AssetResponseDTO, ColonyCode, ColonyInfoResponseDTO, 
+    CreateColonyRequestDTO, InternationalizationCatalogueResponseDTO, 
+    LocationInfoFullResponseDTO, LocationInfoResponseDTO, 
+    MinigameDifficultyID, MinigameID, MinigameInfoResponseDTO, 
+    OpenColonyResponseDTO, PlayerInfoResponseDTO, 
+    PlayerPreferencesResponseDTO, SessionInitiationRequestDTO, 
+    SessionInitiationResponseDTO 
+} from "./mainBackendDTOs";
+/**
+ * @since 0.0.1
+ * @author GustavBW
+ */
 export enum HTTPMethod {
     GET = 'GET',
     POST = 'POST',
@@ -12,14 +24,16 @@ export enum HTTPMethod {
 export const USER_NOT_AUTHORIZED_ERROR = 'User is not authorized yet'
 export const NO_BACKEND_CONNECTION_ERROR = 'No connection to backend'
 export const BACKEND_INTERNAL_ERROR = 'Backend internal error'
-
-export type BackendIntegration = {
+/**
+ * @since 0.0.1
+ * @author GustavBW
+ */
+export type BaseBackendIntegration = {
     mainBackendRootUrl: string;
     userToken?: string;
     authHeaderName: string;
     logger: Logger;
-    getAssetMetadata: (assetId: number) => Promise<ResCodeErr<AssetResponseDTO>>;
-    getAssetLOD: (assetId: number, lod: number) => Promise<ResCodeErr<Blob>>;
+
     /**
      * The request will be prefixed with the root url ("protocol://ip:port") of the main backend and
      * have the auth header set. Notably not including api versioning.
@@ -30,38 +44,123 @@ export type BackendIntegration = {
      * @param suburl The suburl to append to the main backend root url
      * @param retrieveAs The method to parse the response with. Defaults to JSON
      */
-    request<T>(method: HTTPMethod, suburl: string, retrieveAs?: ParseMethod): Promise<ResCodeErr<T>>;
+    request<T>(method: HTTPMethod, suburl: string, retrieveAs?: ParseMethod, body?: object): Promise<ResCodeErr<T>>;
 }
 
+/**
+ * @since 0.0.1
+ * @author GustavBW
+ */
+export interface BackendIntegration extends BaseBackendIntegration {
+    getPlayerInfo: (player: number) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
+    getPlayerPreferences: (player: number) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
+
+    getCatalogue: (locale: string) => Promise<ResCodeErr<InternationalizationCatalogueResponseDTO>>;
+
+    getColony: (player: number, colony: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
+    getColonyOverview: (player: number) => Promise<ResCodeErr<ColonyInfoResponseDTO[]>>;
+    openColony: (colony: number) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
+    joinColony: (code: ColonyCode) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
+    createColony: (dto: CreateColonyRequestDTO, player: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
+
+    getLocationInfo: (location: number) => Promise<ResCodeErr<LocationInfoResponseDTO>>;
+    getFullLocationInfo: (location: number) => Promise<ResCodeErr<LocationInfoFullResponseDTO>>;
+
+    getAssetMetadata: (asset: AssetID) => Promise<ResCodeErr<AssetResponseDTO>>;
+    getMetadataOfAssets: (assets: AssetID[]) => Promise<ResCodeErr<AssetResponseDTO[]>>;
+    getAssetLOD: (asset: AssetID, lod: number) => Promise<ResCodeErr<Blob>>;
+    getAssetCollection: (collection: AssetCollectionID) => Promise<ResCodeErr<AssetCollectionResponseDTO[]>>;
+
+    getMinigameInfo: (minigame: number) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
+    getMinimizedMinigameInfo: (minigame: MinigameID, diffulty: MinigameDifficultyID) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
+}
+/**
+ * @since 0.0.1
+ * @author GustavBW
+ */
 export async function initializeBackendIntegration(environment: ENV, log: Logger, userData: SessionInitiationRequestDTO): Promise<ResErr<BackendIntegration>> {
     const { mainBackendIP, mainBackendPort } = environment;
     let mainBackendRootUrl = `https://${mainBackendIP}:${mainBackendPort}`;
     if (environment.proxyMainBackendRequests) {
         log.log('[umb int] Proxying main backend requests');
+
+        if (mainBackendRootUrl === undefined || mainBackendRootUrl === null) {
+            log.error('[umb int] Proxying main backend requests is enabled, but no proxy url is provided');
+            return { res: null, err: 'Proxying main backend requests is enabled, but no proxy url is provided' };
+        }
+
         mainBackendRootUrl = environment.mainBackendURLWhenProxied!;
     }
     log.log(`[umb int] Main backend root url: ${mainBackendRootUrl}`);
-    const integration: BackendIntegration = {
+    const placeholder = () => { throw new Error('backend integration not initialized') };
+    const base: BaseBackendIntegration = {
         mainBackendRootUrl,
-        userToken: "backend integration not initialized",
-        request: () => { throw new Error('Not initialized') },
-        getAssetMetadata: () => { throw new Error('Not initialized') },
-        getAssetLOD: () => { throw new Error('Not initialized') },
         authHeaderName: environment.authHeaderName,
-        logger: log
-    };
-    const tokenRes = await beginSession(integration, userData);
+        userToken: undefined,
+        logger: log,
+        request: placeholder
+    }
+    base.request = <T>(method: HTTPMethod, suburl: string, retrieveAs: ParseMethod, body?: object) => handleArbitraryRequest(base, method, suburl, retrieveAs, body);
+    
+    const tokenRes = await beginSession(base, userData);
     if (tokenRes.err != null) {
         return { res: null, err: tokenRes.err };
     }
-    integration.userToken = tokenRes.res;
-    integration.request = <T>(method: HTTPMethod, suburl: string, retrieveAs: ParseMethod) => handleArbitraryRequest(integration, method, suburl, retrieveAs)
-    integration.getAssetMetadata = (assetId: number) => integration.request<AssetResponseDTO>(HTTPMethod.GET, "/api/v1/" + assetId, ParseMethod.JSON);
-    integration.getAssetLOD = (assetId: number, lod: number) => integration.request<Blob>(HTTPMethod.GET, `/api/v1/${assetId}/lod/${lod}`, ParseMethod.BLOB);
+    base.userToken = tokenRes.res;
+    const integration = applyRouteImplementations(base);
+
     return {res: integration, err: null};
 }
+/**
+ * @since 0.0.1
+ * @author GustavBW
+ */
+const applyRouteImplementations = (base: BaseBackendIntegration): BackendIntegration => {
+    return {
+        ...base, 
+        getPlayerInfo:      (player) => base.request<PlayerInfoResponseDTO>(
+            HTTPMethod.GET, `/api/v1/player/${player}`, ParseMethod.JSON),
+        getPlayerPreferences:(player) => base.request<PlayerPreferencesResponseDTO>(
+            HTTPMethod.GET, `/api/v1/player/${player}/preferences`, ParseMethod.JSON),
+        getCatalogue:       (locale) => base.request<InternationalizationCatalogueResponseDTO>(
+            HTTPMethod.GET, `/api/v1/catalogue/${locale}`, ParseMethod.JSON),
+       
+        getColony:          (player, colony) => base.request<ColonyInfoResponseDTO>(
+            HTTPMethod.GET, `/api/v1/player/${player}/colony/${colony}`, ParseMethod.JSON),
+        getColonyOverview:  (player) => base.request<ColonyInfoResponseDTO[]>(
+            HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
+        openColony:         (colony) => base.request<OpenColonyResponseDTO>(
+            HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON),
+        joinColony:         (colony) => base.request<OpenColonyResponseDTO>(
+            HTTPMethod.POST, `/api/v1/colony/${colony}/join`, ParseMethod.JSON),
+        createColony: (dto, player) => base.request<ColonyInfoResponseDTO>(
+            HTTPMethod.POST, `/api/v1/player/${player}/colony/create`, ParseMethod.JSON, dto),
 
-async function handleArbitraryRequest<T>(integration: BackendIntegration, method: HTTPMethod, suburl: string, retrieveAs?: ParseMethod, body?: any): Promise<ResCodeErr<T>> {
+        getLocationInfo:     (location) => base.request<LocationInfoResponseDTO>(
+            HTTPMethod.GET, `/api/v1/location/${location}`, ParseMethod.JSON),
+        getFullLocationInfo: (location) => base.request<LocationInfoFullResponseDTO>(
+            HTTPMethod.GET, `/api/v1/location/${location}/full`, ParseMethod.JSON),
+
+        getAssetMetadata:   (assetId) => base.request<AssetResponseDTO>(
+            HTTPMethod.GET, `/api/v1/asset/${assetId}`, ParseMethod.JSON),
+        getMetadataOfAssets:(assets) => base.request<AssetResponseDTO[]>(
+            HTTPMethod.GET, `/api/v1/assets?ids=${assets.join(",")}`, ParseMethod.JSON),
+        getAssetLOD:        (asset, lod) => base.request<Blob>(
+            HTTPMethod.GET, `/api/v1/asset/${asset}/lod/${lod}`, ParseMethod.BLOB),
+        getAssetCollection: (collection) => base.request<AssetCollectionResponseDTO[]>(
+            HTTPMethod.GET, `/api/v1/collection/${collection}`, ParseMethod.JSON),
+
+        getMinigameInfo:    (minigame) => base.request<MinigameInfoResponseDTO>(
+            HTTPMethod.GET, `/api/v1/minigame/${minigame}`, ParseMethod.JSON),
+        getMinimizedMinigameInfo: (minigame, difficulty) => base.request<MinigameInfoResponseDTO>(
+            HTTPMethod.GET, `/api/v1/minigame/minimized?minigame=${minigame}&difficulty=${difficulty}`, ParseMethod.JSON),
+    }
+}
+/**
+ * @since 0.0.1
+ * @author GustavBW
+ */
+async function handleArbitraryRequest<T>(integration: BaseBackendIntegration, method: HTTPMethod, suburl: string, retrieveAs?: ParseMethod, body?: any): Promise<ResCodeErr<T>> {
     const parserType = retrieveAs ?? ParseMethod.JSON;
     const userToken = integration.userToken;
     const headers: HeadersInit = {
@@ -71,7 +170,7 @@ async function handleArbitraryRequest<T>(integration: BackendIntegration, method
     headers['Content-Type'] = 'application/json';
     
     if ((!userToken || userToken === '' || userToken === null) && !suburl.includes('session')) {
-        integration.logger.log('[umb int] User is not authorized yet a request for: ' + suburl + " was made");
+        integration.logger.log('[umb int] User is not authorized, yet a request for: ' + suburl + " was made");
         return { res: null, code: 400, err: USER_NOT_AUTHORIZED_ERROR };
     }
     try {
@@ -111,10 +210,13 @@ async function handleArbitraryRequest<T>(integration: BackendIntegration, method
         return { res: null, code: 600, err: error as string };
     }
 }
-
-async function beginSession(integration: BackendIntegration, data: SessionInitiationRequestDTO): Promise<ResErr<string>> {
+/**
+ * @since 0.0.1
+ * @author GustavBW
+ */
+async function beginSession(base: BaseBackendIntegration, data: SessionInitiationRequestDTO): Promise<ResErr<string>> {
     const response = await handleArbitraryRequest<SessionInitiationResponseDTO>(
-        integration, HTTPMethod.POST, '/api/v1/session', ParseMethod.JSON, data
+        base, HTTPMethod.POST, '/api/v1/session', ParseMethod.JSON, data
     );
     if (response.err != null) {
         if (response.code === 401) {
