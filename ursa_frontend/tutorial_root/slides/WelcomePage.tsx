@@ -87,6 +87,7 @@ position: absolute;
 left: 50.3%;
 bottom: 32.5%;
 font-size: 10rem;
+text-shadow: none;
 transform: translateX(-50%);
 filter: blur(.25rem);
 `
