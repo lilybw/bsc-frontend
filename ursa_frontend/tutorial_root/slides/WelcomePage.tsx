@@ -31,11 +31,29 @@ const animMovingStars = keyframes`
     transform: scale(2.5) translateX(25%);
 }
 `
+const sunMoveSpeedS = 30
+const animSunMovement = keyframes`
+0% {
+    top: 33%;
+    left: -5%;
+    filter: drop-shadow(0 0 3rem white);
+}  
+50% {
+    top: 26.5%;
+    left: 50%;
+    filter: drop-shadow(0 0 .5rem white);
+}
+100% {
+    top: 30%;
+    left: 105%;
+    filter: drop-shadow(0 0 3rem white);
+}
+`
 
 const backgroundStyleOverwrite = css`
 filter:  contrast(1);
 transform: scale(2) translateX(-25%);
-animation: ${animMovingStars} 30s linear infinite;
+animation: ${animMovingStars} ${sunMoveSpeedS * 2}s linear infinite;
 `
 
 const starStyle = css`
@@ -48,6 +66,7 @@ width: var(--star-size);
 height: var(--star-size);
 background-image: radial-gradient(circle, hsla(0, 0%, 100%, 1) 50%, hsla(30, 80%, 50%, .9) 75%, transparent 100%);
 filter: drop-shadow(0 0 2rem white);
+animation: ${animSunMovement} ${sunMoveSpeedS}s linear infinite;
 `
 
 const planetStyle = css`
@@ -69,6 +88,14 @@ background-image: radial-gradient(ellipse,
     transparent 100%
 );
 `
+const animTitleHighlight = keyframes`
+0% {
+    filter: drop-shadow(-.5rem -.5rem .5rem hsla(0, 0%, 100%, .5));
+}
+100% {
+    filter: drop-shadow(.5rem -.5rem .5rem hsla(0, 0%, 100%, .5));
+}
+`
 
 const titleStyle = css`
 z-index: 2;
@@ -79,7 +106,24 @@ font-size: 10rem;
 text-shadow: 1rem 1rem 2rem black;
 filter: drop-shadow(-.5rem -.5rem .5rem hsla(0, 0%, 100%, .5));
 transform: translateX(-50%);
+animation: ${animTitleHighlight} ${sunMoveSpeedS}s linear infinite;
 `
+
+const animFrontShadow = keyframes`
+0% {
+    left: 50.3%;
+    bottom: 32.5%;
+}
+50% {
+    left: 50%;
+    bottom: 32.25%;
+}
+100% {
+    left: 49.7%;
+    bottom: 32.5%;
+}
+`
+
 const titleFrontShadow = css`
 z-index: 3;
 color: hsla(0, 0%, 0%, .8);
@@ -90,4 +134,5 @@ font-size: 10rem;
 text-shadow: none;
 transform: translateX(-50%);
 filter: blur(.25rem);
+animation: ${animFrontShadow} ${sunMoveSpeedS}s linear infinite;
 `
