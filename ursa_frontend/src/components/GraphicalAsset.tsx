@@ -3,7 +3,7 @@ import { AssetID, AssetResponseDTO } from '../integrations/main_backend/mainBack
 import { BackendIntegration } from '../integrations/main_backend/mainBackend';
 
 interface ProgressiveImageProps {
-  assetId: AssetID;
+  metadata: AssetResponseDTO;
   backend: BackendIntegration;
 }
 
@@ -11,7 +11,6 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
   const [currentSrc, setCurrentSrc] = createSignal<string | null>(null);
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal<string | null>(null);
-  const [metadata, setMetadata] = createSignal<AssetResponseDTO | null>(null);
 
   createEffect(() => {
     let mounted = true;
@@ -20,22 +19,14 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
 
     const loadImage = async () => {
       try {
-        const metadataResponse = await props.backend.getAssetMetadata(props.assetId);
-        if (metadataResponse.err || metadataResponse.res === null) {
-          throw new Error(metadataResponse.err);
-        }
-
-        const assetMetadata = metadataResponse.res;
-        setMetadata(assetMetadata);
-
-        const sortedLODs = assetMetadata.LODs.sort((a, b) => b.detailLevel - a.detailLevel);
+        const sortedLODs = props.metadata.LODs.sort((a, b) => b.detailLevel - a.detailLevel);
 
         for (const lod of sortedLODs) {
           if (!mounted) break;
 
-          const lodResponse = await props.backend.getAssetLOD(props.assetId, lod.id);
+          const lodResponse = await props.backend.getAssetLOD(props.metadata.id, lod.id);
           if (lodResponse.err || lodResponse.res === null) {
-            props.backend.logger.warn(`Failed to load LOD ${lod.detailLevel} for asset ${props.assetId}: ${lodResponse.err}`);
+            props.backend.logger.warn(`Failed to load LOD ${lod.detailLevel} for asset ${props.metadata}: ${lodResponse.err}`);
             continue; // Try next LOD
           }
 
@@ -65,7 +56,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
           if (lod.detailLevel === 0) break; // Stop if we've loaded the highest detail LOD
         }
       } catch (error) {
-        props.backend.logger.error(`Error loading asset ${props.assetId}: ` + error);
+        props.backend.logger.error(`Error loading asset ${props.metadata.id}: ` + error);
         setError((error as Error).message);
         setLoading(false);
       }
@@ -85,14 +76,14 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
     <>
       {loading() && <div class="loading-placeholder">Loading...</div>}
       {error() && <div class="error-message">{error()}</div>}
-      {currentSrc() && metadata() && (
+      {currentSrc() && (
         <img
           src={currentSrc()!}
-          alt={metadata()!.alias}
+          alt={props.metadata.alias}
           style={{
             display: loading() ? 'none' : 'block',
-            width: `${metadata()!.width}px`,
-            height: `${metadata()!.height}px`,
+            width: `${props.metadata.width}px`,
+            height: `${props.metadata.height}px`,
           }}
         />
       )}
