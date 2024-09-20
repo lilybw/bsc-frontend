@@ -6,25 +6,11 @@ import { Logger } from "../../logging/filteredLogger";
  */
 const SESSION_COOKIE_NAME = 'mvf_session_id';
 
-/**
- * Single source of truth: The 10-finger angular project: ./src/app/modules/games/ursa/ursa.integraton.component.ts
- */
-export type VitecIntegrationInformation = {
-    userIdentifier: string;
-    /**
-     * Username
-     */
-    IGN: string;
-    languagePreference: string;
-    locationUrl: string;
-}
-
 export type VitecIntegration = {
     log: Logger,
     env: ENV,
     sessionToken: string
 }
-
 
 export async function initializeVitecIntegration(environment: ENV, log: Logger): Promise<ResErr<VitecIntegration>> {
     const userInfoRes = await getSessionToken(environment, log);
@@ -53,7 +39,6 @@ const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<st
 
 const parseForSessionCookie = (log: Logger): ResErr<string> => {
     const cookies = document.cookie.split(';');
-    log.trace(`[mv int] Available cookies: ${cookies}`);
     for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
         if (cookie.startsWith(SESSION_COOKIE_NAME)) {

@@ -3,8 +3,6 @@ import { createEffect, createSignal, Match, Switch, type Component, type JSX } f
 import { SHARED_CSS_STR } from '../src/sharedCSS';
 
 import {injectGlobal, css} from '@emotion/css'
-import { ApplicationContext } from '../src/meta/types';
-import SectionTitle from '../src/components/SectionTitle';
 import BigMenuButton from '../src/components/BigMenuButton';
 import ProgressTracker from './ProgressTracker';
 import LanguagePage from './slides/LanguagePage';
@@ -12,20 +10,19 @@ import ErrorPage from '../src/ErrorPage';
 import { createStore } from 'solid-js/store';
 import SlideIcon, { SlideIconProps } from './SlideIcon';
 import WelcomePage from './slides/WelcomePage';
-import LocationDemoPage from './slides/LocationDemo';
 import LocationTrial from './slides/LocationTrial';
 import NavigationDemo from './slides/NavigationDemo';
 import NavigationTrial from './slides/NavigationTrial';
 import LocationDemo from './slides/LocationDemo';
 import MultiplayerTrial from './slides/MultiplayerTrial';
 import TutorialCompletePage from './slides/TutorialCompletePage';
-import StarryBackground from '../src/components/StarryBackground';
+import { ApplicationProps } from '../src/ts/types';
 
 injectGlobal`${SHARED_CSS_STR}`
 
 export type SlideEntry = {visited: boolean, icon: Component<SlideIconProps>};
 
-export default function TutorialApp(context: ApplicationContext): JSX.Element {
+const TutorialApp: Component<ApplicationProps> = (props) => {
   const [currentSlide, setCurrentSlide] = createSignal(0);
   const [previousSlide, setPreviousSlide] = createSignal(0);
   const [hasCompletedSlide, setHasCompletedSlide] = createSignal(false);
@@ -117,7 +114,7 @@ export default function TutorialApp(context: ApplicationContext): JSX.Element {
     </div>
   );
 };
-
+export default TutorialApp;
 const navigationFooterStyle = css`
   position: absolute;
   bottom: 0;

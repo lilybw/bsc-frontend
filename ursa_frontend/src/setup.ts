@@ -1,12 +1,15 @@
 import { JSX } from "solid-js/jsx-runtime";
 import { ENV, initializeEnvironment } from "./environment/manager";
 import { initializeBackendIntegration } from "./integrations/main_backend/mainBackend";
-import { initializeVitecIntegration, VitecIntegrationInformation } from "./integrations/vitec/vitecIntegration";
+import { initializeVitecIntegration } from "./integrations/vitec/vitecIntegration";
 import { initializeLogger } from "./logging/filteredLogger";
 import { ApplicationContext, ResErr, RuntimeMode } from "./meta/types";
 import { render } from "solid-js/web";
 import GlobalContainer from "./GlobalContainer";
 import { SessionInitiationRequestDTO } from "./integrations/main_backend/mainBackendDTOs";
+import { LanguagePreference, VitecIntegrationInformation } from "./integrations/vitec/vitecDTOs";
+import { Component } from "solid-js";
+import { ApplicationProps } from "./ts/types";
 
 /**
  * Single source of truth: this
@@ -15,7 +18,7 @@ export const SOLIDJS_MOUNT_ELEMENT_ID = 'solidjs-inlay-root';
 export type URSAInitializationFunction = (vitecInfo: VitecIntegrationInformation) => (() => void) | null;
 export const URSA_INITIALIZATION_FUNCTION_NAME = 'initializeURSABundle';
 
-export const initApp = (app: (context: ApplicationContext) => JSX.Element) => {
+export const initApp = (app: Component<ApplicationProps>) => {
     // global function that Angular will call
     (window as any)[URSA_INITIALIZATION_FUNCTION_NAME] = (userData: VitecIntegrationInformation) => {
         const root = document.getElementById(SOLIDJS_MOUNT_ELEMENT_ID);
@@ -38,7 +41,7 @@ export const initApp = (app: (context: ApplicationContext) => JSX.Element) => {
         const mockVitecInfo: VitecIntegrationInformation = {
             userIdentifier: 'dev-user-123',
             IGN: 'DevUser',
-            languagePreference: 'en',
+            languagePreference: LanguagePreference.English,
             locationUrl: 'https://dev.urs'
         };
         (window as any)[URSA_INITIALIZATION_FUNCTION_NAME](mockVitecInfo); 
@@ -48,7 +51,7 @@ export const initApp = (app: (context: ApplicationContext) => JSX.Element) => {
 export const initContext = async (vitecInfo: VitecIntegrationInformation): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
     const log = initializeLogger(environment);
-    log.log('[setup] Vitec info: '+JSON.stringify(vitecInfo));
+    log.log('[delete me] Vitec info: '+JSON.stringify(vitecInfo));
     log.log('[setup] Initializing application context');
     
     const vitecIntegrationResult = await initializeVitecIntegration(environment, log);
@@ -75,7 +78,8 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         backend: backendIntegrationInit.res,
         logger: log,
         vitec: vitecIntegrationResult.res,
-        multiplayer: undefined as any
+        multiplayer: undefined as any,
+        player: undefined as any
     };
     return Promise.resolve({res: context, err: null});
 }

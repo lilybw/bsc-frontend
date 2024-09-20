@@ -1,21 +1,26 @@
 import { createSignal, createEffect, onCleanup, Component } from 'solid-js';
 import { AssetID, AssetResponseDTO } from '../integrations/main_backend/mainBackendDTOs';
 import { BackendIntegration } from '../integrations/main_backend/mainBackend';
+import Spinner from './SimpleLoadingSpinner';
+import { css } from '@emotion/css';
+import SomethingWentWrongIcon from './SomethingWentWrongIcon';
 
 interface ProgressiveImageProps {
   metadata: AssetResponseDTO;
   backend: BackendIntegration;
+  styleOverwrite?: string;
 }
 
 const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
   const [currentSrc, setCurrentSrc] = createSignal<string | null>(null);
   const [loading, setLoading] = createSignal(true);
-  const [error, setError] = createSignal<string | null>(null);
+  const [error, setError] = createSignal<string | undefined>(undefined);
+  const [currentLODLevel, setCurrentLODLevel] = createSignal(9001);
 
   createEffect(() => {
     let mounted = true;
     setLoading(true);
-    setError(null);
+    setError(undefined);
 
     const loadImage = async () => {
       try {
@@ -43,6 +48,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
                   if (prevSrc) URL.revokeObjectURL(prevSrc);
                   return objectUrl;
                 });
+                setCurrentLODLevel(lod.detailLevel);
                 setLoading(false);
               }
               resolve();
@@ -72,23 +78,30 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
     });
   });
 
+  const computedStyles = css`
+    ${baseStyles}
+    width: ${props.metadata.width}px;
+    height: ${props.metadata.height}px;
+    ${props.styleOverwrite}
+  `
+
   return (
     <>
-      {loading() && <div class="loading-placeholder">Loading...</div>}
-      {error() && <div class="error-message">{error()}</div>}
+      {loading() && <Spinner styleOverwrite={computedStyles} />}
+      {error() && <SomethingWentWrongIcon styleOverwrite={computedStyles} message={error()} />}
       {currentSrc() && (
         <img
           src={currentSrc()!}
-          alt={props.metadata.alias}
-          style={{
-            display: loading() ? 'none' : 'block',
-            width: `${props.metadata.width}px`,
-            height: `${props.metadata.height}px`,
-          }}
+          alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
+          class={computedStyles}
         />
       )}
     </>
   );
 };
-
 export default GraphicalAsset;
+
+const baseStyles = css`
+  display: block;
+  object-fit: contain;
+`

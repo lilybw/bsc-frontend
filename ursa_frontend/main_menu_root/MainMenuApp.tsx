@@ -1,35 +1,60 @@
-import type { Component, JSX } from 'solid-js';
+import { createSignal, type Component, type JSX } from 'solid-js';
 import { SHARED_CSS, SHARED_CSS_STR, Styles } from '../src/sharedCSS';
 
 import {injectGlobal, css} from '@emotion/css'
 import BigMenuButton from '../src/components/BigMenuButton';
 import SectionTitle from '../src/components/SectionTitle';
 import StarryBackground from '../src/components/StarryBackground';
+import { ApplicationContext } from '../src/meta/types';
+import LandingPage from './pages/LandingPage';
+import { ApplicationProps } from '../src/ts/types';
+import Spinner from '../src/components/SimpleLoadingSpinner';
+import SomethingWentWrongIcon from '../src/components/SomethingWentWrongIcon';
+import ColonyListPage from './pages/ColonyListPage';
 
-export default function MainMenuApp(): JSX.Element {
-  console.log("[delete me] MainMenuApp mounted")
+export enum MenuPages {
+  LANDING_PAGE = "landing",
+  NEW_COLONY = "new",
+  CONTINUE_COLONY = "continue",
+  JOIN_COLONY = "join",
+}
+export type MenuPageProps = {
+  context: ApplicationContext;
+  goToPage: (page: MenuPages) => void;
+  goBack: () => void;
+}
+type MenuPageComponent = Component<MenuPageProps>;
+
+const MainMenuApp: Component<ApplicationProps> = (props) => {
+  const [CurrentPage, setCurrentPage] = createSignal<MenuPageComponent>(LandingPage);
+  const [PreviousPage, setPreviousPage] = createSignal<MenuPageComponent>(LandingPage);
+
+  const goToPage = (page: MenuPages) => {
+    setPreviousPage(() => CurrentPage());
+    switch (page) {
+      case MenuPages.LANDING_PAGE:
+        setCurrentPage(() => LandingPage);
+        break;
+      case MenuPages.NEW_COLONY:
+        break;
+      case MenuPages.CONTINUE_COLONY:
+        setCurrentPage(() => ColonyListPage);
+        break;
+      case MenuPages.JOIN_COLONY:
+        break;
+      default:
+        props.context.logger.log("Invalid page requested: " + page);
+    }
+  }
+
+  const goBack = () => {
+    setCurrentPage(() => PreviousPage());
+  }
+
   return (
     <div class={Styles.NO_OVERFLOW} id="the-main-menu-app">
-      <SectionTitle>U.R.S.A.</SectionTitle>
-      <div class={menuOptionsListStyle}>
-        <BigMenuButton>New</BigMenuButton>
-        <BigMenuButton>Continue</BigMenuButton>
-        <BigMenuButton>Join</BigMenuButton>
-        <BigMenuButton>Tutorial</BigMenuButton>
-      </div>
-      <StarryBackground />
+      {CurrentPage()({context: props.context, goToPage: goToPage, goBack: goBack})}
     </div>
   );
 };
-
-
-const menuOptionsListStyle = css`
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 33%;
-    transform: translate(-50%, -50%);
-`
+export default MainMenuApp;

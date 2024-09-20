@@ -5,6 +5,7 @@ import { SHARED_CSS, SHARED_CSS_STR } from '../src/sharedCSS';
 import {injectGlobal, css} from '@emotion/css'
 import { ApplicationContext } from '../src/meta/types';
 import SectionTitle from '../src/components/SectionTitle';
+import { ApplicationProps } from '../src/ts/types';
 
 const testTyles = css`
     background-color: #000000;
@@ -13,7 +14,7 @@ const testTyles = css`
 injectGlobal(SHARED_CSS)
 
 
-export default function ColonyApp(context: ApplicationContext): JSX.Element {
+const ColonyApp: Component<ApplicationProps> = (props) => {
   return (
     <div class={testTyles}>
       <header>
@@ -22,3 +23,4 @@ export default function ColonyApp(context: ApplicationContext): JSX.Element {
     </div>
   );
 };
+export default ColonyApp;

@@ -101,7 +101,7 @@ interface LoadingSpinnerProps {
     loadingText?: string;
 }
 
-const LoadingSpinner: Component<LoadingSpinnerProps> = (props: LoadingSpinnerProps) => {
+const SolarLoadingSpinner: Component<LoadingSpinnerProps> = (props: LoadingSpinnerProps) => {
   const getRandomStartPosition = () => Math.floor(Math.random() * 360);
 
   return (
@@ -144,4 +144,4 @@ const LoadingSpinner: Component<LoadingSpinnerProps> = (props: LoadingSpinnerPro
   );
 };
 
-export default LoadingSpinner;
+export default SolarLoadingSpinner;

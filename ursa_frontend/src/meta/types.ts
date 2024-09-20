@@ -1,4 +1,5 @@
 import { BackendIntegration } from "../integrations/main_backend/mainBackend";
+import { PlayerInfoResponseDTO } from "../integrations/main_backend/mainBackendDTOs";
 import { MultiplayerIntegration } from "../integrations/multiplayer_backend/multiplayerBackend";
 import { VitecIntegration } from "../integrations/vitec/vitecIntegration";
 import { Logger } from "../logging/filteredLogger";
@@ -38,4 +39,5 @@ export type ApplicationContext = {
     logger: Logger;
     vitec: VitecIntegration;
     multiplayer: MultiplayerIntegration;
+    player: PlayerInfoResponseDTO;
 }
