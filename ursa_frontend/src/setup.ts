@@ -1,12 +1,45 @@
+import { JSX } from "solid-js/jsx-runtime";
 import { ENV, initializeEnvironment } from "./environment/manager";
 import { initializeBackendIntegration } from "./integrations/main_backend/mainBackend";
-import { initializeVitecIntegration } from "./integrations/vitec/vitecIntegration";
+import { initializeVitecIntegration, VitecUserInfo } from "./integrations/vitec/vitecIntegration";
 import { initializeLogger } from "./logging/filteredLogger";
 import { ApplicationContext, ResErr, RuntimeMode } from "./meta/types";
+import { render } from "solid-js/web";
+import GlobalContainer from "./GlobalContainer";
 
 export const SOLIDJS_MOUNT_ELEMENT_ID = 'solidjs-inlay-root';
 
-export const init = async (): Promise<ResErr<ApplicationContext>> => {
+export const initApp = (app: (context: ApplicationContext) => JSX.Element) => {
+    // global function that Angular will call
+    (window as any).initializeURSABundle = (userData: VitecUserInfo) => {
+        const root = document.getElementById(SOLIDJS_MOUNT_ELEMENT_ID);
+    
+        if (!root) {
+        console.error('Root element not found.');
+        return;
+        }
+    
+        const dispose = render(() => GlobalContainer({ app: app, userData: userData}), root);
+    
+        // Return a cleanup function
+        return () => {
+            dispose();
+        };
+    };
+  
+    // For development mode, initialize with mock data
+    if (import.meta.env.DEV || import.meta.env.TEST) {
+        const mockUserData: VitecUserInfo = {
+        currentSessionToken: 'dev-session',
+        userIdentifier: 'dev-user-123',
+        IGN: 'DevUser',
+        LanguagePreference: 'en'
+        };
+        (window as any).initializeURSABundle(mockUserData); 
+    }
+}
+
+export const initContext = async (): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
     const log = initializeLogger(environment);
     log.log('[setup] Initializing application context');

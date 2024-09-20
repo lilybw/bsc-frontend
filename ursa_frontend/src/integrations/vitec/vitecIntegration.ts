@@ -1,9 +1,14 @@
 import { ResErr, RuntimeMode } from "../../meta/types";
 import { ENV } from "../../environment/manager";
 import { Logger } from "../../logging/filteredLogger";
-
+/**
+ * Single source of truth: The 10-finger angular project: ./src/app/services/auth.service.ts
+ */
 const SESSION_COOKIE_NAME = 'mvf_session_id';
 
+/**
+ * Single source of truth: The 10-finger angular project: ./src/app/modules/games/ursa/ursa.integraton.component.ts
+ */
 export type VitecUserInfo = {
     userIdentifier: string;
     /**

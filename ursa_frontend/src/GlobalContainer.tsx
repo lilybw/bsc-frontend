@@ -1,18 +1,20 @@
 import { css } from "@emotion/css";
 import { Component, createResource, createSignal, ErrorBoundary, JSX, Show } from "solid-js";
 import { ApplicationContext, ResErr } from "./meta/types";
-import { init } from "./setup";
+import { initContext } from "./setup";
 import ErrorPage from "./ErrorPage";
 import { Styles } from "./sharedCSS";
 import LoadingSpinner from "./components/LoadingSpinner";
+import { VitecUserInfo } from "./integrations/vitec/vitecIntegration";
 
 interface GlobalContainerProps {
     app: (context: ApplicationContext) => JSX.Element;
+    userData: VitecUserInfo;
 }
 
-export default function GlobalContainer(props: GlobalContainerProps): JSX.Element {
+const GlobalContainer: Component<GlobalContainerProps> = (props) => {
     console.log("[delete me] GlobalContainer mounted")
-    const [contextResult, { mutate, refetch}] = createResource<ResErr<ApplicationContext>>(init);
+    const [contextResult, { mutate, refetch}] = createResource<ResErr<ApplicationContext>>(initContext);
     const [latestError, setLatestError] = createSignal<string>("No error");
 
     //Time to do auth and stuff
@@ -32,6 +34,7 @@ export default function GlobalContainer(props: GlobalContainerProps): JSX.Elemen
         </div>
     );
 }
+export default GlobalContainer;
 
 const appContainerStyle = css`
     position: fixed;
