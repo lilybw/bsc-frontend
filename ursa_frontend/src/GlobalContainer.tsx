@@ -5,16 +5,16 @@ import { initContext } from "./setup";
 import ErrorPage from "./ErrorPage";
 import { Styles } from "./sharedCSS";
 import LoadingSpinner from "./components/LoadingSpinner";
-import { VitecUserInfo } from "./integrations/vitec/vitecIntegration";
+import { VitecIntegrationInformation } from "./integrations/vitec/vitecIntegration";
 
 interface GlobalContainerProps {
     app: (context: ApplicationContext) => JSX.Element;
-    userData: VitecUserInfo;
+    vitecInfo: VitecIntegrationInformation;
 }
 
 const GlobalContainer: Component<GlobalContainerProps> = (props) => {
     console.log("[delete me] GlobalContainer mounted")
-    const [contextResult, { mutate, refetch}] = createResource<ResErr<ApplicationContext>>(initContext);
+    const [contextResult, { mutate, refetch}] = createResource<ResErr<ApplicationContext>>(() => initContext(props.vitecInfo));
     const [latestError, setLatestError] = createSignal<string>("No error");
 
     //Time to do auth and stuff

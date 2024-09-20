@@ -9,56 +9,46 @@ const SESSION_COOKIE_NAME = 'mvf_session_id';
 /**
  * Single source of truth: The 10-finger angular project: ./src/app/modules/games/ursa/ursa.integraton.component.ts
  */
-export type VitecUserInfo = {
+export type VitecIntegrationInformation = {
     userIdentifier: string;
-    /**
-     * Current Vitec Session Token
-     */
-    currentSessionToken: string;
     /**
      * Username
      */
     IGN: string;
-    LanguagePreference: string;
+    languagePreference: string;
+    locationUrl: string;
 }
 
 export type VitecIntegration = {
     log: Logger,
     env: ENV,
-    userInfo: VitecUserInfo
+    sessionToken: string
 }
 
 
 export async function initializeVitecIntegration(environment: ENV, log: Logger): Promise<ResErr<VitecIntegration>> {
-    const userInfoRes = await getUserInfo(environment, log);
+    const userInfoRes = await getSessionToken(environment, log);
     if (userInfoRes.err != null) {
         return {res: null, err: userInfoRes.err};
     }
     const integration: VitecIntegration = {
         log: log,
         env: environment,
-        userInfo: userInfoRes.res
+        sessionToken: userInfoRes.res
     };
     return {res: integration, err: null};
 }
 
-const getUserInfo = async (environment: ENV, log: Logger): Promise<ResErr<VitecUserInfo>> => {
+const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<string>> => {
     if (environment.runtimeMode === RuntimeMode.TEST) {
-        return Promise.resolve({res: environment.testUser!, err: null });
+        return Promise.resolve({res: "dev session token", err: null });
     }
     const sessionRes = parseForSessionCookie(log);
     if (sessionRes.err != null) {
         return {res: null, err: sessionRes.err};
     }
 
-    const user: VitecUserInfo = {
-        userIdentifier: "test",
-        currentSessionToken: sessionRes.res,
-        IGN: "none",
-        LanguagePreference: "en"
-    }
-
-    return {res: user, err: null};  
+    return {res: sessionRes.res, err: null};  
 }
 
 const parseForSessionCookie = (log: Logger): ResErr<string> => {
