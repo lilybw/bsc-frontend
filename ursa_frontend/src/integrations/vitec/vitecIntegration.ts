@@ -1,14 +1,10 @@
 import { ResErr, RuntimeMode } from "../../meta/types";
 import { ENV } from "../../environment/manager";
 import { Logger } from "../../logging/filteredLogger";
-import { SessionInitiationRequestDTO } from "../main_backend/mainBackendDTOs";
 
 const SESSION_COOKIE_NAME = 'mvf_session_id';
 
 export type VitecUserInfo = {
-    /**
-     * Losslessly hashed vitec user identifier
-     */
     userIdentifier: string;
     /**
      * Current Vitec Session Token

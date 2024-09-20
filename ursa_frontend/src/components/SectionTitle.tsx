@@ -19,6 +19,6 @@ const gameTitleStyle = css`
     text-transform: uppercase;
     color: white;
     margin: 2rem;
-    font-size: 3rem;
+    font-size: 8rem;
     text-shadow: .75rem .3rem .3rem rgba(255, 255, 255, .3);
 `

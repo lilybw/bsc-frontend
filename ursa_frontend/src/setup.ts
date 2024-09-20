@@ -4,6 +4,8 @@ import { initializeVitecIntegration } from "./integrations/vitec/vitecIntegratio
 import { initializeLogger } from "./logging/filteredLogger";
 import { ApplicationContext, ResErr, RuntimeMode } from "./meta/types";
 
+export const SOLIDJS_MOUNT_ELEMENT_ID = 'solidjs-inlay-root';
+
 export const init = async (): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
     const log = initializeLogger(environment);
@@ -20,7 +22,6 @@ export const init = async (): Promise<ResErr<ApplicationContext>> => {
         return Promise.reject({res: null, err: backendIntegrationInit.err});
     }
     log.log('[setup] Main backend integration complete');
-
 
     await delaySetupIfDevOrTest(environment);
     

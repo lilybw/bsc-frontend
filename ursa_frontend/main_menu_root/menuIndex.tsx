@@ -3,10 +3,9 @@ import { render } from 'solid-js/web';
 import 'solid-devtools';
 import MainMenuApp from './MainMenuApp';
 import GlobalContainer from '../src/GlobalContainer';
-import { init } from '../src/setup';
-import ErrorPage from '../src/ErrorPage';
+import { SOLIDJS_MOUNT_ELEMENT_ID } from '../src/setup';
 
-const root = document.getElementById('solidjs-inlay-root');
+const root = document.getElementById(SOLIDJS_MOUNT_ELEMENT_ID);
 
 if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   throw new Error(

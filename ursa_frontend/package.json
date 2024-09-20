@@ -12,11 +12,11 @@
     "dev_menu": "vite ./main_menu_root --config=vite.config.ts --base=/menu --mode development",
     "dev_tutorial": "vite ./tutorial_root --config=vite.config.ts --base=/tutorial --mode development",
     "prod_build_colony": "vite build --config=vite.config.ts ./colony_root --outDir=\"../../dist/colony\" --emptyOutDir --mode production",
-    "prod_build_menu": "vite build --config=vite.config.ts ./main_menu_root --outDir=\"../../dist/main_menu\" --emptyOutDir --mode production",
+    "prod_build_menu": "vite build --config=vite.config.ts ./main_menu_root --outDir=\"../../dist/menu\" --emptyOutDir --mode production",
     "prod_build_tutorial": "vite build --config=vite.config.ts ./tutorial_root --outDir=\"../../dist/tutorial\" --emptyOutDir --mode production",
     "prod_build_all": "npm run prod_build_colony && npm run prod_build_menu && npm run prod_build_tutorial",
     "dev_build_colony": "vite build --config=vite.config.ts ./colony_root --outDir=\"../../dist/colony\" --emptyOutDir --mode development",
-    "dev_build_menu": "vite build --config=vite.config.ts ./main_menu_root --outDir=\"../../dist/main_menu\" --emptyOutDir --mode development",
+    "dev_build_menu": "vite build --config=vite.config.ts ./main_menu_root --outDir=\"../../dist/menu\" --emptyOutDir --mode development",
     "dev_build_tutorial": "vite build --config=vite.config.ts ./tutorial_root --outDir=\"../../dist/tutorial\" --emptyOutDir --mode development",
     "dev_build_all": "npm run dev_build_colony && npm run dev_build_menu && npm run dev_build_tutorial"
   },

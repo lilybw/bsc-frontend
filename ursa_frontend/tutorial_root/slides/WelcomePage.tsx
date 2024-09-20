@@ -103,7 +103,7 @@ position: absolute;
 left: 50%;
 bottom: 33%;
 font-size: 10rem;
-text-shadow: 1rem 1rem 2rem black;
+text-shadow: none;
 filter: drop-shadow(-.5rem -.5rem .5rem hsla(0, 0%, 100%, .5));
 transform: translateX(-50%);
 animation: ${animTitleHighlight} ${sunMoveSpeedS}s linear infinite;

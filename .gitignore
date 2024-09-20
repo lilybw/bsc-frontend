@@ -4,8 +4,8 @@ dist/colony/*
 !dist/colony/keep_me
 dist/tutorial/*
 !dist/tutorial/keep_me
-dist/main_menu/*
-!dist/main_menu/keep_me
+dist/menu/*
+!dist/menu/keep_me
 
 otte_frontend/dist
 
