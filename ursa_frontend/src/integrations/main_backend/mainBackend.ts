@@ -53,6 +53,7 @@ export type BaseBackendIntegration = {
  * @author GustavBW
  */
 export interface BackendIntegration extends BaseBackendIntegration {
+    internalPlayerID: number;
     getPlayerInfo: (player: number) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
     getPlayerPreferences: (player: number) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
 
@@ -107,8 +108,8 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
     if (tokenRes.err != null) {
         return { res: null, err: tokenRes.err };
     }
-    base.userToken = tokenRes.res;
-    const integration = applyRouteImplementations(base);
+    base.userToken = tokenRes.res.token;
+    const integration = applyRouteImplementations(base, tokenRes.res.internalID);
 
     return {res: integration, err: null};
 }
@@ -116,9 +117,10 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
  * @since 0.0.1
  * @author GustavBW
  */
-const applyRouteImplementations = (base: BaseBackendIntegration): BackendIntegration => {
+const applyRouteImplementations = (base: BaseBackendIntegration, playerID: number): BackendIntegration => {
     return {
         ...base, 
+        internalPlayerID: playerID,
         getPlayerInfo:      (player) => base.request<PlayerInfoResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}`, ParseMethod.JSON),
         getPlayerPreferences:(player) => base.request<PlayerPreferencesResponseDTO>(
@@ -215,7 +217,7 @@ async function handleArbitraryRequest<T>(integration: BaseBackendIntegration, me
  * @since 0.0.1
  * @author GustavBW
  */
-async function beginSession(base: BaseBackendIntegration, data: SessionInitiationRequestDTO): Promise<ResErr<string>> {
+async function beginSession(base: BaseBackendIntegration, data: SessionInitiationRequestDTO): Promise<ResErr<SessionInitiationResponseDTO>> {
     const response = await handleArbitraryRequest<SessionInitiationResponseDTO>(
         base, HTTPMethod.POST, '/api/v1/session', ParseMethod.JSON, data
     );
@@ -231,5 +233,5 @@ async function beginSession(base: BaseBackendIntegration, data: SessionInitiatio
         }
         return { res: null, err: response.err };
     }
-    return { res: response.res.token, err: null };
+    return { res: response.res, err: null };
 } 

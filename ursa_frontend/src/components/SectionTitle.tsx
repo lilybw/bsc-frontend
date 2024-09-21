@@ -21,4 +21,5 @@ const gameTitleStyle = css`
     margin: 2rem;
     font-size: 8rem;
     text-shadow: .75rem .3rem .3rem rgba(255, 255, 255, .3);
+    filter: drop-shadow(-.1rem -.2rem .2rem rgba(255, 255, 255, .5));
 `

@@ -20,7 +20,7 @@ export const URSA_INITIALIZATION_FUNCTION_NAME = 'initializeURSABundle';
 
 export const initApp = (app: Component<ApplicationProps>) => {
     // global function that Angular will call
-    (window as any)[URSA_INITIALIZATION_FUNCTION_NAME] = (userData: VitecIntegrationInformation) => {
+    (window as any)[URSA_INITIALIZATION_FUNCTION_NAME] = (vitecInfo: VitecIntegrationInformation) => {
         const root = document.getElementById(SOLIDJS_MOUNT_ELEMENT_ID);
     
         if (!root) {
@@ -28,7 +28,7 @@ export const initApp = (app: Component<ApplicationProps>) => {
             return;
         }
     
-        const dispose = render(() => GlobalContainer({ app: app, vitecInfo: userData}), root);
+        const dispose = render(() => GlobalContainer({ app, vitecInfo }), root);
     
         // Return a cleanup function
         return () => {
@@ -69,6 +69,11 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     if (backendIntegrationInit.err != null) {
         return Promise.reject({res: null, err: backendIntegrationInit.err});
     }
+    const playerInfoRes = await backendIntegrationInit.res.getPlayerInfo(backendIntegrationInit.res.internalPlayerID);
+    if (playerInfoRes.err != null) {
+        return Promise.reject({res: null, err: playerInfoRes.err});
+    }
+    log.log("[delete me] Player info: "+JSON.stringify(playerInfoRes.res));
     log.log('[setup] Main backend integration complete');
 
     await delaySetupIfDevOrTest(environment);
@@ -79,7 +84,7 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         logger: log,
         vitec: vitecIntegrationResult.res,
         multiplayer: undefined as any,
-        player: undefined as any
+        player: playerInfoRes.res
     };
     return Promise.resolve({res: context, err: null});
 }

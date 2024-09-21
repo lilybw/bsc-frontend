@@ -172,6 +172,7 @@ export type SessionInitiationRequestDTO = {
 }
 export type SessionInitiationResponseDTO = {
     token: string;
+    internalID: uint32;
 }
 export type TransformDTO = {
     xOffset: number;
