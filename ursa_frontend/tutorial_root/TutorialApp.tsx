@@ -17,6 +17,7 @@ import LocationDemo from './slides/LocationDemo';
 import MultiplayerTrial from './slides/MultiplayerTrial';
 import TutorialCompletePage from './slides/TutorialCompletePage';
 import { ApplicationProps } from '../src/ts/types';
+import StarryBackground from '../src/components/StarryBackground';
 
 injectGlobal`${SHARED_CSS_STR}`
 
@@ -78,6 +79,7 @@ const TutorialApp: Component<ApplicationProps> = (props) => {
 
   return (
     <div class={containerStyle} id="the-tutorial-app">
+        <StarryBackground />
         <ProgressTracker currentSlide={currentSlide} slideStore={slideStore} setSlideStore={setSlides} previousSlide={previousSlide}/>
         <Switch fallback= {<ErrorPage content="OOC: Out of Cases" />}>
           <Match when={currentSlide() === 0}>

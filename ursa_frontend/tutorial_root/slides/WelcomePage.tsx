@@ -25,10 +25,10 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
 
 const animMovingStars = keyframes`
 0% {
-    transform: scale(2) translateX(-25%);
+    transform: scale(2) translateX(25%);
 }
 100% {
-    transform: scale(2.5) translateX(25%);
+    transform: scale(2.5) translateX(-25%);
 }
 `
 const sunMoveSpeedS = 30
@@ -51,8 +51,9 @@ const animSunMovement = keyframes`
 `
 
 const backgroundStyleOverwrite = css`
-filter:  contrast(1);
-transform: scale(2) translateX(-25%);
+filter:  contrast(1.2);
+transform: scale(2) translateX(25%);
+opacity: .5;
 animation: ${animMovingStars} ${sunMoveSpeedS * 2}s linear infinite;
 `
 
@@ -79,9 +80,9 @@ bottom: -140%;
 transform: translateX(-25%);
 --solid-edge: 50%;
 background-image: radial-gradient(ellipse, 
-    hsla(0, 0%, 0%, 1) calc(var(--solid-edge) - 2%), 
-    white var(--solid-edge), 
-    hsla(180, 100%, 50%, .7) calc(var(--solid-edge) + 5%), 
+    hsla(0, 0%, 0%, 1) calc(var(--solid-edge) - 1.5%), 
+    hsla(0, 100%, 100%, 1) var(--solid-edge), 
+    hsla(190, 100%, 50%, .7) calc(var(--solid-edge) + 5%), 
     hsla(206, 100%, 45%, .8) calc(var(--solid-edge) + 10%), 
     hsla(226, 100%, 45%, .7) calc(var(--solid-edge) + 15%), 
     hsla(226, 100%, 45%, .0) calc(var(--solid-edge) + 20%), 
