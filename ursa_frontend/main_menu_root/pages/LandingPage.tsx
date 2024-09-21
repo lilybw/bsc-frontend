@@ -7,7 +7,7 @@ import StarryBackground from "../../src/components/StarryBackground";
 
 const LandingPage: Component<MenuPageProps> = (props) => {
     return (
-        <div>
+        <>
             <SectionTitle>U.R.S.A.</SectionTitle>
             <div class={menuOptionsListStyle}>
                 <BigMenuButton onClick={() => props.goToPage(MenuPages.NEW_COLONY)}>New</BigMenuButton>
@@ -16,20 +16,16 @@ const LandingPage: Component<MenuPageProps> = (props) => {
                 <BigMenuButton>Tutorial</BigMenuButton>
             </div>
             <StarryBackground />
-        </div>
+        </>
     )
 }
 export default LandingPage;
-
-const landingPageStyles = css`
-
-`
 const menuOptionsListStyle = css`
     display: flex;
     flex-direction: column;
     align-items: left;
     position: absolute;
-    top: 50%;
+    top: 55%;
     left: 50%;
     width: 33%;
     transform: translate(-50%, -50%);

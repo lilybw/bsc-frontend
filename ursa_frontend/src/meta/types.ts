@@ -9,6 +9,8 @@ export type ResErr<T> = | { res: null, err: Error } | { res: T, err: null };
 export type ResErrSet<T, R extends Error> = | { res: null, err: R } | { res: T, err: null };
 export type ResCodeErr<T> = | { res: null, err: Error, code: number } | { res: T, err: null, code: number };
 
+export type NamedVoidFunction = { name: string, func: () => void };
+
 export enum RuntimeMode {
     DEVELOPMENT = 'development',
     PRODUCTION = 'production',

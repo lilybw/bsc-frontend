@@ -15,12 +15,9 @@ const Spinner: Component<SpinnerProps> = (props) => {
 };
 export default Spinner;
 
-const defaultSize = 50;
 const defaultColor = '#007bff';
 
 const spinnerStyle = css`
-  width: 4rem;
-  height: 4rem;
   border-width: 0 0 0 .5rem;
   border-radius: 50%;
   border-style: solid;
