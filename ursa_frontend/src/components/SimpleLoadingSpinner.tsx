@@ -11,7 +11,7 @@ const spin = keyframes`
 `;
 
 const Spinner: Component<SpinnerProps> = (props) => {
-  return <div class={`${spinnerStyle} ${props.styleOverwrite || ''}`} />;
+  return <div class={css`${spinnerStyle} ${props.styleOverwrite}`} />;
 };
 export default Spinner;
 

@@ -1,6 +1,6 @@
 import { Logger } from "../../logging/filteredLogger";
 import { ENV } from "../../environment/manager";
-import { ParseMethod, ResCodeErr, ResErr, ResErrSet } from "../../meta/types";
+import { ParseMethod, ResCodeErr, ResErr, ResErrSet, RuntimeMode } from "../../meta/types";
 import { 
     AssetCollectionID, AssetCollectionResponseDTO, AssetID, 
     AssetResponseDTO, ColonyCode, ColonyInfoResponseDTO, 
@@ -104,7 +104,7 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
     }
     base.request = <T>(method: HTTPMethod, suburl: string, retrieveAs: ParseMethod, body?: object) => handleArbitraryRequest(base, method, suburl, retrieveAs, body);
     
-    const tokenRes = await beginSession(base, userData);
+    const tokenRes = await beginSession(base, userData, environment);
     if (tokenRes.err != null) {
         return { res: null, err: tokenRes.err };
     }
@@ -217,7 +217,15 @@ async function handleArbitraryRequest<T>(integration: BaseBackendIntegration, me
  * @since 0.0.1
  * @author GustavBW
  */
-async function beginSession(base: BaseBackendIntegration, data: SessionInitiationRequestDTO): Promise<ResErr<SessionInitiationResponseDTO>> {
+async function beginSession(base: BaseBackendIntegration, data: SessionInitiationRequestDTO, enviroment: ENV): Promise<ResErr<SessionInitiationResponseDTO>> {
+    if (enviroment.runtimeMode != RuntimeMode.PRODUCTION) {
+        if (!data.IGN || data.IGN == "") {
+            data.IGN = "UNKOWN_USER"
+        }
+        if (!data.userIdentifier || data.userIdentifier == "") {
+            data.userIdentifier = "MISSING_IDENTIFIER"
+        }
+    }
     const response = await handleArbitraryRequest<SessionInitiationResponseDTO>(
         base, HTTPMethod.POST, '/api/v1/session', ParseMethod.JSON, data
     );
