@@ -6,6 +6,10 @@ import { IStyleOverwritable } from "../ts/types";
 interface ActionInputProps extends IStyleOverwritable {
     actionContext: TypeIconTuple;
     setInputBuffer: Setter<string>;
+    /**
+     * If true, the input will be not be auto focused and be uninteractible by the user.
+     */
+    demoMode?: boolean;
 }
 
 const ActionInput: Component<ActionInputProps> = (props) => {
@@ -13,16 +17,18 @@ const ActionInput: Component<ActionInputProps> = (props) => {
     let inputRef: HTMLInputElement | undefined;
 
     createEffect(() => {
-        if (isVisible()) {
+        if (isVisible() && !props.demoMode) {
             inputRef?.focus();
         }
     });
 
     onMount(() => {
+        if (props.demoMode) return;
         inputRef?.focus();
     });
 
     const onInput = (e: Event) => {
+        if (props.demoMode) return;
         setTimeout(() => {
             const value = (e.target as HTMLInputElement).value;
             props.setInputBuffer(value);
@@ -39,7 +45,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                 {props.actionContext.icon({styleOverwrite: actionContextIconStyle})}
                 <input type="text" class={inputFieldStyle}  
                     onKeyDown={onInput}
-                    placeholder="Type here..." autofocus ref={inputRef}
+                    placeholder="Type here..." autofocus={!props.demoMode} ref={inputRef}
                     id="main-input-field"
                 />
             </div>

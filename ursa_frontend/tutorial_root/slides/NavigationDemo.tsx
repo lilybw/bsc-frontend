@@ -4,6 +4,7 @@ import { css } from "@emotion/css";
 import ActionInput from "../../src/components/MainActionInput";
 import { ActionContext } from "../../src/ts/actionContext";
 import { createEffect, createSignal } from "solid-js";
+import BufferHighlightedName from "../../src/components/BufferHighlightedName";
 
 interface NavigationDemoProps {
     styleOverwrite?: string;
@@ -11,18 +12,7 @@ interface NavigationDemoProps {
 }
 
 export default function NavigationDemo(props: NavigationDemoProps): JSX.Element {
-    const [inputBuffer, setInputBuffer] = createSignal('');
-    const [debouncedBuffer, setDebouncedBuffer] = createSignal("");
-
-    // Debounce effect
-    createEffect(() => {
-        const timeoutId = setTimeout(() => {
-            console.log('Debounced buffer:', inputBuffer());
-            setDebouncedBuffer(inputBuffer());
-        }, 100); // 100ms debounce time
-
-        return () => clearTimeout(timeoutId);
-    });
+    const [inputBuffer, setInputBuffer] = createSignal<string>('');
 
     createEffect(() => {
         console.log('Input buffer changed:', inputBuffer());
@@ -37,6 +27,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
             <StarryBackground />
             <div class={videoDemoFrameStyle} />
             <ActionInput actionContext={ActionContext.NAVIGATION} setInputBuffer={setInputBuffer}/>
+            <BufferHighlightedName name={"Agriculture Center"} buffer={inputBuffer} /> 
         </div>
     )
 }
