@@ -89,7 +89,7 @@ const TutorialApp: Component<ApplicationProps> = (props) => {
             <WelcomePage onSlideCompleted={() => onSlideCompleted(currentSlide())} />
           </Match>
           <Match when={currentSlide() === 2}>
-            <NavigationDemo onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <NavigationDemo backend={props.context.backend} onSlideCompleted={() => onSlideCompleted(currentSlide())} />
           </Match>
           <Match when={currentSlide() === 3}>
             <NavigationTrial onSlideCompleted={() => onSlideCompleted(currentSlide())} />

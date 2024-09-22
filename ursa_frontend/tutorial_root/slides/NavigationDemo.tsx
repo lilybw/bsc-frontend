@@ -8,10 +8,13 @@ import BufferHighlightedName from "../../src/components/BufferHighlightedName";
 import BufferBasedButton from "../../src/components/BufferBasedButton";
 import { createStore } from "solid-js/store";
 import { createArrayStore } from "../../src/ts/wrappedStore";
+import ManagedAsset from "../../src/components/ManagedAsset";
+import { BackendIntegration } from "../../src/integrations/main_backend/mainBackend";
 
 interface NavigationDemoProps {
     styleOverwrite?: string;
     onSlideCompleted: () => void;
+    backend: BackendIntegration;
 }
 
 export default function NavigationDemo(props: NavigationDemoProps): JSX.Element {
@@ -37,6 +40,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                 buffer={inputBuffer} 
                 onActivation={() => console.log("button triggered")} 
             /> 
+            <ManagedAsset asset={3} backend={props.backend} />
         </div>
     )
 }
