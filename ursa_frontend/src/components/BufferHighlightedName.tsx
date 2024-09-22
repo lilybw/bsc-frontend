@@ -1,4 +1,4 @@
-import { Accessor, Component, For } from "solid-js";
+import { Accessor, Component, createMemo, For } from "solid-js";
 import { IBufferBased, IStyleOverwritable } from "../ts/types";
 import { css } from "@emotion/css";
 import SectionTitle from "./SectionTitle";
@@ -12,18 +12,24 @@ export interface BufferHighlightedNameProps extends IStyleOverwritable, IBufferB
 
 const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => {
 
-    const computedCharBaseStyle = css`${singleCharStyle} ${props.charBaseStyleOverwrite}`;
-    const computedCharHighlightStyle = css`${computedCharBaseStyle} ${singleCharHighlightStyle} ${props.charHighlightOverwrite}`;
-    const computedNameCompleteStyle = css`${computedCharHighlightStyle} ${nameCompleteStyle} ${props.nameCompleteOverwrite}`;
+    const computedCharBaseStyle = createMemo(() => 
+        css`${singleCharStyle} ${props.charBaseStyleOverwrite}`
+    );
+    const computedCharHighlightStyle = createMemo(() => 
+        css`${computedCharBaseStyle()} ${singleCharHighlightStyle} ${props.charHighlightOverwrite}`
+    );
+    const computedNameCompleteStyle = createMemo(() => 
+        css`${computedCharHighlightStyle()} ${nameCompleteStyle} ${props.nameCompleteOverwrite}`
+    );
 
     const getCharStyle = (index: Accessor<number>, charInName: string) => {
         if (props.buffer() === props.name) {
-            return computedNameCompleteStyle;
+            return computedNameCompleteStyle();
         }
         if (props.buffer().charAt(index()) === charInName) {
-            return computedCharHighlightStyle;
+            return computedCharHighlightStyle();
         }
-        return computedCharBaseStyle;
+        return computedCharBaseStyle();
     }
 
     return (

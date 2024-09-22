@@ -18,7 +18,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
     const [inputBuffer, setInputBuffer] = createSignal<string>('');
     const [actionContext, setActionContext] = createSignal<TypeIconTuple>(ActionContext.NAVIGATION);
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
-    
+
     setTimeout(() => {
         props.onSlideCompleted();
     }, 10_000);
@@ -33,7 +33,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                 inputBuffer={inputBuffer}
             />
             <BufferBasedButton register={bufferSubscribers.add} 
-                name={"Agriculture Center"} 
+                name={"Center"} 
                 buffer={inputBuffer} 
                 onActivation={() => console.log("button triggered")} 
             /> 

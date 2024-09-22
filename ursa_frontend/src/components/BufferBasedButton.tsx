@@ -1,4 +1,4 @@
-import { Accessor, Component, createSignal, onCleanup, onMount } from "solid-js";
+import { Accessor, Component, createSignal, onCleanup, onMount, createMemo } from "solid-js";
 import { css } from "@emotion/css";
 import BufferHighlightedName, { BufferHighlightedNameProps } from "./BufferHighlightedName";
 import { AddRetainRemoveFunc } from "../ts/wrappedStore";
@@ -12,13 +12,21 @@ interface BufferBasedButtonProps extends BufferHighlightedNameProps {
 const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     const [activated, setActivated] = createSignal(false);
 
+    const combinedCharBaseStyle = createMemo(() => {
+        return css`
+            ${props.charBaseStyleOverwrite || ''}
+            ${activated() ? onActivatedBaseNameStyleOverwrite : ''}
+        `;
+    });
+
     onMount(() => {
         const removeFunc = props.register((v) => {
             if (v === props.name) {
                 setActivated(true);
                 setTimeout(() => {
                     props.onActivation();
-                }, shimmerTimeS);
+                    setActivated(false);
+                }, shimmerTimeS * 1000);
                 return { consumed: true };
             }
             return { consumed: false };
@@ -28,38 +36,37 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     });
 
     return (
-        <button class={css`${baseStyle} 
+        <button class={css`
+            ${baseStyle} 
             ${props.styleOverwrite} 
-            ${activated() ? onActivationShimmerAnim : ''}`} 
+            ${activated() ? onActivationShimmerAnim : ''}
+        `} 
             id={"buffer-based-button-"+props.name}
         >
             <BufferHighlightedName 
                 buffer={props.buffer} 
                 name={props.name} 
                 charHighlightOverwrite={props.charHighlightOverwrite}
-                charBaseStyleOverwrite={
-                    activated() ? 
-                        css`${onActivatedNameBaseStyleOverwrite} ${props.charBaseStyleOverwrite}` 
-                    : 
-                        props.charBaseStyleOverwrite
-                }
+                charBaseStyleOverwrite={combinedCharBaseStyle()}
                 nameCompleteOverwrite={props.nameCompleteOverwrite}
             />
         </button>
     );
 }
+
 export default BufferBasedButton;
 
 const shimmerTimeS = .5;
-const shimmerColor = 'hsl(29, 100%, 63%)';
+const shimmerColor = 'hsla(29, 100%, 63%, 1)';
 
-const onActivatedNameBaseStyleOverwrite = css`
-color: ${shimmerColor};
+const onActivatedBaseNameStyleOverwrite = css`
+color: white;
 text-shadow: 0 0 1rem ${shimmerColor};
+text-decoration: underline;
 `
 
 const onActivationShimmerAnim = css`
-    animation: shimmer ${shimmerTimeS}s ease-in;
+    animation: shimmer ${shimmerTimeS}s linear;
     --shimmer-color: ${shimmerColor};
 
     @keyframes shimmer {
