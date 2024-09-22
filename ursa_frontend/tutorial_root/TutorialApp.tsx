@@ -107,7 +107,7 @@ const TutorialApp: Component<ApplicationProps> = (props) => {
             <TutorialCompletePage onSlideCompleted={() => onSlideCompleted(currentSlide())} />
           </Match>
         </Switch>
-        <div class={navigationFooterStyle}>
+        <div class={navigationFooterStyle} id="tutorial-slide-navigation">
             {currentSlide() < slideStore.length && hasCompletedSlide() ? 
               <BigMenuButton styleOverwrite={rightNavigationButtonStyle} onClick={onAdvanceSlide}>Next</BigMenuButton> : <></>}
             {currentSlide() >= 1 ? 

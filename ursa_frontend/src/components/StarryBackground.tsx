@@ -8,7 +8,7 @@ interface StarryBackgroundProps extends IStyleOverwritable {
 
 export default function StarryBackground(props: StarryBackgroundProps): JSX.Element {
     return (
-        <div class={css`${starBackground} ${props.styleOverwrite}`}>{props.children}</div>
+        <div class={css`${starBackground} ${props.styleOverwrite}`} id="starry-background">{props.children}</div>
     );
 }
 const starBackground = css`

@@ -1,9 +1,9 @@
 import { css } from "@emotion/css";
 import { Component, JSX } from "solid-js";
+import { IStyleOverwritable } from "../ts/types";
 
-interface BigMenuButtonProps {
+interface BigMenuButtonProps extends IStyleOverwritable {
     children: JSX.Element;
-    styleOverwrite?: string;
     onClick?: () => void;
 }
 
