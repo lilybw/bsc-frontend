@@ -73,6 +73,8 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                 {props.actionContext().icon({styleOverwrite: actionContextIconStyle})}
                 <input type="text" class={inputFieldStyle}  
                     onKeyDown={onKeyDown}
+                    value={props.inputBuffer()}
+                    disabled={props.demoMode}
                     placeholder="Type here..." autofocus={!props.demoMode} ref={inputRef}
                     id="main-input-field"
                 />
@@ -148,8 +150,8 @@ left: 50%;
 bottom: 0;
 transform: translateX(-50%);
 background-color: transparent;
-width: 43%;
-height: 6rem;
+width: 43vw;
+height: 6vh;
 `
 
 const inputContainerStyle = css`
@@ -164,7 +166,8 @@ color: white;
 border-radius: 1rem;
 border: 1px solid white;
 width: 52%;
-height: 2.5rem;
+max-width: 30%;
+height: 57%;
 bottom: 50%;
 left: 51%;
 transform: translate(-50%, 50%);

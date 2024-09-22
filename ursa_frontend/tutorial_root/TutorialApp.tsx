@@ -24,7 +24,7 @@ injectGlobal`${SHARED_CSS_STR}`
 export type SlideEntry = {visited: boolean, icon: Component<SlideIconProps>};
 
 const TutorialApp: Component<ApplicationProps> = (props) => {
-  const [currentSlide, setCurrentSlide] = createSignal(0);
+  const [currentSlide, setCurrentSlide] = createSignal(2);
   const [previousSlide, setPreviousSlide] = createSignal(0);
   const [hasCompletedSlide, setHasCompletedSlide] = createSignal(false);
   const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<string | null>(null);

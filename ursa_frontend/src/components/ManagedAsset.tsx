@@ -15,16 +15,16 @@ interface ManagedAssetProps extends IStyleOverwritable {
 const ManagedAsset: Component<ManagedAssetProps> = (props) => {
     const [assetMetadata, setAssetMetadata] = createResource<ResCodeErr<AssetResponseDTO>>(() => props.backend.getAssetMetadata(props.asset));
     return (
-        <div class={props.styleOverwrite}>
-               <Show when={assetMetadata.loading}>
-                    <Spinner />
-                </Show>
-                <Show when={assetMetadata.error}>
-                    <SomethingWentWrongIcon message={assetMetadata.latest?.err} />
-                </Show>
-                <Show when={assetMetadata.state === "ready"}>
-                    <GraphicalAsset metadata={assetMetadata.latest?.res!} backend={props.backend} />
-                </Show> 
+        <div>
+            <Show when={assetMetadata.loading}>
+                <Spinner />
+            </Show>
+            <Show when={assetMetadata.error}>
+                <SomethingWentWrongIcon message={assetMetadata.latest?.err} />
+            </Show>
+            <Show when={assetMetadata.state === "ready"}>
+                <GraphicalAsset styleOverwrite={props.styleOverwrite} metadata={assetMetadata.latest?.res!} backend={props.backend} />
+            </Show> 
         </div>
     );
 }

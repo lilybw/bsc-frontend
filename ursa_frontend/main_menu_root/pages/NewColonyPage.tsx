@@ -1,4 +1,3 @@
-/** @jsxImportSource solid-js */
 import { Component, createSignal, JSX } from "solid-js";
 import { css } from "@emotion/css";
 import SectionTitle from "../../src/components/SectionTitle";
