@@ -1,9 +1,9 @@
 import { css } from "@emotion/css";
 import { Component } from "solid-js";
+import { IStyleOverwritable } from "../ts/types";
 
-interface SomethingWentWrongIconProps {
+interface SomethingWentWrongIconProps extends IStyleOverwritable {
     message?: string;
-    styleOverwrite?: string;
 }
 
 const SomethingWentWrongIcon: Component<SomethingWentWrongIconProps> = (props) => {

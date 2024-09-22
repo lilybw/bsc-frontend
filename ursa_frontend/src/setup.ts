@@ -42,7 +42,7 @@ export const initApp = (app: Component<ApplicationProps>) => {
             userIdentifier: 'dev-user-123',
             IGN: 'DevUser',
             languagePreference: LanguagePreference.English,
-            locationUrl: 'https://dev.urs'
+            locationUrl: "http://localhost:"+(import.meta.env.VITE_PORT ?? 3000) +"/"+import.meta.env.BASE_URL,
         };
         (window as any)[URSA_INITIALIZATION_FUNCTION_NAME](mockVitecInfo); 
     }

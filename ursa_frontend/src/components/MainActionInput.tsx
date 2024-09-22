@@ -1,9 +1,9 @@
 import { css } from "@emotion/css";
 import { Component, createEffect, createSignal, onMount, Setter } from "solid-js"
 import { TypeIconTuple } from "../ts/actionContext";
+import { IStyleOverwritable } from "../ts/types";
 
-interface ActionInputProps {
-    styleOverwrite?: string;
+interface ActionInputProps extends IStyleOverwritable {
     actionContext: TypeIconTuple;
     setInputBuffer: Setter<string>;
 }

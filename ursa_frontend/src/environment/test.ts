@@ -1,5 +1,6 @@
 import { ENV } from "./manager";
 import { LogLevel, RuntimeMode } from "../meta/types";
+import { LanguagePreference } from "../integrations/vitec/vitecDTOs";
 
 export const TEST_ENVIRONMENT: ENV = {
     runtimeMode: RuntimeMode.TEST,
@@ -8,10 +9,10 @@ export const TEST_ENVIRONMENT: ENV = {
     logLevel: LogLevel.TRACE,
     authHeaderName: 'URSA-Token',
     proxyMainBackendRequests: true,
-    testUser: {
+    vitecInfo: {
         userIdentifier: "ursa_internal_test_user",
-        currentSessionToken: "make_sure_internal_auth_is_set_to_naive_on_backend_and_cross_verification_is_set_to_never",
         IGN: "Thee Who Shall Not Be Named",
-        LanguagePreference: "en"
+        languagePreference: LanguagePreference.English,
+        locationUrl: "http://localhost:"+import.meta.env.VITE_PORT+"/"+import.meta.env.BASE_URL,
     }
 }

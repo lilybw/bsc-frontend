@@ -2,6 +2,7 @@ import { Component, For } from 'solid-js';
 import { css, keyframes } from '@emotion/css';
 import StarryBackground from './StarryBackground';
 import SectionTitle from './SectionTitle';
+import { IStyleOverwritable } from '../ts/types';
 
 const animOrbit = keyframes`
   from { transform: translate(-50%, -50%) rotate(var(--start-position)); }
@@ -97,7 +98,7 @@ const planets = [
   { name: 'saturn', color: `hsl(${color}, 50%, 20%)`, size: 0.933, orbitSize: 48, speed: 62 },
 ];
 
-interface LoadingSpinnerProps {
+interface LoadingSpinnerProps extends IStyleOverwritable {
     loadingText?: string;
 }
 
@@ -105,7 +106,7 @@ const SolarLoadingSpinner: Component<LoadingSpinnerProps> = (props: LoadingSpinn
   const getRandomStartPosition = () => Math.floor(Math.random() * 360);
 
   return (
-    <div class={spinnerStyles} id="solar-system-loading-spinner">
+    <div class={css`${spinnerStyles} ${props.styleOverwrite}`} id="solar-system-loading-spinner">
       <StarryBackground styleOverwrite={css`filter: brightness(.3);`}/>
       <div class={solarSystemStyles}>
         <div class={sunStyles} id="the-sun"></div>

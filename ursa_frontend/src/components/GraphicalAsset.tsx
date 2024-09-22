@@ -4,11 +4,11 @@ import { BackendIntegration } from '../integrations/main_backend/mainBackend';
 import Spinner from './SimpleLoadingSpinner';
 import { css } from '@emotion/css';
 import SomethingWentWrongIcon from './SomethingWentWrongIcon';
+import { IStyleOverwritable } from '../ts/types';
 
-interface ProgressiveImageProps {
+interface ProgressiveImageProps extends IStyleOverwritable {
   metadata: AssetResponseDTO;
   backend: BackendIntegration;
-  styleOverwrite?: string;
 }
 
 const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {

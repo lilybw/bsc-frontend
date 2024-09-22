@@ -1,9 +1,9 @@
 import { css } from "@emotion/css";
 import { JSX } from "solid-js/jsx-runtime";
+import { IStyleOverwritable } from "../ts/types";
 
-interface SectionTitleProps {
+interface SectionTitleProps extends IStyleOverwritable {
     children: JSX.Element;
-    styleOverwrite?: string;
 }
 
 export default function SectionTitle(props: SectionTitleProps): JSX.Element {
