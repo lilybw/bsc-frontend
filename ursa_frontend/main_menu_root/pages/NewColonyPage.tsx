@@ -8,7 +8,7 @@ import { MenuPages, MenuPageProps } from "../MainMenuApp";
 import NavigationFooter from "../NavigationFooter";
 
 // Import the green gas giant image
-import greenGasGiantImage from './images/Green Gas Giant.jpeg';
+import greenGasGiantImage from './images/Green Gas Giant.png';
 import moon from './images/Moon.png';
 
 const NewColonyPage: Component<MenuPageProps> = (props) => {
@@ -80,7 +80,6 @@ const rightContainerStyle = css`
   display: flex;
   justify-content: center;
   align-items: center;
-  transform: 50%;
 `;
 
 const titleStyle = css`
@@ -132,7 +131,7 @@ const planetStyle = css`
   background: url(${greenGasGiantImage});
   box-shadow: inset -8em -8em 4em #000, -1.2em -1.2em 2em #658E66;
   position: relative;
-  animation: rotate 5000s linear infinite;
+  animation: rotate 10000s linear infinite;
   border-radius: 50%;
   background-repeat: repeat;
   background-size: 1000% 100%;
@@ -152,7 +151,7 @@ const moonStyle = css`
   left: -15em;
   top: 50%;
   transform: translateY(-50%);
-  animation: rotate 1000s linear infinite, orbit 20s infinite ease-in-out;
+  animation: rotate 2000s linear infinite, orbit 60s infinite ease-in-out;
   border-radius: 50%;
   box-shadow: inset -1.5em -1.5em 1.5em #000, -0.2em -0.2em 0.5em #AA653C;
 
