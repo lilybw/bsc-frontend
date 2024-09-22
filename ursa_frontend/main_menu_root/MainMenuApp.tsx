@@ -11,6 +11,7 @@ import { ApplicationProps } from '../src/ts/types';
 import Spinner from '../src/components/SimpleLoadingSpinner';
 import SomethingWentWrongIcon from '../src/components/SomethingWentWrongIcon';
 import ColonyListPage from './pages/ColonyListPage';
+import NewColonyPage from './pages/NewColonyPage';
 
 export enum MenuPages {
   LANDING_PAGE = "landing",
@@ -36,6 +37,7 @@ const MainMenuApp: Component<ApplicationProps> = (props) => {
         setCurrentPage(() => LandingPage);
         break;
       case MenuPages.NEW_COLONY:
+        setCurrentPage(() => NewColonyPage)
         break;
       case MenuPages.CONTINUE_COLONY:
         setCurrentPage(() => ColonyListPage);
