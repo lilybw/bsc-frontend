@@ -80,6 +80,7 @@ const rightContainerStyle = css`
   display: flex;
   justify-content: center;
   align-items: center;
+  transform: 50%;
 `;
 
 const titleStyle = css`
@@ -126,16 +127,15 @@ const inputStyle = css`
 `;
 
 const planetStyle = css`
-  width: 20em;
-  height: 20em;
+  width: 80em;
+  height: 80em;
   background: url(${greenGasGiantImage});
-  box-shadow: inset -2em -2em 2em #000, -0.3em -0.3em 0.5em #658E66;
+  box-shadow: inset -8em -8em 4em #000, -1.2em -1.2em 2em #658E66;
   position: relative;
   animation: rotate 5000s linear infinite;
   border-radius: 50%;
   background-repeat: repeat;
   background-size: 1000% 100%;
-  z-index: 500;
 
   @keyframes rotate {
     to {
@@ -149,7 +149,7 @@ const moonStyle = css`
   width: 6em;
   height: 6em;
   position: absolute;
-  left: -10em;
+  left: -15em;
   top: 50%;
   transform: translateY(-50%);
   animation: rotate 1000s linear infinite, orbit 20s infinite ease-in-out;
@@ -157,13 +157,19 @@ const moonStyle = css`
   box-shadow: inset -1.5em -1.5em 1.5em #000, -0.2em -0.2em 0.5em #AA653C;
 
   @keyframes orbit {
-    49% {
-      z-index: 1;
-      left: 25em;
+    49% { 
+      z-index: 1; 
+    }
+    50% { 
+      z-index: -1;
+      left: 90em;
+    }
+    99% {
+      z-index: -1;
     }
     100% {
-      left: -10rem;
-      z-index: 1000;
+      left: -15rem;
+      z-index: 1;
     }
   }
 `;
