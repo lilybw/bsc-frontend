@@ -1,6 +1,7 @@
 import { ResErr, RuntimeMode } from "../../meta/types";
 import { ENV } from "../../environment/manager";
 import { Logger } from "../../logging/filteredLogger";
+import { VitecIntegrationInformation } from "./vitecDTOs";
 /**
  * Single source of truth: The 10-finger angular project: ./src/app/services/auth.service.ts
  */
@@ -9,10 +10,11 @@ const SESSION_COOKIE_NAME = 'mvf_session_id';
 export type VitecIntegration = {
     log: Logger,
     env: ENV,
-    sessionToken: string
+    sessionToken: string,
+    baseUrl: string
 }
 
-export async function initializeVitecIntegration(environment: ENV, log: Logger): Promise<ResErr<VitecIntegration>> {
+export async function initializeVitecIntegration(info: VitecIntegrationInformation, environment: ENV, log: Logger): Promise<ResErr<VitecIntegration>> {
     const userInfoRes = await getSessionToken(environment, log);
     if (userInfoRes.err != null) {
         return {res: null, err: userInfoRes.err};
@@ -20,7 +22,8 @@ export async function initializeVitecIntegration(environment: ENV, log: Logger):
     const integration: VitecIntegration = {
         log: log,
         env: environment,
-        sessionToken: userInfoRes.res
+        sessionToken: userInfoRes.res,
+        baseUrl: info.locationUrl
     };
     return {res: integration, err: null};
 }

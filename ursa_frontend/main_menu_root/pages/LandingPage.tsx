@@ -13,7 +13,7 @@ const LandingPage: Component<MenuPageProps> = (props) => {
                 <BigMenuButton onClick={() => props.goToPage(MenuPages.NEW_COLONY)}>New</BigMenuButton>
                 <BigMenuButton onClick={() => props.goToPage(MenuPages.CONTINUE_COLONY)}>Continue</BigMenuButton>
                 <BigMenuButton onClick={() => props.goToPage(MenuPages.JOIN_COLONY)}>Join</BigMenuButton>
-                <BigMenuButton>Tutorial</BigMenuButton>
+                <BigMenuButton onClick={() => (window as any).location.href=props.context.vitec.baseUrl + "/games/ursa/tutorial" }>Tutorial</BigMenuButton>
             </div>
             <StarryBackground />
         </>

@@ -218,7 +218,6 @@ async function handleArbitraryRequest<T>(integration: BaseBackendIntegration, me
  * @author GustavBW
  */
 async function beginSession(base: BaseBackendIntegration, data: SessionInitiationRequestDTO, enviroment: ENV): Promise<ResErr<SessionInitiationResponseDTO>> {
-    console.log("[begin session]" + JSON.stringify(data));
     if (enviroment.runtimeMode !== RuntimeMode.PRODUCTION) {
         if (!data.firstName || data.firstName === "") {
             base.logger.trace("[begin session] Missing first name: " + data.firstName);

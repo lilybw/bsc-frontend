@@ -1,3 +1,4 @@
+import { ENV } from "../environment/manager";
 import { BackendIntegration } from "../integrations/main_backend/mainBackend";
 import { PlayerInfoResponseDTO } from "../integrations/main_backend/mainBackendDTOs";
 import { MultiplayerIntegration } from "../integrations/multiplayer_backend/multiplayerBackend";

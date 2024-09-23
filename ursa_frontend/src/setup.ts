@@ -54,7 +54,7 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     const log = initializeLogger(environment);
     log.log('[setup] Initializing application context');
     
-    const vitecIntegrationResult = await initializeVitecIntegration(environment, log);
+    const vitecIntegrationResult = await initializeVitecIntegration(vitecInfo, environment, log);
     if (vitecIntegrationResult.err != null) {
         return Promise.reject({res: null, err: vitecIntegrationResult.err});
     }
@@ -85,7 +85,7 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         logger: log,
         vitec: vitecIntegrationResult.res,
         multiplayer: undefined as any,
-        player: playerInfoRes.res
+        player: playerInfoRes.res,
     };
     return Promise.resolve({res: context, err: null});
 }
