@@ -26,11 +26,11 @@ export async function initializeVitecIntegration(environment: ENV, log: Logger):
 }
 
 const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<string>> => {
-    if (environment.runtimeMode !== RuntimeMode.PRODUCTION) {
-        return Promise.resolve({res: "dev session token", err: null });
-    }
     const sessionRes = parseForSessionCookie(log);
     if (sessionRes.err != null) {
+        if (environment.runtimeMode !== RuntimeMode.PRODUCTION) {
+            return Promise.resolve({res: "CookieNotFoundResortingToThisAsDevSessionToken", err: null });
+        }
         return {res: null, err: sessionRes.err};
     }
 

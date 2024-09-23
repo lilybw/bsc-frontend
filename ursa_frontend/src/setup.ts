@@ -52,7 +52,6 @@ export const initApp = (app: Component<ApplicationProps>) => {
 export const initContext = async (vitecInfo: VitecIntegrationInformation): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
     const log = initializeLogger(environment);
-    log.log('[delete me] Vitec info: '+JSON.stringify(vitecInfo));
     log.log('[setup] Initializing application context');
     
     const vitecIntegrationResult = await initializeVitecIntegration(environment, log);
