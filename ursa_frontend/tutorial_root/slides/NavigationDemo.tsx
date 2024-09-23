@@ -42,20 +42,35 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                     inputBuffer={inputBuffer}
                     demoMode={true}
                 />
-                <BufferBasedButton register={bufferSubscribers.add} 
+                <BufferBasedButton
+                    styleOverwrite={locationPinStyleOverwrite}
+                    register={bufferSubscribers.add} 
                     name={nameOfLocation} 
                     buffer={inputBuffer}
                     onActivation={() => console.log("button triggered")} 
                 /> 
-                <ManagedAsset asset={3} backend={props.backend} />
-                <ManagedAsset asset={8} backend={props.backend} />
+                <ManagedAsset styleOverwrite={locationPinStyleOverwrite} asset={3} backend={props.backend} />
+                <ManagedAsset styleOverwrite={playerCharStyleOverwrite} asset={8} backend={props.backend} />
             </VideoFrame>
             
         </div>
     )
 }
+const shared = css`
+position: absolute;
+top: 50%;
+transform: translateY(-50%);
+--edge-offset: 5vw;
+`
 
-
+const playerCharStyleOverwrite = css`
+${shared}
+left: var(--edge-offset);
+`
+const locationPinStyleOverwrite = css`
+${shared}
+right: var(--edge-offset);
+`
 
 const videoDemoFrameStyle = css`
 

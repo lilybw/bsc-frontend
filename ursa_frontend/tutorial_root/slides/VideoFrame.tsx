@@ -10,7 +10,7 @@ interface VideoDemoFrameStyleProps extends IStyleOverwritable, IBackendBased {
 
 const VideoFrame: Component<VideoDemoFrameStyleProps> = (props) => {
     
-    const computedStyle = createMemo(() => css`${colonyListBackgroundStyle} ${props.styleOverwrite}`);
+    const computedStyle = createMemo(() => css`${videoFrameBackgroundStyle} ${props.styleOverwrite}`);
 
     return (
         <div>
@@ -25,7 +25,7 @@ export default VideoFrame;
 
 const videoIconStyleOverwrite = css`
 position: relative;
-top: 0;
+top: -1vh;
 left: 50%;
 width: 10vw;
 height: 5vw;
@@ -35,7 +35,7 @@ filter: drop-shadow(0 0 .5rem white);
 cursor: help;
 `
 
-const colonyListBackgroundStyle = css`
+const videoFrameBackgroundStyle = css`
 display: flex;
 flex-direction: column;
 

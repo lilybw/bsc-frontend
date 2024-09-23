@@ -24,7 +24,7 @@ injectGlobal`${SHARED_CSS_STR}`
 export type SlideEntry = {visited: boolean, icon: Component<SlideIconProps>};
 
 const TutorialApp: Component<ApplicationProps> = (props) => {
-  const [currentSlide, setCurrentSlide] = createSignal(1);
+  const [currentSlide, setCurrentSlide] = createSignal(2);
   const [previousSlide, setPreviousSlide] = createSignal(0);
   const [hasCompletedSlide, setHasCompletedSlide] = createSignal(false);
   const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<string | null>(null);
@@ -120,6 +120,7 @@ export default TutorialApp;
 const navigationFooterStyle = css`
   position: absolute;
   bottom: 0;
+  z-index: 100;
   width: 100%;
   display: flex;
   flex-direction: row;
