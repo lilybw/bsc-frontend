@@ -3,12 +3,12 @@ import { Component } from "solid-js";
 import { IStyleOverwritable } from "../ts/types";
 
 interface SomethingWentWrongIconProps extends IStyleOverwritable {
-    message?: string;
+    message?: string | null;
 }
 
 const SomethingWentWrongIcon: Component<SomethingWentWrongIconProps> = (props) => {
     return (
-        <div class={css`${styles} ${props.styleOverwrite}`} title={props.message}>?!</div>
+        <div class={css`${styles} ${props.styleOverwrite}`} title={props.message ?? ''}>?!</div>
     );
 }
 export default SomethingWentWrongIcon;
