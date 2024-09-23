@@ -1,14 +1,13 @@
-import { createSignal, createEffect, onCleanup, Component } from 'solid-js';
+import { createSignal, createEffect, onCleanup, Component, createMemo, JSX, Show, For } from 'solid-js';
 import { AssetID, AssetResponseDTO } from '../integrations/main_backend/mainBackendDTOs';
 import { BackendIntegration } from '../integrations/main_backend/mainBackend';
 import Spinner from './SimpleLoadingSpinner';
 import { css } from '@emotion/css';
 import SomethingWentWrongIcon from './SomethingWentWrongIcon';
-import { IStyleOverwritable } from '../ts/types';
+import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from '../ts/types';
 
-interface ProgressiveImageProps extends IStyleOverwritable {
+interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IBackendBased {
   metadata: AssetResponseDTO;
-  backend: BackendIntegration;
 }
 
 const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
@@ -78,23 +77,40 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
     });
   });
 
-  const computedStyles = css`
+  const computedStyles = createMemo(() => css`
     ${baseStyles}
     width: ${props.metadata.width}px;
     height: ${props.metadata.height}px;
     ${props.styleOverwrite}
-  `
+  `)
+
+  const appendChildren = () => {
+    if (props.children) {
+      return (
+        <For each={props.children}>
+          {(child, index) => 
+            {return child({styleOverwrite: computedStyles()})}
+          }
+        </For>
+      )
+    }
+  }
 
   return (
     <>
-      {loading() && <Spinner styleOverwrite={computedStyles} />}
-      {error() && <SomethingWentWrongIcon styleOverwrite={computedStyles} message={error()} />}
+      {loading() && <Spinner styleOverwrite={computedStyles()} />}
+      {error() && <SomethingWentWrongIcon styleOverwrite={computedStyles()} message={error()} />}
       {currentSrc() && (
-        <img
-          src={currentSrc()!}
-          alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
-          class={computedStyles}
-        />
+        <>
+          <img
+            src={currentSrc()!}
+            alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
+            class={computedStyles()}
+          >
+            
+          </img>
+          {appendChildren()}
+        </>
       )}
     </>
   );

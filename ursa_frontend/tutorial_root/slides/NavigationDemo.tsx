@@ -49,6 +49,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                 /> 
                 <ManagedAsset asset={3} backend={props.backend} />
                 <ManagedAsset asset={8} backend={props.backend} />
+                <ManagedAsset asset={5} backend={props.backend} />
             </VideoFrame>
             
         </div>

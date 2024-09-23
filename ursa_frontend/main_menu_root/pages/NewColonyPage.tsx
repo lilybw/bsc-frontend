@@ -15,10 +15,10 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
   };
 
   return (
-    <div class={pageStyle}>
-      <div class={leftContainerStyle}>
+    <div class={pageStyle} id={"new-colony-page"}>
+      <div class={leftContainerStyle} id={"new-colony-page-left-container"}>
         <SectionTitle styleOverwrite={titleStyle}>CREATE A NEW COLONY</SectionTitle>
-        <div class={centerContentStyle}>
+        <div class={centerContentStyle} id={"new-colony-page-centering"}>
           <div class={inputContainerStyle}>
             <label for="colonyName">Name your colony</label>
             <input
@@ -35,8 +35,8 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
           />
         </div>
       </div>
-      <div class={rightContainerStyle}>
-        <PlanetWithMoon/>
+      <div class={rightContainerStyle} id={"new-colony-page-right-container"}>
+        <PlanetWithMoon backend={props.context.backend} size={66}/>
       </div>
       <StarryBackground />
     </div>
@@ -65,13 +65,16 @@ const leftContainerStyle = css`
 `;
 
 const rightContainerStyle = css`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
   width: 66.67%;
   height: 100%;
-  padding-top: 10em;
-  padding-left: 20em;
-  box-sizing: border-box;
   z-index: 1;
-  display: flex;
+  
+  box-sizing: border-box;
 `;
 
 const titleStyle = css`

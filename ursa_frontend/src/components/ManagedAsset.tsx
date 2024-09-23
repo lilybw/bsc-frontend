@@ -1,15 +1,14 @@
 import { Component, createResource, Show } from "solid-js";
 import { BackendIntegration } from "../integrations/main_backend/mainBackend";
-import { IStyleOverwritable } from "../ts/types";
+import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from "../ts/types";
 import { AssetResponseDTO } from "../integrations/main_backend/mainBackendDTOs";
 import { ResCodeErr } from "../meta/types";
 import Spinner from "./SimpleLoadingSpinner";
 import SomethingWentWrongIcon from "./SomethingWentWrongIcon";
 import GraphicalAsset from "./GraphicalAsset";
 
-interface ManagedAssetProps extends IStyleOverwritable {
+interface ManagedAssetProps extends IStyleOverwritable, IParentingImages, IBackendBased {
     asset: number;
-    backend: BackendIntegration;
 }
 
 const ManagedAsset: Component<ManagedAssetProps> = (props) => {
@@ -23,7 +22,9 @@ const ManagedAsset: Component<ManagedAssetProps> = (props) => {
                 <SomethingWentWrongIcon message={assetMetadata.latest?.err} />
             </Show>
             <Show when={assetMetadata.state === "ready"}>
-                <GraphicalAsset styleOverwrite={props.styleOverwrite} metadata={assetMetadata.latest?.res!} backend={props.backend} />
+                <GraphicalAsset styleOverwrite={props.styleOverwrite} metadata={assetMetadata.latest?.res!} backend={props.backend}>
+                    {props.children}
+                </GraphicalAsset>
             </Show> 
         </div>
     );

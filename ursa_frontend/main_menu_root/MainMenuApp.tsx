@@ -54,9 +54,15 @@ const MainMenuApp: Component<ApplicationProps> = (props) => {
   }
 
   return (
-    <div class={Styles.NO_OVERFLOW} id="the-main-menu-app">
+    <div class={mainMenuAppStyle} id="the-main-menu-app">
       {CurrentPage()({context: props.context, goToPage: goToPage, goBack: goBack})}
     </div>
   );
 };
 export default MainMenuApp;
+
+const mainMenuAppStyle = css`
+  width: 100vw;
+  height: 100vh;
+  ${Styles.NO_OVERFLOW}
+`
