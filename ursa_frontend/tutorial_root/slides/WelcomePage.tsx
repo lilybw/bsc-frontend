@@ -29,7 +29,7 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
         </div>
     )
 }
-const sunMoveSpeedS = 10
+const sunMoveSpeedS = 30
 
 const planetContainerStyle = css`
 position: absolute;
