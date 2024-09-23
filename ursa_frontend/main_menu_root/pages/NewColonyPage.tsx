@@ -36,7 +36,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
         </div>
       </div>
       <div class={rightContainerStyle}>
-        <PlanetWithMoon />  {/* Use the PlanetWithMoon component */}
+        <PlanetWithMoon/>
       </div>
       <StarryBackground />
     </div>
@@ -67,12 +67,11 @@ const leftContainerStyle = css`
 const rightContainerStyle = css`
   width: 66.67%;
   height: 100%;
-  padding: 2rem;
+  padding-top: 10em;
+  padding-left: 20em;
   box-sizing: border-box;
   z-index: 1;
   display: flex;
-  justify-content: center;
-  align-items: center;
 `;
 
 const titleStyle = css`

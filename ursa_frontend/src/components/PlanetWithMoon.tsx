@@ -1,4 +1,3 @@
-/** @jsxImportSource solid-js */
 import { Component } from "solid-js";
 import { css } from "@emotion/css";
 
@@ -16,21 +15,18 @@ const PlanetWithMoon: Component = () => {
   );
 };
 
-export default PlanetWithMoon;  // Changed to default export
+export default PlanetWithMoon;
 
 const containerStyle = css`
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 `;
 
 const planetStyle = css`
-  width: 80em;
-  height: 80em;
+  width: 64em;
+  height: 64em;
   background: url(${greenGasGiantImage});
-  box-shadow: inset -8em -8em 4em #000, -1.2em -1.2em 2em #658E66;
+  box-shadow: inset -6.4em -6.4em 3.2em #000, -0.96em -0.96em 1.6em #658E66;
   position: relative;
   animation: rotate 10000s linear infinite;
   border-radius: 50%;
@@ -62,7 +58,7 @@ const moonStyle = css`
     }
     50% { 
       z-index: -1;
-      left: 90em;
+      left: 72em;
     }
     99% {
       z-index: -1;
