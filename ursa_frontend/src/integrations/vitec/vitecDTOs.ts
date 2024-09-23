@@ -12,6 +12,14 @@ export enum LanguagePreference {
     Dutch = 'nl-NL',
     English = 'en-GB',
 }
+export const LanguagePreferenceAliases: {[key in LanguagePreference]: string[]} = {
+    [LanguagePreference.Danish]: ['da', 'da-DK', 'DK'],
+    [LanguagePreference.NorwegianBokmal]: ['nb', 'nb-NO', 'NO'],
+    [LanguagePreference.NorwegianNynorsk]: ['nn', 'nn-NO', 'NO'],
+    [LanguagePreference.Swedish]: ['sv', 'sv-SE', 'SE'],
+    [LanguagePreference.Dutch]: ['nl', 'nl-NL'],
+    [LanguagePreference.English]: ['en', 'en-GB', 'GB', "UK"],
+};
 
 /**
  * Single source of truth: The 10-finger angular project: ./src/app/modules/games/ursa/ursa.integraton.component.ts
@@ -21,7 +29,8 @@ export type VitecIntegrationInformation = {
     /**
      * Username
      */
-    IGN: string;
+    firstName: string;
+    surName: string;
     languagePreference: LanguagePreference;
     locationUrl: string;
 }

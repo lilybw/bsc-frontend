@@ -11,7 +11,7 @@ export const TEST_ENVIRONMENT: ENV = {
     proxyMainBackendRequests: true,
     vitecInfo: {
         userIdentifier: "ursa_internal_test_user",
-        IGN: "Thee Who Shall Not Be Named",
+        firstName: "Thee Who Shall Not Be Named",
         languagePreference: LanguagePreference.English,
         locationUrl: "http://localhost:"+import.meta.env.VITE_PORT+"/"+import.meta.env.BASE_URL,
     }

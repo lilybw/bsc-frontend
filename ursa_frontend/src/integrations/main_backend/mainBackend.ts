@@ -218,11 +218,12 @@ async function handleArbitraryRequest<T>(integration: BaseBackendIntegration, me
  * @author GustavBW
  */
 async function beginSession(base: BaseBackendIntegration, data: SessionInitiationRequestDTO, enviroment: ENV): Promise<ResErr<SessionInitiationResponseDTO>> {
+    console.log("[begin session]" + JSON.stringify(data));
     if (enviroment.runtimeMode != RuntimeMode.PRODUCTION) {
-        if (!data.IGN || data.IGN == "") {
+        if (!data.IGN || data.IGN === "") {
             data.IGN = "UNKOWN_USER"
         }
-        if (!data.userIdentifier || data.userIdentifier == "") {
+        if (!data.userIdentifier || data.userIdentifier === "") {
             data.userIdentifier = "MISSING_IDENTIFIER"
         }
     }
