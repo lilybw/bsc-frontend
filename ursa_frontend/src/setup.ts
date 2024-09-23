@@ -41,7 +41,7 @@ export const initApp = (app: Component<ApplicationProps>) => {
         const mockVitecInfo: VitecIntegrationInformation = {
             userIdentifier: 'dev-user-123',
             firstName: 'DevUser',
-            surName: 'TheeWhoCommits',
+            lastName: 'TheeWhoCommits',
             languagePreference: LanguagePreference.English,
             locationUrl: "http://localhost:"+(import.meta.env.VITE_PORT ?? 3000) +"/"+import.meta.env.BASE_URL,
         };
@@ -61,7 +61,8 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     log.log('[setup] Vitec integration complete');
     const sessionInitInfo: SessionInitiationRequestDTO = {
         userIdentifier: vitecInfo.userIdentifier,
-        IGN: vitecInfo.firstName,
+        firstName: vitecInfo.firstName,
+        lastName: vitecInfo.lastName,
         currentSessionToken: vitecIntegrationResult.res.sessionToken
     }
 

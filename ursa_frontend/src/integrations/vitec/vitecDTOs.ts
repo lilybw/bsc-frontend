@@ -30,7 +30,7 @@ export type VitecIntegrationInformation = {
      * Username
      */
     firstName: string;
-    surName: string;
-    languagePreference: LanguagePreference;
+    lastName: string;
+    languagePreference: string;
     locationUrl: string;
-}
+  }

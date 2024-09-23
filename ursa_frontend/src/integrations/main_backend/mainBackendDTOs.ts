@@ -14,7 +14,8 @@ export type ColonyCode = uint32;
 export type MinigameDifficultyID = uint32;
 export type PlayerInfoResponseDTO = {
     id: uint32;
-    IGN: string;
+    firstName: string;
+    lastName: string;
     sprite: AssetID;
     achievements: uint32[];
     hasCompletedTutorial: boolean;
@@ -157,9 +158,6 @@ export type MinimizedMinigameInfoResponseDTO = {
 
 // "Known DTOs"
 export type SessionInitiationRequestDTO = {
-    /**
-     * Losslessly hashed vitec user identifier
-     */
     userIdentifier: string;
     /**
      * Current Vitec Session Token
@@ -168,7 +166,8 @@ export type SessionInitiationRequestDTO = {
     /**
      * Username
      */
-    IGN: string;
+    firstName: string;
+    lastName: string;
 }
 export type SessionInitiationResponseDTO = {
     token: string;
