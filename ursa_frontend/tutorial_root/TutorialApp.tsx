@@ -24,7 +24,7 @@ injectGlobal`${SHARED_CSS_STR}`
 export type SlideEntry = {visited: boolean, icon: Component<SlideIconProps>};
 
 const TutorialApp: Component<ApplicationProps> = (props) => {
-  const [currentSlide, setCurrentSlide] = createSignal(2);
+  const [currentSlide, setCurrentSlide] = createSignal(1);
   const [previousSlide, setPreviousSlide] = createSignal(0);
   const [hasCompletedSlide, setHasCompletedSlide] = createSignal(false);
   const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<string | null>(null);
@@ -86,7 +86,7 @@ const TutorialApp: Component<ApplicationProps> = (props) => {
             <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={() => onSlideCompleted(currentSlide())} />
           </Match>
           <Match when={currentSlide() === 1}>
-            <WelcomePage onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <WelcomePage onSlideCompleted={() => onSlideCompleted(currentSlide())} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 2}>
             <NavigationDemo backend={props.context.backend} onSlideCompleted={() => onSlideCompleted(currentSlide())} />
