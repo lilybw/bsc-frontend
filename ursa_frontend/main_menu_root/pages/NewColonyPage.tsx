@@ -2,14 +2,10 @@
 import { Component, createSignal, JSX } from "solid-js";
 import { css } from "@emotion/css";
 import SectionTitle from "../../src/components/SectionTitle";
-import BigMenuButton from "../../src/components/BigMenuButton";
 import StarryBackground from "../../src/components/StarryBackground";
 import { MenuPages, MenuPageProps } from "../MainMenuApp";
 import NavigationFooter from "../NavigationFooter";
-
-// Import the green gas giant image
-import greenGasGiantImage from './images/Green Gas Giant.png';
-import moon from './images/Moon.png';
+import PlanetWithMoon from "../../src/components/PlanetWithMoon";
 
 const NewColonyPage: Component<MenuPageProps> = (props) => {
   const [colonyName, setColonyName] = createSignal("Pandora");
@@ -41,9 +37,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
         </div>
       </div>
       <div class={rightContainerStyle}>
-        <div class={planetStyle}>
-          <div class={moonStyle}></div>
-        </div>
+        <PlanetWithMoon />  {/* Use the PlanetWithMoon component */}
       </div>
       <StarryBackground />
     </div>
@@ -123,52 +117,4 @@ const inputStyle = css`
   border: 0.15rem solid white;
   color: white;
   text-align: center;
-`;
-
-const planetStyle = css`
-  width: 80em;
-  height: 80em;
-  background: url(${greenGasGiantImage});
-  box-shadow: inset -8em -8em 4em #000, -1.2em -1.2em 2em #658E66;
-  position: relative;
-  animation: rotate 10000s linear infinite;
-  border-radius: 50%;
-  background-repeat: repeat;
-  background-size: 1000% 100%;
-
-  @keyframes rotate {
-    to {
-      background-position: -2000% 0;
-    }
-  }
-`;
-
-const moonStyle = css`
-  background: url(${moon});
-  width: 6em;
-  height: 6em;
-  position: absolute;
-  left: -15em;
-  top: 50%;
-  transform: translateY(-50%);
-  animation: rotate 2000s linear infinite, orbit 60s infinite ease-in-out;
-  border-radius: 50%;
-  box-shadow: inset -1.5em -1.5em 1.5em #000, -0.2em -0.2em 0.5em #AA653C;
-
-  @keyframes orbit {
-    49% { 
-      z-index: 1; 
-    }
-    50% { 
-      z-index: -1;
-      left: 90em;
-    }
-    99% {
-      z-index: -1;
-    }
-    100% {
-      left: -15rem;
-      z-index: 1;
-    }
-  }
 `;
