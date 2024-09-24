@@ -15,27 +15,13 @@ interface ProgressTrackerProps {
 
 export default function ProgressTracker(props: ProgressTrackerProps): JSX.Element {
     createEffect(() => {
-        if (!props.slideStore[props.currentSlide()].visited) {
+        if (!props.slideStore[props.currentSlide()].hasCompleted) {
             props.setSlideStore((prev) => {
-                prev[props.currentSlide()].visited = true;
+                prev[props.currentSlide()].hasCompleted = true;
                 return prev;
             });
         }
     });
-
-    const animatedOutlineStyle = css`
-        position: absolute;
-        top: 50%;
-        left: calc(5.15vw - .5rem);
-        --radius: 3.5rem;
-        width: var(--radius);
-        height: var(--radius);
-        border: 2px solid white;
-        border-radius: 50%;
-        transform: translateY(-50%);
-        transition: transform 1s ease-in-out;
-        pointer-events: none;
-    `;
 
     return (
         <div class={css`${progressTrackerStyle} ${props.styleOverwrite}`} id="tutorial-progress-tracker">
@@ -47,7 +33,7 @@ export default function ProgressTracker(props: ProgressTrackerProps): JSX.Elemen
             />
             <For each={props.slideStore}>{(elem, index) => (
                 <div class={iconContainerStyle}>
-                    {elem.visited ? 
+                    {elem.hasCompleted ? 
                         <elem.icon styleOverwrite={iconStyleOverwrite} /> 
                     : 
                         <SlideIcon styleOverwrite={iconStyleOverwrite} />
@@ -58,7 +44,19 @@ export default function ProgressTracker(props: ProgressTrackerProps): JSX.Elemen
         </div>
     );
 }
-
+const animatedOutlineStyle = css`
+position: absolute;
+top: 50%;
+left: calc(5.15vw - .5rem);
+--radius: 3.5rem;
+width: var(--radius);
+height: var(--radius);
+border: 2px solid white;
+border-radius: 50%;
+transform: translateY(-50%);
+transition: transform 1s ease-in-out;
+pointer-events: none;
+`;
 const iconContainerStyle = css`
     display: flex;
     justify-content: center;

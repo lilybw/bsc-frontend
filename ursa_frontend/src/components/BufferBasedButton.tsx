@@ -73,10 +73,10 @@ const onActivationShimmerAnim = css`
 
     @keyframes shimmer {
         0% {
-            filter: drop-shadow(0 0 5rem var(--shimmer-color));
+            filter: drop-shadow(0 0 .1rem var(--shimmer-color));
         }
         100% {
-            filter: drop-shadow(0 0 0.1rem var(--shimmer-color));
+            filter: drop-shadow(0 0 5rem var(--shimmer-color));
         }
     }
 `

@@ -15,6 +15,7 @@ interface ActionInputProps extends IStyleOverwritable {
     subscribers: Accessor<BufferSubscriber<string>[]>;
     /**
      * If true, the input will be not be auto focused and be uninteractible by the user.
+     * Also, on 'Enter' a giant floating Enter is shown.
      */
     demoMode?: boolean;
     triggerEnter?: Setter<() => void>;
@@ -23,6 +24,7 @@ interface ActionInputProps extends IStyleOverwritable {
 const ActionInput: Component<ActionInputProps> = (props) => {
     const [isVisible, setIsVisible] = createSignal(false);
     const [isShaking, setIsShaking] = createSignal(false);
+    const [enterWasJustPressed, setEnterWasJustPressed] = createSignal(false);
     let inputRef: HTMLInputElement | undefined;
 
     createEffect(() => {
@@ -61,6 +63,8 @@ const ActionInput: Component<ActionInputProps> = (props) => {
         if (consumed) {
             if (inputRef) inputRef.value = '';
             props.setInputBuffer('');
+            setEnterWasJustPressed(true);
+            setTimeout(() => setEnterWasJustPressed(false), confirmTimeS * 1000);
         } else {
             setIsShaking(true);
             setTimeout(() => setIsShaking(false), shakeTimeS * 1000);
@@ -78,7 +82,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                 fill="black" stroke="white">
                 <path d="M0 50 L40 0 L260 0 L300 50 Z"/>
             </svg>
-            <div class={css`${inputContainerStyle} ${isShaking() ? shakeAnimation : ''}`} id="main-input-container">
+            <div class={css`${inputContainerStyle} ${isShaking() ? shakeAnimation : ''} ${enterWasJustPressed() ? enterAnimation : ''}`} id="main-input-container">
                 {props.actionContext().icon({styleOverwrite: actionContextIconStyle})}
                 <input type="text" class={inputFieldStyle}  
                     onKeyDown={onKeyDown}
@@ -93,7 +97,57 @@ const ActionInput: Component<ActionInputProps> = (props) => {
 }
 export default ActionInput;
 
+const confirmTimeS = .25;
 const shakeTimeS = .5;
+
+const enterAnimation = css`
+animation: confirm ${confirmTimeS}s ease-in;
+--color-1: hsla(138, 100%, 50%, .3);
+--color-2: hsla(118, 96%, 30%, .5);
+--color-3: var(--color-1);
+--step-offset: 1vw;
+filter: 
+    drop-shadow(calc(1vw + 0.5 * var(--step-offset)) 0 .1rem var(--color-1))
+    drop-shadow(calc(1vw + 1 * var(--step-offset)) 0 .1rem var(--color-2))
+    drop-shadow(calc(1vw + 1.5 * var(--step-offset)) 0 .1rem var(--color-3))
+;
+
+@keyframes confirm {
+    0% {
+        --step-offset: -1vw;
+    }
+    10% {
+        --step-offset: -.8vw;
+    }
+    20% {
+        --step-offset: -.6vw;
+    }
+    30% {
+        --step-offset: -.4vw;
+    }
+    40% {
+        --step-offset: -.2vw;
+    }
+    50% {
+        --step-offset: 0vw;
+    }
+    60% {
+        --step-offset: .2vw;
+    }
+    70% {
+        --step-offset: .4vw;
+    }
+    80% {
+        --step-offset: .6vw;
+    }    
+    90% {
+        --step-offset: .8vw;
+    }
+    100% {
+        --step-offset: 1vw;
+    }
+}
+`
 
 const shakeAnimation = css`
 animation: shake ${shakeTimeS}s ease-in-out;

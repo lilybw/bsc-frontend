@@ -1,38 +1,64 @@
 import { css } from "@emotion/css";
-import { Component, createEffect, createSignal, JSX } from "solid-js";
+import { Accessor, Component, createEffect, createMemo, createSignal, JSX } from "solid-js";
 import { IStyleOverwritable } from "../ts/types";
 import { Styles } from "../sharedCSS";
 
 interface BigMenuButtonProps extends IStyleOverwritable {
     children: JSX.Element;
     onClick?: () => void;
-    disable?: boolean;
+    enable?: Accessor<boolean>;
 }
 
-export default function BigMenuButton(props: BigMenuButtonProps): JSX.Element {
-    const [isDisabled, setIsDisabled] = createSignal(props.disable || false);
+const BigMenuButton: Component<BigMenuButtonProps> = (props) => {
+    const [recentlyEnabled, setRecentlyEnabled] = createSignal(false);
     
+    const isDisabled = createMemo(() => {
+        return props.enable ? !props.enable() : false;
+    });
+
     createEffect(() => {
-        if (props.disable !== isDisabled()) {
-            setIsDisabled(props.disable || false);
-            if (props.disable) {
-                console.log("Button disabled");
-                // Add your disable animation logic here
-            } else {
-                console.log("Button enabled");
-                // Add your enable animation logic here
-            }
+        const currentlyDisabled = isDisabled();
+        if (!currentlyDisabled && recentlyEnabled()) {
+            console.log("Button re-enabled");
+            setTimeout(() => {
+                setRecentlyEnabled(false);
+            }, 1000);
+        } else if (currentlyDisabled) {
+            console.log("Button disabled");
+            setRecentlyEnabled(true);
         }
     });
 
     return (
-        <button class={css`${menuOptionStyle} ${props.styleOverwrite} ${props.disable && Styles.CROSS_HATCH_GRADIENT}`} 
+        <button class={css`
+                ${menuOptionStyle} 
+                ${props.styleOverwrite} 
+                ${isDisabled() ? Styles.CROSS_HATCH_GRADIENT : ''}
+                ${recentlyEnabled() && !isDisabled() ? onReEnabledAnim : ''}
+            `} 
             disabled={isDisabled()}
             onMouseDown={props.onClick}>
             {props.children}
         </button>
     );
 }
+export default BigMenuButton;
+const shimmerTimeS = .5;
+const shimmerColor = 'hsla(29, 100%, 100%, 1)';
+
+const onReEnabledAnim = css`
+    animation: shimmer ${shimmerTimeS}s ease-in;
+    --shimmer-color: ${shimmerColor};
+
+    @keyframes shimmer {
+        0% {
+            filter: drop-shadow(0 0 .1rem var(--shimmer-color));
+        }
+        100% {
+            filter: drop-shadow(0 0 5rem var(--shimmer-color));
+        }
+    }
+`
 
 const menuOptionStyle = css`
     background-color: rgba(0, 0, 0, 0.5);
@@ -47,11 +73,19 @@ const menuOptionStyle = css`
     text-shadow: none;
     scale: 1;
     transition: all 0.3s ease-out;
-    &:hover {
+
+    &:not(:disabled) {
+        &:hover {
         scale: 1.1;
         border: 1px solid white;
         box-shadow: inset 0 0 10px white;
         background-color: rgba(0, 0, 0, 0.7);
         text-shadow: 2px 2px 4px white;
+        }
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
     }
 `

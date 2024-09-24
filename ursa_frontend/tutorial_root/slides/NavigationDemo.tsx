@@ -23,7 +23,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
     const [triggerEnter, setTriggerEnter] = createSignal<() => void>(() => {});
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
 
-    const nameOfLocation = "Outer Walls";
+    const nameOfLocation = "Nyegh";
     for (let i = 0; i < nameOfLocation.length; i++) {
         setTimeout(() => {
             setInputBuffer(inputBuffer() + nameOfLocation[i]);
@@ -49,7 +49,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                     actionContext={actionContext} 
                     setInputBuffer={setInputBuffer}
                     inputBuffer={inputBuffer}
-                    demoMode={true}
+                    demoMode={false}
                     triggerEnter={setTriggerEnter}
                 />
                 <ImageBufferButton 

@@ -1,4 +1,4 @@
-import { createEffect, createSignal, Match, Switch, type Component, type JSX } from 'solid-js';
+import { createEffect, createMemo, createSignal, Match, Switch, type Component, type JSX } from 'solid-js';
 
 import { SHARED_CSS_STR, Styles } from '../src/sharedCSS';
 
@@ -22,55 +22,62 @@ import { Bundle, BundleComponent } from '../src/meta/types';
 
 injectGlobal`${SHARED_CSS_STR}`
 
-export type SlideEntry = {visited: boolean, icon: Component<SlideIconProps>};
+export type SlideEntry = {hasCompleted: boolean, icon: Component<SlideIconProps>};
+const slides: SlideEntry[] = [
+  {
+    hasCompleted: false,
+    icon: SlideIcon
+  },
+  {
+    hasCompleted: false,
+    icon: SlideIcon
+  },
+  {
+    hasCompleted: false,
+    icon: SlideIcon
+  },
+  {
+    hasCompleted: false,
+    icon: SlideIcon
+  },
+  {
+    hasCompleted: false,
+    icon: SlideIcon
+  },
+  {
+    hasCompleted: false,
+    icon: SlideIcon
+  },
+  {
+    hasCompleted: false,
+    icon: SlideIcon
+  },
+  {
+    hasCompleted: false,
+    icon: SlideIcon
+  },
+]
 
 const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (props: ApplicationProps) {
   const [currentSlide, setCurrentSlide] = createSignal(2);
   const [previousSlide, setPreviousSlide] = createSignal(0);
-  const [hasCompletedSlide, setHasCompletedSlide] = createSignal(false);
   const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<string | null>(null);
-  const [slideStore, setSlides] = createStore<SlideEntry[]>([
-    {
-      visited: true,
-      icon: SlideIcon
-    },
-    {
-      visited: false,
-      icon: SlideIcon
-    },
-    {
-      visited: false,
-      icon: SlideIcon
-    },
-    {
-      visited: false,
-      icon: SlideIcon
-    },
-    {
-      visited: false,
-      icon: SlideIcon
-    },
-    {
-      visited: false,
-      icon: SlideIcon
-    },
-    {
-      visited: false,
-      icon: SlideIcon
-    },
-    {
-      visited: false,
-      icon: SlideIcon
-    },
-  ]);
+  const [slideStore, setSlides] = createStore<SlideEntry[]>(slides);
+  const [currentSlideCompleted, setSlideCompleted] = createSignal(false);
 
-  const onSlideCompleted = (slideNum: number) => {
-    setHasCompletedSlide(true);
+  const onSlideCompleted = () => {
+    setSlideCompleted(true);
+    setSlides(currentSlide(), 'hasCompleted', true);
   }
 
   const onAdvanceSlide = () => {
     setCurrentSlide(currentSlide() + 1);
-    setHasCompletedSlide(false);
+    setSlideCompleted(false);
+  }
+
+  const onBackSlide = () => {
+    setCurrentSlide(currentSlide() - 1);
+    setSlideCompleted(true);
   }
 
   createEffect(() => {
@@ -78,49 +85,53 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
     setTimeout(() => setPreviousSlide(current), 50);
   })
 
+  createEffect(() => {
+    console.log('Current slide:', currentSlide());
+    console.log('Current slide completed:', currentSlideCompleted());
+  });
+
   return (
     <div class={containerStyle} id="the-tutorial-app">
         <StarryBackground />
         <ProgressTracker currentSlide={currentSlide} slideStore={slideStore} setSlideStore={setSlides} previousSlide={previousSlide}/>
         <Switch fallback= {<ErrorPage content="OOC: Out of Cases" />}>
           <Match when={currentSlide() === 0}>
-            <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={onSlideCompleted} />
           </Match>
           <Match when={currentSlide() === 1}>
-            <WelcomePage onSlideCompleted={() => onSlideCompleted(currentSlide())} backend={props.context.backend}/>
+            <WelcomePage onSlideCompleted={onSlideCompleted} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 2}>
-            <NavigationDemo backend={props.context.backend} onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <NavigationDemo backend={props.context.backend} onSlideCompleted={onSlideCompleted} />
           </Match>
           <Match when={currentSlide() === 3}>
-            <NavigationTrial onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <NavigationTrial onSlideCompleted={onSlideCompleted} />
           </Match>
           <Match when={currentSlide() === 4}>
-            <LocationDemo onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <LocationDemo onSlideCompleted={onSlideCompleted} />
           </Match>
           <Match when={currentSlide() === 5}>
-            <LocationTrial onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <LocationTrial onSlideCompleted={onSlideCompleted} />
           </Match>
           <Match when={currentSlide() === 6}>
-            <MultiplayerTrial onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <MultiplayerTrial onSlideCompleted={onSlideCompleted} />
           </Match>
           <Match when={currentSlide() === 7}>
-            <TutorialCompletePage onSlideCompleted={() => onSlideCompleted(currentSlide())} />
+            <TutorialCompletePage onSlideCompleted={onSlideCompleted} />
           </Match>
         </Switch>
         <div class={navigationFooterStyle} id="tutorial-slide-navigation">
             {currentSlide() < slideStore.length &&  
-              <BigMenuButton onClick={onAdvanceSlide} styleOverwrite={
-                hasCompletedSlide() ? 
-                  rightNavigationButtonStyle 
-                : 
-                  rightNavigationDistabledStyle
-                }>
+              <BigMenuButton onClick={onAdvanceSlide} styleOverwrite={rightNavigationButtonStyle}
+                enable={currentSlideCompleted}>
                 Next
               </BigMenuButton>
             }
-            {currentSlide() >= 1 ? 
-              <BigMenuButton styleOverwrite={leftNavigationButtonStyle} onClick={() => setCurrentSlide(currentSlide() - 1)}>Back</BigMenuButton> : <></>}
+            {currentSlide() >= 1 &&
+              <BigMenuButton styleOverwrite={leftNavigationButtonStyle} onClick={onBackSlide}>
+                Back
+              </BigMenuButton>
+            }
         </div>
     </div>
   );
