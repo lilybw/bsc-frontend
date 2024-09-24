@@ -1,17 +1,39 @@
 import { css } from "@emotion/css";
-import { Component, JSX } from "solid-js";
+import { Component, createEffect, createSignal, JSX } from "solid-js";
 import { IStyleOverwritable } from "../ts/types";
+import { Styles } from "../sharedCSS";
 
 interface BigMenuButtonProps extends IStyleOverwritable {
     children: JSX.Element;
     onClick?: () => void;
+    disable?: boolean;
 }
 
 export default function BigMenuButton(props: BigMenuButtonProps): JSX.Element {
+    const [isDisabled, setIsDisabled] = createSignal(props.disable || false);
+    
+    createEffect(() => {
+        if (props.disable !== isDisabled()) {
+            setIsDisabled(props.disable || false);
+            if (props.disable) {
+                console.log("Button disabled");
+                // Add your disable animation logic here
+            } else {
+                console.log("Button enabled");
+                // Add your enable animation logic here
+            }
+        }
+    });
+
     return (
-        <button class={css`${menuOptionStyle} ${props.styleOverwrite}`} onMouseDown={props.onClick}>{props.children}</button>
+        <button class={css`${menuOptionStyle} ${props.styleOverwrite} ${props.disable && Styles.CROSS_HATCH_GRADIENT}`} 
+            disabled={isDisabled()}
+            onMouseDown={props.onClick}>
+            {props.children}
+        </button>
     );
 }
+
 const menuOptionStyle = css`
     background-color: rgba(0, 0, 0, 0.5);
     color: white;

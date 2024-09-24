@@ -211,6 +211,8 @@ export type GraphicalAsset = {
 }
 
 export type MinimizedAssetDTO = {
+    alias: string;
+    type: string;
     width: uint32;
     height: uint32;
     LODs: {

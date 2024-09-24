@@ -1,6 +1,6 @@
 import { createEffect, createSignal, Match, Switch, type Component, type JSX } from 'solid-js';
 
-import { SHARED_CSS_STR } from '../src/sharedCSS';
+import { SHARED_CSS_STR, Styles } from '../src/sharedCSS';
 
 import {injectGlobal, css} from '@emotion/css'
 import BigMenuButton from '../src/components/BigMenuButton';
@@ -109,8 +109,16 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
           </Match>
         </Switch>
         <div class={navigationFooterStyle} id="tutorial-slide-navigation">
-            {currentSlide() < slideStore.length && hasCompletedSlide() ? 
-              <BigMenuButton styleOverwrite={rightNavigationButtonStyle} onClick={onAdvanceSlide}>Next</BigMenuButton> : <></>}
+            {currentSlide() < slideStore.length &&  
+              <BigMenuButton onClick={onAdvanceSlide} styleOverwrite={
+                hasCompletedSlide() ? 
+                  rightNavigationButtonStyle 
+                : 
+                  rightNavigationDistabledStyle
+                }>
+                Next
+              </BigMenuButton>
+            }
             {currentSlide() >= 1 ? 
               <BigMenuButton styleOverwrite={leftNavigationButtonStyle} onClick={() => setCurrentSlide(currentSlide() - 1)}>Back</BigMenuButton> : <></>}
         </div>
@@ -139,6 +147,13 @@ const leftNavigationButtonStyle = css`
 const rightNavigationButtonStyle = css`
   ${navigationButtonStyle}
   right: 0;
+`
+
+const rightNavigationDistabledStyle = css`
+  ${rightNavigationButtonStyle}
+  pointer-events: none;
+  color: grey;
+  ${Styles.CROSS_HATCH_GRADIENT}
 `
 
 const containerStyle = css`

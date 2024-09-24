@@ -17,6 +17,7 @@ interface ActionInputProps extends IStyleOverwritable {
      * If true, the input will be not be auto focused and be uninteractible by the user.
      */
     demoMode?: boolean;
+    triggerEnter?: Setter<() => void>;
 }
 
 const ActionInput: Component<ActionInputProps> = (props) => {
@@ -39,29 +40,37 @@ const ActionInput: Component<ActionInputProps> = (props) => {
         if (props.demoMode) return;
 
         if (e.key !== 'Enter') {
-            setTimeout(() => { // Miniscule delay to allow the input to update before reading the value
+            setTimeout(() => {
                 const value = (e.target as HTMLInputElement).value;
                 props.setInputBuffer(value);
             }, 0);
         } else {
-            e.preventDefault();
-            let consumed = false;
-            for (const subscriber of props.subscribers()) {
-                const result = subscriber(props.inputBuffer());
-                if (result.consumed) {
-                    consumed = true;
-                    break;
-                }
-            }
-            if (consumed) {
-                (e.target as HTMLInputElement).value = '';
-                props.setInputBuffer('');
-            } else {
-                setIsShaking(true);
-                setTimeout(() => setIsShaking(false), shakeTimeS * 1000);
-            }
+            handleEnter();
         }
     };
+
+    const handleEnter = () => {
+        let consumed = false;
+        for (const subscriber of props.subscribers()) {
+            const result = subscriber(props.inputBuffer());
+            if (result.consumed) {
+                consumed = true;
+                break;
+            }
+        }
+        if (consumed) {
+            if (inputRef) inputRef.value = '';
+            props.setInputBuffer('');
+        } else {
+            setIsShaking(true);
+            setTimeout(() => setIsShaking(false), shakeTimeS * 1000);
+        }
+    };
+
+    // Expose the triggerEnter function to the parent component
+    if (props.triggerEnter) {
+        props.triggerEnter(prev => (() => handleEnter()));
+    }
     
     return (
         <div class={css`${actionInputContainerStyle} ${props.styleOverwrite}`} id="the-action-input">
@@ -132,8 +141,9 @@ border: 2px solid white;
 align-content: center;
 align-items: center;
 text-align: center;
-width: 3.35rem;
-aspect-ratio: 1/1;
+--aci-size: 4.2vh;
+width: var(--aci-size);
+height: var(--aci-size);
 box-shadow: inset 0 0 .3rem white;
 background-color: black;
 margin-left: -1.8rem;
@@ -150,8 +160,6 @@ left: 50%;
 bottom: 0;
 transform: translateX(-50%);
 background-color: transparent;
-width: 43vw;
-height: 6vh;
 `
 
 const inputContainerStyle = css`
@@ -165,9 +173,9 @@ z-index: 2;
 color: white;
 border-radius: 1rem;
 border: 1px solid white;
-width: 52%;
-max-width: 30%;
-height: 57%;
+width: 15vw;
+max-width: 12vw;
+height: 3vh;
 bottom: 50%;
 left: 51%;
 transform: translate(-50%, 50%);

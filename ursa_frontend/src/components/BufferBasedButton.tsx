@@ -3,8 +3,9 @@ import { css } from "@emotion/css";
 import BufferHighlightedName, { BufferHighlightedNameProps } from "./BufferHighlightedName";
 import { AddRetainRemoveFunc } from "../ts/wrappedStore";
 import { BufferSubscriber } from "../ts/actionContext";
+import { IParenting } from "../ts/types";
 
-interface BufferBasedButtonProps extends BufferHighlightedNameProps {
+export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IParenting {
     onActivation: () => void;
     register: AddRetainRemoveFunc<BufferSubscriber<string>>;
 }
@@ -50,6 +51,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
                 charBaseStyleOverwrite={combinedCharBaseStyle()}
                 nameCompleteOverwrite={props.nameCompleteOverwrite}
             />
+            {props.children}
         </button>
     );
 }

@@ -7,7 +7,7 @@ import Spinner from "./SimpleLoadingSpinner";
 import SomethingWentWrongIcon from "./SomethingWentWrongIcon";
 import GraphicalAsset from "./GraphicalAsset";
 
-interface ManagedAssetProps extends IStyleOverwritable, IParentingImages, IBackendBased {
+export interface ManagedAssetProps extends IStyleOverwritable, IParentingImages, IBackendBased {
     asset: number;
 }
 

@@ -6,6 +6,16 @@ import { css } from '@emotion/css'
 export const Styles = {
     NO_OVERFLOW: css`
         overflow: hidden !important;
+    `,
+    CROSS_HATCH_GRADIENT: css`
+        background-image: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(128, 128, 128, 0.5) 10px,
+            rgba(128, 128, 128, 0.5) 20px
+        );
+        background-size: 28.28px 28.28px;
     `
 }
 
