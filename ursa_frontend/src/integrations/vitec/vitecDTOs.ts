@@ -1,5 +1,6 @@
 import { ENV } from "../../environment/manager";
 import { Logger } from "../../logging/filteredLogger";
+import { Bundle } from "../../meta/types";
 
 /**
  * Single source of thruth: The 10-finger angular project: ./src/environments/environment.prod.ts
@@ -33,4 +34,6 @@ export type VitecIntegrationInformation = {
     lastName: string;
     languagePreference: string;
     locationUrl: string;
+    currentSubUrl: string;
+    bundleRequested: Bundle;
   }

@@ -3,7 +3,7 @@ import { ENV, initializeEnvironment } from "./environment/manager";
 import { initializeBackendIntegration } from "./integrations/main_backend/mainBackend";
 import { initializeVitecIntegration } from "./integrations/vitec/vitecIntegration";
 import { initializeLogger } from "./logging/filteredLogger";
-import { ApplicationContext, ResErr, RuntimeMode } from "./meta/types";
+import { ApplicationContext, Bundle, BundleComponent, ResErr, RuntimeMode } from "./meta/types";
 import { render } from "solid-js/web";
 import GlobalContainer from "./GlobalContainer";
 import { SessionInitiationRequestDTO } from "./integrations/main_backend/mainBackendDTOs";
@@ -18,7 +18,7 @@ export const SOLIDJS_MOUNT_ELEMENT_ID = 'solidjs-inlay-root';
 export type URSAInitializationFunction = (vitecInfo: VitecIntegrationInformation) => (() => void) | null;
 export const URSA_INITIALIZATION_FUNCTION_NAME = 'initializeURSABundle';
 
-export const initApp = (app: Component<ApplicationProps>) => {
+export const initApp = (app: BundleComponent<ApplicationProps>) => {
     // global function that Angular will call
     (window as any)[URSA_INITIALIZATION_FUNCTION_NAME] = (vitecInfo: VitecIntegrationInformation) => {
         const root = document.getElementById(SOLIDJS_MOUNT_ELEMENT_ID);
@@ -43,7 +43,9 @@ export const initApp = (app: Component<ApplicationProps>) => {
             firstName: 'DevUser',
             lastName: 'TheeWhoCommits',
             languagePreference: LanguagePreference.English,
-            locationUrl: "http://localhost:"+(import.meta.env.VITE_PORT ?? 3000) +"/"+import.meta.env.BASE_URL,
+            locationUrl: "http://localhost:"+(import.meta.env.VITE_PORT ?? 3000),
+            currentSubUrl: import.meta.env.BASE_URL,
+            bundleRequested: app.bundle
         };
         (window as any)[URSA_INITIALIZATION_FUNCTION_NAME](mockVitecInfo); 
     }
@@ -52,6 +54,7 @@ export const initApp = (app: Component<ApplicationProps>) => {
 export const initContext = async (vitecInfo: VitecIntegrationInformation): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
     const log = initializeLogger(environment);
+    log.trace('Recieved vitec information: '+ JSON.stringify(vitecInfo));
     log.log('[setup] Initializing application context');
     
     const vitecIntegrationResult = await initializeVitecIntegration(vitecInfo, environment, log);
@@ -74,7 +77,6 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     if (playerInfoRes.err != null) {
         return Promise.reject({res: null, err: playerInfoRes.err});
     }
-    log.log("[delete me] Player info: "+JSON.stringify(playerInfoRes.res));
     log.log('[setup] Main backend integration complete');
 
     await delaySetupIfDevOrTest(environment);

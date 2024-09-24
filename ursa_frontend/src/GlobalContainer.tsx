@@ -7,9 +7,10 @@ import { Styles } from "./sharedCSS";
 import SolarLoadingSpinner from "./components/SolarLoadingSpinner";
 import { VitecIntegrationInformation } from "./integrations/vitec/vitecDTOs";
 import { ApplicationProps } from "./ts/types";
+import { BundleComponent } from "./meta/types";
 
 interface GlobalContainerProps {
-    app: Component<ApplicationProps>;
+    app: BundleComponent<ApplicationProps>;
     vitecInfo: VitecIntegrationInformation;
 }
 

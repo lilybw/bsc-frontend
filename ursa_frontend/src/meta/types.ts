@@ -1,3 +1,4 @@
+import { Component } from "solid-js";
 import { ENV } from "../environment/manager";
 import { BackendIntegration } from "../integrations/main_backend/mainBackend";
 import { PlayerInfoResponseDTO } from "../integrations/main_backend/mainBackendDTOs";
@@ -11,6 +12,15 @@ export type ResErrSet<T, R extends Error> = | { res: null, err: R } | { res: T, 
 export type ResCodeErr<T> = | { res: null, err: Error, code: number } | { res: T, err: null, code: number };
 
 export type NamedVoidFunction = { name: string, func: () => void };
+
+export enum Bundle {
+    COLONY = 'colony',
+    TUTORIAL = 'tutorial',
+    MENU = 'menu',
+    UNNKNOWN = 'unknown'
+}
+
+export type BundleComponent<T> = Component<T> & { bundle: Bundle };
 
 export enum RuntimeMode {
     DEVELOPMENT = 'development',

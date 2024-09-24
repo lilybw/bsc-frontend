@@ -18,12 +18,13 @@ import MultiplayerTrial from './slides/MultiplayerTrial';
 import TutorialCompletePage from './slides/TutorialCompletePage';
 import { ApplicationProps } from '../src/ts/types';
 import StarryBackground from '../src/components/StarryBackground';
+import { Bundle, BundleComponent } from '../src/meta/types';
 
 injectGlobal`${SHARED_CSS_STR}`
 
 export type SlideEntry = {visited: boolean, icon: Component<SlideIconProps>};
 
-const TutorialApp: Component<ApplicationProps> = (props) => {
+const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (props: ApplicationProps) {
   const [currentSlide, setCurrentSlide] = createSignal(2);
   const [previousSlide, setPreviousSlide] = createSignal(0);
   const [hasCompletedSlide, setHasCompletedSlide] = createSignal(false);
@@ -115,7 +116,7 @@ const TutorialApp: Component<ApplicationProps> = (props) => {
         </div>
     </div>
   );
-};
+}, { bundle: Bundle.TUTORIAL });
 export default TutorialApp;
 const navigationFooterStyle = css`
   position: absolute;

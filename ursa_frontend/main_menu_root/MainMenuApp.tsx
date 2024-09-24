@@ -5,7 +5,7 @@ import {injectGlobal, css} from '@emotion/css'
 import BigMenuButton from '../src/components/BigMenuButton';
 import SectionTitle from '../src/components/SectionTitle';
 import StarryBackground from '../src/components/StarryBackground';
-import { ApplicationContext } from '../src/meta/types';
+import { ApplicationContext, Bundle, BundleComponent } from '../src/meta/types';
 import LandingPage from './pages/LandingPage';
 import { ApplicationProps } from '../src/ts/types';
 import Spinner from '../src/components/SimpleLoadingSpinner';
@@ -26,7 +26,7 @@ export type MenuPageProps = {
 }
 type MenuPageComponent = Component<MenuPageProps>;
 
-const MainMenuApp: Component<ApplicationProps> = (props) => {
+const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign((props: ApplicationProps) => {
   const [CurrentPage, setCurrentPage] = createSignal<MenuPageComponent>(LandingPage);
   const [PreviousPage, setPreviousPage] = createSignal<MenuPageComponent>(LandingPage);
 
@@ -58,7 +58,7 @@ const MainMenuApp: Component<ApplicationProps> = (props) => {
       {CurrentPage()({context: props.context, goToPage: goToPage, goBack: goBack})}
     </div>
   );
-};
+}, {bundle: Bundle.MENU});
 export default MainMenuApp;
 
 const mainMenuAppStyle = css`
