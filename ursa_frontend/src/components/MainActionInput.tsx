@@ -1,10 +1,11 @@
 import { css } from "@emotion/css";
 import { Accessor, Component, createEffect, createSignal, onMount, Setter } from "solid-js"
 import { BufferSubscriber, TypeIconTuple } from "../ts/actionContext";
-import { IStyleOverwritable } from "../ts/types";
+import { IBackendBased, IStyleOverwritable } from "../ts/types";
 import { ArrayStore } from "../ts/wrappedStore";
+import ManagedAsset from "./ManagedAsset";
 
-interface ActionInputProps extends IStyleOverwritable {
+interface ActionInputProps extends IStyleOverwritable, IBackendBased {
     actionContext: Accessor<TypeIconTuple>;
     setInputBuffer: Setter<string>;
     inputBuffer: Accessor<string>;
@@ -25,6 +26,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
     const [isVisible, setIsVisible] = createSignal(false);
     const [isShaking, setIsShaking] = createSignal(false);
     const [enterWasJustPressed, setEnterWasJustPressed] = createSignal(false);
+    const [enterSuccessfullyPressed, setEnterSuccessfullyPressed] = createSignal(false);
     let inputRef: HTMLInputElement | undefined;
 
     createEffect(() => {
@@ -51,8 +53,13 @@ const ActionInput: Component<ActionInputProps> = (props) => {
         }
     };
 
-    const handleEnter = () => {
+    const handleEnter = async () => {
         let consumed = false;
+        setEnterWasJustPressed(true);
+        setTimeout(() => setEnterWasJustPressed(false), 3000);
+        if(props.demoMode) {
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+        }
         for (const subscriber of props.subscribers()) {
             const result = subscriber(props.inputBuffer());
             if (result.consumed) {
@@ -63,8 +70,8 @@ const ActionInput: Component<ActionInputProps> = (props) => {
         if (consumed) {
             if (inputRef) inputRef.value = '';
             props.setInputBuffer('');
-            setEnterWasJustPressed(true);
-            setTimeout(() => setEnterWasJustPressed(false), confirmTimeS * 1000);
+            setEnterSuccessfullyPressed(true);
+            setTimeout(() => setEnterSuccessfullyPressed(false),  confirmTimeS * 1000);
         } else {
             setIsShaking(true);
             setTimeout(() => setIsShaking(false), shakeTimeS * 1000);
@@ -78,11 +85,14 @@ const ActionInput: Component<ActionInputProps> = (props) => {
     
     return (
         <div class={css`${actionInputContainerStyle} ${props.styleOverwrite}`} id="the-action-input">
+            {enterWasJustPressed() && props.demoMode &&
+                <ManagedAsset asset={10} backend={props.backend} styleOverwrite={demoEnterIconStyleOverwrite} />
+            }
             <svg xmlns="http://www.w3.org/2000/svg" class={backgroundTrapezoidStyle} viewBox="0 0 300 50" 
                 fill="black" stroke="white">
                 <path d="M0 50 L40 0 L260 0 L300 50 Z"/>
             </svg>
-            <div class={css`${inputContainerStyle} ${isShaking() ? shakeAnimation : ''} ${enterWasJustPressed() ? enterAnimation : ''}`} id="main-input-container">
+            <div class={css`${inputContainerStyle} ${isShaking() ? shakeAnimation : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}`} id="main-input-container">
                 {props.actionContext().icon({styleOverwrite: actionContextIconStyle})}
                 <input type="text" class={inputFieldStyle}  
                     onKeyDown={onKeyDown}
@@ -97,54 +107,48 @@ const ActionInput: Component<ActionInputProps> = (props) => {
 }
 export default ActionInput;
 
+const demoEnterIconStyleOverwrite = css`
+position: absolute;
+z-index: 1000;
+--enter-icon-size: 10vw;
+width: var(--enter-icon-size);
+height: var(--enter-icon-size);
+left: 50%;
+top: -20vh;
+transform: translateX(-50%);
+animation: shimmer2 1s linear;
+animation-delay: 1s;
+
+@keyframes shimmer2 {
+    0% {
+        filter: drop-shadow(0 0 .5rem white);
+    }
+    100% {
+        filter: drop-shadow(0 0 5rem white);
+    }
+}
+`
+
 const confirmTimeS = .25;
 const shakeTimeS = .5;
 
 const enterAnimation = css`
 animation: confirm ${confirmTimeS}s ease-in;
---color-1: hsla(138, 100%, 50%, .3);
+--color-1: hsla(138, 100%, 50%, .8);
 --color-2: hsla(118, 96%, 30%, .5);
 --color-3: var(--color-1);
 --step-offset: 1vw;
-filter: 
-    drop-shadow(calc(1vw + 0.5 * var(--step-offset)) 0 .1rem var(--color-1))
-    drop-shadow(calc(1vw + 1 * var(--step-offset)) 0 .1rem var(--color-2))
-    drop-shadow(calc(1vw + 1.5 * var(--step-offset)) 0 .1rem var(--color-3))
-;
 
 @keyframes confirm {
-    0% {
-        --step-offset: -1vw;
+    from {
+        filter: 
+            drop-shadow(0 0 .1rem var(--color-1))
+        ;
     }
-    10% {
-        --step-offset: -.8vw;
-    }
-    20% {
-        --step-offset: -.6vw;
-    }
-    30% {
-        --step-offset: -.4vw;
-    }
-    40% {
-        --step-offset: -.2vw;
-    }
-    50% {
-        --step-offset: 0vw;
-    }
-    60% {
-        --step-offset: .2vw;
-    }
-    70% {
-        --step-offset: .4vw;
-    }
-    80% {
-        --step-offset: .6vw;
-    }    
-    90% {
-        --step-offset: .8vw;
-    }
-    100% {
-        --step-offset: 1vw;
+    to {
+        filter:
+            drop-shadow(0 0 .5rem var(--color-1))
+        ;
     }
 }
 `

@@ -91,7 +91,7 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     };
     return Promise.resolve({res: context, err: null});
 }
-const delayTimeMS = 0;
+const delayTimeMS = 1000;
 const delaySetupIfDevOrTest = async (environment: ENV) => {
     if (environment.runtimeMode === RuntimeMode.DEVELOPMENT || environment.runtimeMode === RuntimeMode.TEST) {
         console.log('[setup] Delaying setup for '+delayTimeMS+' seconds');

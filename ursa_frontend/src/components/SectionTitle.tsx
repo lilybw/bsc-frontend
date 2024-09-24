@@ -3,7 +3,7 @@ import { JSX } from "solid-js/jsx-runtime";
 import { IStyleOverwritable } from "../ts/types";
 
 interface SectionTitleProps extends IStyleOverwritable {
-    children: JSX.Element;
+    children: string;
 }
 
 export default function SectionTitle(props: SectionTitleProps): JSX.Element {
