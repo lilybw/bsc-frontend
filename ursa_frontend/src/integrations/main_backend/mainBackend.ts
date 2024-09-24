@@ -3,7 +3,7 @@ import { ENV } from "../../environment/manager";
 import { ParseMethod, ResCodeErr, ResErr, ResErrSet, RuntimeMode } from "../../meta/types";
 import { 
     AssetCollectionID, AssetCollectionResponseDTO, AssetID, 
-    AssetResponseDTO, ColonyCode, ColonyInfoResponseDTO, 
+    AssetResponseDTO, AvailableLanguagesResponseDTO, ColonyCode, ColonyInfoResponseDTO, 
     ColonyOverviewReponseDTO, 
     CreateColonyRequestDTO, InternationalizationCatalogueResponseDTO, 
     LocationInfoFullResponseDTO, LocationInfoResponseDTO, 
@@ -58,6 +58,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     getPlayerPreferences: (player: number) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
 
     getCatalogue: (locale: string) => Promise<ResCodeErr<InternationalizationCatalogueResponseDTO>>;
+    getAvailableLanguages: () => Promise<ResCodeErr<AvailableLanguagesResponseDTO>>;
 
     getColony: (player: number, colony: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
     getColonyOverview: (player: number) => Promise<ResCodeErr<ColonyOverviewReponseDTO>>;
@@ -125,8 +126,11 @@ const applyRouteImplementations = (base: BaseBackendIntegration, playerID: numbe
             HTTPMethod.GET, `/api/v1/player/${player}`, ParseMethod.JSON),
         getPlayerPreferences:(player) => base.request<PlayerPreferencesResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}/preferences`, ParseMethod.JSON),
+
         getCatalogue:       (locale) => base.request<InternationalizationCatalogueResponseDTO>(
-            HTTPMethod.GET, `/api/v1/catalogue/${locale}`, ParseMethod.JSON),
+            HTTPMethod.GET, `/api/v1/catalog/${locale}`, ParseMethod.JSON),
+        getAvailableLanguages: () => base.request<AvailableLanguagesResponseDTO>(
+            HTTPMethod.GET, `/api/v1/catalog/languages`, ParseMethod.JSON),
        
         getColony:          (player, colony) => base.request<ColonyInfoResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}/colony/${colony}`, ParseMethod.JSON),

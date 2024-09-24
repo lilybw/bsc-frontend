@@ -156,6 +156,14 @@ export type MinimizedMinigameInfoResponseDTO = {
     overwritingSettings: any;
 }
 
+export type AvailableLanguagesResponseDTO = {
+    languages: {
+        commonName: string;
+        code: string;
+        icon: AssetID;
+    }[];
+}
+
 // "Known DTOs"
 export type SessionInitiationRequestDTO = {
     userIdentifier: string;

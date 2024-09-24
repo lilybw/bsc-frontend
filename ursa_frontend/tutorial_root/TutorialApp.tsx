@@ -59,7 +59,7 @@ const slides: SlideEntry[] = [
 ]
 
 const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (props: ApplicationProps) {
-  const [currentSlide, setCurrentSlide] = createSignal(2);
+  const [currentSlide, setCurrentSlide] = createSignal(0);
   const [previousSlide, setPreviousSlide] = createSignal(0);
   const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<string | null>(null);
   const [slideStore, setSlides] = createStore<SlideEntry[]>(slides);
@@ -96,7 +96,7 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
         <ProgressTracker currentSlide={currentSlide} slideStore={slideStore} setSlideStore={setSlides} previousSlide={previousSlide}/>
         <Switch fallback= {<ErrorPage content="OOC: Out of Cases" />}>
           <Match when={currentSlide() === 0}>
-            <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={onSlideCompleted} />
+            <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={onSlideCompleted} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 1}>
             <WelcomePage onSlideCompleted={onSlideCompleted} backend={props.context.backend}/>
