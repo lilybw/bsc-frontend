@@ -20,6 +20,8 @@ import { ApplicationProps } from '../src/ts/types';
 import StarryBackground from '../src/components/StarryBackground';
 import { Bundle, BundleComponent } from '../src/meta/types';
 import { LanguagePreference } from '../src/integrations/vitec/vitecDTOs';
+import NTAwait from '../src/components/util/NoThrowAwait';
+import GraphicalAsset from '../src/components/GraphicalAsset';
 
 injectGlobal`${SHARED_CSS_STR}`
 
@@ -60,7 +62,7 @@ const slides: SlideEntry[] = [
 ]
 
 const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (props: ApplicationProps) {
-  const [currentSlide, setCurrentSlide] = createSignal(0);
+  const [currentSlide, setCurrentSlide] = createSignal(7);
   const [previousSlide, setPreviousSlide] = createSignal(0);
   const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<LanguagePreference | undefined>(props.context.text.language());
   const [slideStore, setSlides] = createStore<SlideEntry[]>(slides);
@@ -125,12 +127,16 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
             {currentSlide() < slideStore.length &&  
               <BigMenuButton onClick={onAdvanceSlide} styleOverwrite={rightNavigationButtonStyle}
                 enable={currentSlideCompleted}>
-                Next
+                <NTAwait func={() => props.context.backend.getAssetMetadata(22)}>
+                  {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend}/>}
+                </NTAwait>
               </BigMenuButton>
             }
             {currentSlide() >= 1 &&
               <BigMenuButton styleOverwrite={leftNavigationButtonStyle} onClick={onBackSlide}>
-                Back
+                <NTAwait func={() => props.context.backend.getAssetMetadata(23)}>
+                  {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend}/>}
+                </NTAwait>
               </BigMenuButton>
             }
         </div>
@@ -138,13 +144,21 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
   );
 }, { bundle: Bundle.TUTORIAL });
 export default TutorialApp;
+
+const footerImageStyleOverwrite = css`
+height: 10vh;
+width: 5vw;
+`
+
 const navigationFooterStyle = css`
   position: absolute;
-  bottom: 0;
-  z-index: 100;
-  width: 100%;
   display: flex;
   flex-direction: row;
+  z-index: 100;
+
+  bottom: 0;
+  width: 100%;
+  height: 20vh;
 `
 
 const navigationButtonStyle = css`

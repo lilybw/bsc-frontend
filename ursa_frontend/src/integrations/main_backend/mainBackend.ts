@@ -1,6 +1,6 @@
 import { Logger } from "../../logging/filteredLogger";
 import { ENV } from "../../environment/manager";
-import { ParseMethod, ResCodeErr, ResErr, ResErrSet, RuntimeMode } from "../../meta/types";
+import { ParseMethod, ResCodeErr, ResErr, RuntimeMode } from "../../meta/types";
 import { 
     AssetCollectionID, AssetCollectionResponseDTO, AssetID, 
     AssetResponseDTO, AvailableLanguagesResponseDTO, ColonyCode, ColonyInfoResponseDTO, 

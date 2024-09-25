@@ -6,6 +6,7 @@ import Await from "../../src/components/util/Await";
 import { ResCodeErr } from "../../src/meta/types";
 import { AssetResponseDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
 import GraphicalAsset from "../../src/components/GraphicalAsset";
+import NTAwait from "../../src/components/util/NoThrowAwait";
 
 interface TutorialCompletePageProps extends IInternationalized, IStyleOverwritable, IBackendBased {
     onSlideCompleted: () => void;
@@ -16,11 +17,11 @@ export default function TutorialCompletePage(props: TutorialCompletePageProps): 
     return (
         <div class="tutorial-complete-page">
             <StarryBackground />
-            <Await func={() => props.backend.getAssetMetadata(21)}>
+            <NTAwait func={() => props.backend.getAssetMetadata(21)}>
                 {(asset) => (
-                    <GraphicalAsset styleOverwrite={imageOverwrite} metadata={asset.res!} backend={props.backend}/>
+                    <GraphicalAsset styleOverwrite={imageOverwrite} metadata={asset} backend={props.backend}/>
                 )}
-            </Await>
+            </NTAwait>
             {props.text.Title('TUTORIAL.COMPLETE.TITLE')({styleOverwrite: textOverwrite})}
         </div>
     )
@@ -30,7 +31,7 @@ const imageOverwrite = css`
 position: absolute;
 left: 50%;
 top: 10%;
-transform: translateX(-50%);
+transform: translateX(-50%) scaleX(-1);
 height: 50%;
 `
 

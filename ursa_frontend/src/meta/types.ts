@@ -8,9 +8,26 @@ import { Logger } from "../logging/filteredLogger";
 import { InternationalizationService } from "../integrations/main_backend/internationalization/internationalization";
 
 export type Error = string;
-export type ResErr<T> = | { res: null, err: Error } | { res: T, err: null };
-export type ResErrSet<T, R extends Error> = | { res: null, err: R } | { res: T, err: null };
-export type ResCodeErr<T> = | { res: null, err: Error, code: number } | { res: T, err: null, code: number };
+interface ResSuccess<T> {
+    res: T;
+    err: null;
+}
+
+interface ResError {
+    res: null;
+    err: Error;
+}
+  
+export type ResErr<T> = ResSuccess<T> | ResError;
+interface ResCodeSuccess<T> extends ResSuccess<T> {
+    code: number;
+}
+
+interface ResCodeError extends ResError {
+    code: number;
+}
+  
+export type ResCodeErr<T> = ResCodeSuccess<T> | ResCodeError;
 
 export type NamedVoidFunction = { name: string, func: () => void };
 

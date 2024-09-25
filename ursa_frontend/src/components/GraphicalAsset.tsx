@@ -116,6 +116,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
 export default GraphicalAsset;
 
 const baseStyles = css`
+  position: relative;
   display: block;
   object-fit: contain;
 `
