@@ -29,7 +29,7 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
         } else {
             preference = LanguagePreference.UNKNOWN;
         }
-
+        console.log(`Selected language: ${preference}`);
         props.onSlideCompleted();
         props.onLanguageSelected(preference);
     }

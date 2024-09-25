@@ -12,6 +12,7 @@ export enum LanguagePreference {
     Swedish = 'sv-SE',
     Dutch = 'nl-NL',
     English = 'en-GB',
+    German = 'de-DE',
     UNKNOWN = 'unknown'
 }
 export const LanguagePreferenceAliases: {[key in LanguagePreference]: string[]} = {
@@ -21,6 +22,7 @@ export const LanguagePreferenceAliases: {[key in LanguagePreference]: string[]} 
     [LanguagePreference.Swedish]: ['sv', 'sv-SE', 'SE'],
     [LanguagePreference.Dutch]: ['nl', 'nl-NL'],
     [LanguagePreference.English]: ['en', 'en-GB', 'GB', "UK"],
+    [LanguagePreference.German]: ['de', 'de-DE', 'DE'],
     [LanguagePreference.UNKNOWN]: []
 };
 

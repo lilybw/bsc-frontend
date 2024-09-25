@@ -21,17 +21,15 @@ const GlobalContainer: Component<GlobalContainerProps> = (props) => {
     //Time to do auth and stuff
     return (
         <div class={appContainerStyle} id="the-global-container">
-            <ErrorBoundary fallback={(error) => <ErrorPage content={JSON.stringify(error)} />}>
-                <Show when={contextResult.loading}>
-                    <SolarLoadingSpinner />
-                </Show>
-                <Show when={contextResult.error}>
-                    <ErrorPage content={contextResult.latest?.err} />
-                </Show>
-                <Show when={contextResult.state === "ready"}>
-                    {props.app({context: contextResult.latest?.res!})}
-                </Show> 
-            </ErrorBoundary>
+            <Show when={contextResult.loading}>
+                <SolarLoadingSpinner />
+            </Show>
+            <Show when={contextResult.error}>
+                <ErrorPage content={contextResult.latest?.err} />
+            </Show>
+            <Show when={contextResult.state === "ready"}>
+                {props.app({context: contextResult.latest?.res!})}
+            </Show> 
         </div>
     );
 }

@@ -1,11 +1,11 @@
 import { css } from "@emotion/css";
 import { Accessor, Component, createEffect, createSignal, onMount, Setter } from "solid-js"
 import { BufferSubscriber, TypeIconTuple } from "../ts/actionContext";
-import { IBackendBased, IStyleOverwritable } from "../ts/types";
+import { IBackendBased, IInternationalized, IStyleOverwritable } from "../ts/types";
 import { ArrayStore } from "../ts/wrappedStore";
 import ManagedAsset from "./ManagedAsset";
 
-interface ActionInputProps extends IStyleOverwritable, IBackendBased {
+interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternationalized {
     actionContext: Accessor<TypeIconTuple>;
     setInputBuffer: Setter<string>;
     inputBuffer: Accessor<string>;
@@ -98,7 +98,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                     onKeyDown={onKeyDown}
                     value={props.inputBuffer()}
                     disabled={props.demoMode}
-                    placeholder="Type here..." autofocus={!props.demoMode} ref={inputRef}
+                    placeholder={props.text.get('ACTION_INPUT.WRITE_HERE').get()} autofocus={!props.demoMode} ref={inputRef}
                     id="main-input-field"
                 />
             </div>
