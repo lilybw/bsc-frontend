@@ -10,6 +10,7 @@ import { SessionInitiationRequestDTO } from "./integrations/main_backend/mainBac
 import { LanguagePreference, VitecIntegrationInformation } from "./integrations/vitec/vitecDTOs";
 import { Component } from "solid-js";
 import { ApplicationProps } from "./ts/types";
+import { initializeInternationalizationService } from "./integrations/main_backend/internationalization";
 
 /**
  * Single source of truth: this
@@ -73,6 +74,12 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     if (backendIntegrationInit.err != null) {
         return Promise.reject({res: null, err: backendIntegrationInit.err});
     }
+
+    const internationalizationServiceRes = await initializeInternationalizationService(backendIntegrationInit.res, log, vitecInfo);
+    if (internationalizationServiceRes.err != null) {
+        return Promise.reject({res: null, err: internationalizationServiceRes.err});
+    }
+
     const playerInfoRes = await backendIntegrationInit.res.getPlayerInfo(backendIntegrationInit.res.internalPlayerID);
     if (playerInfoRes.err != null) {
         return Promise.reject({res: null, err: playerInfoRes.err});
@@ -82,13 +89,14 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     await delaySetupIfDevOrTest(environment);
     
     console.log(environment);
-    const context: ApplicationContext = {
+    const context: ApplicationContext = Object.freeze({ //Assuing immutability
         backend: backendIntegrationInit.res,
         logger: log,
         vitec: vitecIntegrationResult.res,
         multiplayer: undefined as any,
         player: playerInfoRes.res,
-    };
+        text: internationalizationServiceRes.res
+    });
     return Promise.resolve({res: context, err: null});
 }
 const delayTimeMS = 1000;

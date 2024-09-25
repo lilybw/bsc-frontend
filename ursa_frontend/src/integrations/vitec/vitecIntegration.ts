@@ -1,17 +1,18 @@
 import { ResErr, RuntimeMode } from "../../meta/types";
 import { ENV } from "../../environment/manager";
 import { Logger } from "../../logging/filteredLogger";
-import { VitecIntegrationInformation } from "./vitecDTOs";
+import { LanguagePreference, LanguagePreferenceAliases, VitecIntegrationInformation } from "./vitecDTOs";
+import { Accessor, createSignal, Setter } from "solid-js";
 /**
  * Single source of truth: The 10-finger angular project: ./src/app/services/auth.service.ts
  */
 const SESSION_COOKIE_NAME = 'mvf_session_id';
 
 export type VitecIntegration = {
-    log: Logger,
-    env: ENV,
-    sessionToken: string,
-    baseUrl: string
+    log: Logger;
+    env: ENV;
+    sessionToken: string;
+    baseUrl: string;
 }
 
 export async function initializeVitecIntegration(info: VitecIntegrationInformation, environment: ENV, log: Logger): Promise<ResErr<VitecIntegration>> {

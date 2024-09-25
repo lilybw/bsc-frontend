@@ -12,6 +12,7 @@ import {
     PlayerPreferencesResponseDTO, SessionInitiationRequestDTO, 
     SessionInitiationResponseDTO 
 } from "./mainBackendDTOs";
+import { LanguagePreference } from "../vitec/vitecDTOs";
 /**
  * @since 0.0.1
  * @author GustavBW
@@ -57,7 +58,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     getPlayerInfo: (player: number) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
     getPlayerPreferences: (player: number) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
 
-    getCatalogue: (locale: string) => Promise<ResCodeErr<InternationalizationCatalogueResponseDTO>>;
+    getCatalogue: (locale: LanguagePreference) => Promise<ResCodeErr<InternationalizationCatalogueResponseDTO>>;
     getAvailableLanguages: () => Promise<ResCodeErr<AvailableLanguagesResponseDTO>>;
 
     getColony: (player: number, colony: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
