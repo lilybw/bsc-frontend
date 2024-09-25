@@ -5,13 +5,60 @@ import StarryBackground from "../../src/components/StarryBackground";
 import { MenuPages, MenuPageProps } from "../MainMenuApp";
 import NavigationFooter from "../NavigationFooter";
 import PlanetWithMoon from "../../src/components/PlanetWithMoon";
+import SectionSubTitle from "../../src/components/SectionSubTitle";
+import {CreateColonyRequestDTO} from "../../src/integrations/main_backend/mainBackendDTOs"
 
 const NewColonyPage: Component<MenuPageProps> = (props) => {
   const [colonyName, setColonyName] = createSignal("Pandora");
+  const [textError, setTextError] = createSignal<string | undefined>(undefined);
 
-  const handleContinue = () => {
-    console.log(`Creating new colony: ${colonyName()}`);
-    props.goToPage(MenuPages.CONTINUE_COLONY);
+  async function handleCreateColony() {
+    // Trim the colony name to remove any leading or trailing whitespace
+    const trimmedName = colonyName().trim();
+
+    // Check if the name is empty after trimming
+    if (trimmedName.length === 0) {
+        setTextError("Colony name cannot be empty.");
+        return;
+    }
+
+    // Check if the name is too short
+    if (trimmedName.length < 4) {
+        setTextError("Colony name must be at least 4 characters long.");
+        return;
+    }
+
+    // Check if the name is too long
+    if (trimmedName.length > 32) {
+        setTextError("Colony name cannot exceed 32 characters.");
+        return;
+    }
+
+    // Check if the name contains only alphabetic characters and spaces
+    if (!/^[A-Za-z\s]+$/.test(trimmedName)) {
+        setTextError("Colony name can only contain letters and spaces.");
+        return;
+    }
+
+    // If we've made it this far, the input is valid
+    setTextError(undefined);
+
+    // Create the colony
+    const body: CreateColonyRequestDTO = {
+      name: colonyName()
+    }
+    const createColonyResponse = await props.context.backend.createColony(body, props.context.player.id);
+
+    // Handle the response as needed
+    if (createColonyResponse.code != 200) {
+        setTextError(String(createColonyResponse.err))
+        return
+    }
+
+    // Open colony
+    const openColonyResponse = await props.context.backend.getColony(props.context.player.id, Number(createColonyResponse.res?.id));
+
+    props.context.logger.log("[DELETE ME] implement redirect here!")
   };
 
   return (
@@ -20,7 +67,8 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
         <SectionTitle styleOverwrite={titleStyle}>CREATE A NEW COLONY</SectionTitle>
         <div class={centerContentStyle} id={"new-colony-page-centering"}>
           <div class={inputContainerStyle}>
-            <label for="colonyName">Name your colony</label>
+            <SectionSubTitle>Name Your Colony</SectionSubTitle>
+            {textError() && <SectionSubTitle styleOverwrite="color: red;">{textError()}</SectionSubTitle>}
             <input
               id="colonyName"
               type="text"
@@ -31,12 +79,12 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
           </div>
           <NavigationFooter
             goBack={{ name: "Back", func: props.goBack }}
-            goNext={{ name: "Continue", func: handleContinue }}
+            goNext={{ name: "Create Colony", func: handleCreateColony }}
           />
         </div>
       </div>
       <div class={rightContainerStyle} id={"new-colony-page-right-container"}>
-        <PlanetWithMoon backend={props.context.backend} size={50}/>
+        <PlanetWithMoon backend={props.context.backend}/>
       </div>
       <StarryBackground />
     </div>

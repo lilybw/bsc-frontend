@@ -49,7 +49,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
             return;
         }
 
-        setTextError("")
+        setTextError(undefined)
         
         // Join the colony
         const response = await props.context.backend.joinColony(numericCode);
