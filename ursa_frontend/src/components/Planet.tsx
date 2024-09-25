@@ -12,6 +12,8 @@ interface SpinningPlanetProps extends IStyleOverwritable, IParentingImages, IBac
   metadata: AssetResponseDTO;
   rotationSpeedS?: number;
   imageStyleOverwrite?: string;
+  shadowStyleOverwrite?: string;
+  useShadow?: boolean;
 }
 
 const Planet: Component<SpinningPlanetProps> = (props) => {
@@ -98,6 +100,11 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
     ${imageMovementContainer}
   `)
 
+  const computedShadowStyles = createMemo(() => css`
+    ${baseShadowStyles}
+    ${props.shadowStyleOverwrite}
+  `)
+
   const appendChildren = () => {
     if (props.children) {
       return (
@@ -129,7 +136,8 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
                         class={sharedImageStyles()}
                     />
                 </div>
-            {appendChildren()}
+                {appendChildren()}
+                {props.useShadow && <div class={computedShadowStyles()} />}
             </div>
         </div>
       )}
@@ -137,6 +145,17 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
   );
 };
 export default Planet;
+
+const baseShadowStyles = css`
+position: relative;
+z-index: 100;
+
+width: 100%;
+height: 100%;
+top: -100%;
+
+background-image: radial-gradient(circle at 100% 100%, black 50%, transparent)
+`
 
 const imageMovementContainer =  css`
 z-index: -1;
