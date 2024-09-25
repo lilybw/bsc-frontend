@@ -8,9 +8,8 @@ import { render } from "solid-js/web";
 import GlobalContainer from "./GlobalContainer";
 import { SessionInitiationRequestDTO } from "./integrations/main_backend/mainBackendDTOs";
 import { LanguagePreference, VitecIntegrationInformation } from "./integrations/vitec/vitecDTOs";
-import { Component } from "solid-js";
 import { ApplicationProps } from "./ts/types";
-import { initializeInternationalizationService } from "./integrations/main_backend/internationalization";
+import { initializeInternationalizationService } from "./integrations/main_backend/internationalization/internationalization";
 
 /**
  * Single source of truth: this

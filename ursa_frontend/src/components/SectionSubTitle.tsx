@@ -1,17 +1,18 @@
 import { css } from "@emotion/css";
 import { JSX } from "solid-js/jsx-runtime";
 import { IParenting, IStyleOverwritable } from "../ts/types";
+import { SectionTitleProps } from "./SectionTitle";
 
-interface SectionTitleProps extends IStyleOverwritable, IParenting {
+export interface SubSectionTitleProps extends SectionTitleProps {
 }
 
-export default function SectionSubTitle(props: SectionTitleProps): JSX.Element {
+export default function SectionSubTitle(props: SubSectionTitleProps): JSX.Element {
     return (
-        <div class={css`${gameTitleStyle} ${props.styleOverwrite}`}>{props.children}</div>
+        <div class={css`${SUB_TITLE_STYLE} ${props.styleOverwrite}`}>{props.children}</div>
     )
 }
 
-const gameTitleStyle = css`
+export const SUB_TITLE_STYLE = css`
 text-align: center;
 font-family: 'Orbitron', sans-serif;
 font-weight: 700;

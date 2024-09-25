@@ -4,18 +4,15 @@ import { css } from "@emotion/css";
 import ActionInput from "../../src/components/MainActionInput";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../src/ts/actionContext";
 import { createMemo, createSignal } from "solid-js";
-import BufferBasedButton from "../../src/components/BufferBasedButton";
 import { createArrayStore } from "../../src/ts/wrappedStore";
 import ManagedAsset from "../../src/components/ManagedAsset";
-import { BackendIntegration } from "../../src/integrations/main_backend/mainBackend";
 import VideoFrame from "./VideoFrame";
 import ImageBufferButton from "../../src/components/ImageBufferButton";
-import SectionTitle from "../../src/components/SectionTitle";
 import SectionSubTitle from "../../src/components/SectionSubTitle";
+import { IBackendBased, IInternationalized } from "../../src/ts/types";
 
-interface NavigationDemoProps {
+interface NavigationDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
-    backend: BackendIntegration;
 }
 const timeBetweenKeyStrokesMS = 500;
 const baseDelayBeforeDemoStart = 1000;
