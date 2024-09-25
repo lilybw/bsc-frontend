@@ -110,8 +110,8 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
       {loading() && <Spinner styleOverwrite={computedStyles()} />}
       {error() && <SomethingWentWrongIcon styleOverwrite={computedStyles()} message={error()} />}
       {currentSrc() && (
-        <div class={computedStyles()}>
-            <div class={planetCutoutContainer}>
+        <div class={computedStyles()} id='Atmosphere'>
+            <div class={planetCutoutContainer} id='PlanetContainer'>
                 <div class={computedContainerStyles()}>
                     <img
                         src={currentSrc()!}
@@ -125,7 +125,7 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
                     />
                 </div>
                 {props.children}
-                {props.useShadow && <div class={computedShadowStyles()} />}
+                {props.useShadow && <div class={computedShadowStyles()} id='Shadow'/>}
             </div>
         </div>
       )}
@@ -170,6 +170,9 @@ animation: moveImages var(--rotation-speed) linear infinite;
 `
 
 const imageStyle = css`
+  display: box;
+  width: 100%;
+  object-fit: fill;
 `
 
 const planetCutoutContainer = css`
@@ -185,6 +188,6 @@ const atmosphereAndPaddingStyles = css`
 width: 40vh;
 height: 40vh;
 
-padding: 1rem;
-background-image: radial-gradient(circle, transparent 50%, hsla(0,0%,100%,.5) 63%, transparent 67%);
+padding: 5%;
+background-image: radial-gradient(circle, transparent 20%, hsla(0,0%,100%,.35) 63%, transparent 67%);
 `

@@ -36,7 +36,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
         </div>
       </div>
       <div class={rightContainerStyle} id={"new-colony-page-right-container"}>
-        <PlanetWithMoon backend={props.context.backend} size={66}/>
+        <PlanetWithMoon backend={props.context.backend} size={50}/>
       </div>
       <StarryBackground />
     </div>
