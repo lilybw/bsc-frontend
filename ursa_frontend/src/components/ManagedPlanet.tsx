@@ -1,12 +1,12 @@
 import { Component, createResource, Show } from "solid-js";
-import { IBackendBased, IParentingImages, IStyleOverwritable } from "../ts/types";
+import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from "../ts/types";
 import { ResCodeErr } from "../meta/types";
 import { AssetResponseDTO } from "../integrations/main_backend/mainBackendDTOs";
 import Spinner from "./SimpleLoadingSpinner";
 import SomethingWentWrongIcon from "./SomethingWentWrongIcon";
 import Planet from "./Planet";
 
-export interface ManagedAssetProps extends IStyleOverwritable, IParentingImages, IBackendBased {
+export interface ManagedAssetProps extends IStyleOverwritable, IParenting, IBackendBased {
     asset: number;
     rotationSpeedS?: number;
     imageStyleOverwrite?: string;

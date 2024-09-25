@@ -47,7 +47,7 @@ export default NewColonyPage;
 
 const pageStyle = css`
   position: relative;
-  height: 100%;
+  height: 90%;
   color: white;
   display: flex;
   overflow: hidden;

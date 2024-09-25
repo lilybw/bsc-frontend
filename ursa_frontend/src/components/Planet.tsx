@@ -8,7 +8,7 @@ import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from 
 import { Styles } from '../sharedCSS';
 import { ResCodeErr } from '../meta/types';
 
-interface SpinningPlanetProps extends IStyleOverwritable, IParentingImages, IBackendBased {
+interface SpinningPlanetProps extends IStyleOverwritable, IParenting, IBackendBased {
   metadata: AssetResponseDTO;
   rotationSpeedS?: number;
   imageStyleOverwrite?: string;
@@ -105,18 +105,6 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
     ${props.shadowStyleOverwrite}
   `)
 
-  const appendChildren = () => {
-    if (props.children) {
-      return (
-        <For each={props.children}>
-          {(child, index) => 
-            {return child({styleOverwrite: computedStyles()})}
-          }
-        </For>
-      )
-    }
-  }
-
   return (
     <>
       {loading() && <Spinner styleOverwrite={computedStyles()} />}
@@ -136,7 +124,7 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
                         class={sharedImageStyles()}
                     />
                 </div>
-                {appendChildren()}
+                {props.children}
                 {props.useShadow && <div class={computedShadowStyles()} />}
             </div>
         </div>
