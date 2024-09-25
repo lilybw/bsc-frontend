@@ -15,15 +15,14 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
         return Promise.resolve(props.context.backend.getColonyOverview(props.context.player.id))
     });
 
-    const [selectedColony, setSelectedColony] = createSignal<ColonyInfoResponseDTO | null>(null);
-    const [nextButtonEnabled, setNextButtonEnabled] = createSignal<boolean>(false)
-
-    createEffect(() => {
-        setNextButtonEnabled(selectedColony() !== null)
-    })
+    const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);
 
     async function handleGoToColony() {
-        // Implement colony selection logic here
+        if (selectedColonyId() !== null) {
+            // Implement colony selection logic here using selectedColonyId()
+            console.log("Selected colony ID:", selectedColonyId());
+            // For example: await props.context.backend.selectColony(selectedColonyId());
+        }
     }
 
     const appendSomethingWentWrong = () => {
@@ -56,8 +55,8 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                 <For each={colonyListReq.latest?.res!.colonies}>{(colony: ColonyInfoResponseDTO) =>
                     <ColonyListEntry 
                         colony={colony} 
-                        onClick={() => setSelectedColony(colony)} 
-                        isSelected={selectedColony() === colony}
+                        onClick={() => setSelectedColonyId(colony.id)} 
+                        isSelected={selectedColonyId() === colony.id}
                     />
                 }</For>
                 </div>
@@ -77,7 +76,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
             <NavigationFooter 
                 goBack={{name: "Back", func: props.goBack}} 
                 goNext={{name: "Confirm", func: handleGoToColony}} 
-                goNextEnabled={nextButtonEnabled}
+                goNextEnabled={() => selectedColonyId() !== null}
             />
             <StarryBackground />
         </div>
