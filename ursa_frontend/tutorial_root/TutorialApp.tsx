@@ -85,11 +85,6 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
     setTimeout(() => setPreviousSlide(current), 50);
   })
 
-  createEffect(() => {
-    console.log('Current slide:', currentSlide());
-    console.log('Current slide completed:', currentSlideCompleted());
-  });
-
   return (
     <div class={containerStyle} id="the-tutorial-app">
         <StarryBackground />

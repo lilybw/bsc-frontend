@@ -1,15 +1,18 @@
 import { Accessor, Component, createEffect, createSignal, Setter } from "solid-js";
-import { BackendIntegration } from "./mainBackend";
-import { Logger } from "../../logging/filteredLogger";
-import { LanguagePreference, LanguagePreferenceAliases, VitecIntegrationInformation } from "../vitec/vitecDTOs";
-import SectionTitle from "../../components/SectionTitle";
-import { Error, ResErr } from "../../meta/types";
-import { VitecIntegration } from "../vitec/vitecIntegration";
-import { createWrappedSignal, WrappedSignal } from "../../ts/wrappedSignal";
-import I_SectionTitle from "../../components/internationalized/I_SectionTitle";
+import { BackendIntegration } from "../mainBackend";
+import { Logger } from "../../../logging/filteredLogger";
+import { LanguagePreference, LanguagePreferenceAliases, VitecIntegrationInformation } from "../../vitec/vitecDTOs";
+import SectionTitle, { SectionTitleProps } from "../../../components/SectionTitle";
+import { Error, ResErr } from "../../../meta/types";
+import { VitecIntegration } from "../../vitec/vitecIntegration";
+import { createWrappedSignal, WrappedSignal } from "../../../ts/wrappedSignal";
+import I_SectionTitle from "./I_SectionTitle";
+import I_SectionSubTitle from "./I_SectionSubTitle";
+import { SubSectionTitleProps } from "../../../components/SectionSubTitle";
 
 export interface InternationalizationService {
-    title: <T>(key: string, fallback?: string) => Component<T>;
+    Title: (key: string, fallback?: string) => Component<SectionTitleProps>;
+    SubTitle: (key: string, fallback?: string) => Component<SectionTitleProps>;
     language: Accessor<string>;
     setLanguage: (lang: LanguagePreference) => void;
 }
@@ -20,21 +23,32 @@ class InternationalizationServiceImpl implements InternationalizationService {
         private backend: BackendIntegration, 
         private log: Logger, 
         private initialLanguage: LanguagePreference
-    ) {
-        createEffect(() => {})
+    ) {}
+
+    private getOrCreateEntry = (key: string, fallback?: string): WrappedSignal<string> => {
+        let catalogueEntry = this.internalCatalogue[key];
+        if (!catalogueEntry) {
+            this.internalCatalogue[key] = createWrappedSignal(fallback ?? key);
+            catalogueEntry = this.internalCatalogue[key];
+        }
+        return catalogueEntry;
     }
     
-    title = <T>(key: string, fallback?: string): Component<T> => {
-        //(props: I_SectionTitleProps) => I_SectionTitle({...props});
-        return undefined as any;
+    Title = (key: string, fallback?: string) => {
+        let catalogueEntry = this.getOrCreateEntry(key, fallback);
+        return (props: SectionTitleProps) => I_SectionTitle({...props}, catalogueEntry.get);
     }
+
+    SubTitle = (key: string, fallback?: string) => {
+        let catalogueEntry = this.getOrCreateEntry(key, fallback);
+        return (props: SubSectionTitleProps) => I_SectionSubTitle({...props}, catalogueEntry.get);
+    }
+
     setLanguage = (lang: LanguagePreference): void => {
         this.initialLanguage = lang;
     };
 
     language = () => this.initialLanguage;
-
-
 
     public async loadInitialCatalogue(): Promise<Error | undefined> {
         this.log.trace('Loading initial catalogue, code: '+this.initialLanguage);

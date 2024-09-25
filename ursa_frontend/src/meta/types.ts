@@ -5,7 +5,7 @@ import { PlayerInfoResponseDTO } from "../integrations/main_backend/mainBackendD
 import { MultiplayerIntegration } from "../integrations/multiplayer_backend/multiplayerBackend";
 import { VitecIntegration } from "../integrations/vitec/vitecIntegration";
 import { Logger } from "../logging/filteredLogger";
-import { InternationalizationService } from "../integrations/main_backend/internationalization";
+import { InternationalizationService } from "../integrations/main_backend/internationalization/internationalization";
 
 export type Error = string;
 export type ResErr<T> = | { res: null, err: Error } | { res: T, err: null };
