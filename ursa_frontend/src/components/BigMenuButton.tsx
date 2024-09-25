@@ -19,7 +19,6 @@ const BigMenuButton: Component<BigMenuButtonProps> = (props) => {
     createEffect(() => {
         const currentlyDisabled = isDisabled();
         if (!currentlyDisabled && recentlyEnabled()) {
-            console.log("Button re-enabled");
             setTimeout(() => {
                 setRecentlyEnabled(false);
             }, 1000);

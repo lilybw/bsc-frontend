@@ -1,12 +1,13 @@
 import { JSX } from "solid-js/jsx-runtime";
 import StarryBackground from "../../src/components/StarryBackground";
-import { IInternationalized, IStyleOverwritable } from "../../src/ts/types";
+import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../src/ts/types";
 
-interface NavigationTrialProps extends IStyleOverwritable, IInternationalized {
+interface NavigationTrialProps extends IStyleOverwritable, IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
 }
 
 export default function NavigationTrial(props: NavigationTrialProps): JSX.Element {
+    setTimeout(() => props.onSlideCompleted(), 50);
     return (
         <div class="navigation-trial">
             <StarryBackground />

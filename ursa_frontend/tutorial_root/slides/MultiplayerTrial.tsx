@@ -1,22 +1,16 @@
 import { JSX } from "solid-js/jsx-runtime";
 import StarryBackground from "../../src/components/StarryBackground";
-import { IInternationalized } from "../../src/ts/types";
+import { IBackendBased, IInternationalized } from "../../src/ts/types";
 
-interface MultiplayerTrialProps extends IInternationalized {
+interface MultiplayerTrialProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
 }
 
 export default function MultiplayerTrial(props: MultiplayerTrialProps): JSX.Element {
+    setTimeout(() => props.onSlideCompleted(), 50);
     return (
         <div class="multiplayer-trial">
             <StarryBackground />
-            <h1>Multiplayer Trial</h1>
-            <p>
-                This is a trial of a multiplayer component.
-            </p>
-            <p>
-                Click the "Next" button to continue.
-            </p>
         </div>
     )
 }

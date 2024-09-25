@@ -6,7 +6,7 @@ import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
 export interface AwaitProps<T,R extends Component> {
     func: () => Promise<T>;
     fallback?: (error: any) => Component;
-    children: (data: T) => R;
+    children: (data: T) => JSX.Element;
 }
 
 const Await = <T, R extends Component>(props: AwaitProps<T, R>) => {
@@ -21,7 +21,7 @@ const Await = <T, R extends Component>(props: AwaitProps<T, R>) => {
                 {fallback ? fallback(resource.error) : <SomethingWentWrongIcon message={JSON.stringify(resource.error)} />}
             </Show>
             <Show when={resource.latest}>
-                {children(resource.latest!)({})}
+                {children(resource.latest!)}
             </Show>
         </>
     );

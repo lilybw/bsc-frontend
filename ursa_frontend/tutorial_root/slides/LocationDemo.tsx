@@ -1,8 +1,8 @@
 import { JSX } from "solid-js/jsx-runtime";
 import StarryBackground from "../../src/components/StarryBackground";
-import { IInternationalized, IStyleOverwritable } from "../../src/ts/types";
+import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../src/ts/types";
 
-interface LocationDemoProps extends IStyleOverwritable, IInternationalized {
+interface LocationDemoProps extends IStyleOverwritable, IInternationalized, IBackendBased {
     styleOverwrite?: string;
     onSlideCompleted: () => void;
 }

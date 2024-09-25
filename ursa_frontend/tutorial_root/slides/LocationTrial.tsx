@@ -1,12 +1,13 @@
 import { JSX } from "solid-js/jsx-runtime";
 import StarryBackground from "../../src/components/StarryBackground";
-import { IInternationalized, IStyleOverwritable } from "../../src/ts/types";
+import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../src/ts/types";
 
-interface LocationTrialProps extends IInternationalized, IStyleOverwritable {
+interface LocationTrialProps extends IInternationalized, IStyleOverwritable, IBackendBased {
     onSlideCompleted: () => void;
 }
 
 export default function LocationTrial(props: LocationTrialProps): JSX.Element {
+    setTimeout(() => props.onSlideCompleted(), 50);
     return (
         <div class="location-trial">
             <StarryBackground />

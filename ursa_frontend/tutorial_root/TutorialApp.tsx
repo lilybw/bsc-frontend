@@ -106,19 +106,19 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
             <NavigationDemo backend={props.context.backend} onSlideCompleted={onSlideCompleted} text={props.context.text}/>
           </Match>
           <Match when={currentSlide() === 3}>
-            <NavigationTrial onSlideCompleted={onSlideCompleted} text={props.context.text}/>
+            <NavigationTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 4}>
-            <LocationDemo onSlideCompleted={onSlideCompleted} text={props.context.text}/>
+            <LocationDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 5}>
-            <LocationTrial onSlideCompleted={onSlideCompleted} text={props.context.text}/>
+            <LocationTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 6}>
-            <MultiplayerTrial onSlideCompleted={onSlideCompleted} text={props.context.text}/>
+            <MultiplayerTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 7}>
-            <TutorialCompletePage onSlideCompleted={onSlideCompleted} text={props.context.text}/>
+            <TutorialCompletePage onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
           </Match>
         </Switch>
         <div class={navigationFooterStyle} id="tutorial-slide-navigation">
