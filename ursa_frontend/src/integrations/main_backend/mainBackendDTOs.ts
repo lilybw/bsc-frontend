@@ -42,6 +42,7 @@ export type ColonyInfoResponseDTO = {
         transform: TransformDTO;
     }[];
     locations: {
+        id: uint32;
         level: uint32;
         locationID: LocationID;
         transform: TransformDTO;
