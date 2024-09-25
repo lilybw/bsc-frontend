@@ -13,8 +13,11 @@ import { SubSectionTitleProps } from "../../../components/SectionSubTitle";
 export interface InternationalizationService {
     Title: (key: string, fallback?: string) => Component<SectionTitleProps>;
     SubTitle: (key: string, fallback?: string) => Component<SectionTitleProps>;
+    
     language: Accessor<LanguagePreference>;
     setLanguage: (lang: LanguagePreference) => void;
+
+    get(key: string): WrappedSignal<string>;
 }
 
 class InternationalizationServiceImpl implements InternationalizationService {
@@ -40,25 +43,36 @@ class InternationalizationServiceImpl implements InternationalizationService {
             return;
         }
         this.loadCatalogue(lang).then(err => {
-
+            if (err != null) {
+                this.log.error(`Failed to load catalogue for language: ${lang}, error: ${err}`);
+            } else {
+                this.currentLanguage = lang;
+            }
         })
-        this.currentLanguage = lang;
     };
 
     language = () => this.currentLanguage;
 
+    get = (key: string): WrappedSignal<string> => {
+        return this.getOrCreateEntry(key);
+    }
+
     private loadCatalogue = async (lang: LanguagePreference): Promise<Error | undefined> => {
         this.log.trace('Loading catalogue, code: '+lang);
-        const getCataglogueRes = await this.backend.getCatalogue(this.currentLanguage)
+        const getCataglogueRes = await this.backend.getCatalogue(lang)
         if (getCataglogueRes.err != null) {
             return getCataglogueRes.err;
         }
         const catalogue = getCataglogueRes.res;
         for (const key in catalogue) {
-            if (!this.internalCatalogue[key]) {
-                this.internalCatalogue[key] = createWrappedSignal(catalogue[key]);
+            let value = catalogue[key];
+            if (!value || value === '') {
+                value = "(" + lang + ") " + key;
             }
-            this.internalCatalogue[key].set(catalogue[key]);
+            if (!this.internalCatalogue[key]) {
+                this.internalCatalogue[key] = createWrappedSignal(value);
+            }
+            this.internalCatalogue[key].set(value);
         }
         return undefined;
     }

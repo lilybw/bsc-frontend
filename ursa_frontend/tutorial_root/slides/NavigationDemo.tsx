@@ -23,15 +23,15 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
     const [movePlayerToLocation, setMovePlayerToLocation] = createSignal<boolean>(false);
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
 
-    const nameOfLocation = "Outer Walls";
-    for (let i = 0; i < nameOfLocation.length; i++) {
+    const nameOfLocation = props.text.get('LOCATION.OUTER_WALLS.NAME');
+    for (let i = 0; i < nameOfLocation.get().length; i++) {
         setTimeout(() => {
-            setInputBuffer(inputBuffer() + nameOfLocation[i]);
+            setInputBuffer(inputBuffer() + nameOfLocation.get()[i]);
         }, baseDelayBeforeDemoStart + i * timeBetweenKeyStrokesMS);
     }
     setTimeout(() => {
         triggerEnter()();
-    }, baseDelayBeforeDemoStart * 2 + nameOfLocation.length * timeBetweenKeyStrokesMS);
+    }, baseDelayBeforeDemoStart * 2 + nameOfLocation.get().length * timeBetweenKeyStrokesMS);
 
     const buttonPressed = () => {
         setMovePlayerToLocation(true);
@@ -47,11 +47,10 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
     return (
         <div class="navigation-demo">
             <StarryBackground />
-            <SectionSubTitle>
-                Write where you want to go, and press Enter
-            </SectionSubTitle>
+            {props.text.SubTitle('TUTORIAL.NAVIGATION_DEMO.DESCRIPTION')({})}
             <VideoFrame styleOverwrite={videoDemoFrameStyle} backend={props.backend}> 
                 <ActionInput subscribers={bufferSubscribers.get} 
+                    text={props.text}
                     backend={props.backend}
                     actionContext={actionContext} 
                     setInputBuffer={setInputBuffer}
@@ -64,7 +63,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                     <ImageBufferButton 
                         styleOverwrite={locationPinStyleOverwrite}
                         register={bufferSubscribers.add} 
-                        name={nameOfLocation} 
+                        name={nameOfLocation.get()} 
                         buffer={inputBuffer}
                         onActivation={buttonPressed} 
                         asset={3} 
