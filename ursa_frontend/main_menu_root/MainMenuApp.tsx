@@ -13,6 +13,7 @@ import SomethingWentWrongIcon from '../src/components/SomethingWentWrongIcon';
 import ColonyListPage from './pages/ColonyListPage';
 import NewColonyPage from './pages/NewColonyPage';
 import ManagedPlanet from '../src/components/ManagedPlanet';
+import JoinColonyPage from './pages/JoinColony';
 
 export enum MenuPages {
   LANDING_PAGE = "landing",
@@ -44,6 +45,7 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign((props: App
         setCurrentPage(() => ColonyListPage);
         break;
       case MenuPages.JOIN_COLONY:
+        setCurrentPage(() => JoinColonyPage) 
         break;
       default:
         props.context.logger.log("Invalid page requested: " + page);
