@@ -82,7 +82,7 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
   });
 
   const computedStyles = createMemo(() => css`
-    ${planetCutoutContainer}
+    ${atmosphereAndPaddingStyles}
     ${props.styleOverwrite}
   `)
 
@@ -116,19 +116,21 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
       {error() && <SomethingWentWrongIcon styleOverwrite={computedStyles()} message={error()} />}
       {currentSrc() && (
         <div class={computedStyles()}>
-            <div class={computedContainerStyles()}>
-                <img
-                    src={currentSrc()!}
-                    alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
-                    class={sharedImageStyles()}
-                />
-                <img
-                    src={currentSrc()!}
-                    alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
-                    class={sharedImageStyles()}
-                />
-          </div>
-          {appendChildren()}
+            <div class={planetCutoutContainer}>
+                <div class={computedContainerStyles()}>
+                    <img
+                        src={currentSrc()!}
+                        alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
+                        class={sharedImageStyles()}
+                    />
+                    <img
+                        src={currentSrc()!}
+                        alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
+                        class={sharedImageStyles()}
+                    />
+                </div>
+            {appendChildren()}
+            </div>
         </div>
       )}
     </>
@@ -137,12 +139,15 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
 export default Planet;
 
 const imageMovementContainer =  css`
+z-index: -1;
 position: relative;
 display: flex;
 flex-direction: row;
 
 width: 200%;
 height: 100%;
+top: 50%;
+transform: translateY(-50%);
 left: 0;
 
 animation: moveImages var(--rotation-speed) linear infinite;
@@ -161,11 +166,18 @@ const imageStyle = css`
 `
 
 const planetCutoutContainer = css`
-width: 80vh;
-height: 80vh;
-
+width: 100%;
+height: 100%;
 border-radius: 50%;
 background-color: transparent;
 
 ${Styles.NO_OVERFLOW}
+`
+
+const atmosphereAndPaddingStyles = css`
+width: 40vh;
+height: 40vh;
+
+padding: 1rem;
+background-image: radial-gradient(circle, transparent 50%, hsla(0,0%,100%,.5) 63%, transparent 67%);
 `
