@@ -39,4 +39,7 @@ const textOverwrite = css`
 position: absolute;
 text-align: center;
 bottom: 0;
+width: 80%;
+left: 50%;
+transform: translateX(-50%);
 `
