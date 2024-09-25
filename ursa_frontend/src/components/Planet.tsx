@@ -11,6 +11,7 @@ import { ResCodeErr } from '../meta/types';
 interface SpinningPlanetProps extends IStyleOverwritable, IParentingImages, IBackendBased {
   metadata: AssetResponseDTO;
   rotationSpeedS?: number;
+  imageStyleOverwrite?: string;
 }
 
 const Planet: Component<SpinningPlanetProps> = (props) => {
@@ -89,6 +90,7 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
   --metadata-width: ${props.metadata.width}px;
   --metadata-height: ${props.metadata.height}px;
   ${imageStyle}
+  ${props.imageStyleOverwrite}
   `)
 
   const computedContainerStyles = createMemo(() => css`

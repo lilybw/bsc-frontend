@@ -9,6 +9,7 @@ import Planet from "./Planet";
 export interface ManagedAssetProps extends IStyleOverwritable, IParentingImages, IBackendBased {
     asset: number;
     rotationSpeedS?: number;
+    imageStyleOverwrite?: string;
 }
 
 const ManagedPlanet: Component<ManagedAssetProps> = (props) => {
@@ -22,7 +23,12 @@ const ManagedPlanet: Component<ManagedAssetProps> = (props) => {
                 <SomethingWentWrongIcon message={assetMetadata.latest?.err} />
             </Show>
             <Show when={assetMetadata.state === "ready"}>
-                <Planet styleOverwrite={props.styleOverwrite} rotationSpeedS={props.rotationSpeedS} metadata={assetMetadata.latest?.res!} backend={props.backend}>
+                <Planet styleOverwrite={props.styleOverwrite} 
+                    rotationSpeedS={props.rotationSpeedS} 
+                    metadata={assetMetadata.latest?.res!} 
+                    backend={props.backend}
+                    imageStyleOverwrite={props.imageStyleOverwrite}
+                >
                     {props.children}
                 </Planet>
             </Show> 
