@@ -1,16 +1,19 @@
-import { createSignal, createEffect, onCleanup, Component, createMemo, JSX, Show, For } from 'solid-js';
+import { createSignal, createEffect, onCleanup, Component, createMemo, JSX, Show, For, createResource } from 'solid-js';
 import { AssetID, AssetResponseDTO } from '../integrations/main_backend/mainBackendDTOs';
 import { BackendIntegration } from '../integrations/main_backend/mainBackend';
 import Spinner from './SimpleLoadingSpinner';
 import { css } from '@emotion/css';
 import SomethingWentWrongIcon from './SomethingWentWrongIcon';
 import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from '../ts/types';
+import { Styles } from '../sharedCSS';
+import { ResCodeErr } from '../meta/types';
 
-interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IBackendBased {
+interface SpinningPlanetProps extends IStyleOverwritable, IParentingImages, IBackendBased {
   metadata: AssetResponseDTO;
+  rotationSpeedS?: number;
 }
 
-const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
+const Planet: Component<SpinningPlanetProps> = (props) => {
   const [currentSrc, setCurrentSrc] = createSignal<string | null>(null);
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal<string | undefined>(undefined);
@@ -78,10 +81,19 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
   });
 
   const computedStyles = createMemo(() => css`
-    ${baseStyles}
-    width: ${props.metadata.width}px;
-    height: ${props.metadata.height}px;
+    ${planetCutoutContainer}
     ${props.styleOverwrite}
+  `)
+
+  const sharedImageStyles = createMemo(() => css`
+  --metadata-width: ${props.metadata.width}px;
+  --metadata-height: ${props.metadata.height}px;
+  ${imageStyle}
+  `)
+
+  const computedContainerStyles = createMemo(() => css`
+    --rotation-speed: ${props.rotationSpeedS ?? 10}s;
+    ${imageMovementContainer}
   `)
 
   const appendChildren = () => {
@@ -101,21 +113,57 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
       {loading() && <Spinner styleOverwrite={computedStyles()} />}
       {error() && <SomethingWentWrongIcon styleOverwrite={computedStyles()} message={error()} />}
       {currentSrc() && (
-        <>
-          <img
-            src={currentSrc()!}
-            alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
-            class={computedStyles()}
-          />
+        <div class={computedStyles()}>
+            <div class={computedContainerStyles()}>
+                <img
+                    src={currentSrc()!}
+                    alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
+                    class={sharedImageStyles()}
+                />
+                <img
+                    src={currentSrc()!}
+                    alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
+                    class={sharedImageStyles()}
+                />
+          </div>
           {appendChildren()}
-        </>
+        </div>
       )}
     </>
   );
 };
-export default GraphicalAsset;
+export default Planet;
 
-const baseStyles = css`
-  display: block;
-  object-fit: contain;
+const imageMovementContainer =  css`
+position: relative;
+display: flex;
+flex-direction: row;
+
+width: 200%;
+height: 100%;
+left: 0;
+
+animation: moveImages var(--rotation-speed) linear infinite;
+
+@keyframes moveImages {
+  from {
+    left: 0;
+  }
+  to {
+    left: -200%;
+  }
+}
+`
+
+const imageStyle = css`
+`
+
+const planetCutoutContainer = css`
+width: 80vh;
+height: 80vh;
+
+border-radius: 50%;
+background-color: transparent;
+
+${Styles.NO_OVERFLOW}
 `

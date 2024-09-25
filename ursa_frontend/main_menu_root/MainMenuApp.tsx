@@ -12,6 +12,7 @@ import Spinner from '../src/components/SimpleLoadingSpinner';
 import SomethingWentWrongIcon from '../src/components/SomethingWentWrongIcon';
 import ColonyListPage from './pages/ColonyListPage';
 import NewColonyPage from './pages/NewColonyPage';
+import ManagedPlanet from '../src/components/ManagedPlanet';
 
 export enum MenuPages {
   LANDING_PAGE = "landing",
@@ -55,6 +56,7 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign((props: App
 
   return (
     <div class={mainMenuAppStyle} id="the-main-menu-app">
+      <ManagedPlanet asset={7} backend={props.context.backend} />
       {CurrentPage()({context: props.context, goToPage: goToPage, goBack: goBack})}
     </div>
   );
