@@ -54,6 +54,19 @@ export type ColonyOverviewReponseDTO = {
     colonies: ColonyInfoResponseDTO[];
 }
 
+export type ColonyPathGraphResponseDTO = {
+    paths: {
+        /**
+         * ID of ColonyLocation
+         */
+        from: number;
+        /**
+         * ID of ColonyLocation
+         */
+        to: number;
+    }[]
+}
+
 export type LocationInfoResponseDTO = {
     id: LocationID;
     name: string;

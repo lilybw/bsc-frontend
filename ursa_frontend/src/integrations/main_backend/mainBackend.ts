@@ -5,6 +5,7 @@ import {
     AssetCollectionID, AssetCollectionResponseDTO, AssetID, 
     AssetResponseDTO, AvailableLanguagesResponseDTO, ColonyCode, ColonyInfoResponseDTO, 
     ColonyOverviewReponseDTO, 
+    ColonyPathGraphResponseDTO, 
     CreateColonyRequestDTO, InternationalizationCatalogueResponseDTO, 
     LocationInfoFullResponseDTO, LocationInfoResponseDTO, 
     MinigameDifficultyID, MinigameID, MinigameInfoResponseDTO, 
@@ -57,6 +58,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     internalPlayerID: number;
     getPlayerInfo: (player: number) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
     getPlayerPreferences: (player: number) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
+    grantAchievement: (achievement: number) => Promise<ResCodeErr<void>>;
 
     getCatalogue: (locale: LanguagePreference) => Promise<ResCodeErr<InternationalizationCatalogueResponseDTO>>;
     getAvailableLanguages: () => Promise<ResCodeErr<AvailableLanguagesResponseDTO>>;
@@ -66,6 +68,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     openColony: (colony: number) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
     joinColony: (code: ColonyCode) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
     createColony: (dto: CreateColonyRequestDTO, player: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
+    getColonyPathGraph: (colony: number) => Promise<ResCodeErr<ColonyPathGraphResponseDTO>>
 
     getLocationInfo: (location: number) => Promise<ResCodeErr<LocationInfoResponseDTO>>;
     getFullLocationInfo: (location: number) => Promise<ResCodeErr<LocationInfoFullResponseDTO>>;
@@ -127,6 +130,9 @@ const applyRouteImplementations = (base: BaseBackendIntegration, playerID: numbe
             HTTPMethod.GET, `/api/v1/player/${player}`, ParseMethod.JSON),
         getPlayerPreferences:(player) => base.request<PlayerPreferencesResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}/preferences`, ParseMethod.JSON),
+        grantAchievement: (achievement) => base.request<void>(
+            HTTPMethod.POST, `/api/v1/player/${playerID}/achievement/${achievement}`, ParseMethod.NONE
+        ),
 
         getCatalogue:       (locale) => base.request<InternationalizationCatalogueResponseDTO>(
             HTTPMethod.GET, `/api/v1/catalog/${locale}`, ParseMethod.JSON),
@@ -143,6 +149,8 @@ const applyRouteImplementations = (base: BaseBackendIntegration, playerID: numbe
             HTTPMethod.POST, `/api/v1/colony/${colony}/join`, ParseMethod.JSON),
         createColony: (dto, player) => base.request<ColonyInfoResponseDTO>(
             HTTPMethod.POST, `/api/v1/player/${player}/colony/create`, ParseMethod.JSON, dto),
+        getColonyPathGraph: (colony) => base.request<ColonyPathGraphResponseDTO>(
+            HTTPMethod.GET, `/api/v1/colony/${colony}/pathgraph`, ParseMethod.JSON),
 
         getLocationInfo:     (location) => base.request<LocationInfoResponseDTO>(
             HTTPMethod.GET, `/api/v1/location/${location}`, ParseMethod.JSON),
