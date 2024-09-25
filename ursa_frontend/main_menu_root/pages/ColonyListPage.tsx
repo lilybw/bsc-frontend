@@ -1,4 +1,4 @@
-import { Component, createResource, createSignal, For } from "solid-js"
+import { Component, createEffect, createResource, createSignal, For } from "solid-js"
 import { MenuPageProps } from "../MainMenuApp"
 import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
 import { ResCodeErr } from "../../src/meta/types";
@@ -10,26 +10,20 @@ import StarryBackground from "../../src/components/StarryBackground";
 import ColonyListEntry from "./ColonyListEntry";
 import NavigationFooter from "../NavigationFooter";
 
-
 const ColonyListPage: Component<MenuPageProps> = (props) => {
     const [colonyListReq, setColonyListReq] = createResource<ResCodeErr<ColonyOverviewReponseDTO>>(async () => {
-        return Promise.resolve({res: {
-            colonies: [
-                { name: "test1", accLevel: 3, latestVisit: new Date().toISOString() }, 
-                { name: "test2", accLevel: 20, latestVisit: new Date().toISOString() }, 
-                { name: "test3", accLevel: 11, latestVisit: new Date().toISOString() }, 
-                { name: "test3", accLevel: 11, latestVisit: new Date().toISOString() }, 
-                { name: "test3", accLevel: 11, latestVisit: new Date().toISOString() }, 
-                { name: "test3", accLevel: 11, latestVisit: new Date().toISOString() }, 
-                { name: "test3", accLevel: 11, latestVisit: new Date().toISOString() }, 
-                { name: "test3", accLevel: 11, latestVisit: new Date().toISOString() }, 
-                { name: "test3", accLevel: 11, latestVisit: new Date().toISOString() }, 
-                { name: "test3", accLevel: 11, latestVisit: new Date().toISOString() }, 
-                { name: "test3", accLevel: 11, latestVisit: new Date().toISOString() }, 
-                { name: "test11", accLevel: 11, latestVisit: new Date().toISOString() },
-            ]}, code: 200, err: null} as ResCodeErr<ColonyOverviewReponseDTO>)  //props.context.backend.getColonyOverview(1);
+        return Promise.resolve(props.context.backend.getColonyOverview(props.context.player.id))
     });
-    const [selectedColony, setSelectedColony] = createSignal<ColonyInfoResponseDTO | null>(null);
+
+    const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);
+
+    async function handleGoToColony() {
+        if (selectedColonyId() !== null) {
+            // Implement colony selection logic here using selectedColonyId()
+            console.log("Selected colony ID:", selectedColonyId());
+            // For example: await props.context.backend.selectColony(selectedColonyId());
+        }
+    }
 
     const appendSomethingWentWrong = () => {
         if (colonyListReq.error) {
@@ -59,7 +53,11 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                 <div class={colonyListBackgroundStyle}/>
                 <div class={colonyListStyle}>
                 <For each={colonyListReq.latest?.res!.colonies}>{(colony: ColonyInfoResponseDTO) =>
-                    <ColonyListEntry colony={colony} onClick={() => setSelectedColony(colony)} />
+                    <ColonyListEntry 
+                        colony={colony} 
+                        onClick={() => setSelectedColonyId(colony.id)} 
+                        isSelected={selectedColonyId() === colony.id}
+                    />
                 }</For>
                 </div>
                 </>
@@ -67,6 +65,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
         }
         return <></>
     }
+
     return (
         <div>
             <SectionTitle styleOverwrite={css`font-size: 5rem;`}>Select</SectionTitle>
@@ -74,11 +73,16 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
             {appendNoColoniesYet()}
             {appendColonyList()}
             {appendLoadingSpinner()}
-            <NavigationFooter goBack={{name: "Back", func: props.goBack}}/>
+            <NavigationFooter 
+                goBack={{name: "Back", func: props.goBack}} 
+                goNext={{name: "Confirm", func: handleGoToColony}} 
+                goNextEnabled={() => selectedColonyId() !== null}
+            />
             <StarryBackground />
         </div>
     )
 }
+
 export default ColonyListPage;
 
 const colonyListBackgroundStyle = css`
