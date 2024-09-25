@@ -24,7 +24,6 @@ const BigMenuButton: Component<BigMenuButtonProps> = (props) => {
                 setRecentlyEnabled(false);
             }, 1000);
         } else if (currentlyDisabled) {
-            console.log("Button disabled");
             setRecentlyEnabled(true);
         }
     });

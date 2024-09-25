@@ -1,11 +1,10 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { IBackendBased, IStyleOverwritable } from "../../src/ts/types";
+import { IBackendBased, IInternationalized, IParenting, IStyleOverwritable } from "../../src/ts/types";
 import { Component, createMemo } from "solid-js";
 import { css } from "@emotion/css";
 import ManagedAsset from "../../src/components/ManagedAsset";
 
-interface VideoDemoFrameStyleProps extends IStyleOverwritable, IBackendBased {
-    children: JSX.Element;
+interface VideoDemoFrameStyleProps extends IStyleOverwritable, IBackendBased, IParenting {
 }
 
 const VideoFrame: Component<VideoDemoFrameStyleProps> = (props) => {

@@ -1,8 +1,8 @@
 import { JSX } from "solid-js/jsx-runtime";
 import StarryBackground from "../../src/components/StarryBackground";
+import { IInternationalized } from "../../src/ts/types";
 
-interface MultiplayerTrialProps {
-    styleOverwrite?: string;
+interface MultiplayerTrialProps extends IInternationalized {
     onSlideCompleted: () => void;
 }
 

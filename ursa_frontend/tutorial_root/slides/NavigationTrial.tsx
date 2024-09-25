@@ -1,8 +1,8 @@
 import { JSX } from "solid-js/jsx-runtime";
 import StarryBackground from "../../src/components/StarryBackground";
+import { IInternationalized, IStyleOverwritable } from "../../src/ts/types";
 
-interface NavigationTrialProps {
-    styleOverwrite?: string;
+interface NavigationTrialProps extends IStyleOverwritable, IInternationalized {
     onSlideCompleted: () => void;
 }
 

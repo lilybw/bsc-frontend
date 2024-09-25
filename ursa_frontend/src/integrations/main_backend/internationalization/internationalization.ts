@@ -13,7 +13,7 @@ import { SubSectionTitleProps } from "../../../components/SectionSubTitle";
 export interface InternationalizationService {
     Title: (key: string, fallback?: string) => Component<SectionTitleProps>;
     SubTitle: (key: string, fallback?: string) => Component<SectionTitleProps>;
-    language: Accessor<string>;
+    language: Accessor<LanguagePreference>;
     setLanguage: (lang: LanguagePreference) => void;
 }
 
@@ -22,17 +22,8 @@ class InternationalizationServiceImpl implements InternationalizationService {
     constructor(
         private backend: BackendIntegration, 
         private log: Logger, 
-        private initialLanguage: LanguagePreference
+        private currentLanguage: LanguagePreference
     ) {}
-
-    private getOrCreateEntry = (key: string, fallback?: string): WrappedSignal<string> => {
-        let catalogueEntry = this.internalCatalogue[key];
-        if (!catalogueEntry) {
-            this.internalCatalogue[key] = createWrappedSignal(fallback ?? key);
-            catalogueEntry = this.internalCatalogue[key];
-        }
-        return catalogueEntry;
-    }
     
     Title = (key: string, fallback?: string) => {
         let catalogueEntry = this.getOrCreateEntry(key, fallback);
@@ -45,22 +36,44 @@ class InternationalizationServiceImpl implements InternationalizationService {
     }
 
     setLanguage = (lang: LanguagePreference): void => {
-        this.initialLanguage = lang;
+        if(lang === this.currentLanguage || lang === LanguagePreference.UNKNOWN) {
+            return;
+        }
+        this.loadCatalogue(lang).then(err => {
+
+        })
+        this.currentLanguage = lang;
     };
 
-    language = () => this.initialLanguage;
+    language = () => this.currentLanguage;
 
-    public async loadInitialCatalogue(): Promise<Error | undefined> {
-        this.log.trace('Loading initial catalogue, code: '+this.initialLanguage);
-        const getCataglogueRes = await this.backend.getCatalogue(this.initialLanguage)
+    private loadCatalogue = async (lang: LanguagePreference): Promise<Error | undefined> => {
+        this.log.trace('Loading catalogue, code: '+lang);
+        const getCataglogueRes = await this.backend.getCatalogue(this.currentLanguage)
         if (getCataglogueRes.err != null) {
             return getCataglogueRes.err;
         }
         const catalogue = getCataglogueRes.res;
         for (const key in catalogue) {
-            this.internalCatalogue[key] = createWrappedSignal(catalogue[key]);
+            if (!this.internalCatalogue[key]) {
+                this.internalCatalogue[key] = createWrappedSignal(catalogue[key]);
+            }
+            this.internalCatalogue[key].set(catalogue[key]);
         }
         return undefined;
+    }
+
+    private getOrCreateEntry = (key: string, fallback?: string): WrappedSignal<string> => {
+        let catalogueEntry = this.internalCatalogue[key];
+        if (!catalogueEntry) {
+            this.internalCatalogue[key] = createWrappedSignal(fallback ?? key);
+            catalogueEntry = this.internalCatalogue[key];
+        }
+        return catalogueEntry;
+    }
+
+    public async loadInitialCatalogue(): Promise<Error | undefined> {
+        return this.loadCatalogue(this.currentLanguage);
     }
 }
 
@@ -80,7 +93,7 @@ export const initializeInternationalizationService = async (backend: BackendInte
     return {res: intergration as unknown as InternationalizationService, err: null};
 }
 
-const assureUniformLanguageCode = (language: string): ResErr<LanguagePreference> => {
+export const assureUniformLanguageCode = (language: string): ResErr<LanguagePreference> => {
     const languageLowerCased = language.toLocaleLowerCase();
     for (const key in LanguagePreferenceAliases) {
         for (const alias of LanguagePreferenceAliases[key as LanguagePreference]) {

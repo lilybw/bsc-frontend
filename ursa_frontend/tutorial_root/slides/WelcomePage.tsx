@@ -2,10 +2,10 @@ import { JSX } from "solid-js/jsx-runtime";
 import SectionTitle from "../../src/components/SectionTitle";
 import StarryBackground from "../../src/components/StarryBackground";
 import { css, keyframes } from "@emotion/css";
-import { IBackendBased } from "../../src/ts/types";
+import { IBackendBased, IInternationalized } from "../../src/ts/types";
 import ManagedAsset from "../../src/components/ManagedAsset";
 
-interface WelcomePageProps extends IBackendBased {
+interface WelcomePageProps extends IBackendBased, IInternationalized {
     styleOverwrite?: string;
     onSlideCompleted: () => void;
 }
@@ -24,8 +24,8 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
             <ManagedAsset asset={5} backend={props.backend} styleOverwrite={gasGiantStyleOverwrite} />
 
             <div class={planetAtmosphereStyle} />
-            <SectionTitle styleOverwrite={titleStyle}>WELCOME</SectionTitle>
-            <SectionTitle styleOverwrite={titleFrontShadow}>WELCOME</SectionTitle>
+            {props.text.Title('TUTORIAL.WELCOME.TITLE')({styleOverwrite: titleStyle})}
+            {props.text.Title('TUTORIAL.WELCOME.TITLE')({styleOverwrite: titleFrontShadow})}
         </div>
     )
 }

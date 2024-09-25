@@ -1,6 +1,7 @@
 import { Accessor, Component, JSX} from "solid-js";
 import { ApplicationContext } from "../meta/types";
 import { BackendIntegration } from "../integrations/main_backend/mainBackend";
+import { InternationalizationService } from "../integrations/main_backend/internationalization/internationalization";
 
 export interface ApplicationProps {
     context: ApplicationContext;
@@ -19,4 +20,7 @@ export interface IParenting {
 }
 export interface IParentingImages {
     children?: Component<IStyleOverwritable>[]
+}
+export interface IInternationalized {
+    text: InternationalizationService;
 }

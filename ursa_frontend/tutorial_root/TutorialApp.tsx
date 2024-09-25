@@ -19,6 +19,7 @@ import TutorialCompletePage from './slides/TutorialCompletePage';
 import { ApplicationProps } from '../src/ts/types';
 import StarryBackground from '../src/components/StarryBackground';
 import { Bundle, BundleComponent } from '../src/meta/types';
+import { LanguagePreference } from '../src/integrations/vitec/vitecDTOs';
 
 injectGlobal`${SHARED_CSS_STR}`
 
@@ -61,7 +62,7 @@ const slides: SlideEntry[] = [
 const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (props: ApplicationProps) {
   const [currentSlide, setCurrentSlide] = createSignal(0);
   const [previousSlide, setPreviousSlide] = createSignal(0);
-  const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<string | null>(null);
+  const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<LanguagePreference | undefined>(props.context.text.language());
   const [slideStore, setSlides] = createStore<SlideEntry[]>(slides);
   const [currentSlideCompleted, setSlideCompleted] = createSignal(false);
 
@@ -80,6 +81,11 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
     setSlideCompleted(true);
   }
 
+  const onLanguageChange = (language: LanguagePreference) => {
+    setUserSelectedLanguage(language);
+    props.context.text.setLanguage(language);
+  }
+
   createEffect(() => {
     const current = currentSlide();
     setTimeout(() => setPreviousSlide(current), 50);
@@ -91,28 +97,28 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
         <ProgressTracker currentSlide={currentSlide} slideStore={slideStore} setSlideStore={setSlides} previousSlide={previousSlide}/>
         <Switch fallback= {<ErrorPage content="OOC: Out of Cases" />}>
           <Match when={currentSlide() === 0}>
-            <LanguagePage onLanguageSelected={setUserSelectedLanguage} onSlideCompleted={onSlideCompleted} backend={props.context.backend}/>
+            <LanguagePage onLanguageSelected={onLanguageChange} onSlideCompleted={onSlideCompleted} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 1}>
-            <WelcomePage onSlideCompleted={onSlideCompleted} backend={props.context.backend}/>
+            <WelcomePage onSlideCompleted={onSlideCompleted} backend={props.context.backend} text={props.context.text}/>
           </Match>
           <Match when={currentSlide() === 2}>
-            <NavigationDemo backend={props.context.backend} onSlideCompleted={onSlideCompleted} />
+            <NavigationDemo backend={props.context.backend} onSlideCompleted={onSlideCompleted} text={props.context.text}/>
           </Match>
           <Match when={currentSlide() === 3}>
-            <NavigationTrial onSlideCompleted={onSlideCompleted} />
+            <NavigationTrial onSlideCompleted={onSlideCompleted} text={props.context.text}/>
           </Match>
           <Match when={currentSlide() === 4}>
-            <LocationDemo onSlideCompleted={onSlideCompleted} />
+            <LocationDemo onSlideCompleted={onSlideCompleted} text={props.context.text}/>
           </Match>
           <Match when={currentSlide() === 5}>
-            <LocationTrial onSlideCompleted={onSlideCompleted} />
+            <LocationTrial onSlideCompleted={onSlideCompleted} text={props.context.text}/>
           </Match>
           <Match when={currentSlide() === 6}>
-            <MultiplayerTrial onSlideCompleted={onSlideCompleted} />
+            <MultiplayerTrial onSlideCompleted={onSlideCompleted} text={props.context.text}/>
           </Match>
           <Match when={currentSlide() === 7}>
-            <TutorialCompletePage onSlideCompleted={onSlideCompleted} />
+            <TutorialCompletePage onSlideCompleted={onSlideCompleted} text={props.context.text}/>
           </Match>
         </Switch>
         <div class={navigationFooterStyle} id="tutorial-slide-navigation">
