@@ -1,8 +1,9 @@
 import { Component, createMemo } from "solid-js";
 import { css } from "@emotion/css";
-import ManagedPlanet from "./ManagedPlanet";
 import { IBackendBased, IStyleOverwritable } from "../ts/types";
 import { AssetID } from "../integrations/main_backend/mainBackendDTOs";
+import NTAwait from "./util/NoThrowAwait";
+import Planet from "./Planet";
 
 interface PlanetWithMoonProps extends IBackendBased, IStyleOverwritable {
   moonAssetOverwrite?: AssetID,
@@ -26,19 +27,17 @@ const PlanetWithMoon: Component<PlanetWithMoonProps> = (props) => {
 
   return (
     <div class={computedStyles()}>
-      <ManagedPlanet
-        styleOverwrite={planetStyle(cssvars)}
-        backend={props.backend}
-        asset={props.planetAssetOverwrite ?? 5}
-        useShadow={true}
-      >
-        <ManagedPlanet
-          styleOverwrite={moonOrbitStyle(cssvars)}
-          backend={props.backend}
-          asset={props.moonAssetOverwrite ?? 7}
-          useShadow={false}
-        />
-      </ManagedPlanet>
+      <NTAwait func={() => props.backend.getAssetMetadata(props.planetAssetOverwrite ?? 5)}>
+        {(asset) => (
+          <Planet useShadow={true} styleOverwrite={planetStyle(cssvars)} metadata={asset} backend={props.backend}>
+            <NTAwait func={() => props.backend.getAssetMetadata(props.moonAssetOverwrite ?? 7)}>
+              {(moonAsset) => (
+                <Planet useShadow={false} styleOverwrite={moonOrbitStyle(cssvars)} metadata={moonAsset} backend={props.backend} />
+              )}
+            </NTAwait>
+          </Planet>
+        )}
+      </NTAwait>
     </div>
   );
 };

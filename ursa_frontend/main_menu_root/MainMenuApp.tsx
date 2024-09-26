@@ -2,17 +2,11 @@ import { createSignal, type Component, type JSX } from 'solid-js';
 import { SHARED_CSS, SHARED_CSS_STR, Styles } from '../src/sharedCSS';
 
 import {injectGlobal, css} from '@emotion/css'
-import BigMenuButton from '../src/components/BigMenuButton';
-import SectionTitle from '../src/components/SectionTitle';
-import StarryBackground from '../src/components/StarryBackground';
 import { ApplicationContext, Bundle, BundleComponent } from '../src/meta/types';
 import LandingPage from './pages/LandingPage';
 import { ApplicationProps } from '../src/ts/types';
-import Spinner from '../src/components/SimpleLoadingSpinner';
-import SomethingWentWrongIcon from '../src/components/SomethingWentWrongIcon';
 import ColonyListPage from './pages/ColonyListPage';
 import NewColonyPage from './pages/NewColonyPage';
-import ManagedPlanet from '../src/components/ManagedPlanet';
 import JoinColonyPage from './pages/JoinColony';
 
 export enum MenuPages {
