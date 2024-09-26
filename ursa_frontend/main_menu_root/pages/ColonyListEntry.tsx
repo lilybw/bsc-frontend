@@ -9,13 +9,34 @@ interface ColonyListEntryProps {
 }
 
 const ColonyListEntry: Component<ColonyListEntryProps> = (props) => {
+    const getTimeAgo = (dateString: string) => {
+        // Parse the date string to Danish time (Europe/Copenhagen)
+        const visitDate = new Date(dateString).toLocaleString("en-US", { timeZone: "Europe/Copenhagen" });
+        const visitDateTime = new Date(visitDate);
+        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Copenhagen" }));
+
+        // Calculate time difference in minutes, hours, days
+        const diffMs = now.getTime() - visitDateTime.getTime();
+        const diffMinutes = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffMinutes < 60) {
+            return `${diffMinutes} minutes ago`;
+        } else if (diffHours < 24) {
+            return `${diffHours} hours ago`;
+        } else {
+            return `${diffDays} days ago`;
+        }
+    };
+
     return (
         <div 
             class={`${listEntryStyles} ${props.isSelected ? selectedStyles : ''}`}
             onClick={props.onClick}
         >
             <h3>{props.colony.name}</h3>
-            <h3>{props.colony.latestVisit}</h3>
+            <h3>{getTimeAgo(props.colony.latestVisit)}</h3>
             <h3>{props.colony.accLevel}</h3>
         </div>
     )

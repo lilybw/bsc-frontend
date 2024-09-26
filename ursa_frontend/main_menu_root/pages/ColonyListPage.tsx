@@ -19,9 +19,9 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
 
     async function handleGoToColony() {
         if (selectedColonyId() !== null) {
-            // Implement colony selection logic here using selectedColonyId()
-            console.log("Selected colony ID:", selectedColonyId());
-            // For example: await props.context.backend.selectColony(selectedColonyId());
+            const openColonyResponse = await props.context.backend.getColony(props.context.player.id, Number(selectedColonyId()));
+
+            props.context.logger.log("[DELETE ME] implement redirect here!")
         }
     }
 
