@@ -32,6 +32,18 @@ export type PlayerPreferencesResponseDTO = {
 
 export type InternationalizationCatalogueResponseDTO = {[key: string]: string}
 
+export type ColonyLocationInformation = {
+    /**
+     * ID of ColonyLocation
+     */
+    id: uint32;
+    level: uint32;
+    /**
+     * ID of Location
+     */
+    locationID: LocationID;
+    transform: TransformDTO;
+}
 export type ColonyInfoResponseDTO = {
     id: uint32;
     accLevel: uint32;
@@ -41,12 +53,7 @@ export type ColonyInfoResponseDTO = {
         assetCollectionID: AssetCollectionID;
         transform: TransformDTO;
     }[];
-    locations: {
-        id: uint32;
-        level: uint32;
-        locationID: LocationID;
-        transform: TransformDTO;
-    }
+    locations: ColonyLocationInformation[];
 }
 
 export type CreateColonyResponseDTO = ColonyInfoResponseDTO;
@@ -71,7 +78,10 @@ export type LocationInfoResponseDTO = {
     id: LocationID;
     name: string;
     description: string;
-    assetCollectionIDs: AssetID[];
+    appearances: {
+        level: uint32;
+        assetCollectionID: uint32;
+    }[];
     minigameID: MinigameID;
 }
 

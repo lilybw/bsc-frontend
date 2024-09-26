@@ -1,7 +1,7 @@
 import { JSX } from "solid-js/jsx-runtime";
 import StarryBackground from "../../src/components/StarryBackground";
 import { css } from "@emotion/css";
-import ActionInput from "../../src/components/MainActionInput";
+import ActionInput from "../../src/components/colony/MainActionInput";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../src/ts/actionContext";
 import { createMemo, createSignal } from "solid-js";
 import { createArrayStore } from "../../src/ts/wrappedStore";

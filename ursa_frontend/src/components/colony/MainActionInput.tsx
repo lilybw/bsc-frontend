@@ -1,10 +1,10 @@
 import { css } from "@emotion/css";
 import { Accessor, Component, createEffect, createSignal, onMount, Setter } from "solid-js"
-import { BufferSubscriber, TypeIconTuple } from "../ts/actionContext";
-import { IBackendBased, IInternationalized, IStyleOverwritable } from "../ts/types";
-import { ArrayStore } from "../ts/wrappedStore";
-import NTAwait from "./util/NoThrowAwait";
-import GraphicalAsset from "./GraphicalAsset";
+import { BufferSubscriber, TypeIconTuple } from "../../ts/actionContext";
+import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../ts/types";
+import { ArrayStore } from "../../ts/wrappedStore";
+import NTAwait from "../util/NoThrowAwait";
+import GraphicalAsset from "../GraphicalAsset";
 
 interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternationalized {
     actionContext: Accessor<TypeIconTuple>;

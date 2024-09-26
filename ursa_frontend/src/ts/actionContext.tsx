@@ -1,7 +1,5 @@
 import { Component } from "solid-js";
 import { IStyleOverwritable } from "./types";
-import { createStore, SetStoreFunction } from "solid-js/store";
-import { ArrayStore } from "./wrappedStore";
 
 export enum ActionContextTypes {
     NAVIGATION = "NAVIGATION",
