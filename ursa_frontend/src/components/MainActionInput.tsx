@@ -218,7 +218,7 @@ display: flex;
 flex-direction: column-reverse;
 align-items: center;
 justify-content: flex-start;
-z-index: 1;
+z-index: 1000;
 left: 50%;
 bottom: 0;
 transform: translateX(-50%);

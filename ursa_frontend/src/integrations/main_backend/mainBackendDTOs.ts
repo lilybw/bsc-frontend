@@ -172,10 +172,23 @@ export type MinimizedMinigameInfoResponseDTO = {
 
 export type AvailableLanguagesResponseDTO = {
     languages: {
+        /**
+         * 0-100, percent-like, how much of the translation is available
+         */
+        coverage: number;
         commonName: string;
         code: string;
         icon: AssetID;
     }[];
+}
+
+export type SetPreferenceRequestDTO = {
+    key: string;
+    value: string;
+}
+
+export enum PreferenceKeys {
+    LANGUAGE = "language",
 }
 
 // "Known DTOs"

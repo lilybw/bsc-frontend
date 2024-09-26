@@ -10,7 +10,7 @@ import {
     LocationInfoFullResponseDTO, LocationInfoResponseDTO, 
     MinigameDifficultyID, MinigameID, MinigameInfoResponseDTO, 
     OpenColonyResponseDTO, PlayerInfoResponseDTO, 
-    PlayerPreferencesResponseDTO, SessionInitiationRequestDTO, 
+    PlayerPreferencesResponseDTO, PreferenceKeys, SessionInitiationRequestDTO, 
     SessionInitiationResponseDTO 
 } from "./mainBackendDTOs";
 import { LanguagePreference } from "../vitec/vitecDTOs";
@@ -58,6 +58,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     internalPlayerID: number;
     getPlayerInfo: (player: number) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
     getPlayerPreferences: (player: number) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
+    setPlayerPreference: (key: PreferenceKeys, value: string) => Promise<ResCodeErr<void>>;
     grantAchievement: (achievement: number) => Promise<ResCodeErr<void>>;
 
     getCatalogue: (locale: LanguagePreference) => Promise<ResCodeErr<InternationalizationCatalogueResponseDTO>>;
@@ -128,8 +129,11 @@ const applyRouteImplementations = (base: BaseBackendIntegration, playerID: numbe
         internalPlayerID: playerID,
         getPlayerInfo:      (player) => base.request<PlayerInfoResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}`, ParseMethod.JSON),
-        getPlayerPreferences:(player) => base.request<PlayerPreferencesResponseDTO>(
+        getPlayerPreferences: (player) => base.request<PlayerPreferencesResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}/preferences`, ParseMethod.JSON),
+        setPlayerPreference: (key, value) => base.request<void>(
+            HTTPMethod.POST, `/api/v1/player/${playerID}/preferences`, ParseMethod.NONE, { key, value }
+        ),
         grantAchievement: (achievement) => base.request<void>(
             HTTPMethod.POST, `/api/v1/player/${playerID}/achievement/${achievement}`, ParseMethod.NONE
         ),
@@ -145,8 +149,8 @@ const applyRouteImplementations = (base: BaseBackendIntegration, playerID: numbe
             HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
         openColony:         (colony) => base.request<OpenColonyResponseDTO>(
             HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON),
-        joinColony:         (colony) => base.request<OpenColonyResponseDTO>(
-            HTTPMethod.POST, `/api/v1/colony/${colony}/join`, ParseMethod.JSON),
+        joinColony:         (code) => base.request<OpenColonyResponseDTO>(
+            HTTPMethod.POST, `/api/v1/colony/join/${code}`, ParseMethod.JSON),
         createColony: (dto, player) => base.request<ColonyInfoResponseDTO>(
             HTTPMethod.POST, `/api/v1/player/${player}/colony/create`, ParseMethod.JSON, dto),
         getColonyPathGraph: (colony) => base.request<ColonyPathGraphResponseDTO>(

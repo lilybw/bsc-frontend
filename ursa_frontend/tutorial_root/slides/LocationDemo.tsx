@@ -15,6 +15,7 @@ export default function LocationDemoPage(props: LocationDemoProps): JSX.Element 
     return (
         <div class="location-demo">
             <StarryBackground />
+            {props.text.SubTitle('TUTORIAL.LOCATION_DEMO.DESCRIPTION')({})}
             <h1>Location Demo</h1>
             <p>
                 This is a demo of a location component.

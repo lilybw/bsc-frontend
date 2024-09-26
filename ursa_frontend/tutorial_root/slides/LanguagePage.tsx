@@ -1,9 +1,9 @@
 import { JSX } from "solid-js/jsx-runtime";
 import BigMenuButton from "../../src/components/BigMenuButton";
-import { createResource, For, Show } from "solid-js";
+import { createMemo, createResource, For, Show } from "solid-js";
 import StarryBackground from "../../src/components/StarryBackground";
 import { IBackendBased, IStyleOverwritable } from "../../src/ts/types";
-import { AvailableLanguagesResponseDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
+import { AvailableLanguagesResponseDTO, PreferenceKeys } from "../../src/integrations/main_backend/mainBackendDTOs";
 import { ResCodeErr } from "../../src/meta/types";
 import Spinner from "../../src/components/SimpleLoadingSpinner";
 import SomethingWentWrongIcon from "../../src/components/SomethingWentWrongIcon";
@@ -27,11 +27,12 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
         const res = assureUniformLanguageCode(language);
         if (res.err === null) {
             preference = res.res;
+            props.onSlideCompleted();
+            props.onLanguageSelected(preference);
+            props.backend.setPlayerPreference(PreferenceKeys.LANGUAGE, preference);
         } else {
             preference = LanguagePreference.UNKNOWN;
         }
-        props.onSlideCompleted();
-        props.onLanguageSelected(preference);
     }
 
     return (
@@ -46,7 +47,9 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
             <Show when={availableLanguages.state === "ready"}>
                 <div class={languageListStyle}>
                     <For each={availableLanguages.latest!.res?.languages}>{(language) => (
-                        <BigMenuButton onClick={() => onLanguageSelected(language.code)}>
+                        <BigMenuButton onClick={() => onLanguageSelected(language.code)} 
+                            enable={createMemo(() => language.coverage > 80)}
+                        >
                             <SectionSubTitle>{language.commonName}</SectionSubTitle>
                             <NTAwait func={() => props.backend.getAssetMetadata(language.icon)}>
                                 {(metadata) => (

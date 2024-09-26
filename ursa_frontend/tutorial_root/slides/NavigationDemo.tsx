@@ -57,6 +57,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                     setInputBuffer={setInputBuffer}
                     inputBuffer={inputBuffer}
                     triggerEnter={setTriggerEnter}
+                    demoMode={true}
                 />
                 <div class={movementPathStyle}>
                 </div>

@@ -11,6 +11,7 @@ export default function MultiplayerTrial(props: MultiplayerTrialProps): JSX.Elem
     return (
         <div class="multiplayer-trial">
             <StarryBackground />
+            {props.text.SubTitle('TUTORIAL.MULTPLAYER.DESCRIPTION')({})}
         </div>
     )
 }

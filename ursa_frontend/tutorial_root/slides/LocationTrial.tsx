@@ -11,6 +11,8 @@ export default function LocationTrial(props: LocationTrialProps): JSX.Element {
     return (
         <div class="location-trial">
             <StarryBackground />
+            {props.text.Title('TUTORIAL.TRIAL.TITLE')({})}
+            {props.text.SubTitle('TUTORIAL.LOCATION_TRIAL.DESCRIPTION')({})}
             <h1>Location Trial</h1>
             <p>
                 This is a trial of a location component.
