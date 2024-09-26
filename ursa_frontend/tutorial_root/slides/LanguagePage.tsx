@@ -7,11 +7,12 @@ import { AvailableLanguagesResponseDTO } from "../../src/integrations/main_backe
 import { ResCodeErr } from "../../src/meta/types";
 import Spinner from "../../src/components/SimpleLoadingSpinner";
 import SomethingWentWrongIcon from "../../src/components/SomethingWentWrongIcon";
-import ManagedAsset from "../../src/components/ManagedAsset";
 import SectionSubTitle from "../../src/components/SectionSubTitle";
 import { css } from "@emotion/css";
 import { LanguagePreference } from "../../src/integrations/vitec/vitecDTOs";
 import { assureUniformLanguageCode } from "../../src/integrations/main_backend/internationalization/internationalization";
+import NTAwait from "../../src/components/util/NoThrowAwait";
+import GraphicalAsset from "../../src/components/GraphicalAsset";
 
 interface LanguagePageProps extends IBackendBased, IStyleOverwritable {
     onSlideCompleted: () => void;
@@ -47,7 +48,11 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
                     <For each={availableLanguages.latest!.res?.languages}>{(language) => (
                         <BigMenuButton onClick={() => onLanguageSelected(language.code)}>
                             <SectionSubTitle>{language.commonName}</SectionSubTitle>
-                            <ManagedAsset styleOverwrite={imageOverwrite} backend={props.backend} asset={language.icon} />
+                            <NTAwait func={() => props.backend.getAssetMetadata(language.icon)}>
+                                {(metadata) => (
+                                    <GraphicalAsset styleOverwrite={imageOverwrite} metadata={metadata} backend={props.backend}/>
+                                )}
+                            </NTAwait>
                         </BigMenuButton>
                     )}</For>
                 </div>

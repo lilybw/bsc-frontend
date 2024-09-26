@@ -3,7 +3,8 @@ import { Accessor, Component, createEffect, createSignal, onMount, Setter } from
 import { BufferSubscriber, TypeIconTuple } from "../ts/actionContext";
 import { IBackendBased, IInternationalized, IStyleOverwritable } from "../ts/types";
 import { ArrayStore } from "../ts/wrappedStore";
-import ManagedAsset from "./ManagedAsset";
+import NTAwait from "./util/NoThrowAwait";
+import GraphicalAsset from "./GraphicalAsset";
 
 interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternationalized {
     actionContext: Accessor<TypeIconTuple>;
@@ -86,7 +87,11 @@ const ActionInput: Component<ActionInputProps> = (props) => {
     return (
         <div class={css`${actionInputContainerStyle} ${props.styleOverwrite}`} id="the-action-input">
             {enterWasJustPressed() && props.demoMode &&
-                <ManagedAsset asset={10} backend={props.backend} styleOverwrite={demoEnterIconStyleOverwrite} />
+                <NTAwait func={() => props.backend.getAssetMetadata(10)}>
+                    {(asset) => (
+                        <GraphicalAsset metadata={asset} backend={props.backend} styleOverwrite={demoEnterIconStyleOverwrite} />
+                    )}
+                </NTAwait>
             }
             <svg xmlns="http://www.w3.org/2000/svg" class={backgroundTrapezoidStyle} viewBox="0 0 300 50" 
                 fill="black" stroke="white">

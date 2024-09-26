@@ -3,7 +3,8 @@ import SectionTitle from "../../src/components/SectionTitle";
 import StarryBackground from "../../src/components/StarryBackground";
 import { css, keyframes } from "@emotion/css";
 import { IBackendBased, IInternationalized } from "../../src/ts/types";
-import ManagedAsset from "../../src/components/ManagedAsset";
+import NTAwait from "../../src/components/util/NoThrowAwait";
+import GraphicalAsset from "../../src/components/GraphicalAsset";
 
 interface WelcomePageProps extends IBackendBased, IInternationalized {
     styleOverwrite?: string;
@@ -21,7 +22,11 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
             <div class={planetContainerStyle} id="shadow-container">
                 <div class={solarPlanetShadowStyle} id="planet-shadow"/>
             </div>
-            <ManagedAsset asset={5} backend={props.backend} styleOverwrite={gasGiantStyleOverwrite} />
+            <NTAwait func={() => props.backend.getAssetMetadata(5)}>
+                {(asset) => (
+                    <GraphicalAsset styleOverwrite={gasGiantStyleOverwrite} metadata={asset} backend={props.backend}/>
+                )}
+            </NTAwait>
 
             <div class={planetAtmosphereStyle} />
             {props.text.Title('TUTORIAL.WELCOME.TITLE')({styleOverwrite: titleStyle})}

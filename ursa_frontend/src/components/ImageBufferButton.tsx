@@ -1,10 +1,11 @@
 import { Component, createMemo, mergeProps } from "solid-js";
 import BufferBasedButton, { BufferBasedButtonProps } from "./BufferBasedButton";
-import ManagedAsset, { ManagedAssetProps } from "./ManagedAsset";
 import { AddRetainRemoveFunc } from "../ts/wrappedStore";
 import { BufferSubscriber } from "../ts/actionContext";
 import { IBackendBased, IBufferBased, IStyleOverwritable } from "../ts/types";
 import { css } from "@emotion/css";
+import NTAwait from "./util/NoThrowAwait";
+import GraphicalAsset from "./GraphicalAsset";
 
 interface ImageBufferButtonProps extends IBufferBased, IBackendBased, IStyleOverwritable {
     name: string;
@@ -27,7 +28,11 @@ const ImageBufferButton: Component<ImageBufferButtonProps> = (props) => {
     return (
         <div class={computedStyles()}>
             <BufferBasedButton {...buttonProps} />
-            <ManagedAsset {...imageProps} />
+            <NTAwait func={() => props.backend.getAssetMetadata(props.asset)}>
+                {(asset) => (
+                    <GraphicalAsset styleOverwrite={props.imageStyleOverwrite} metadata={asset} backend={props.backend}/>
+                )}
+            </NTAwait>
         </div>
     );
 }

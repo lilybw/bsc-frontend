@@ -5,11 +5,12 @@ import ActionInput from "../../src/components/MainActionInput";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../src/ts/actionContext";
 import { createMemo, createSignal } from "solid-js";
 import { createArrayStore } from "../../src/ts/wrappedStore";
-import ManagedAsset from "../../src/components/ManagedAsset";
 import VideoFrame from "./VideoFrame";
 import ImageBufferButton from "../../src/components/ImageBufferButton";
 import SectionSubTitle from "../../src/components/SectionSubTitle";
 import { IBackendBased, IInternationalized } from "../../src/ts/types";
+import NTAwait from "../../src/components/util/NoThrowAwait";
+import GraphicalAsset from "../../src/components/GraphicalAsset";
 
 interface NavigationDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
@@ -55,7 +56,6 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                     actionContext={actionContext} 
                     setInputBuffer={setInputBuffer}
                     inputBuffer={inputBuffer}
-                    demoMode={true}
                     triggerEnter={setTriggerEnter}
                 />
                 <div class={movementPathStyle}>
@@ -69,7 +69,15 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                         asset={3} 
                         backend={props.backend}
                     />
-                    <ManagedAsset styleOverwrite={computedPlayerStyle()} asset={8} backend={props.backend} />
+                    <NTAwait func={() => props.backend.getAssetMetadata(8)}>
+                        {(asset) => (
+                            <GraphicalAsset 
+                                styleOverwrite={computedPlayerStyle()}
+                                metadata={asset} 
+                                backend={props.backend}
+                            />
+                        )}
+                    </NTAwait>
             </VideoFrame>
             
         </div>

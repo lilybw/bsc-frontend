@@ -13,7 +13,11 @@ interface TutorialCompletePageProps extends IInternationalized, IStyleOverwritab
 }
 
 export default function TutorialCompletePage(props: TutorialCompletePageProps): JSX.Element {
-    setTimeout(() => props.onSlideCompleted(), 50);
+    setTimeout(() => {
+        props.backend.grantAchievement(1); 
+        props.onSlideCompleted();
+    }, 50);
+
     return (
         <div class="tutorial-complete-page">
             <StarryBackground />
