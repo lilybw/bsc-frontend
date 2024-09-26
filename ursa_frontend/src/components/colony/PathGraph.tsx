@@ -13,6 +13,10 @@ interface PathGraphProps extends IBackendBased {
     locations: ColonyLocationInformation[];
 }
 
+/**
+ * Autoscales based on viewport size to normalize layout regardless of screen size.
+ * 0,0 for the PathGraph is concidered the middle of the screen.
+ */
 const PathGraph: Component<PathGraphProps> = (props) => {
 
     const getCollectionId = (info: LocationInfoResponseDTO, level: number): number => {
