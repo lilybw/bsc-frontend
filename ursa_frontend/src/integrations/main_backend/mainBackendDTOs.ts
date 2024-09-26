@@ -207,10 +207,17 @@ export type CollectionEntryDTO = {
     transform: TransformDTO;
     graphicalAssetID: AssetID;
 }
+/**
+ * Single source of truth: devour
+ */
 export enum AssetUseCase {
-    ENVIRONMENT = 'environment',
-    PLAYER = 'player',
-    ICON = 'icon',
+    ICON = "icon",
+    ENVIRONMENT = "environment",
+    PLAYER = "player",
+    SPASH_ART = "splashArt",
+    STRUCTURE = "structure",
+    VEHICLE = "vehicle",
+    TEXTURE = "texture",
 }
 export enum ImageMIMEType {
     PNG = 'image/png',
