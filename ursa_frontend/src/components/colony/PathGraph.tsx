@@ -5,9 +5,10 @@ import { IBackendBased } from "../../ts/types";
 import NTAwait from "../util/NoThrowAwait";
 import AssetCollection from "./AssetCollection";
 import { WrappedSignal } from "../../ts/wrappedSignal";
+import { Camera } from "../../ts/camera";
 
 interface PathGraphProps extends IBackendBased {
-    camera: WrappedSignal<{ x: number, y: number}>;
+    camera: Camera;
     paths: ColonyPathGraphResponseDTO;
     locations: ColonyLocationInformation[];
 }
