@@ -9,6 +9,7 @@ interface ColonyListEntryProps {
 }
 
 const ColonyListEntry: Component<ColonyListEntryProps> = (props) => {
+    
     const getTimeAgo = (dateString: string) => {
         console.log("Received date string:", dateString); // Debug log
 
@@ -18,28 +19,19 @@ const ColonyListEntry: Component<ColonyListEntryProps> = (props) => {
         }
 
         let visitDateTime: Date;
-        try {
-            visitDateTime = new Date(dateString);
-            console.log("Parsed date:", visitDateTime.toISOString()); // Debug log
+        visitDateTime = new Date(dateString);
 
-            if (isNaN(visitDateTime.getTime())) {
-                throw new Error('Invalid date');
-            }
-        } catch (error) {
-            console.error(`Error parsing date: ${dateString}`, error);
-            return 'Unknown';
+        if (isNaN(visitDateTime.getTime())) {
+            return dateString
         }
 
         const now = new Date();
-        console.log("Current date:", now.toISOString()); // Debug log
 
         // Calculate time difference in minutes, hours, days
         const diffMs = now.getTime() - visitDateTime.getTime();
         const diffMinutes = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMinutes / 60);
         const diffDays = Math.floor(diffHours / 24);
-
-        console.log("Time difference:", { diffMinutes, diffHours, diffDays }); // Debug log
 
         if (diffMinutes < 60) {
             return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
