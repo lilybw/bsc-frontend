@@ -75,6 +75,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                         colony={colony} 
                         onClick={() => setSelectedColonyId(colony.id)} 
                         isSelected={selectedColonyId() === colony.id}
+                        text={props.context.text} // Add this line
                     />
                 }</For>
                 </div>
