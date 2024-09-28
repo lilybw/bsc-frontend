@@ -22,6 +22,7 @@ import { Bundle, BundleComponent } from '../src/meta/types';
 import { LanguagePreference } from '../src/integrations/vitec/vitecDTOs';
 import NTAwait from '../src/components/util/NoThrowAwait';
 import GraphicalAsset from '../src/components/GraphicalAsset';
+import MultiplayerDemo from './slides/MultiplayerDemo';
 
 injectGlobal`${SHARED_CSS_STR}`
 
@@ -131,7 +132,7 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
             <LocationTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 6}>
-            <MultiplayerTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
+            <MultiplayerDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 7}>
             <TutorialCompletePage onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
