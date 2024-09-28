@@ -1,8 +1,9 @@
-import { EVENTS } from "./EventSpecifications"
+import { EventSpecification, EventType } from "./EventSpecifications-v0.0.5";
 
-export type OnEventCallback = any;
+export type OnEventCallback<T> = (data: T) => void;
 export type SubscriptionID = number;
 
-export type EventMultiplexer = {
-    subscribe: (id: EVENTS, callback: OnEventCallback) => SubscriptionID ;
+export interface EventMultiplexer {
+    subscribe: <T>(event: EventSpecification<T>, callback: OnEventCallback<T>) => SubscriptionID;
+    unsubscribe: (subscriptionID: SubscriptionID) => void;
 }
