@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
     port: mode === 'production' ? 3001 : 3000,
     proxy: mode !== 'production' ? {
       '/ursa_backend': {
-        target: 'https://localhost:5386',
+        target: 'https://127.0.0.1:5386',
         changeOrigin: true,
         secure: false,
         rewrite: (path: string) => path.replace(/^\/ursa_backend/, '')

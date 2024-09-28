@@ -11,7 +11,7 @@ import {
     MinigameDifficultyID, MinigameID, MinigameInfoResponseDTO, 
     OpenColonyResponseDTO, PlayerInfoResponseDTO, 
     PlayerPreferencesResponseDTO, PreferenceKeys, SessionInitiationRequestDTO, 
-    SessionInitiationResponseDTO 
+    SessionInitiationResponseDTO, UpdateLatestVisitRequestDTO, UpdateLatestVisitResponseDTO
 } from "./mainBackendDTOs";
 import { LanguagePreference } from "../vitec/vitecDTOs";
 /**
@@ -65,6 +65,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     getAvailableLanguages: () => Promise<ResCodeErr<AvailableLanguagesResponseDTO>>;
 
     getColony: (player: number, colony: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
+    updateLatestVisit: (dto: UpdateLatestVisitRequestDTO, colony: number, player: number) => Promise<ResCodeErr<UpdateLatestVisitResponseDTO>>;
     getColonyOverview: (player: number) => Promise<ResCodeErr<ColonyOverviewReponseDTO>>;
     openColony: (colony: number) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
     joinColony: (code: ColonyCode) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
@@ -145,6 +146,8 @@ const applyRouteImplementations = (base: BaseBackendIntegration, playerID: numbe
        
         getColony:          (player, colony) => base.request<ColonyInfoResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}/colony/${colony}`, ParseMethod.JSON),
+        updateLatestVisit: (dto, player, colony) => base.request<UpdateLatestVisitResponseDTO>(
+            HTTPMethod.POST, `/api/v1/colony/${colony}/${player}/visited`, ParseMethod.JSON, dto),
         getColonyOverview:  (player) => base.request<ColonyOverviewReponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
         openColony:         (colony) => base.request<OpenColonyResponseDTO>(

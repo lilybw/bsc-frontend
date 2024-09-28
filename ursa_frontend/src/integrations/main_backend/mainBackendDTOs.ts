@@ -276,3 +276,11 @@ export type MinimizedAssetDTO = {
 export type CreateColonyRequestDTO = {
     name: string;
 }
+
+export type UpdateLatestVisitRequestDTO = {
+    latestVisit: string;
+}
+
+export type UpdateLatestVisitResponseDTO = {
+    latestVisit: string;
+}

@@ -1,6 +1,6 @@
 import { Component, createEffect, createResource, createSignal, For } from "solid-js"
 import { MenuPageProps } from "../MainMenuApp"
-import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
+import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO, UpdateLatestVisitResponseDTO, UpdateLatestVisitRequestDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
 import { ResCodeErr } from "../../src/meta/types";
 import SectionTitle from "../../src/components/SectionTitle";
 import SomethingWentWrongIcon from "../../src/components/SomethingWentWrongIcon";
@@ -19,7 +19,25 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
 
     async function handleGoToColony() {
         if (selectedColonyId() !== null) {
-            const openColonyResponse = await props.context.backend.getColony(props.context.player.id, Number(selectedColonyId()));
+            const getColonyResponse = await props.context.backend.getColony(props.context.player.id, Number(selectedColonyId()));
+
+            const getCurrentDateTimeLocaleString = () => {
+                const now = new Date();
+                return now.toLocaleString('en-US', { 
+                    timeZone: 'Europe/Copenhagen',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+            };
+            const body: UpdateLatestVisitRequestDTO = {
+                latestVisit: getCurrentDateTimeLocaleString()
+            }
+            const updateLatestVisitResponse = await props.context.backend.updateLatestVisit(body, Number(getColonyResponse.res?.id), props.context.player.id)
 
             props.context.logger.log("[DELETE ME] implement redirect here!")
         }

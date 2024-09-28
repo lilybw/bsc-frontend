@@ -10,10 +10,28 @@ interface ColonyListEntryProps {
 
 const ColonyListEntry: Component<ColonyListEntryProps> = (props) => {
     const getTimeAgo = (dateString: string) => {
-        // Parse the date string to Danish time (Europe/Copenhagen)
-        const visitDate = new Date(dateString).toLocaleString("en-US", { timeZone: "Europe/Copenhagen" });
-        const visitDateTime = new Date(visitDate);
-        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Copenhagen" }));
+        console.log("Received date string:", dateString); // Debug log
+
+        if (!dateString) {
+            console.error("Date string is empty or undefined");
+            return 'Unknown';
+        }
+
+        let visitDateTime: Date;
+        try {
+            visitDateTime = new Date(dateString);
+            console.log("Parsed date:", visitDateTime.toISOString()); // Debug log
+
+            if (isNaN(visitDateTime.getTime())) {
+                throw new Error('Invalid date');
+            }
+        } catch (error) {
+            console.error(`Error parsing date: ${dateString}`, error);
+            return 'Unknown';
+        }
+
+        const now = new Date();
+        console.log("Current date:", now.toISOString()); // Debug log
 
         // Calculate time difference in minutes, hours, days
         const diffMs = now.getTime() - visitDateTime.getTime();
@@ -21,12 +39,14 @@ const ColonyListEntry: Component<ColonyListEntryProps> = (props) => {
         const diffHours = Math.floor(diffMinutes / 60);
         const diffDays = Math.floor(diffHours / 24);
 
+        console.log("Time difference:", { diffMinutes, diffHours, diffDays }); // Debug log
+
         if (diffMinutes < 60) {
-            return `${diffMinutes} minutes ago`;
+            return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
         } else if (diffHours < 24) {
-            return `${diffHours} hours ago`;
+            return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
         } else {
-            return `${diffDays} days ago`;
+            return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
         }
     };
 
