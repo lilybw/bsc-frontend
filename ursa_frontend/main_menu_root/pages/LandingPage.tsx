@@ -10,7 +10,7 @@ const LandingPage: Component<MenuPageProps> = (props) => {
 
     const tutorialOnly = createMemo(() => {
         return !(props.context.env.runtimeMode === RuntimeMode.PRODUCTION && 
-        props.context.player.hasCompletedTutorial )
+        props.context.player.hasCompletedTutorial)
     })
 
     return (

@@ -18,29 +18,29 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
     const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);
 
     async function handleGoToColony() {
-        if (selectedColonyId() !== null) {
-            const getColonyResponse = await props.context.backend.getColony(props.context.player.id, Number(selectedColonyId()));
-
-            const getCurrentDateTimeLocaleString = () => {
-                const now = new Date();
-                return now.toLocaleString('en-US', { 
-                    timeZone: 'Europe/Copenhagen',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                });
-            };
-            const body: UpdateLatestVisitRequestDTO = {
-                latestVisit: getCurrentDateTimeLocaleString()
-            }
-            const updateLatestVisitResponse = await props.context.backend.updateLatestVisit(body, Number(getColonyResponse.res?.id), props.context.player.id)
-
-            props.context.logger.log("[DELETE ME] implement redirect here!")
+        const colonyID = selectedColonyId();
+        if (colonyID === null) {
+            return;
         }
+
+        const getCurrentDateTimeLocaleString = () => {
+            const now = new Date();
+            return now.toLocaleString('en-US', { 
+                timeZone: 'Europe/Copenhagen',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+        };
+        const body: UpdateLatestVisitRequestDTO = {
+            latestVisit: getCurrentDateTimeLocaleString()
+        }
+        props.context.backend.updateLatestVisit(body, colonyID)
+        props.context.logger.log("[DELETE ME] implement redirect here!")
     }
 
     const appendSomethingWentWrong = () => {
