@@ -4,13 +4,18 @@ import { JSX } from "solid-js/jsx-runtime";
 import { SetStoreFunction, Store } from "solid-js/store";
 import { SlideEntry } from "./TutorialApp";
 import SlideIcon from "./SlideIcon";
+import GraphicalAsset from '../src/components/GraphicalAsset';
+import NTAwait from '../src/components/util/NoThrowAwait';
+import { IBackendBased } from "../src/ts/types";
+import { BackendIntegration } from "../src/integrations/main_backend/mainBackend";
 
-interface ProgressTrackerProps {
+interface ProgressTrackerProps extends IBackendBased {
     currentSlide: Accessor<number>;
     previousSlide: Accessor<number>;
     slideStore: Store<SlideEntry[]>;
     setSlideStore: SetStoreFunction<SlideEntry[]>;
     styleOverwrite?: string;
+    backend: BackendIntegration;  // Add this line. Replace 'any' with the actual type of your backend
 }
 
 export default function ProgressTracker(props: ProgressTrackerProps): JSX.Element {
@@ -25,25 +30,30 @@ export default function ProgressTracker(props: ProgressTrackerProps): JSX.Elemen
 
     return (
         <div class={css`${progressTrackerStyle} ${props.styleOverwrite}`} id="tutorial-progress-tracker">
-            <div 
-                class={animatedOutlineStyle} 
+            <div
+                class={animatedOutlineStyle}
                 style={{
                     transform: `translateX(${props.currentSlide() * 100 / props.slideStore.length}vw) translateY(-50%)`
                 }}
             />
             <For each={props.slideStore}>{(elem, index) => (
                 <div class={iconContainerStyle}>
-                    {elem.hasCompleted ? 
-                        <elem.icon styleOverwrite={iconStyleOverwrite} /> 
-                    : 
-                        <SlideIcon styleOverwrite={iconStyleOverwrite} />
-                    }
+                    <NTAwait func={() => props.backend.getAssetMetadata(elem.iconId)}>
+                        {(asset) => (
+                            <GraphicalAsset 
+                                styleOverwrite={iconStyleOverwrite} 
+                                metadata={asset} 
+                                backend={props.backend}
+                            />
+                        )}
+                    </NTAwait>
                 </div>
-            )} 
+            )}
             </For>
         </div>
     );
 }
+
 const animatedOutlineStyle = css`
 position: absolute;
 top: 50%;
@@ -71,6 +81,7 @@ const iconStyleOverwrite = css`
     padding: .2rem;
     transition: all 0.3s ease-out;
     z-index: 1;
+    border-radius: 50%;
 `;
 
 const progressTrackerStyle = css`

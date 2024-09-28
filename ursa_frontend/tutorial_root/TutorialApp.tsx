@@ -25,39 +25,47 @@ import GraphicalAsset from '../src/components/GraphicalAsset';
 
 injectGlobal`${SHARED_CSS_STR}`
 
-export type SlideEntry = {hasCompleted: boolean, icon: Component<SlideIconProps>};
+export type SlideEntry = {hasCompleted: boolean, icon: Component<SlideIconProps>, iconId: number};
 const slides: SlideEntry[] = [
   {
     hasCompleted: false,
-    icon: SlideIcon
+    icon: SlideIcon,
+    iconId: 30
   },
   {
     hasCompleted: false,
-    icon: SlideIcon
+    icon: SlideIcon,
+    iconId: 33
   },
   {
     hasCompleted: false,
-    icon: SlideIcon
+    icon: SlideIcon,
+    iconId: 32
   },
   {
     hasCompleted: false,
-    icon: SlideIcon
+    icon: SlideIcon,
+    iconId: 32
   },
   {
     hasCompleted: false,
-    icon: SlideIcon
+    icon: SlideIcon,
+    iconId: 29
   },
   {
     hasCompleted: false,
-    icon: SlideIcon
+    icon: SlideIcon,
+    iconId: 29
   },
   {
     hasCompleted: false,
-    icon: SlideIcon
+    icon: SlideIcon,
+    iconId: 31
   },
   {
     hasCompleted: false,
-    icon: SlideIcon
+    icon: SlideIcon,
+    iconId: 31
   },
 ]
 
@@ -96,7 +104,13 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
   return (
     <div class={containerStyle} id="the-tutorial-app">
         <StarryBackground />
-        <ProgressTracker currentSlide={currentSlide} slideStore={slideStore} setSlideStore={setSlides} previousSlide={previousSlide}/>
+        <ProgressTracker 
+        currentSlide={currentSlide} 
+        slideStore={slideStore} 
+        setSlideStore={setSlides} 
+        previousSlide={previousSlide}
+        backend={props.context.backend}
+        />
         <Switch fallback= {<ErrorPage content="OOC: Out of Cases" />}>
           <Match when={currentSlide() === 0}>
             <LanguagePage onLanguageSelected={onLanguageChange} onSlideCompleted={onSlideCompleted} backend={props.context.backend}/>
