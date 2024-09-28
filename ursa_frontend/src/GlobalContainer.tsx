@@ -24,11 +24,13 @@ const GlobalContainer: Component<GlobalContainerProps> = (props) => {
             <Show when={contextResult.loading}>
                 <SolarLoadingSpinner />
             </Show>
-            <Show when={contextResult.error}>
-                <ErrorPage content={contextResult.latest?.err} />
-            </Show>
             <Show when={contextResult.state === "ready"}>
-                {props.app({context: contextResult.latest?.res!})}
+                <Show when={contextResult.latest?.err != null}>
+                    <ErrorPage content={contextResult.latest?.err} />
+                </Show>
+                <Show when={contextResult.latest?.res != null}>
+                    {props.app({context: contextResult.latest?.res!})}
+                </Show>
             </Show> 
         </div>
     );

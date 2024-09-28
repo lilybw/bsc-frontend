@@ -16,6 +16,7 @@ export type VitecIntegration = {
 }
 
 export async function initializeVitecIntegration(info: VitecIntegrationInformation, environment: ENV, log: Logger): Promise<ResErr<VitecIntegration>> {
+    log.trace('[mv int] Initializing Vitec integration');
     const userInfoRes = await getSessionToken(environment, log);
     if (userInfoRes.err != null) {
         return {res: null, err: userInfoRes.err};
@@ -26,6 +27,7 @@ export async function initializeVitecIntegration(info: VitecIntegrationInformati
         sessionToken: userInfoRes.res,
         baseUrl: info.locationUrl
     };
+    log.trace('[mv int] Vitec integration initialized');
     return {res: integration, err: null};
 }
 

@@ -92,7 +92,7 @@ class InternationalizationServiceImpl implements InternationalizationService {
 }
 
 export const initializeInternationalizationService = async (backend: BackendIntegration, log: Logger, vitec: VitecIntegrationInformation): Promise<ResErr<InternationalizationService>> => {
-    log.trace('Initializing internationalization service');
+    log.trace('[faux i18] Initializing internationalization service');
     const languageRes = assureUniformLanguageCode(vitec.languagePreference);
     if (languageRes.err != null) {
         return {res: null, err: languageRes.err};
@@ -104,7 +104,8 @@ export const initializeInternationalizationService = async (backend: BackendInte
         return {res: null, err: initErr};
     }
 
-    return {res: intergration as unknown as InternationalizationService, err: null};
+    log.trace('[faux i18] Internationalization service initialized');
+    return {res: intergration, err: null};
 }
 
 export const assureUniformLanguageCode = (language: string): ResErr<LanguagePreference> => {
