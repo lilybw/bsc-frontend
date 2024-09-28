@@ -1,11 +1,11 @@
 import { Component } from "solid-js";
-import { ENV } from "../environment/manager";
 import { BackendIntegration } from "../integrations/main_backend/mainBackend";
 import { PlayerInfoResponseDTO } from "../integrations/main_backend/mainBackendDTOs";
 import { MultiplayerIntegration } from "../integrations/multiplayer_backend/multiplayerBackend";
 import { VitecIntegration } from "../integrations/vitec/vitecIntegration";
 import { Logger } from "../logging/filteredLogger";
 import { InternationalizationService } from "../integrations/main_backend/internationalization/internationalization";
+import { EventMultiplexer } from "../integrations/multiplayer_backend/eventMultiplexer";
 
 export type Error = string;
 interface ResSuccess<T> {
@@ -38,7 +38,7 @@ export enum Bundle {
     UNNKNOWN = 'unknown'
 }
 
-export type BundleComponent<T> = Component<T> & { bundle: Bundle };
+export type BundleComponent<T extends object> = Component<T> & { bundle: Bundle };
 
 export enum RuntimeMode {
     DEVELOPMENT = 'development',
@@ -72,4 +72,5 @@ export type ApplicationContext = {
     multiplayer: MultiplayerIntegration;
     player: PlayerInfoResponseDTO;
     text: InternationalizationService;
+    events: EventMultiplexer;
 }

@@ -88,6 +88,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
  * @author GustavBW
  */
 export async function initializeBackendIntegration(environment: ENV, log: Logger, userData: SessionInitiationRequestDTO): Promise<ResErr<BackendIntegration>> {
+    log.trace('[umb int] Initializing backend integration');
     const { mainBackendIP, mainBackendPort } = environment;
     let mainBackendRootUrl = `https://${mainBackendIP}:${mainBackendPort}`;
     if (environment.proxyMainBackendRequests) {
@@ -118,6 +119,7 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
     base.userToken = tokenRes.res.token;
     const integration = applyRouteImplementations(base, tokenRes.res.internalID);
 
+    log.trace('[umb int] Backend integration initialized');
     return {res: integration, err: null};
 }
 /**

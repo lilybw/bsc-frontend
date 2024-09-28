@@ -10,6 +10,8 @@ import { SessionInitiationRequestDTO } from "./integrations/main_backend/mainBac
 import { LanguagePreference, VitecIntegrationInformation } from "./integrations/vitec/vitecDTOs";
 import { ApplicationProps } from "./ts/types";
 import { initializeInternationalizationService } from "./integrations/main_backend/internationalization/internationalization";
+import { initializeEventMultiplexer } from "./integrations/multiplayer_backend/eventMultiplexer";
+import { initializeMultiplayerIntegration } from "./integrations/multiplayer_backend/multiplayerBackend";
 
 /**
  * Single source of truth: this
@@ -59,9 +61,8 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     
     const vitecIntegrationResult = await initializeVitecIntegration(vitecInfo, environment, log);
     if (vitecIntegrationResult.err != null) {
-        return Promise.reject({res: null, err: vitecIntegrationResult.err});
+        return {res: null, err: vitecIntegrationResult.err};
     }
-    log.log('[setup] Vitec integration complete');
     const sessionInitInfo: SessionInitiationRequestDTO = {
         userIdentifier: vitecInfo.userIdentifier,
         firstName: vitecInfo.firstName,
@@ -71,30 +72,37 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
 
     const backendIntegrationInit = await initializeBackendIntegration(environment, log, sessionInitInfo);
     if (backendIntegrationInit.err != null) {
-        return Promise.reject({res: null, err: backendIntegrationInit.err});
+        return {res: null, err: backendIntegrationInit.err};
     }
 
     const internationalizationServiceRes = await initializeInternationalizationService(backendIntegrationInit.res, log, vitecInfo);
     if (internationalizationServiceRes.err != null) {
-        return Promise.reject({res: null, err: internationalizationServiceRes.err});
+        return {res: null, err: internationalizationServiceRes.err};
     }
 
     const playerInfoRes = await backendIntegrationInit.res.getPlayerInfo(backendIntegrationInit.res.internalPlayerID);
     if (playerInfoRes.err != null) {
-        return Promise.reject({res: null, err: playerInfoRes.err});
+        return {res: null, err: playerInfoRes.err};
     }
-    log.log('[setup] Main backend integration complete');
+
+    const eventMultiplexer = await initializeEventMultiplexer();
+
+    const multiplayerIntegrationInit = await initializeMultiplayerIntegration(backendIntegrationInit.res, log, eventMultiplexer);
+    if (multiplayerIntegrationInit.err != null) {
+        log.warn(multiplayerIntegrationInit.err);
+    }
 
     await delaySetupIfDevOrTest(environment);
     
     console.log(environment);
-    const context: ApplicationContext = Object.freeze({ //Assuing immutability
+    const context: ApplicationContext = Object.freeze({ //Assuring immutability
         backend: backendIntegrationInit.res,
         logger: log,
         vitec: vitecIntegrationResult.res,
         multiplayer: undefined as any,
         player: playerInfoRes.res,
-        text: internationalizationServiceRes.res
+        text: internationalizationServiceRes.res,
+        events: eventMultiplexer
     });
     return Promise.resolve({res: context, err: null});
 }
