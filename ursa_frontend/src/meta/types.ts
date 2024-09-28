@@ -5,7 +5,8 @@ import { MultiplayerIntegration } from "../integrations/multiplayer_backend/mult
 import { VitecIntegration } from "../integrations/vitec/vitecIntegration";
 import { Logger } from "../logging/filteredLogger";
 import { InternationalizationService } from "../integrations/main_backend/internationalization/internationalization";
-import { EventMultiplexer } from "../integrations/multiplayer_backend/eventMultiplexer";
+import { IEventMultiplexer } from "../integrations/multiplayer_backend/eventMultiplexer";
+import { ENV } from "../environment/manager";
 
 export type Error = string;
 interface ResSuccess<T> {
@@ -72,5 +73,6 @@ export type ApplicationContext = {
     multiplayer: MultiplayerIntegration;
     player: PlayerInfoResponseDTO;
     text: InternationalizationService;
-    events: EventMultiplexer;
+    events: IEventMultiplexer;
+    env: ENV;
 }

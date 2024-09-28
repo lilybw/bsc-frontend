@@ -102,7 +102,8 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         multiplayer: undefined as any,
         player: playerInfoRes.res,
         text: internationalizationServiceRes.res,
-        events: eventMultiplexer
+        events: eventMultiplexer,
+        env: environment
     });
     return Promise.resolve({res: context, err: null});
 }

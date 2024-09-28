@@ -18,9 +18,9 @@ export default function ErrorPage(props: ErrorPageProps): JSX.Element {
     )
 }
 
-const titleOverwrite = css`position: absolute; left: 15vw; top: 20vh;`
+const titleOverwrite = css`position: absolute; left: 12vw; top: 10vh;`
 
-const subTitleOverwrite = css`position: absolute; right: 0; top: 30vh;`
+const subTitleOverwrite = css`position: absolute; right: 0; top: 20vh;`
 
 
 const backgroundImage = css`
@@ -30,7 +30,7 @@ const backgroundImage = css`
     justify-content: center;
     align-items: center;
 
-    background-image: url('https://images.aeonmedia.co/images/78ba87e7-7198-4468-81b5-500c505d5bc8/essay-gettyimages-1237093074.jpg?width=3840&quality=75&format=auto');
+    background-image: url('https://astrocamp.org/app/uploads/2015/12/IS-BH-1024x576-1.jpg');
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
