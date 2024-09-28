@@ -99,7 +99,7 @@ const planets = [
 ];
 
 interface LoadingSpinnerProps extends IStyleOverwritable {
-    loadingText?: string;
+    text?: string;
 }
 
 const SolarLoadingSpinner: Component<LoadingSpinnerProps> = (props: LoadingSpinnerProps) => {
@@ -110,7 +110,7 @@ const SolarLoadingSpinner: Component<LoadingSpinnerProps> = (props: LoadingSpinn
       <StarryBackground styleOverwrite={css`filter: brightness(.3);`}/>
       <div class={solarSystemStyles}>
         <div class={sunStyles} id="the-sun"></div>
-        <SectionTitle styleOverwrite={textStyles}>{props.loadingText ?? "Loading..."}</SectionTitle>
+        <SectionTitle styleOverwrite={textStyles}>{props.text ?? "Loading..."}</SectionTitle>
         <For each={planets}>
           {(planet) => {
             const startPosition = getRandomStartPosition();
