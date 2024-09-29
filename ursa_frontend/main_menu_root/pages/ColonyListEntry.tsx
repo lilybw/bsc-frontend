@@ -43,7 +43,7 @@ const ColonyListEntry: Component<ColonyListEntryProps> = (props) => {
             onClick={props.onClick}
         >
             <h3>{props.colony.name}</h3>
-            <h3>{getTimeAgo(props.colony.latestVisit) as unknown as Element}</h3>
+            <h3>{getTimeAgo(props.colony.latestVisit)}</h3>
             <h3>{props.colony.accLevel}</h3>
         </div>
     )
