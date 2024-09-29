@@ -55,7 +55,7 @@ export type BaseBackendIntegration = {
  * @author GustavBW
  */
 export interface BackendIntegration extends BaseBackendIntegration {
-    internalPlayerID: PlayerID;
+    localPlayer: PlayerInfoResponseDTO;
     getPlayerInfo:          (player: PlayerID) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
     getPlayerPreferences:   (player: PlayerID) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
     setPlayerPreference:    (key: PreferenceKeys, value: string) => Promise<ResCodeErr<void>>;
@@ -117,7 +117,13 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
         return { res: null, err: tokenRes.err };
     }
     base.userToken = tokenRes.res.token;
-    const integration = applyRouteImplementations(base, tokenRes.res.internalID);
+
+    const playerInfoRes = await base.request<PlayerInfoResponseDTO>(
+        HTTPMethod.GET, `/api/v1/player/${tokenRes.res.internalID}`, ParseMethod.JSON
+    ); if (playerInfoRes.err != null) {
+        return { res: null, err: playerInfoRes.err };
+    }
+    const integration = applyRouteImplementations(base, playerInfoRes.res);
 
     log.trace('[umb int] Backend integration initialized');
     return {res: integration, err: null};
@@ -126,19 +132,19 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
  * @since 0.0.1
  * @author GustavBW
  */
-const applyRouteImplementations = (base: BaseBackendIntegration, playerID: PlayerID): BackendIntegration => {
+const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: PlayerInfoResponseDTO): BackendIntegration => {
     return {
         ...base, 
-        internalPlayerID: playerID,
+        localPlayer: localPlayer,
         getPlayerInfo:      (player) => base.request<PlayerInfoResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}`, ParseMethod.JSON),
         getPlayerPreferences: (player) => base.request<PlayerPreferencesResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}/preferences`, ParseMethod.JSON),
         setPlayerPreference: (key, value) => base.request<void>(
-            HTTPMethod.POST, `/api/v1/player/${playerID}/preferences`, ParseMethod.NONE, { key, value }
+            HTTPMethod.POST, `/api/v1/player/${localPlayer.id}/preferences`, ParseMethod.NONE, { key, value }
         ),
         grantAchievement: (achievement) => base.request<void>(
-            HTTPMethod.POST, `/api/v1/player/${playerID}/achievement/${achievement}`, ParseMethod.NONE
+            HTTPMethod.POST, `/api/v1/player/${localPlayer.id}/achievement/${achievement}`, ParseMethod.NONE
         ),
 
         getCatalogue:       (locale) => base.request<InternationalizationCatalogueResponseDTO>(

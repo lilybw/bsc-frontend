@@ -80,12 +80,7 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         return {res: null, err: internationalizationServiceRes.err};
     }
 
-    const playerInfoRes = await backendIntegrationInit.res.getPlayerInfo(backendIntegrationInit.res.internalPlayerID);
-    if (playerInfoRes.err != null) {
-        return {res: null, err: playerInfoRes.err};
-    }
-
-    const eventMultiplexer = await initializeEventMultiplexer(log, playerInfoRes.res.id);
+    const eventMultiplexer = await initializeEventMultiplexer(log, backendIntegrationInit.res.localPlayer.id);
 
     const multiplayerIntegrationInit = await initializeMultiplayerIntegration(backendIntegrationInit.res, log, eventMultiplexer);
     if (multiplayerIntegrationInit.err != null) {
@@ -100,7 +95,6 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         logger: log,
         vitec: vitecIntegrationResult.res,
         multiplayer: undefined as any,
-        player: playerInfoRes.res,
         text: internationalizationServiceRes.res,
         events: eventMultiplexer,
         env: environment

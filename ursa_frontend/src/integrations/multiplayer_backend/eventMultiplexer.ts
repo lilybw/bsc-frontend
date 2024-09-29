@@ -27,7 +27,7 @@ export interface IEventMultiplexer {
      * must go through this method. 
      * @returns 
      */
-    emit: <T extends IMessage>(id: EventType, data: Omit<T, keyof IMessage>) => void;
+    emit: <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => void;
 }
 
 export interface IExpandedAccessMultiplexer extends IEventMultiplexer {
@@ -76,15 +76,15 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
         return true;
     }
 
-    emit = <T extends IMessage>(id: EventType, data: Omit<T, keyof IMessage>) => {
-        const handlers = this.subscriptions.get(id);
+    emit = <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => {
+        const handlers = this.subscriptions.get(spec.id);
         if (!handlers || handlers === null || handlers.length === 0) {
             return;
         }
         const encapsulatedData = Object.freeze({
             ...data,
             senderID: this.player,
-            eventID: id
+            eventID: spec.id
         });
         for (const handler of handlers) {
             handler(encapsulatedData);

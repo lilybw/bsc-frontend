@@ -1,7 +1,7 @@
 import { Component } from "solid-js";
 import { BackendIntegration } from "../integrations/main_backend/mainBackend";
 import { PlayerInfoResponseDTO } from "../integrations/main_backend/mainBackendDTOs";
-import { MultiplayerIntegration } from "../integrations/multiplayer_backend/multiplayerBackend";
+import { IMultiplayerIntegration } from "../integrations/multiplayer_backend/multiplayerBackend";
 import { VitecIntegration } from "../integrations/vitec/vitecIntegration";
 import { Logger } from "../logging/filteredLogger";
 import { InternationalizationService } from "../integrations/main_backend/internationalization/internationalization";
@@ -70,8 +70,7 @@ export type ApplicationContext = {
     backend: BackendIntegration;
     logger: Logger;
     vitec: VitecIntegration;
-    multiplayer: MultiplayerIntegration;
-    player: PlayerInfoResponseDTO;
+    multiplayer: IMultiplayerIntegration;
     text: InternationalizationService;
     events: IEventMultiplexer;
     env: ENV;
