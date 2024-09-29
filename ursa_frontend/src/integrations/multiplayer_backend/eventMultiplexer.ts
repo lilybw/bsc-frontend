@@ -18,7 +18,6 @@ export interface IEventMultiplexer {
      * );
      */
     subscribe: <T extends IMessage>(spec: EventSpecification<T>, callback: OnEventCallback<T>) => SubscriptionID;
-    
     /**
      * @returns Whether any handlers were unregistered.
      */
@@ -31,17 +30,21 @@ export interface IEventMultiplexer {
     emit: <T extends IMessage>(id: EventType, data: Omit<T, keyof IMessage>) => void;
 }
 
-export const initializeEventMultiplexer = (log: Logger, player: PlayerID): IEventMultiplexer => {
+export interface IExpandedAccessMultiplexer extends IEventMultiplexer {
+
+}
+
+export const initializeEventMultiplexer = (log: Logger, player: PlayerID): IExpandedAccessMultiplexer => {
     const plexer = new EventMultiplexerImpl(player);
     const unsubscribeID = plexer.subscribe(
         DEBUG_INFO_EVENT, (data) => {
             log.trace(`[emp debug] ${data.senderID}: ${data.message}`);
         }
     )
-    return plexer as unknown as IEventMultiplexer;
+    return plexer;
 }
 
-class EventMultiplexerImpl implements IEventMultiplexer {
+class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
     private subscriptions = new Map<EventID, OnEventCallback<any>[]>();
     private registeredHandlers = new Map<SubscriptionID, [EventID, OnEventCallback<any>[]]>();
     private nextSubscriptionID = 0;
@@ -60,6 +63,7 @@ class EventMultiplexerImpl implements IEventMultiplexer {
         this.subscriptions.set(spec.id, handlerArr);
         return id;
     }
+
     unsubscribe = (subscriptionID: SubscriptionID) => {
         const handlerSpecTuple = this.registeredHandlers.get(subscriptionID);
         if (!handlerSpecTuple || handlerSpecTuple === null || !handlerSpecTuple[1] || handlerSpecTuple[1].length === 0) {
@@ -71,6 +75,7 @@ class EventMultiplexerImpl implements IEventMultiplexer {
         }
         return true;
     }
+
     emit = <T extends IMessage>(id: EventType, data: Omit<T, keyof IMessage>) => {
         const handlers = this.subscriptions.get(id);
         if (!handlers || handlers === null || handlers.length === 0) {
