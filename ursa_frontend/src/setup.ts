@@ -85,7 +85,7 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         return {res: null, err: playerInfoRes.err};
     }
 
-    const eventMultiplexer = await initializeEventMultiplexer();
+    const eventMultiplexer = await initializeEventMultiplexer(log, playerInfoRes.res.id);
 
     const multiplayerIntegrationInit = await initializeMultiplayerIntegration(backendIntegrationInit.res, log, eventMultiplexer);
     if (multiplayerIntegrationInit.err != null) {

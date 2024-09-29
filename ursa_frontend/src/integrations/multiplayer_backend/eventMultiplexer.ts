@@ -1,8 +1,10 @@
+import { Logger } from "../../logging/filteredLogger";
+import { PlayerID } from "../main_backend/mainBackendDTOs";
 import { DEBUG_INFO_EVENT, EventSpecification, EventType, IMessage, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from "./EventSpecifications-v0.0.5";
 
-export type OnEventCallback<T> = (data: T) => void;
+export type OnEventCallback<T> = (data: T) => void | Promise<void>;
 export type SubscriptionID = number;
-type EventHandlerDeclaration<T> = [EventSpecification<T>, OnEventCallback<T>];
+export type EventID = number;
 
 export interface IEventMultiplexer {
     /**
@@ -12,12 +14,15 @@ export interface IEventMultiplexer {
      * Usage
      * ```typescript
      * const subscriptionID = multiplexer.subscribe(
-     *     DEBUG_INFO_EVENT, (data) => { ... },
-     *     PLAYER_JOINED_EVENT, (data) => { ...}
+     *     DEBUG_INFO_EVENT, (data) => { ... }
      * );
      */
-    subscribe: (args: { [K in keyof EventSpecification<K>]: OnEventCallback<[K]> }) => SubscriptionID;
-    unsubscribe: (subscriptionID: SubscriptionID) => void;
+    subscribe: <T extends IMessage>(spec: EventSpecification<T>, callback: OnEventCallback<T>) => SubscriptionID;
+    
+    /**
+     * @returns Whether any handlers were unregistered.
+     */
+    unsubscribe: (subscriptionID: SubscriptionID) => boolean;
     /**
      * Emit an event into the multiplexer. Multiplayer Integration has special access, however all other access
      * must go through this method. 
@@ -26,26 +31,58 @@ export interface IEventMultiplexer {
     emit: <T extends IMessage>(id: EventType, data: Omit<T, keyof IMessage>) => void;
 }
 
-export const initializeEventMultiplexer = (): IEventMultiplexer => {
-    const plexer = new EventMultiplexerImpl();
+export const initializeEventMultiplexer = (log: Logger, player: PlayerID): IEventMultiplexer => {
+    const plexer = new EventMultiplexerImpl(player);
+    const unsubscribeID = plexer.subscribe(
+        DEBUG_INFO_EVENT, (data) => {
+            log.trace(`[emp debug] ${data.senderID}: ${data.message}`);
+        }
+    )
     return plexer as unknown as IEventMultiplexer;
 }
 
 class EventMultiplexerImpl implements IEventMultiplexer {
-    private subscriptions = new Map<EventSpecification<any>, OnEventCallback<any>[]>();
-    private registeredHandlers = new Map<SubscriptionID, EventHandlerDeclaration<any>>();
+    private subscriptions = new Map<EventID, OnEventCallback<any>[]>();
+    private registeredHandlers = new Map<SubscriptionID, [EventID, OnEventCallback<any>[]]>();
     private nextSubscriptionID = 0;
     constructor(
-    ){
+        private readonly player: PlayerID
+    ){}
 
-    }
-    subscribe = (args: { [K in keyof EventSpecification<K>]: OnEventCallback<[K]> }) => {
-        throw new Error("Method not implemented.");
+    subscribe = <T extends IMessage>(spec: EventSpecification<T>, callback: OnEventCallback<T>) => {
+        let handlerArr = this.subscriptions.get(spec.id);
+        if (!handlerArr || handlerArr === null) {
+            handlerArr = [];
+        }
+        const id = this.nextSubscriptionID++;
+        this.registeredHandlers.set(id, [spec.id, [callback]]);
+        handlerArr.push(callback);
+        this.subscriptions.set(spec.id, handlerArr);
+        return id;
     }
     unsubscribe = (subscriptionID: SubscriptionID) => {
-        throw new Error("Method not implemented.");
+        const handlerSpecTuple = this.registeredHandlers.get(subscriptionID);
+        if (!handlerSpecTuple || handlerSpecTuple === null || !handlerSpecTuple[1] || handlerSpecTuple[1].length === 0) {
+            return false;
+        }
+        for (const handler of handlerSpecTuple[1]) {
+            const newSubscriberArray = this.subscriptions.get(handlerSpecTuple[0])?.filter((func) => func !== handler);
+            this.subscriptions.set(handlerSpecTuple[0], newSubscriberArray || []);
+        }
+        return true;
     }
     emit = <T extends IMessage>(id: EventType, data: Omit<T, keyof IMessage>) => {
-        throw new Error("Method not implemented.");
+        const handlers = this.subscriptions.get(id);
+        if (!handlers || handlers === null || handlers.length === 0) {
+            return;
+        }
+        const encapsulatedData = Object.freeze({
+            ...data,
+            senderID: this.player,
+            eventID: id
+        });
+        for (const handler of handlers) {
+            handler(encapsulatedData);
+        }
     }
 }

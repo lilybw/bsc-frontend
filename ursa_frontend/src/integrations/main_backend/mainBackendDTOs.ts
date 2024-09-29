@@ -12,8 +12,10 @@ export type MinigameID = uint32;
 export type LocationID = uint32;
 export type ColonyCode = uint32;
 export type MinigameDifficultyID = uint32;
+export type PlayerID = uint32;
+
 export type PlayerInfoResponseDTO = {
-    id: uint32;
+    id: PlayerID;
     firstName: string;
     lastName: string;
     sprite: AssetID;
@@ -203,6 +205,9 @@ export enum PreferenceKeys {
 
 // "Known DTOs"
 export type SessionInitiationRequestDTO = {
+    /**
+     * Vitec UUID
+     */
     userIdentifier: string;
     /**
      * Current Vitec Session Token

@@ -9,7 +9,7 @@ import {
     CreateColonyRequestDTO, InternationalizationCatalogueResponseDTO, 
     LocationInfoFullResponseDTO, LocationInfoResponseDTO, 
     MinigameDifficultyID, MinigameID, MinigameInfoResponseDTO, 
-    OpenColonyResponseDTO, PlayerInfoResponseDTO, 
+    OpenColonyResponseDTO, PlayerID, PlayerInfoResponseDTO, 
     PlayerPreferencesResponseDTO, PreferenceKeys, SessionInitiationRequestDTO, 
     SessionInitiationResponseDTO, UpdateLatestVisitRequestDTO, UpdateLatestVisitResponseDTO
 } from "./mainBackendDTOs";
@@ -55,32 +55,32 @@ export type BaseBackendIntegration = {
  * @author GustavBW
  */
 export interface BackendIntegration extends BaseBackendIntegration {
-    internalPlayerID: number;
-    getPlayerInfo: (player: number) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
-    getPlayerPreferences: (player: number) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
-    setPlayerPreference: (key: PreferenceKeys, value: string) => Promise<ResCodeErr<void>>;
-    grantAchievement: (achievement: number) => Promise<ResCodeErr<void>>;
+    internalPlayerID: PlayerID;
+    getPlayerInfo:          (player: PlayerID) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
+    getPlayerPreferences:   (player: PlayerID) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
+    setPlayerPreference:    (key: PreferenceKeys, value: string) => Promise<ResCodeErr<void>>;
+    grantAchievement:       (achievement: number) => Promise<ResCodeErr<void>>;
 
-    getCatalogue: (locale: LanguagePreference) => Promise<ResCodeErr<InternationalizationCatalogueResponseDTO>>;
-    getAvailableLanguages: () => Promise<ResCodeErr<AvailableLanguagesResponseDTO>>;
+    getCatalogue:           (locale: LanguagePreference) => Promise<ResCodeErr<InternationalizationCatalogueResponseDTO>>;
+    getAvailableLanguages:  () => Promise<ResCodeErr<AvailableLanguagesResponseDTO>>;
 
-    getColony: (player: number, colony: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
-    updateLatestVisit: (dto: UpdateLatestVisitRequestDTO, colony: number) => Promise<ResCodeErr<UpdateLatestVisitResponseDTO>>;
-    getColonyOverview: (player: number) => Promise<ResCodeErr<ColonyOverviewReponseDTO>>;
-    openColony: (colony: number) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
-    joinColony: (code: ColonyCode) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
-    createColony: (dto: CreateColonyRequestDTO, player: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
-    getColonyPathGraph: (colony: number) => Promise<ResCodeErr<ColonyPathGraphResponseDTO>>
+    getColony:              (player: PlayerID, colony: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
+    updateLatestVisit:      (dto: UpdateLatestVisitRequestDTO, colony: number) => Promise<ResCodeErr<UpdateLatestVisitResponseDTO>>;
+    getColonyOverview:      (player: PlayerID) => Promise<ResCodeErr<ColonyOverviewReponseDTO>>;
+    openColony:             (colony: number) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
+    joinColony:             (code: ColonyCode) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
+    createColony:           (dto: CreateColonyRequestDTO, player: PlayerID) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
+    getColonyPathGraph:     (colony: number) => Promise<ResCodeErr<ColonyPathGraphResponseDTO>>
 
-    getLocationInfo: (location: number) => Promise<ResCodeErr<LocationInfoResponseDTO>>;
-    getFullLocationInfo: (location: number) => Promise<ResCodeErr<LocationInfoFullResponseDTO>>;
+    getLocationInfo:        (location: number) => Promise<ResCodeErr<LocationInfoResponseDTO>>;
+    getFullLocationInfo:    (location: number) => Promise<ResCodeErr<LocationInfoFullResponseDTO>>;
 
-    getAssetMetadata: (asset: AssetID) => Promise<ResCodeErr<AssetResponseDTO>>;
-    getMetadataOfAssets: (assets: AssetID[]) => Promise<ResCodeErr<AssetResponseDTO[]>>;
-    getAssetLOD: (asset: AssetID, lod: number) => Promise<ResCodeErr<Blob>>;
-    getAssetCollection: (collection: AssetCollectionID) => Promise<ResCodeErr<AssetCollectionResponseDTO[]>>;
+    getAssetMetadata:       (asset: AssetID) => Promise<ResCodeErr<AssetResponseDTO>>;
+    getMetadataOfAssets:    (assets: AssetID[]) => Promise<ResCodeErr<AssetResponseDTO[]>>;
+    getAssetLOD:            (asset: AssetID, lod: number) => Promise<ResCodeErr<Blob>>;
+    getAssetCollection:     (collection: AssetCollectionID) => Promise<ResCodeErr<AssetCollectionResponseDTO[]>>;
 
-    getMinigameInfo: (minigame: number) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
+    getMinigameInfo:        (minigame: number) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
     getMinimizedMinigameInfo: (minigame: MinigameID, diffulty: MinigameDifficultyID) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
 }
 /**
@@ -126,7 +126,7 @@ export async function initializeBackendIntegration(environment: ENV, log: Logger
  * @since 0.0.1
  * @author GustavBW
  */
-const applyRouteImplementations = (base: BaseBackendIntegration, playerID: number): BackendIntegration => {
+const applyRouteImplementations = (base: BaseBackendIntegration, playerID: PlayerID): BackendIntegration => {
     return {
         ...base, 
         internalPlayerID: playerID,
