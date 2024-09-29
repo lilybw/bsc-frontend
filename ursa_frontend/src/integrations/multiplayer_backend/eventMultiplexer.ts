@@ -31,7 +31,7 @@ export interface IEventMultiplexer {
 }
 
 export interface IExpandedAccessMultiplexer extends IEventMultiplexer {
-
+    emitRAW: <T extends IMessage>(data: T) => void;
 }
 
 export const initializeEventMultiplexer = (log: Logger, player: PlayerID): IExpandedAccessMultiplexer => {
@@ -77,17 +77,21 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
     }
 
     emit = <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => {
-        const handlers = this.subscriptions.get(spec.id);
-        if (!handlers || handlers === null || handlers.length === 0) {
-            return;
-        }
         const encapsulatedData = Object.freeze({
             ...data,
             senderID: this.player,
             eventID: spec.id
         });
+        this.emitRAW(encapsulatedData);
+    }
+
+    emitRAW = <T extends IMessage>(data: T) => {
+        const handlers = this.subscriptions.get(data.eventID);
+        if (!handlers || handlers === null || handlers.length === 0) {
+            return;
+        }
         for (const handler of handlers) {
-            handler(encapsulatedData);
+            handler(data);
         }
     }
 }
