@@ -17,6 +17,17 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
 
     const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);
 
+    const sortedColonies = () => {
+        if (colonyListReq.state === "ready" && colonyListReq.latest?.res) {
+            return [...colonyListReq.latest.res.colonies].sort((a, b) => {
+                const dateA = new Date(a.latestVisit);
+                const dateB = new Date(b.latestVisit);
+                return dateB.getTime() - dateA.getTime(); // Sort in descending order (most recent first)
+            });
+        }
+        return [];
+    };
+
     async function handleGoToColony() {
         const colonyID = selectedColonyId();
         if (colonyID === null) {
@@ -70,12 +81,12 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                 <>
                 <div class={colonyListBackgroundStyle}/>
                 <div class={colonyListStyle}>
-                <For each={colonyListReq.latest?.res!.colonies}>{(colony: ColonyInfoResponseDTO) =>
+                <For each={sortedColonies()}>{(colony: ColonyInfoResponseDTO) =>
                     <ColonyListEntry 
                         colony={colony} 
                         onClick={() => setSelectedColonyId(colony.id)} 
                         isSelected={selectedColonyId() === colony.id}
-                        text={props.context.text} // Add this line
+                        text={props.context.text}
                     />
                 }</For>
                 </div>
