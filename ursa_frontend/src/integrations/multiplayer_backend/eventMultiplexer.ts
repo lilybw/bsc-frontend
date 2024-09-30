@@ -1,6 +1,6 @@
 import { Logger } from "../../logging/filteredLogger";
 import { PlayerID } from "../main_backend/mainBackendDTOs";
-import { DEBUG_INFO_EVENT, EventSpecification, EventType, IMessage, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from "./EventSpecifications-v0.0.5";
+import { DEBUG_INFO_EVENT, EventSpecification, EventType, IMessage, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from "./EventSpecifications-v0.0.7";
 
 export type OnEventCallback<T> = (data: T) => void | Promise<void>;
 export type SubscriptionID = number;

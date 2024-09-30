@@ -143,6 +143,10 @@ export type OpenColonyResponseDTO = {
 }
 
 export type JoinColonyResponseDTO = {
+    /**
+     * Owner of colony to be joined
+     */
+    ownerID: PlayerID;
     lobbyID: uint32;
     /**
      * Base url: protocol://host:port

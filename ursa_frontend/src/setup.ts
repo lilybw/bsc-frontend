@@ -3,7 +3,7 @@ import { ENV, initializeEnvironment } from "./environment/manager";
 import { initializeBackendIntegration } from "./integrations/main_backend/mainBackend";
 import { initializeVitecIntegration } from "./integrations/vitec/vitecIntegration";
 import { initializeLogger } from "./logging/filteredLogger";
-import { ApplicationContext, Bundle, BundleComponent, ResErr, RuntimeMode } from "./meta/types";
+import { ApplicationContext, Bundle, BundleComponent, MultiplayerMode, ResErr, RuntimeMode } from "./meta/types";
 import { render } from "solid-js/web";
 import GlobalContainer from "./GlobalContainer";
 import { SessionInitiationRequestDTO } from "./integrations/main_backend/mainBackendDTOs";
@@ -81,8 +81,9 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     }
 
     const eventMultiplexer = await initializeEventMultiplexer(log, backendIntegrationInit.res.localPlayer.id);
-
-    const multiplayerIntegrationInit = await initializeMultiplayerIntegration(backendIntegrationInit.res, log, eventMultiplexer);
+    
+    let currentMultiplayerMode = MultiplayerMode.AS_OWNER;
+    const multiplayerIntegrationInit = await initializeMultiplayerIntegration(backendIntegrationInit.res, log, eventMultiplexer, currentMultiplayerMode);
     if (multiplayerIntegrationInit.err != null) {
         log.warn(multiplayerIntegrationInit.err);
     }

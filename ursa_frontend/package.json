@@ -4,7 +4,8 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "npm run test-menu",
+    "test": "vitest",
+    "start": "npm run test_menu",
     "test_colony": "vite ./colony_root --config=vite.config.ts --base=/colony --mode test",
     "test_menu": "vite ./main_menu_root --config=vite.config.ts --base=/menu --mode test",
     "test_tutorial": "vite ./tutorial_root --config=vite.config.ts --base=/tutorial --mode test",
@@ -25,7 +26,8 @@
     "solid-devtools": "^0.30.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.11",
-    "vite-plugin-solid": "^2.8.2"
+    "vite-plugin-solid": "^2.8.2",
+    "vitest": "^2.1.1"
   },
   "dependencies": {
     "@emotion/css": "^11.13.0",

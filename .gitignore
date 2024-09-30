@@ -9,6 +9,8 @@ dist/menu/*
 
 otte_frontend/dist
 
+.VSCodeCounter
+
 # Logs
 logs
 *.log

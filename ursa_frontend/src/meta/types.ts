@@ -48,12 +48,18 @@ export enum RuntimeMode {
     UNKNOWN = 'unknown'
 }
 
+export enum MultiplayerMode {
+    AS_GUEST = 'as_guest',
+    AS_OWNER = 'as_owner',
+}
+
 export enum LogLevel {
     ERROR = 'error',
     WARN = 'warn',
     INFO = 'info',
     TRACE = 'trace'
 }
+
 export enum ParseMethod {
     JSON = 'json',
     TEXT = 'text',

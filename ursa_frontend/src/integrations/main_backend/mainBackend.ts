@@ -7,6 +7,7 @@ import {
     ColonyOverviewReponseDTO, 
     ColonyPathGraphResponseDTO, 
     CreateColonyRequestDTO, InternationalizationCatalogueResponseDTO, 
+    JoinColonyResponseDTO, 
     LocationInfoFullResponseDTO, LocationInfoResponseDTO, 
     MinigameDifficultyID, MinigameID, MinigameInfoResponseDTO, 
     OpenColonyResponseDTO, PlayerID, PlayerInfoResponseDTO, 
@@ -68,7 +69,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     updateLatestVisit:      (dto: UpdateLatestVisitRequestDTO, colony: number) => Promise<ResCodeErr<UpdateLatestVisitResponseDTO>>;
     getColonyOverview:      (player: PlayerID) => Promise<ResCodeErr<ColonyOverviewReponseDTO>>;
     openColony:             (colony: number) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
-    joinColony:             (code: ColonyCode) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
+    joinColony:             (code: ColonyCode) => Promise<ResCodeErr<JoinColonyResponseDTO>>;
     createColony:           (dto: CreateColonyRequestDTO, player: PlayerID) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
     getColonyPathGraph:     (colony: number) => Promise<ResCodeErr<ColonyPathGraphResponseDTO>>
 
@@ -160,7 +161,7 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
             HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
         openColony:         (colony) => base.request<OpenColonyResponseDTO>(
             HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON),
-        joinColony:         (code) => base.request<OpenColonyResponseDTO>(
+        joinColony:         (code) => base.request<JoinColonyResponseDTO>(
             HTTPMethod.POST, `/api/v1/colony/join/${code}`, ParseMethod.JSON),
         createColony: (dto, player) => base.request<ColonyInfoResponseDTO>(
             HTTPMethod.POST, `/api/v1/player/${player}/colony/create`, ParseMethod.JSON, dto),
