@@ -2,6 +2,7 @@ import { Component } from "solid-js";
 import { TransformDTO } from "../../integrations/main_backend/mainBackendDTOs";
 import { IBackendBased } from "../../ts/types";
 import { css } from "@emotion/css";
+import NTAwait from "../util/NoThrowAwait";
 
 interface AssetCollectionProps extends IBackendBased {
     id: number;

@@ -80,7 +80,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     getAssetMetadata:       (asset: AssetID) => Promise<ResCodeErr<AssetResponseDTO>>;
     getMetadataOfAssets:    (assets: AssetID[]) => Promise<ResCodeErr<AssetResponseDTO[]>>;
     getAssetLOD:            (asset: AssetID, lod: number) => Promise<ResCodeErr<Blob>>;
-    getAssetCollection:     (collection: AssetCollectionID) => Promise<ResCodeErr<AssetCollectionResponseDTO[]>>;
+    getAssetCollection:     (collection: AssetCollectionID) => Promise<ResCodeErr<AssetCollectionResponseDTO>>;
 
     getMinigameInfo:        (minigame: number) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
     getMinimizedMinigameInfo: (minigame: MinigameID, diffulty: MinigameDifficultyID) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
@@ -180,7 +180,7 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
             HTTPMethod.GET, `/api/v1/assets?ids=${assets.join(",")}`, ParseMethod.JSON),
         getAssetLOD:        (asset, lod) => base.request<Blob>(
             HTTPMethod.GET, `/api/v1/asset/${asset}/lod/${lod}`, ParseMethod.BLOB),
-        getAssetCollection: (collection) => base.request<AssetCollectionResponseDTO[]>(
+        getAssetCollection: (collection) => base.request<AssetCollectionResponseDTO>(
             HTTPMethod.GET, `/api/v1/collection/${collection}`, ParseMethod.JSON),
 
         getMinigameInfo:    (minigame) => base.request<MinigameInfoResponseDTO>(
