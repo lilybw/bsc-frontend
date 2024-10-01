@@ -35,5 +35,34 @@ code {
         monospace;
 }
 `
+export const BigButtonStyle = css`
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 2rem;
+    padding: 1rem;
+    margin: 1rem;
+    border-radius: 1rem;
+    border: 1px solid black;
+    box-shadow: inset 0 0 4px white;  
+    cursor: pointer;
+    text-shadow: none;
+    scale: 1;
+    transition: all 0.3s ease-out;
+
+    &:not(:disabled) {
+        &:hover {
+        scale: 1.1;
+        border: 1px solid white;
+        box-shadow: inset 0 0 10px white;
+        background-color: rgba(0, 0, 0, 0.7);
+        text-shadow: 2px 2px 4px white;
+        }
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+`
 
 export const SHARED_CSS = css`${SHARED_CSS_STR}`
