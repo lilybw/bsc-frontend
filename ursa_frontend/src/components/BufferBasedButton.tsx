@@ -3,11 +3,10 @@ import { css } from "@emotion/css";
 import BufferHighlightedName, { BufferHighlightedNameProps } from "./BufferHighlightedName";
 import { AddRetainRemoveFunc } from "../ts/wrappedStore";
 import { BufferSubscriber } from "../ts/actionContext";
-import { IParenting } from "../ts/types";
+import { IParenting, IRegistering } from "../ts/types";
 
-export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IParenting {
+export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IParenting, IRegistering<string> {
     onActivation: () => void;
-    register: AddRetainRemoveFunc<BufferSubscriber<string>>;
 }
 
 const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {

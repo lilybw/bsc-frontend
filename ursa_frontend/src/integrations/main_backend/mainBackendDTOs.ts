@@ -141,6 +141,11 @@ export type OpenColonyResponseDTO = {
      */
     multiplayerServerAddress: string;
 }
+export type OpenColonyRequestDTO = {
+    validDurationMS: uint32;
+    playerID: PlayerID;
+    latestVisit: string;
+}
 
 export type JoinColonyResponseDTO = {
     /**

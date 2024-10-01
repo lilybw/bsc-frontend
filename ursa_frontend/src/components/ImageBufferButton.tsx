@@ -2,18 +2,17 @@ import { Component, createMemo, mergeProps } from "solid-js";
 import BufferBasedButton, { BufferBasedButtonProps } from "./BufferBasedButton";
 import { AddRetainRemoveFunc } from "../ts/wrappedStore";
 import { BufferSubscriber } from "../ts/actionContext";
-import { IBackendBased, IBufferBased, IStyleOverwritable } from "../ts/types";
+import { IBackendBased, IBufferBased, IRegistering, IStyleOverwritable } from "../ts/types";
 import { css } from "@emotion/css";
 import NTAwait from "./util/NoThrowAwait";
 import GraphicalAsset from "./GraphicalAsset";
 
-interface ImageBufferButtonProps extends IBufferBased, IBackendBased, IStyleOverwritable {
+interface ImageBufferButtonProps extends IBufferBased, IBackendBased, IStyleOverwritable, IRegistering<string> {
     name: string;
     nameCompleteOverwrite?: string;
     charHighlightOverwrite?: string;
     charBaseStyleOverwrite?: string;
     onActivation: () => void;
-    register: AddRetainRemoveFunc<BufferSubscriber<string>>;
     imageStyleOverwrite?: string;
     buttonStyleOverwrite?: string;
     asset: number;

@@ -10,6 +10,7 @@ import {
     JoinColonyResponseDTO, 
     LocationInfoFullResponseDTO, LocationInfoResponseDTO, 
     MinigameDifficultyID, MinigameID, MinigameInfoResponseDTO, 
+    OpenColonyRequestDTO, 
     OpenColonyResponseDTO, PlayerID, PlayerInfoResponseDTO, 
     PlayerPreferencesResponseDTO, PreferenceKeys, SessionInitiationRequestDTO, 
     SessionInitiationResponseDTO, UpdateLatestVisitRequestDTO, UpdateLatestVisitResponseDTO
@@ -68,7 +69,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     getColony:              (player: PlayerID, colony: number) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
     updateLatestVisit:      (dto: UpdateLatestVisitRequestDTO, colony: number) => Promise<ResCodeErr<UpdateLatestVisitResponseDTO>>;
     getColonyOverview:      (player: PlayerID) => Promise<ResCodeErr<ColonyOverviewReponseDTO>>;
-    openColony:             (colony: number) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
+    openColony:             (colony: number, dto: OpenColonyRequestDTO) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
     joinColony:             (code: ColonyCode) => Promise<ResCodeErr<JoinColonyResponseDTO>>;
     createColony:           (dto: CreateColonyRequestDTO, player: PlayerID) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
     getColonyPathGraph:     (colony: number) => Promise<ResCodeErr<ColonyPathGraphResponseDTO>>
@@ -159,8 +160,8 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
             HTTPMethod.POST, `/api/v1/colony/${colony}/update-last-visit`, ParseMethod.JSON, dto),
         getColonyOverview:  (player) => base.request<ColonyOverviewReponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
-        openColony:         (colony) => base.request<OpenColonyResponseDTO>(
-            HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON),
+        openColony:         (colony, dto) => base.request<OpenColonyResponseDTO>(
+            HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON, dto),
         joinColony:         (code) => base.request<JoinColonyResponseDTO>(
             HTTPMethod.POST, `/api/v1/colony/join/${code}`, ParseMethod.JSON),
         createColony: (dto, player) => base.request<ColonyInfoResponseDTO>(
