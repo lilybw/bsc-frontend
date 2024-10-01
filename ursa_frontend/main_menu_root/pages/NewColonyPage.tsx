@@ -47,7 +47,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
     const body: CreateColonyRequestDTO = {
       name: colonyName()
     }
-    const createColonyResponse = await props.context.backend.createColony(body, props.context.player.id);
+    const createColonyResponse = await props.context.backend.createColony(body, props.context.backend.localPlayer.id);
 
     // Handle the response as needed
     if (createColonyResponse.code != 200) {
@@ -56,7 +56,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
     }
 
     // Open colony
-    const openColonyResponse = await props.context.backend.getColony(props.context.player.id, Number(createColonyResponse.res?.id));
+    const openColonyResponse = await props.context.backend.getColony(props.context.backend.localPlayer.id, Number(createColonyResponse.res?.id));
 
     props.context.logger.log("[DELETE ME] implement redirect here!")
   };

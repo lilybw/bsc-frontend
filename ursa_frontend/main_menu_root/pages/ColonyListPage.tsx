@@ -12,7 +12,7 @@ import NavigationFooter from "../NavigationFooter";
 
 const ColonyListPage: Component<MenuPageProps> = (props) => {
     const [colonyListReq, setColonyListReq] = createResource<ResCodeErr<ColonyOverviewReponseDTO>>(async () => {
-        return Promise.resolve(props.context.backend.getColonyOverview(props.context.player.id))
+        return Promise.resolve(props.context.backend.getColonyOverview(props.context.backend.localPlayer.id))
     });
 
     const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);
