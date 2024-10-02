@@ -67,10 +67,10 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                         name={nameOfLocation.get()} 
                         buffer={inputBuffer}
                         onActivation={buttonPressed} 
-                        asset={3} 
+                        asset={1009} 
                         backend={props.backend}
                     />
-                    <NTAwait func={() => props.backend.getAssetMetadata(8)}>
+                    <NTAwait func={() => props.backend.getAssetMetadata(4001)}>
                         {(asset) => (
                             <GraphicalAsset 
                                 styleOverwrite={computedPlayerStyle()}

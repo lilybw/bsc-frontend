@@ -27,10 +27,10 @@ const PlanetWithMoon: Component<PlanetWithMoonProps> = (props) => {
 
   return (
     <div class={computedStyles()}>
-      <NTAwait func={() => props.backend.getAssetMetadata(props.planetAssetOverwrite ?? 5)}>
+      <NTAwait func={() => props.backend.getAssetMetadata(props.planetAssetOverwrite ?? 3001)}>
         {(asset) => (
           <Planet useShadow={true} styleOverwrite={planetStyle(cssvars)} metadata={asset} backend={props.backend}>
-            <NTAwait func={() => props.backend.getAssetMetadata(props.moonAssetOverwrite ?? 7)}>
+            <NTAwait func={() => props.backend.getAssetMetadata(props.moonAssetOverwrite ?? 3003)}>
               {(moonAsset) => (
                 <Planet useShadow={false} styleOverwrite={moonOrbitStyle(cssvars)} metadata={moonAsset} backend={props.backend} />
               )}

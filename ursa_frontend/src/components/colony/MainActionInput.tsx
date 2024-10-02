@@ -87,7 +87,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
     return (
         <div class={css`${actionInputContainerStyle} ${props.styleOverwrite}`} id="the-action-input">
             {enterWasJustPressed() && props.demoMode &&
-                <NTAwait func={() => props.backend.getAssetMetadata(10)}>
+                <NTAwait func={() => props.backend.getAssetMetadata(1011)}>
                     {(asset) => (
                         <GraphicalAsset metadata={asset} backend={props.backend} styleOverwrite={demoEnterIconStyleOverwrite} />
                     )}

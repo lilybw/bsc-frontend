@@ -31,42 +31,42 @@ const slides: SlideEntry[] = [
   {
     hasCompleted: false,
     icon: SlideIcon,
-    iconId: 30
+    iconId: 1003
   },
   {
     hasCompleted: false,
     icon: SlideIcon,
-    iconId: 33
+    iconId: 1006
   },
   {
     hasCompleted: false,
     icon: SlideIcon,
-    iconId: 32
+    iconId: 1005
   },
   {
     hasCompleted: false,
     icon: SlideIcon,
-    iconId: 32
+    iconId: 1005
   },
   {
     hasCompleted: false,
     icon: SlideIcon,
-    iconId: 29
+    iconId: 1002
   },
   {
     hasCompleted: false,
     icon: SlideIcon,
-    iconId: 29
+    iconId: 1002
   },
   {
     hasCompleted: false,
     icon: SlideIcon,
-    iconId: 31
+    iconId: 1004
   },
   {
     hasCompleted: false,
     icon: SlideIcon,
-    iconId: 31
+    iconId: 1018
   },
 ]
 
@@ -142,14 +142,14 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
             {currentSlide() < slideStore.length &&  
               <BigMenuButton onClick={onAdvanceSlide} styleOverwrite={rightNavigationButtonStyle}
                 enable={currentSlideCompleted}>
-                <NTAwait func={() => props.context.backend.getAssetMetadata(22)}>
+                <NTAwait func={() => props.context.backend.getAssetMetadata(1019)}>
                   {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend}/>}
                 </NTAwait>
               </BigMenuButton>
             }
             {currentSlide() >= 1 &&
               <BigMenuButton styleOverwrite={leftNavigationButtonStyle} onClick={onBackSlide}>
-                <NTAwait func={() => props.context.backend.getAssetMetadata(23)}>
+                <NTAwait func={() => props.context.backend.getAssetMetadata(1020)}>
                   {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend}/>}
                 </NTAwait>
               </BigMenuButton>

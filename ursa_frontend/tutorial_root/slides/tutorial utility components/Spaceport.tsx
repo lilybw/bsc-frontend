@@ -80,7 +80,7 @@ const SpacePortInterface: Component<SpacePortInterfaceProps> = (props) => {
         demoMode={true}
       />
       <div class={imageContainerStyle}>
-        <NTAwait func={() => props.backend.getAssetMetadata(34)}>
+        <NTAwait func={() => props.backend.getAssetMetadata(5007)}>
           {(asset) => (
             <GraphicalAsset
               metadata={asset}
