@@ -1,10 +1,10 @@
-import { MIMEType } from "util";
-import { ArbitraryResponseDefinition, ParseMethod } from "../../meta/types";
+import { MIMEType } from 'util';
+import { ArbitraryResponseDefinition, ParseMethod } from '../../meta/types';
 
 /**
  * The writer of this type is aware that JS/TS does not distinguish between signed and unsigned integers.
- * However, it does imply that any negative value would be an error. 
- */ 
+ * However, it does imply that any negative value would be an error.
+ */
 export type uint32 = number;
 export type AssetID = uint32;
 export type AssetCollectionID = uint32;
@@ -21,18 +21,18 @@ export type PlayerInfoResponseDTO = {
     sprite: AssetID;
     achievements: uint32[];
     hasCompletedTutorial: boolean;
-}
+};
 export type PlayerPreferenceDTO = {
     id: uint32;
     key: string;
     chosenValue: string;
     availableValues: string[];
-}
+};
 export type PlayerPreferencesResponseDTO = {
-    preferences: PlayerPreferenceDTO[]
-}
+    preferences: PlayerPreferenceDTO[];
+};
 
-export type InternationalizationCatalogueResponseDTO = {[key: string]: string}
+export type InternationalizationCatalogueResponseDTO = { [key: string]: string };
 
 export type ColonyLocationInformation = {
     /**
@@ -45,7 +45,7 @@ export type ColonyLocationInformation = {
      */
     locationID: LocationID;
     transform: TransformDTO;
-}
+};
 export type ColonyInfoResponseDTO = {
     id: uint32;
     accLevel: uint32;
@@ -56,12 +56,12 @@ export type ColonyInfoResponseDTO = {
         transform: TransformDTO;
     }[];
     locations: ColonyLocationInformation[];
-}
+};
 
 export type CreateColonyResponseDTO = ColonyInfoResponseDTO;
 export type ColonyOverviewReponseDTO = {
     colonies: ColonyInfoResponseDTO[];
-}
+};
 
 export type ColonyPathGraphResponseDTO = {
     paths: {
@@ -73,8 +73,8 @@ export type ColonyPathGraphResponseDTO = {
          * ID of ColonyLocation
          */
         to: number;
-    }[]
-}
+    }[];
+};
 
 export type LocationInfoResponseDTO = {
     id: LocationID;
@@ -85,7 +85,7 @@ export type LocationInfoResponseDTO = {
         assetCollectionID: uint32;
     }[];
     minigameID: MinigameID;
-}
+};
 
 export type LocationInfoFullResponseDTO = {
     id: LocationID;
@@ -97,7 +97,7 @@ export type LocationInfoFullResponseDTO = {
         assets: {
             transform: TransformDTO;
             asset: MinimizedAssetDTO;
-        }[]
+        }[];
     }[];
     minigame: {
         id: MinigameID;
@@ -109,8 +109,8 @@ export type LocationInfoFullResponseDTO = {
             description: string;
             iconID: AssetID;
         }[];
-    }
-}
+    };
+};
 
 export type AssetResponseDTO = {
     id: AssetID;
@@ -122,14 +122,15 @@ export type AssetResponseDTO = {
     LODs: {
         detailLevel: uint32;
         id: AssetID;
-    }[]
-}
+    }[];
+};
 
 export type AssetsResponseDTO = AssetResponseDTO[];
 
-export interface LODResponse extends ArbitraryResponseDefinition<{
-    "Ursa-Detail-Level": uint32;
-}> {
+export interface LODResponse
+    extends ArbitraryResponseDefinition<{
+        'Ursa-Detail-Level': uint32;
+    }> {
     bodyParseMethod: ParseMethod.BLOB;
 }
 
@@ -140,12 +141,12 @@ export type OpenColonyResponseDTO = {
      * Base url: protocol://host:port
      */
     multiplayerServerAddress: string;
-}
+};
 export type OpenColonyRequestDTO = {
     validDurationMS: uint32;
     playerID: PlayerID;
     latestVisit: string;
-}
+};
 
 export type JoinColonyResponseDTO = {
     /**
@@ -157,7 +158,7 @@ export type JoinColonyResponseDTO = {
      * Base url: protocol://host:port
      */
     multiplayerServerAddress: string;
-}
+};
 
 export type AssetCollectionResponseDTO = {
     id: AssetCollectionID;
@@ -166,7 +167,7 @@ export type AssetCollectionResponseDTO = {
         transform: TransformDTO;
         asset: MinimizedAssetDTO;
     }[];
-}
+};
 
 export type MinigameInfoResponseDTO = {
     id: MinigameID;
@@ -183,13 +184,13 @@ export type MinigameInfoResponseDTO = {
         description: string;
         icon: AssetID;
         overwritingSettings: any;
-    }[]
-}
+    }[];
+};
 
 export type MinimizedMinigameInfoResponseDTO = {
     settings: any;
     overwritingSettings: any;
-}
+};
 
 export type AvailableLanguagesResponseDTO = {
     languages: {
@@ -201,15 +202,15 @@ export type AvailableLanguagesResponseDTO = {
         code: string;
         icon: AssetID;
     }[];
-}
+};
 
 export type SetPreferenceRequestDTO = {
     key: string;
     value: string;
-}
+};
 
 export enum PreferenceKeys {
-    LANGUAGE = "language",
+    LANGUAGE = 'language',
 }
 
 // "Known DTOs"
@@ -227,34 +228,34 @@ export type SessionInitiationRequestDTO = {
      */
     firstName: string;
     lastName: string;
-}
+};
 export type SessionInitiationResponseDTO = {
     token: string;
     internalID: uint32;
-}
+};
 export type TransformDTO = {
     xOffset: number;
     yOffset: number;
     zIndex: uint32;
     xScale: number;
     yScale: number;
-}
+};
 
 export type CollectionEntryDTO = {
     transform: TransformDTO;
     graphicalAssetID: AssetID;
-}
+};
 /**
  * Single source of truth: devour
  */
 export enum AssetUseCase {
-    ICON = "icon",
-    ENVIRONMENT = "environment",
-    PLAYER = "player",
-    SPASH_ART = "splashArt",
-    STRUCTURE = "structure",
-    VEHICLE = "vehicle",
-    TEXTURE = "texture",
+    ICON = 'icon',
+    ENVIRONMENT = 'environment',
+    PLAYER = 'player',
+    SPASH_ART = 'splashArt',
+    STRUCTURE = 'structure',
+    VEHICLE = 'vehicle',
+    TEXTURE = 'texture',
 }
 export enum ImageMIMEType {
     PNG = 'image/png',
@@ -265,16 +266,16 @@ export enum ImageMIMEType {
     WEBP = 'image/webp',
     TIFF = 'image/tiff',
     ICO = 'image/x-icon',
-    UNKNOWN = 'unknown'
+    UNKNOWN = 'unknown',
 }
 export type GraphicalAsset = {
     id: AssetID;
     useCase: AssetUseCase;
     type: ImageMIMEType;
-    width: uint32;  
+    width: uint32;
     height: uint32;
     alias: string;
-}
+};
 
 export type MinimizedAssetDTO = {
     alias: string;
@@ -284,17 +285,17 @@ export type MinimizedAssetDTO = {
     LODs: {
         detailLevel: uint32;
         id: AssetID;
-    }[]
-}
+    }[];
+};
 
 export type CreateColonyRequestDTO = {
     name: string;
-}
+};
 
 export type UpdateLatestVisitRequestDTO = {
     latestVisit: string;
-}
+};
 
 export type UpdateLatestVisitResponseDTO = {
     latestVisit: string;
-}
+};

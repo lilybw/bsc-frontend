@@ -1,20 +1,20 @@
-import { EventSpecification, GoType, IMessage } from "./EventSpecifications-v0.0.7";
-import { RawMessage } from "./multiplayerBackend";
+import { EventSpecification, GoType, IMessage } from './EventSpecifications-v0.0.7';
+import { RawMessage } from './multiplayerBackend';
 
 /**
  * Reads the header of the message (sourceID and eventID)
  */
-export const readSourceAndEventID = (view: DataView): {sourceID: number, eventID: number} => {
+export const readSourceAndEventID = (view: DataView): { sourceID: number; eventID: number } => {
     const sourceID = view.getUint32(0, true);
     const eventID = view.getUint32(4, true);
-    return {sourceID, eventID};
-}
+    return { sourceID, eventID };
+};
 
 /**
  * Computes the size of the content in data ignoring all fields not described by the spec.
  * Creates a dataview of that size and goes through the fields again, serializing them to binary and placing
  * them in the view at the offsets described by the spec.
- * 
+ *
  * Exeptionally allowed to THROW
  */
 export const createViewAndSerializeMessage = <T extends IMessage>(data: T, spec: EventSpecification<T>): DataView => {
@@ -36,7 +36,7 @@ export const createViewAndSerializeMessage = <T extends IMessage>(data: T, spec:
     }
 
     return view;
-}
+};
 
 export const placeValueAtOffsetAsTypeInView = <T>(view: DataView, offset: number, value: T, type: GoType, littleEndian: boolean = true): void => {
     switch (type) {
@@ -71,7 +71,7 @@ export const placeValueAtOffsetAsTypeInView = <T>(view: DataView, offset: number
             view.setFloat64(offset, value as unknown as number, littleEndian);
             break;
         case GoType.BOOL:
-            view.setUint8(offset, value as unknown as boolean ? 1 : 0);
+            view.setUint8(offset, (value as unknown as boolean) ? 1 : 0);
             break;
         case GoType.STRING:
             //Serialize string into view
@@ -83,11 +83,11 @@ export const placeValueAtOffsetAsTypeInView = <T>(view: DataView, offset: number
         default:
             throw new Error(`Unknown GoType: ${type}`);
     }
-}
+};
 const textEncoder = new TextEncoder();
 /**
  * Runs through all fields in the data object named by the specification structure.
- * If any is of variable size (byte size 0), it computes the size of the data and returns the sum total. 
+ * If any is of variable size (byte size 0), it computes the size of the data and returns the sum total.
  * Also adds on 8 bytes for the header (sourceID and eventID)
  */
 export const computeActualSizeOfMessage = <T extends IMessage>(data: T, spec: EventSpecification<T>): number => {
@@ -99,16 +99,19 @@ export const computeActualSizeOfMessage = <T extends IMessage>(data: T, spec: Ev
         } else {
             const value = data[messageElement.fieldName as keyof T];
             switch (typeof value) {
-                case 'string': size += textEncoder.encode(value).length; break;
-                default: throw new Error(`Unsupported variable size type: ${typeof value}`);
+                case 'string':
+                    size += textEncoder.encode(value).length;
+                    break;
+                default:
+                    throw new Error(`Unsupported variable size type: ${typeof value}`);
             }
         }
     }
     return size;
-}
+};
 /**
  * Read the bytes at that offset and use DataView.getXXXX to parse them into the corresponding JS type.
- * 
+ *
  * Exeptionally allowed to THROW
  */
 export const parseGoTypeAtOffsetInView = <T>(view: DataView, offset: number, type: GoType, littleEndian: boolean = true): T => {
@@ -134,7 +137,7 @@ export const parseGoTypeAtOffsetInView = <T>(view: DataView, offset: number, typ
         case GoType.FLOAT64:
             return view.getFloat64(offset, littleEndian) as unknown as T;
         case GoType.BOOL:
-            return view.getUint8(offset) === 1 ? true as unknown as T : false as unknown as T;
+            return view.getUint8(offset) === 1 ? (true as unknown as T) : (false as unknown as T);
         case GoType.STRING:
             //Parse all data in view from offset as string
             const strBytes = new Uint8Array(view.buffer, offset, view.byteLength - offset);
@@ -142,4 +145,4 @@ export const parseGoTypeAtOffsetInView = <T>(view: DataView, offset: number, typ
         default:
             throw new Error(`Unknown GoType: ${type}`);
     }
-}
+};

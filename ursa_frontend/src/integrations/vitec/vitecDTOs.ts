@@ -1,6 +1,6 @@
-import { ENV } from "../../environment/manager";
-import { Logger } from "../../logging/filteredLogger";
-import { Bundle } from "../../meta/types";
+import { ENV } from '../../environment/manager';
+import { Logger } from '../../logging/filteredLogger';
+import { Bundle } from '../../meta/types';
 
 /**
  * Single source of thruth: The 10-finger angular project: ./src/environments/environment.prod.ts
@@ -13,17 +13,17 @@ export enum LanguagePreference {
     Dutch = 'nl-NL',
     English = 'en-GB',
     German = 'de-DE',
-    UNKNOWN = 'unknown'
+    UNKNOWN = 'unknown',
 }
-export const LanguagePreferenceAliases: {[key in LanguagePreference]: string[]} = {
+export const LanguagePreferenceAliases: { [key in LanguagePreference]: string[] } = {
     [LanguagePreference.Danish]: ['da', 'da-DK', 'DK'],
     [LanguagePreference.NorwegianBokmal]: ['nb', 'nb-NO', 'NO'],
     [LanguagePreference.NorwegianNynorsk]: ['nn', 'nn-NO', 'NO'],
     [LanguagePreference.Swedish]: ['sv', 'sv-SE', 'SE'],
     [LanguagePreference.Dutch]: ['nl', 'nl-NL'],
-    [LanguagePreference.English]: ['en', 'en-GB', 'GB', "UK"],
+    [LanguagePreference.English]: ['en', 'en-GB', 'GB', 'UK'],
     [LanguagePreference.German]: ['de', 'de-DE', 'DE'],
-    [LanguagePreference.UNKNOWN]: []
+    [LanguagePreference.UNKNOWN]: [],
 };
 
 /**
@@ -40,4 +40,4 @@ export type VitecIntegrationInformation = {
     locationUrl: string;
     currentSubUrl: string;
     bundleRequested: Bundle;
-  }
+};

@@ -1,8 +1,8 @@
-import { ResErr, RuntimeMode } from "../../meta/types";
-import { ENV } from "../../environment/manager";
-import { Logger } from "../../logging/filteredLogger";
-import { LanguagePreference, LanguagePreferenceAliases, VitecIntegrationInformation } from "./vitecDTOs";
-import { Accessor, createSignal, Setter } from "solid-js";
+import { ResErr, RuntimeMode } from '../../meta/types';
+import { ENV } from '../../environment/manager';
+import { Logger } from '../../logging/filteredLogger';
+import { LanguagePreference, LanguagePreferenceAliases, VitecIntegrationInformation } from './vitecDTOs';
+import { Accessor, createSignal, Setter } from 'solid-js';
 /**
  * Single source of truth: The 10-finger angular project: ./src/app/services/auth.service.ts
  */
@@ -13,35 +13,39 @@ export type VitecIntegration = {
     env: ENV;
     sessionToken: string;
     baseUrl: string;
-}
+};
 
-export async function initializeVitecIntegration(info: VitecIntegrationInformation, environment: ENV, log: Logger): Promise<ResErr<VitecIntegration>> {
+export async function initializeVitecIntegration(
+    info: VitecIntegrationInformation,
+    environment: ENV,
+    log: Logger,
+): Promise<ResErr<VitecIntegration>> {
     log.trace('[mv int] Initializing Vitec integration');
     const userInfoRes = await getSessionToken(environment, log);
     if (userInfoRes.err != null) {
-        return {res: null, err: userInfoRes.err};
+        return { res: null, err: userInfoRes.err };
     }
     const integration: VitecIntegration = {
         log: log,
         env: environment,
         sessionToken: userInfoRes.res,
-        baseUrl: info.locationUrl
+        baseUrl: info.locationUrl,
     };
     log.trace('[mv int] Vitec integration initialized');
-    return {res: integration, err: null};
+    return { res: integration, err: null };
 }
 
 const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<string>> => {
     const sessionRes = parseForSessionCookie(log);
     if (sessionRes.err != null) {
         if (environment.runtimeMode !== RuntimeMode.PRODUCTION) {
-            return Promise.resolve({res: "CookieNotFoundResortingToThisAsDevSessionToken", err: null });
+            return Promise.resolve({ res: 'CookieNotFoundResortingToThisAsDevSessionToken', err: null });
         }
-        return {res: null, err: sessionRes.err};
+        return { res: null, err: sessionRes.err };
     }
 
-    return {res: sessionRes.res, err: null};  
-}
+    return { res: sessionRes.res, err: null };
+};
 
 const parseForSessionCookie = (log: Logger): ResErr<string> => {
     const cookies = document.cookie.split(';');
@@ -50,10 +54,10 @@ const parseForSessionCookie = (log: Logger): ResErr<string> => {
         if (cookie.startsWith(SESSION_COOKIE_NAME)) {
             const splitOnEquals = cookie.split('=');
             if (splitOnEquals.length < 2) {
-                return {res: null, err: `Session cookie found, but no value found for cookie: ${cookie}`};
+                return { res: null, err: `Session cookie found, but no value found for cookie: ${cookie}` };
             }
-            return {res: splitOnEquals[1], err: null};
+            return { res: splitOnEquals[1], err: null };
         }
     }
-    return {res: null, err: "No session cookie found"};
-}
+    return { res: null, err: 'No session cookie found' };
+};

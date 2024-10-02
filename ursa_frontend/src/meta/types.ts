@@ -1,12 +1,12 @@
-import { Component } from "solid-js";
-import { BackendIntegration } from "../integrations/main_backend/mainBackend";
-import { PlayerInfoResponseDTO } from "../integrations/main_backend/mainBackendDTOs";
-import { IMultiplayerIntegration } from "../integrations/multiplayer_backend/multiplayerBackend";
-import { VitecIntegration } from "../integrations/vitec/vitecIntegration";
-import { Logger } from "../logging/filteredLogger";
-import { InternationalizationService } from "../integrations/main_backend/internationalization/internationalization";
-import { IEventMultiplexer } from "../integrations/multiplayer_backend/eventMultiplexer";
-import { ENV } from "../environment/manager";
+import { Component } from 'solid-js';
+import { BackendIntegration } from '../integrations/main_backend/mainBackend';
+import { PlayerInfoResponseDTO } from '../integrations/main_backend/mainBackendDTOs';
+import { IMultiplayerIntegration } from '../integrations/multiplayer_backend/multiplayerBackend';
+import { VitecIntegration } from '../integrations/vitec/vitecIntegration';
+import { Logger } from '../logging/filteredLogger';
+import { InternationalizationService } from '../integrations/main_backend/internationalization/internationalization';
+import { IEventMultiplexer } from '../integrations/multiplayer_backend/eventMultiplexer';
+import { ENV } from '../environment/manager';
 
 export type Error = string;
 interface ResSuccess<T> {
@@ -18,7 +18,7 @@ interface ResError {
     res: null;
     err: Error;
 }
-  
+
 export type ResErr<T> = ResSuccess<T> | ResError;
 interface ResCodeSuccess<T> extends ResSuccess<T> {
     code: number;
@@ -27,16 +27,16 @@ interface ResCodeSuccess<T> extends ResSuccess<T> {
 interface ResCodeError extends ResError {
     code: number;
 }
-  
+
 export type ResCodeErr<T> = ResCodeSuccess<T> | ResCodeError;
 
-export type NamedVoidFunction = { name: string, func: () => void };
+export type NamedVoidFunction = { name: string; func: () => void };
 
 export enum Bundle {
     COLONY = 'colony',
     TUTORIAL = 'tutorial',
     MENU = 'menu',
-    UNNKNOWN = 'unknown'
+    UNNKNOWN = 'unknown',
 }
 
 export type BundleComponent<T extends object> = Component<T> & { bundle: Bundle };
@@ -45,7 +45,7 @@ export enum RuntimeMode {
     DEVELOPMENT = 'development',
     PRODUCTION = 'production',
     TEST = 'test',
-    UNKNOWN = 'unknown'
+    UNKNOWN = 'unknown',
 }
 
 export enum MultiplayerMode {
@@ -57,7 +57,7 @@ export enum LogLevel {
     ERROR = 'error',
     WARN = 'warn',
     INFO = 'info',
-    TRACE = 'trace'
+    TRACE = 'trace',
 }
 
 export enum ParseMethod {
@@ -65,12 +65,12 @@ export enum ParseMethod {
     TEXT = 'text',
     BLOB = 'blob',
     ARRAYBUFFER = 'arrayBuffer',
-    NONE = 'none'
+    NONE = 'none',
 }
 export interface ArbitraryResponseDefinition<H extends { [key: string]: any }> {
     bodyParseMethod: ParseMethod;
     headers: H;
-};
+}
 
 export type ApplicationContext = {
     backend: BackendIntegration;
@@ -80,4 +80,4 @@ export type ApplicationContext = {
     text: InternationalizationService;
     events: IEventMultiplexer;
     env: ENV;
-}
+};

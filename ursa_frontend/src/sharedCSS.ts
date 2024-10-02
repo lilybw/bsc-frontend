@@ -1,4 +1,4 @@
-import { css } from '@emotion/css'
+import { css } from '@emotion/css';
 
 /**
  * Small style fragments
@@ -16,10 +16,10 @@ export const Styles = {
             rgba(128, 128, 128, 0.5) 20px
         );
         background-size: 28.28px 28.28px;
-    `
-}
+    `,
+};
 
-export const SHARED_CSS_STR =`
+export const SHARED_CSS_STR = `
 body {
     margin: 0;
     background-color: #000000;
@@ -34,7 +34,7 @@ code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
         monospace;
 }
-`
+`;
 export const BigButtonStyle = css`
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
@@ -43,7 +43,7 @@ export const BigButtonStyle = css`
     margin: 1rem;
     border-radius: 1rem;
     border: 1px solid black;
-    box-shadow: inset 0 0 4px white;  
+    box-shadow: inset 0 0 4px white;
     cursor: pointer;
     text-shadow: none;
     scale: 1;
@@ -51,11 +51,11 @@ export const BigButtonStyle = css`
 
     &:not(:disabled) {
         &:hover {
-        scale: 1.1;
-        border: 1px solid white;
-        box-shadow: inset 0 0 10px white;
-        background-color: rgba(0, 0, 0, 0.7);
-        text-shadow: 2px 2px 4px white;
+            scale: 1.1;
+            border: 1px solid white;
+            box-shadow: inset 0 0 10px white;
+            background-color: rgba(0, 0, 0, 0.7);
+            text-shadow: 2px 2px 4px white;
         }
     }
 
@@ -63,6 +63,8 @@ export const BigButtonStyle = css`
         cursor: not-allowed;
         opacity: 0.6;
     }
-`
+`;
 
-export const SHARED_CSS = css`${SHARED_CSS_STR}`
+export const SHARED_CSS = css`
+    ${SHARED_CSS_STR}
+`;
