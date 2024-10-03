@@ -121,7 +121,7 @@ export type AssetResponseDTO = {
     alias: string;
     LODs: {
         detailLevel: uint32;
-        id: AssetID;
+        id: LODID;
     }[];
 };
 
