@@ -1,1 +1,0 @@
-export const getRandHash = () => Math.random().toString(36).substring(7);

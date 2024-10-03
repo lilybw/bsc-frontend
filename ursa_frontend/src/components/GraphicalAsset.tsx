@@ -4,7 +4,7 @@ import Spinner from './SimpleLoadingSpinner';
 import { css } from '@emotion/css';
 import SomethingWentWrongIcon from './SomethingWentWrongIcon';
 import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from '../ts/types';
-import { getRandHash } from '../ts/randHash';
+import { getRandHash } from '../ts/ursaMath';
 
 interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IBackendBased {
   metadata: AssetResponseDTO | MinimizedAssetDTO;
@@ -80,7 +80,6 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
       }
     });
   });
-
   const computedStyles = createMemo(() => css`
     ${baseStyles}
     --transform-x: ${props.transform ? props.transform.xOffset : 0}px;

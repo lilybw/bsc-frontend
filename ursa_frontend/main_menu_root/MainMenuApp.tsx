@@ -8,6 +8,7 @@ import { ApplicationProps } from '../src/ts/types';
 import ColonyListPage from './pages/ColonyListPage';
 import NewColonyPage from './pages/NewColonyPage';
 import JoinColonyPage from './pages/JoinColony';
+import AssetCollection from '../src/components/colony/AssetCollection';
 
 export enum MenuPages {
   LANDING_PAGE = "landing",
@@ -52,6 +53,7 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign((props: App
 
   return (
     <div class={mainMenuAppStyle} id="the-main-menu-app">
+      <AssetCollection id={1} backend={props.context.backend} />
       {CurrentPage()({context: props.context, goToPage: goToPage, goBack: goBack})}
     </div>
   );

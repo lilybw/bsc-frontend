@@ -4,7 +4,7 @@ import { IBackendBased, IStyleOverwritable } from "../../ts/types";
 import { css } from "@emotion/css";
 import NTAwait from "../util/NoThrowAwait";
 import GraphicalAsset from "../GraphicalAsset";
-import { getRandHash } from "../../ts/randHash";
+import { combineTransforms, getRandHash } from "../../ts/ursaMath";
 
 interface AssetCollectionProps extends IBackendBased, IStyleOverwritable {
     id: AssetCollectionID;
@@ -29,11 +29,20 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
                     setCollectionName(collection.name + " - " + getRandHash());
                     return (
                         <For each={collection.entries}>{(entry) =>
-                            <GraphicalAsset 
-                                backend={props.backend} 
-                                metadata={entry.asset} 
-                                transform={entry.transform}
-                            />
+                            { 
+                                console.log("entry", entry);
+                                return (
+                                    <GraphicalAsset 
+                                        backend={props.backend} 
+                                        metadata={entry.asset} 
+                                        transform={
+                                            props.topLevelTransform ? 
+                                                combineTransforms(props.topLevelTransform, entry.transform) 
+                                                : entry.transform
+                                        }
+                                    />
+                                )
+                            }
                         }</For>
                     )
                 }}
