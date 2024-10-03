@@ -1,13 +1,17 @@
 import { createSignal, createEffect, onCleanup, Component, createMemo, JSX, Show, For } from 'solid-js';
-import { AssetID, AssetResponseDTO, MinimizedAssetDTO } from '../integrations/main_backend/mainBackendDTOs';
-import { BackendIntegration } from '../integrations/main_backend/mainBackend';
+import { AssetID, AssetResponseDTO, MinimizedAssetDTO, TransformDTO } from '../integrations/main_backend/mainBackendDTOs';
 import Spinner from './SimpleLoadingSpinner';
 import { css } from '@emotion/css';
 import SomethingWentWrongIcon from './SomethingWentWrongIcon';
 import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from '../ts/types';
+import { getRandHash } from '../ts/randHash';
 
 interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IBackendBased {
   metadata: AssetResponseDTO | MinimizedAssetDTO;
+  /**
+   * Applied first if provided and only to the container of the image
+   */
+  transform?: TransformDTO;
 }
 
 const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
@@ -79,8 +83,14 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
 
   const computedStyles = createMemo(() => css`
     ${baseStyles}
-    width: ${props.metadata.width}px;
-    height: ${props.metadata.height}px;
+    --transform-x: ${props.transform ? props.transform.xOffset : 0}px;
+    --transform-y: ${props.transform ? props.transform.yOffset : 0}px;
+    --transform-index: ${props.transform ? props.transform.zIndex : 1};
+    --transform-xScale: ${props.transform ? props.transform.xScale : 1};
+    --transform-yScale: ${props.transform ? props.transform.yScale : 1};
+    width: calc(${props.metadata.width}px * var(--transform-xScale));
+    height: calc(${props.metadata.height}px * var(--transform-yScale));
+    ${props.transform ? transformApplicatorStyles : ""}
     ${props.styleOverwrite}
   `)
 
@@ -102,7 +112,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
       {error() && <SomethingWentWrongIcon styleOverwrite={computedStyles()} message={error()} />}
       {currentSrc() && (
         <>
-          <img
+          <img id={props.metadata.alias + "-" + getRandHash()}
             src={currentSrc()!}
             alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
             class={computedStyles()}
@@ -119,4 +129,12 @@ const baseStyles = css`
   position: relative;
   display: block;
   object-fit: contain;
+`
+
+const transformApplicatorStyles = css`
+    position: absolute;
+    left: var(--transform-x);
+    top: var(--transform-y);
+    z-index: var(--transform-index);
+    transform: scale(var(--transform-xScale), var(--transform-yScale));
 `
