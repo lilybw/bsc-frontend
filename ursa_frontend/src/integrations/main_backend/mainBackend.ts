@@ -16,6 +16,7 @@ import {
     JoinColonyResponseDTO,
     LocationInfoFullResponseDTO,
     LocationInfoResponseDTO,
+    LODID,
     MinigameDifficultyID,
     MinigameID,
     MinigameInfoResponseDTO,
@@ -94,7 +95,8 @@ export interface BackendIntegration extends BaseBackendIntegration {
 
     getAssetMetadata: (asset: AssetID) => Promise<ResCodeErr<AssetResponseDTO>>;
     getMetadataOfAssets: (assets: AssetID[]) => Promise<ResCodeErr<AssetResponseDTO[]>>;
-    getLODByAsset: (asset: AssetID, lod: number) => Promise<ResCodeErr<Blob>>;
+    getLODByAsset: (asset: AssetID, detailLevel: number) => Promise<ResCodeErr<Blob>>;
+    getLOD: (lod: LODID) => Promise<ResCodeErr<Blob>>;
     getAssetCollection: (collection: AssetCollectionID) => Promise<ResCodeErr<AssetCollectionResponseDTO>>;
 
     getMinigameInfo: (minigame: number) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
@@ -190,6 +192,7 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
         getAssetMetadata: (assetId) => base.request<AssetResponseDTO>(HTTPMethod.GET, `/api/v1/asset/${assetId}`, ParseMethod.JSON),
         getMetadataOfAssets: (assets) => base.request<AssetResponseDTO[]>(HTTPMethod.GET, `/api/v1/assets?ids=${assets.join(',')}`, ParseMethod.JSON),
         getLODByAsset: (asset, lod) => base.request<Blob>(HTTPMethod.GET, `/api/v1/asset/${asset}/lod/${lod}`, ParseMethod.BLOB),
+        getLOD: (lod: LODID) => base.request<Blob>(HTTPMethod.GET, `/api/v1/lod/${lod}`, ParseMethod.BLOB),
         getAssetCollection: (collection) =>
             base.request<AssetCollectionResponseDTO>(HTTPMethod.GET, `/api/v1/collection/${collection}`, ParseMethod.JSON),
 
