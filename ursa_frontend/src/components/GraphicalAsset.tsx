@@ -1,5 +1,5 @@
 import { createSignal, createEffect, onCleanup, Component, createMemo, JSX, Show, For } from 'solid-js';
-import { AssetID, AssetResponseDTO } from '../integrations/main_backend/mainBackendDTOs';
+import { AssetID, AssetResponseDTO, MinimizedAssetDTO } from '../integrations/main_backend/mainBackendDTOs';
 import { BackendIntegration } from '../integrations/main_backend/mainBackend';
 import Spinner from './SimpleLoadingSpinner';
 import { css } from '@emotion/css';
@@ -7,7 +7,7 @@ import SomethingWentWrongIcon from './SomethingWentWrongIcon';
 import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from '../ts/types';
 
 interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IBackendBased {
-  metadata: AssetResponseDTO;
+  metadata: AssetResponseDTO | MinimizedAssetDTO;
 }
 
 const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
@@ -28,7 +28,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
         for (const lod of sortedLODs) {
           if (!mounted) break;
 
-          const lodResponse = await props.backend.getLODByAsset(props.metadata.id, lod.detailLevel);
+          const lodResponse = await props.backend.getLOD(lod.id);
           if (lodResponse.err || lodResponse.res === null) {
             props.backend.logger.warn(`Failed to load LOD ${lod.detailLevel} for asset ${props.metadata}: ${lodResponse.err}`);
             continue; // Try next LOD
@@ -61,7 +61,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
           if (lod.detailLevel === 0) break; // Stop if we've loaded the highest detail LOD
         }
       } catch (error) {
-        props.backend.logger.error(`Error loading asset ${props.metadata.id}: ` + error);
+        props.backend.logger.error(`Error loading asset ${props.metadata.alias}: ` + error);
         setError((error as Error).message);
         setLoading(false);
       }
