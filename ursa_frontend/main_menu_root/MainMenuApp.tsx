@@ -53,7 +53,6 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign((props: App
 
   return (
     <div class={mainMenuAppStyle} id="the-main-menu-app">
-      <AssetCollection id={1} backend={props.context.backend} />
       {CurrentPage()({context: props.context, goToPage: goToPage, goBack: goBack})}
     </div>
   );

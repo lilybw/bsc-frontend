@@ -24,28 +24,21 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
     `;
     return (
         <div class={computedContainerStyle(props.topLevelTransform)} id={collectionName()}>
-            <NTAwait func={() => props.backend.getAssetCollection(props.id)}> 
-                {collection => {
-                    setCollectionName(collection.name + " - " + getRandHash());
-                    return (
-                        <For each={collection.entries}>{(entry) =>
-                            { 
-                                console.log("entry", entry);
-                                return (
-                                    <GraphicalAsset 
-                                        backend={props.backend} 
-                                        metadata={entry.asset} 
-                                        transform={
-                                            props.topLevelTransform ? 
-                                                combineTransforms(props.topLevelTransform, entry.transform) 
-                                                : entry.transform
-                                        }
-                                    />
-                                )
+            <NTAwait func={() => props.backend.getAssetCollection(props.id)}>{collection => {
+                setCollectionName(collection.name + " - " + getRandHash());
+                return (
+                    <For each={collection.entries}>{(entry) =>
+                        <GraphicalAsset 
+                            backend={props.backend} 
+                            metadata={entry.asset} 
+                            transform={
+                                props.topLevelTransform ? 
+                                    combineTransforms(props.topLevelTransform, entry.transform) 
+                                    : entry.transform
                             }
-                        }</For>
-                    )
-                }}
+                        />
+                    }</For>
+                )}}
             </NTAwait>
         </div>
     )
