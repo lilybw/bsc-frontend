@@ -34,7 +34,7 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
         for (const lod of sortedLODs) {
           if (!mounted) break;
 
-          const lodResponse = await props.backend.getAssetLOD(props.metadata.id, lod.detailLevel);
+          const lodResponse = await props.backend.getLODByAsset(props.metadata.id, lod.detailLevel);
           if (lodResponse.err || lodResponse.res === null) {
             props.backend.logger.warn(`Failed to load LOD ${lod.detailLevel} for asset ${props.metadata}: ${lodResponse.err}`);
             continue; // Try next LOD

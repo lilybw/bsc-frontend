@@ -276,7 +276,7 @@ export type GraphicalAsset = {
     height: uint32;
     alias: string;
 };
-
+export type LODID = uint32;
 export type MinimizedAssetDTO = {
     alias: string;
     type: string;
@@ -284,7 +284,7 @@ export type MinimizedAssetDTO = {
     height: uint32;
     LODs: {
         detailLevel: uint32;
-        id: AssetID;
+        id: LODID;
     }[];
 };
 
