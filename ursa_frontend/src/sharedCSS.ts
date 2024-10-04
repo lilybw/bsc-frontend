@@ -17,24 +17,24 @@ export const Styles = {
         );
         background-size: 28.28px 28.28px;
     `,
+    /**
+     * NOT CSS TRANSFORM, but rather using various CSS fields to apply some game transform.
+     * 
+     * Expects variables:
+     * * --transform-x: x position, in pixels
+     * * --transform-y: y position, in pixels
+     * * --transform-index: z-index, any numeric value
+     * * --transform-xScale: x scale, any float
+     * * --transform-yScale: y scale, any float
+     */
+    TRANSFORM_APPLICATOR: css`
+        position: absolute;
+        left: var(--transform-x);
+        top: var(--transform-y);
+        z-index: var(--transform-index);
+        transform: scale(var(--transform-xScale), var(--transform-yScale));
+    `
 };
-
-export const SHARED_CSS_STR = `
-body {
-    margin: 0;
-    background-color: #000000;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-        monospace;
-}
-`;
 export const BigButtonStyle = css`
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
@@ -63,8 +63,4 @@ export const BigButtonStyle = css`
         cursor: not-allowed;
         opacity: 0.6;
     }
-`;
-
-export const SHARED_CSS = css`
-    ${SHARED_CSS_STR}
 `;

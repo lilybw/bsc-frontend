@@ -14,18 +14,33 @@ export interface IStyleOverwritable {
 export interface IBackendBased {
     backend: BackendIntegration;
 }
+/**
+ * Reacts to all changes in some buffer
+ */
 export interface IBufferBased {
     buffer: Accessor<string>;
 }
+/**
+ * Has children
+ */
 export interface IParenting {
     children?: JSX.Element;
 }
+/**
+ * Has children, but is an img tag, so tries its best
+ */
 export interface IParentingImages {
     children?: Component<IStyleOverwritable>[];
 }
+/**
+ * Any component that needs access to the InternationalizationService
+ */
 export interface IInternationalized {
     text: InternationalizationService;
 }
+/**
+ * Registers to a buffer of some type as to provide a callback for what to do when that buffer is "executed"
+ */
 export interface IRegistering<T> {
     register: AddRetainRemoveFunc<BufferSubscriber<T>>;
 }

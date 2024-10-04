@@ -1,7 +1,4 @@
 import { createEffect, createMemo, createSignal, Match, Switch, type Component, type JSX } from 'solid-js';
-
-import { SHARED_CSS_STR, Styles } from '../src/sharedCSS';
-
 import {injectGlobal, css} from '@emotion/css'
 import BigMenuButton from '../src/components/BigMenuButton';
 import ProgressTracker from './ProgressTracker';
@@ -14,7 +11,6 @@ import LocationTrial from './slides/LocationTrial';
 import NavigationDemo from './slides/NavigationDemo';
 import NavigationTrial from './slides/NavigationTrial';
 import LocationDemo from './slides/LocationDemo';
-import MultiplayerTrial from './slides/MultiplayerTrial';
 import TutorialCompletePage from './slides/TutorialCompletePage';
 import { ApplicationProps } from '../src/ts/types';
 import StarryBackground from '../src/components/StarryBackground';
@@ -23,8 +19,7 @@ import { LanguagePreference } from '../src/integrations/vitec/vitecDTOs';
 import NTAwait from '../src/components/util/NoThrowAwait';
 import GraphicalAsset from '../src/components/GraphicalAsset';
 import MultiplayerDemo from './slides/MultiplayerDemo';
-
-injectGlobal`${SHARED_CSS_STR}`
+import { Styles } from '../src/sharedCSS';
 
 export type SlideEntry = {hasCompleted: boolean, icon: Component<SlideIconProps>, iconId: number};
 const slides: SlideEntry[] = [
@@ -188,13 +183,6 @@ const leftNavigationButtonStyle = css`
 const rightNavigationButtonStyle = css`
   ${navigationButtonStyle}
   right: 0;
-`
-
-const rightNavigationDistabledStyle = css`
-  ${rightNavigationButtonStyle}
-  pointer-events: none;
-  color: grey;
-  ${Styles.CROSS_HATCH_GRADIENT}
 `
 
 const containerStyle = css`

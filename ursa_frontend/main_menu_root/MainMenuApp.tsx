@@ -1,14 +1,13 @@
 import { createSignal, type Component, type JSX } from 'solid-js';
-import { SHARED_CSS, SHARED_CSS_STR, Styles } from '../src/sharedCSS';
+import { Styles } from '../src/sharedCSS';
 
-import {injectGlobal, css} from '@emotion/css'
+import {css} from '@emotion/css'
 import { ApplicationContext, Bundle, BundleComponent } from '../src/meta/types';
 import LandingPage from './pages/LandingPage';
 import { ApplicationProps } from '../src/ts/types';
 import ColonyListPage from './pages/ColonyListPage';
 import NewColonyPage from './pages/NewColonyPage';
 import JoinColonyPage from './pages/JoinColony';
-import AssetCollection from '../src/components/colony/AssetCollection';
 
 export enum MenuPages {
   LANDING_PAGE = "landing",
