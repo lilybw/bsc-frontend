@@ -30,7 +30,7 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
                     <For each={collection.entries}>{(entry) =>
                         <GraphicalAsset 
                             backend={props.backend} 
-                            metadata={entry.asset} 
+                            metadata={entry.asset}
                             transform={
                                 props.topLevelTransform ? 
                                     combineTransforms(props.topLevelTransform, entry.transform) 

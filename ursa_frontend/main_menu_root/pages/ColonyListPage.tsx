@@ -1,4 +1,4 @@
-import { Component, createEffect, createResource, createSignal, For } from "solid-js"
+import { Component, createEffect, createResource, createSignal, For, Show } from "solid-js"
 import { MenuPageProps } from "../MainMenuApp"
 import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO, UpdateLatestVisitResponseDTO, UpdateLatestVisitRequestDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
 import { ResCodeErr } from "../../src/meta/types";
@@ -9,23 +9,19 @@ import { css } from "@emotion/css";
 import StarryBackground from "../../src/components/StarryBackground";
 import ColonyListEntry from "./ColonyListEntry";
 import NavigationFooter from "../NavigationFooter";
+import NTAwait from "../../src/components/util/NoThrowAwait";
+import If from "../../src/components/util/If";
+import SectionSubTitle from "../../src/components/SectionSubTitle";
 
 const ColonyListPage: Component<MenuPageProps> = (props) => {
-    const [colonyListReq, setColonyListReq] = createResource<ResCodeErr<ColonyOverviewReponseDTO>>(async () => {
-        return Promise.resolve(props.context.backend.getColonyOverview(props.context.backend.localPlayer.id))
-    });
-
     const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);
 
-    const sortedColonies = () => {
-        if (colonyListReq.state === "ready" && colonyListReq.latest?.res) {
-            return [...colonyListReq.latest.res.colonies].sort((a, b) => {
-                const dateA = new Date(a.latestVisit);
-                const dateB = new Date(b.latestVisit);
-                return dateB.getTime() - dateA.getTime(); // Sort in descending order (most recent first)
-            });
-        }
-        return [];
+    const sortedColonies = (colonyListReq: ColonyOverviewReponseDTO) => {
+        return [...colonyListReq.colonies].sort((a, b) => {
+            const dateA = new Date(a.latestVisit);
+            const dateB = new Date(b.latestVisit);
+            return dateB.getTime() - dateA.getTime(); // Sort in descending order (most recent first)
+        });
     };
 
     async function handleGoToColony() {
@@ -54,55 +50,27 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
         props.context.logger.log("[DELETE ME] implement redirect here!")
     }
 
-    const appendSomethingWentWrong = () => {
-        if (colonyListReq.error) {
-            return <SomethingWentWrongIcon styleOverwrite={spinnerStyleOverwrite} message={(colonyListReq.error as Error).message} />
-        }
-        return <></>
-    }
-
-    const appendLoadingSpinner = () => {
-        if (colonyListReq.loading) {
-            return <Spinner styleOverwrite={spinnerStyleOverwrite} />
-        }
-        return <></>
-    }
-
-    const appendNoColoniesYet = () => {
-        if (colonyListReq.state === "ready" && colonyListReq.latest?.res!.colonies.length === 0) {
-            return <h3>No colonies found</h3>
-        }
-        return <></>
-    }
-
-    const appendColonyList = () => {
-        if (colonyListReq.state === "ready" && colonyListReq.latest?.res!.colonies.length > 0) {
-            return (
-                <>
-                <div class={colonyListBackgroundStyle}/>
-                <div class={colonyListStyle}>
-                <For each={sortedColonies()}>{(colony: ColonyInfoResponseDTO) =>
-                    <ColonyListEntry 
-                        colony={colony} 
-                        onClick={() => setSelectedColonyId(colony.id)} 
-                        isSelected={selectedColonyId() === colony.id}
-                        text={props.context.text}
-                    />
-                }</For>
-                </div>
-                </>
-            )
-        }
-        return <></>
-    }
-
     return (
         <div>
             <SectionTitle styleOverwrite={css`font-size: 5rem;`}>Select</SectionTitle>
-            {appendSomethingWentWrong()}
-            {appendNoColoniesYet()}
-            {appendColonyList()}
-            {appendLoadingSpinner()}
+            <NTAwait func={() => props.context.backend.getColonyOverview(props.context.backend.localPlayer.id)}>{(overview) =>
+                <If condition={overview.colonies.length > 0}>{[
+                    <>
+                    <div class={colonyListBackgroundStyle}/>
+                    <div class={colonyListStyle}>
+                    <For each={sortedColonies(overview)}>{(colony: ColonyInfoResponseDTO) =>
+                        <ColonyListEntry 
+                            colony={colony} 
+                            onClick={() => setSelectedColonyId(colony.id)} 
+                            isSelected={selectedColonyId() === colony.id}
+                            text={props.context.text}
+                        />
+                    }</For>
+                    </div>
+                    </>,
+                    <SectionSubTitle>No Colonies Yet</SectionSubTitle>
+                ]}</If>
+            }</NTAwait>
             <NavigationFooter 
                 goBack={{name: "Back", func: props.goBack}} 
                 goNext={{name: "Confirm", func: handleGoToColony}} 
