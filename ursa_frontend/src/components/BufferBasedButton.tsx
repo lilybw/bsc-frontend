@@ -31,16 +31,17 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
             }
             return { consumed: false };
         });
-
         onCleanup(removeFunc);
     });
 
+    const computedContainerStyles = createMemo(() => css`
+        ${baseStyle} 
+        ${props.styleOverwrite} 
+        ${activated() ? onActivationShimmerAnim : ''}
+    `);
+
     return (
-        <button class={css`
-            ${baseStyle} 
-            ${props.styleOverwrite} 
-            ${activated() ? onActivationShimmerAnim : ''}
-        `} 
+        <button class={computedContainerStyles()} 
             id={"buffer-based-button-"+props.name}
         >
             <BufferHighlightedName 

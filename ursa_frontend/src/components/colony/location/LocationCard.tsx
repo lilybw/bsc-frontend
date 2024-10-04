@@ -9,7 +9,8 @@ import SpacePortLocationCard from "./SpacePortLocationCard";
 import HomeLocationCard from "./HomeLocationCard";
 
 export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
-    location: ColonyLocationInformation;
+    colonyLocation: ColonyLocationInformation;
+    location: LocationInfoResponseDTO;
 }
 
 
@@ -53,7 +54,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
     const computedContainerStyle = createMemo(() => css`${locationCardContainerStyle} ${props.styleOverwrite}`);
     return (
         <div class={computedContainerStyle()}>
-            <NTAwait func={() => props.backend.getLocationInfo(props.location.locationID)}>{renderCardOfType}</NTAwait>
+            {renderCardOfType(props.location)}
         </div>
     )
 }
