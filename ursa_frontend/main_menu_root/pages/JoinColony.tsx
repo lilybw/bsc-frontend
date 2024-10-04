@@ -66,23 +66,25 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
     
     return (
         <div class={pageStyle}>
-            <NavigationFooter goBack={{ name: "Back", func: props.goBack }} goNext={{ name: "Join", func: handleJoin}}/>
-            <SectionTitle>Join Colony</SectionTitle>
-                <div>
-                    <SectionSubTitle>
-                        Insert Code To Join Colony
-                    </SectionSubTitle>
-                    <div class={inputContainerStyle}>
-                        {textError() && <SectionSubTitle styleOverwrite="color: red;">{textError()}</SectionSubTitle>}
-                        <input
-                        id="ColonyCode"
-                        type="number"
-                        value={colonyCode()}
-                        onInput={(e) => setcolonyCode(e.currentTarget.value)}
-                        class={inputStyle}
-                        />
-                    </div>
+            <NavigationFooter
+                text={props.context.text} 
+                goBack={{ name: "MENU.NAVIGATION.BACK", func: props.goBack }} 
+                goNext={{ name: "MENU.OPTION.JOIN_COLONY", func: handleJoin}}
+            />
+            {props.context.text.Title('MENU.PAGE_TITLE.JOIN_COLONY')({})}
+            <div>
+                {props.context.text.SubTitle('MENU.SUB_TITLE.INSERT_CODE_HERE')({})}
+                <div class={inputContainerStyle}>
+                    {textError() && <SectionSubTitle styleOverwrite="color: red;">{textError()}</SectionSubTitle>}
+                    <input
+                    id="ColonyCode"
+                    type="number"
+                    value={colonyCode()}
+                    onInput={(e) => setcolonyCode(e.currentTarget.value)}
+                    class={inputStyle}
+                    />
                 </div>
+            </div>
             <StarryBackground/>
         </div>
     )

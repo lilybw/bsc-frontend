@@ -10,17 +10,25 @@ const LandingPage: Component<MenuPageProps> = (props) => {
 
     const tutorialOnly = createMemo(() => {
         return !(props.context.env.runtimeMode === RuntimeMode.PRODUCTION && 
-        props.context.player.hasCompletedTutorial)
+        props.context.backend.localPlayer.hasCompletedTutorial)
     })
 
     return (
         <>
             <SectionTitle>U.R.S.A.</SectionTitle>
             <div class={menuOptionsListStyle}>
-                <BigMenuButton enable={tutorialOnly} onClick={() => props.goToPage(MenuPages.NEW_COLONY)}>New</BigMenuButton>
-                <BigMenuButton enable={tutorialOnly} onClick={() => props.goToPage(MenuPages.CONTINUE_COLONY)}>Continue</BigMenuButton>
-                <BigMenuButton enable={tutorialOnly} onClick={() => props.goToPage(MenuPages.JOIN_COLONY)}>Join</BigMenuButton>
-                <BigMenuButton onClick={() => (window as any).location.href=props.context.vitec.baseUrl + "/games/ursa/tutorial" }>Tutorial</BigMenuButton>
+                <BigMenuButton enable={tutorialOnly} onClick={() => props.goToPage(MenuPages.NEW_COLONY)}>
+                    {props.context.text.get("MENU.OPTION.NEW_COLONY").get()}
+                </BigMenuButton>
+                <BigMenuButton enable={tutorialOnly} onClick={() => props.goToPage(MenuPages.CONTINUE_COLONY)}>
+                    {props.context.text.get("MENU.OPTION.CONTINUE_COLONY").get()}
+                </BigMenuButton>
+                <BigMenuButton enable={tutorialOnly} onClick={() => props.goToPage(MenuPages.JOIN_COLONY)}>
+                    {props.context.text.get("MENU.OPTION.JOIN_COLONY").get()}
+                </BigMenuButton>
+                <BigMenuButton onClick={() => (window as any).location.href=props.context.vitec.baseUrl + "/games/ursa/tutorial" }>
+                    {props.context.text.get("MENU.OPTION.TUTORIAL").get()}
+                </BigMenuButton>
             </div>
             <StarryBackground />
         </>

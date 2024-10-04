@@ -56,7 +56,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
     }
 
     // Open colony
-    const openColonyResponse = await props.context.backend.getColony(props.context.backend.localPlayer.id, Number(createColonyResponse.res?.id));
+    const colonyData = await props.context.backend.getColony(props.context.backend.localPlayer.id, Number(createColonyResponse.res?.id));
 
     props.context.logger.log("[DELETE ME] implement redirect here!")
   };
@@ -64,10 +64,10 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
   return (
     <div class={pageStyle} id={"new-colony-page"}>
       <div class={leftContainerStyle} id={"new-colony-page-left-container"}>
-        <SectionTitle styleOverwrite={titleStyle}>CREATE A NEW COLONY</SectionTitle>
+        {props.context.text.Title('MENU.PAGE_TITLE.CREATE_COLONY')({styleOverwrite: titleStyle})}
         <div class={centerContentStyle} id={"new-colony-page-centering"}>
           <div class={inputContainerStyle}>
-            <SectionSubTitle>Name Your Colony</SectionSubTitle>
+            {props.context.text.SubTitle('MENU.SUB_TITLE.NAME_COLONY')({})}
             {textError() && <SectionSubTitle styleOverwrite="color: red;">{textError()}</SectionSubTitle>}
             <input
               id="colonyName"
@@ -78,8 +78,9 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
             />
           </div>
           <NavigationFooter
-            goBack={{ name: "Back", func: props.goBack }}
-            goNext={{ name: "Create Colony", func: handleCreateColony }}
+            text={props.context.text}
+            goBack={{ name: "MENU.NAVIGATION.BACK", func: props.goBack }}
+            goNext={{ name: "MENU.OPTION.CREATE_COLONY", func: handleCreateColony }}
           />
         </div>
       </div>

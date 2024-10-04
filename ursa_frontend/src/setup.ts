@@ -44,7 +44,7 @@ export const initApp = (app: BundleComponent<ApplicationProps>) => {
             userIdentifier: 'dev-user-123',
             firstName: 'DevUser',
             lastName: 'TheeWhoCommits',
-            languagePreference: LanguagePreference.English,
+            languagePreference: LanguagePreference.Danish,
             locationUrl: 'http://localhost:' + (import.meta.env.VITE_PORT ?? 3000),
             currentSubUrl: import.meta.env.BASE_URL,
             bundleRequested: app.bundle,

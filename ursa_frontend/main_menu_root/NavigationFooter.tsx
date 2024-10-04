@@ -2,8 +2,9 @@ import { css } from "@emotion/css";
 import { Accessor, Component } from "solid-js";
 import { NamedVoidFunction } from "../src/meta/types";
 import BigMenuButton from "../src/components/BigMenuButton";
+import { IInternationalized } from "../src/ts/types";
 
-interface NavigationFooterProps {
+interface NavigationFooterProps extends IInternationalized {
     goNext?: NamedVoidFunction;
     goNextEnabled?: Accessor<boolean>;
     goBack?: NamedVoidFunction;
@@ -21,21 +22,21 @@ const NavigationFooter: Component<NavigationFooterProps> = (props) => {
             
             enable={props.goBackEnabled}
         >
-            {props.goBack?.name || "Back"}
+            {props.text.get(props.goBack?.name || "MENU.NAVIGATION.BACK").get()}
         </BigMenuButton>)}
 
         {props.cancelAll && (<BigMenuButton 
             onClick={props.cancelAll?.func} 
             enable={props.cancelAllEnabled}
         >
-            {props.cancelAll?.name || "Cancel"}
+            {props.text.get(props.cancelAll?.name || "MENU.NAVIGATION.CANCEL").get()}
         </BigMenuButton>)}
 
         {props.goNext && (<BigMenuButton 
             onClick={props.goNext?.func} 
             enable={props.goNextEnabled}
         >
-            {props.goNext?.name || "Next"}
+            {props.text.get(props.goNext?.name || "MENU.NAVIGATION.NEXT").get()}
         </BigMenuButton>)}
         </div>
     )

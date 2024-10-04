@@ -68,12 +68,13 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                     }</For>
                     </div>
                     </>,
-                    <SectionSubTitle>No Colonies Yet</SectionSubTitle>
+                    props.context.text.SubTitle('MENU.SUB_TITLE.NO_COLONIES_YET')({})
                 ]}</If>
             }</NTAwait>
             <NavigationFooter 
-                goBack={{name: "Back", func: props.goBack}} 
-                goNext={{name: "Confirm", func: handleGoToColony}} 
+                text={props.context.text}
+                goBack={{name: "MENU.NAVIGATION.BACK", func: props.goBack}} 
+                goNext={{name: "MENU.NAVIGATION.CONFIRM", func: handleGoToColony}} 
                 goNextEnabled={() => selectedColonyId() !== null}
             />
             <StarryBackground />
