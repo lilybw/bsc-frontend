@@ -5,6 +5,7 @@ import { css } from "@emotion/css";
 import NTAwait from "../util/NoThrowAwait";
 import GraphicalAsset from "../GraphicalAsset";
 import { combineTransforms, getRandHash } from "../../ts/ursaMath";
+import { Styles } from "../../sharedCSS";
 
 interface AssetCollectionProps extends IBackendBased, IStyleOverwritable {
     id: AssetCollectionID;
@@ -14,12 +15,8 @@ interface AssetCollectionProps extends IBackendBased, IStyleOverwritable {
 const AssetCollection: Component<AssetCollectionProps> = (props) => {
     const [collectionName, setCollectionName] = createSignal<string>("unknown-collection...");
     const computedContainerStyle = (transform?: TransformDTO) => css`
-        --transform-x: ${transform ? transform.xOffset : 0}px;
-        --transform-y: ${transform ? transform.yOffset : 0}px;
-        --transform-index: ${transform ? transform.zIndex : 1};
-        --transform-xScale: ${transform ? transform.xScale : 1};
-        --transform-yScale: ${transform ? transform.yScale : 1};
-        ${transformDependentStyle}
+        ${Styles.transformToCSSVariables(props.topLevelTransform)}
+        ${props.topLevelTransform ? Styles.TRANSFORM_APPLICATOR : ""}
         ${props.styleOverwrite}
     `;
     return (
@@ -44,11 +41,3 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
     )
 }
 export default AssetCollection;
-
-const transformDependentStyle = css`
-    position: absolute;
-    left: var(--transform-x);
-    top: var(--transform-y);
-    z-index: var(--transform-index);
-    transform: scale(var(--transform-xScale), var(--transform-yScale));
-`

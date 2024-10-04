@@ -5,6 +5,7 @@ import { css } from '@emotion/css';
 import SomethingWentWrongIcon from './SomethingWentWrongIcon';
 import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from '../ts/types';
 import { getRandHash } from '../ts/ursaMath';
+import { Styles } from '../sharedCSS';
 
 interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IBackendBased {
   metadata: AssetResponseDTO | MinimizedAssetDTO;
@@ -82,14 +83,10 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
   });
   const computedStyles = createMemo(() => css`
     ${baseStyles}
-    --transform-x: ${props.transform ? props.transform.xOffset : 0}px;
-    --transform-y: ${props.transform ? props.transform.yOffset : 0}px;
-    --transform-index: ${props.transform ? props.transform.zIndex : 1};
-    --transform-xScale: ${props.transform ? props.transform.xScale : 1};
-    --transform-yScale: ${props.transform ? props.transform.yScale : 1};
+    ${Styles.transformToCSSVariables(props.transform)}
     width: calc(${props.metadata.width}px * var(--transform-xScale));
     height: calc(${props.metadata.height}px * var(--transform-yScale));
-    ${props.transform ? transformApplicatorStyles : ""}
+    ${props.transform ? Styles.TRANSFORM_APPLICATOR : ""}
     ${props.styleOverwrite}
   `)
 
@@ -128,12 +125,4 @@ const baseStyles = css`
   position: relative;
   display: block;
   object-fit: contain;
-`
-
-const transformApplicatorStyles = css`
-    position: absolute;
-    left: var(--transform-x);
-    top: var(--transform-y);
-    z-index: var(--transform-index);
-    transform: scale(var(--transform-xScale), var(--transform-yScale));
 `

@@ -1,4 +1,5 @@
 import { css } from '@emotion/css';
+import { TransformDTO } from './integrations/main_backend/mainBackendDTOs';
 
 /**
  * Small style fragments
@@ -16,6 +17,13 @@ export const Styles = {
             rgba(128, 128, 128, 0.5) 20px
         );
         background-size: 28.28px 28.28px;
+    `,
+    transformToCSSVariables: (transform?: TransformDTO) => css`
+        --transform-x: ${transform ? transform.xOffset : 0}px;
+        --transform-y: ${transform ? transform.yOffset : 0}px;
+        --transform-index: ${transform ? transform.zIndex : 1};
+        --transform-xScale: ${transform ? transform.xScale : 1};
+        --transform-yScale: ${transform ? transform.yScale : 1};
     `,
     /**
      * NOT CSS TRANSFORM, but rather using various CSS fields to apply some game transform.

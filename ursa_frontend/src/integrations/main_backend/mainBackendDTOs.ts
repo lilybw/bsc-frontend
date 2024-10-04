@@ -82,6 +82,7 @@ export type LocationInfoResponseDTO = {
     description: string;
     appearances: {
         level: uint32;
+        splashArt: uint32;
         assetCollectionID: uint32;
     }[];
     minigameID: MinigameID;
@@ -94,6 +95,7 @@ export type LocationInfoFullResponseDTO = {
     transform: TransformDTO;
     appearances: {
         level: uint32;
+        splashArt: uint32;
         assets: {
             transform: TransformDTO;
             asset: MinimizedAssetDTO;
