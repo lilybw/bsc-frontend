@@ -5,7 +5,8 @@ import { css } from "@emotion/css";
 import NTAwait from "../../util/NoThrowAwait";
 import GenericLocationCard from "./GenericLocationCard";
 import { KnownLocations } from "../../../integrations/main_backend/constants";
-import SpacePortLocationCard from "../SpacePortLocationCard";
+import SpacePortLocationCard from "./SpacePortLocationCard";
+import HomeLocationCard from "./HomeLocationCard";
 
 export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     location: ColonyLocationInformation;
@@ -16,6 +17,16 @@ const LocationCard: Component<LocationCardProps> = (props) => {
 
     const renderCardOfType = (locationInfo: LocationInfoResponseDTO): JSX.Element => {
         switch (locationInfo.id) {
+            case KnownLocations.Home:
+                return (
+                    <HomeLocationCard 
+                        info={locationInfo}
+                        buffer={props.buffer}
+                        backend={props.backend}
+                        text={props.text}
+                        register={props.register}
+                    />
+                )
             case KnownLocations.SpacePort:
                 return (
                     <SpacePortLocationCard 
@@ -23,6 +34,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
                         buffer={props.buffer}
                         backend={props.backend}
                         text={props.text}
+                        register={props.register}
                     />
                 )
             default:
@@ -31,7 +43,8 @@ const LocationCard: Component<LocationCardProps> = (props) => {
                         info={locationInfo}
                         buffer={props.buffer}
                         backend={props.backend}
-                        text={props.text}  
+                        text={props.text}
+                        register={props.register}  
                     />
                 )
         }
