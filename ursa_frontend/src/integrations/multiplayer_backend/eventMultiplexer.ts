@@ -27,17 +27,17 @@ export interface IEventMultiplexer {
      * must go through this method.
      * @returns
      */
-    emit: <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => void;
+    emit: <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => Promise<void>;
 }
 
 export interface IExpandedAccessMultiplexer extends IEventMultiplexer {
-    emitRAW: <T extends IMessage>(data: T) => void;
+    emitRAW: <T extends IMessage>(data: T) => Promise<void>;
 }
 
-export const initializeEventMultiplexer = (log: Logger, player: PlayerID): IExpandedAccessMultiplexer => {
-    const plexer = new EventMultiplexerImpl(player);
+export const initializeEventMultiplexer = (log: Logger, localPlayer: PlayerID): IExpandedAccessMultiplexer => {
+    const plexer = new EventMultiplexerImpl(localPlayer);
     const unsubscribeID = plexer.subscribe(DEBUG_INFO_EVENT, (data) => {
-        log.trace(`[emp debug] ${data.senderID}: ${data.message}`);
+        log.log(`[emp debug] from ${data.senderID}: ${data.message}`);
     });
     return plexer;
 };
@@ -72,7 +72,7 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
         return true;
     };
 
-    emit = <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => {
+    emit = async <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => {
         const encapsulatedData = Object.freeze({
             ...data,
             senderID: this.player,
@@ -81,7 +81,7 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
         this.emitRAW(encapsulatedData);
     };
 
-    emitRAW = <T extends IMessage>(data: T) => {
+    emitRAW = async <T extends IMessage>(data: T) => {
         const handlers = this.subscriptions.get(data.eventID);
         if (!handlers || handlers === null || handlers.length === 0) {
             return;
