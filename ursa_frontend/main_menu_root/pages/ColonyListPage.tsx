@@ -47,7 +47,16 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
             latestVisit: getCurrentDateTimeLocaleString()
         }
         props.context.backend.updateLatestVisit(body, colonyID)
-        props.context.logger.log("[DELETE ME] implement redirect here!")
+
+        props.context.backend.getColony(props.context.backend.localPlayer.id, colonyID)
+            .then(res => {
+                if (res.err !== null) {
+                    props.context.logger.error("Failed to get colony: " + res.err);
+                    return;
+                } else {
+                    props.context.nav.goToColony(res.res);
+                }
+            })
     }
 
     return (
