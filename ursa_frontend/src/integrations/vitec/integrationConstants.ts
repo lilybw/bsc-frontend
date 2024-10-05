@@ -16,3 +16,5 @@ export enum SubURLs {
     TUTORIAL = '/tutorial',
     COLONY = '/colony',
 }
+
+export const VITEC_BASE_SUB_URL = '/games/ursa';

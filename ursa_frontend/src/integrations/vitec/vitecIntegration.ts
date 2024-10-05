@@ -2,7 +2,7 @@ import { ResErr, RuntimeMode } from '../../meta/types';
 import { ENV } from '../../environment/manager';
 import { Logger } from '../../logging/filteredLogger';
 import { LanguagePreference, LanguagePreferenceAliases, NormalizedVitecIntegrationInformation, VitecIntegrationInformation } from './vitecDTOs';
-import { SubURLs } from './integrationConstants';
+import { VITEC_BASE_SUB_URL, SubURLs } from './integrationConstants';
 /**
  * Single source of truth: The 10-finger angular project: ./src/app/services/auth.service.ts
  */
@@ -50,27 +50,31 @@ const verifyIntegrationInformation = (info: VitecIntegrationInformation): ResErr
         info.locationUrl = info.locationUrl.slice(0, -1);
     }
 
-    let computedCommonSubUrl = info.currentSubUrl;
-    let foundMatch = false;
-    for (const suburl of Object.values(SubURLs)) {
-        if (info.currentSubUrl.endsWith(suburl)) {
-            computedCommonSubUrl = info.currentSubUrl.slice(0, -suburl.length);
-            foundMatch = true;
-            break;
-        }
-    }
-    if (!foundMatch) { //If there is not url extension present, it must be the base suburl itself
-        computedCommonSubUrl = info.currentSubUrl;
-    }
-
     return { res: { 
         ...info, 
         languagePreference: languageRes.res,
-        commonSubUrl: computedCommonSubUrl
+        commonSubUrl: computeCommonSubUrl(info.currentSubUrl, SubURLs),
     }, 
         err: null 
     };
 };
+
+export const computeCommonSubUrl = (currentSubUrl: string, knownExtensions: { [key: string]: string }): string => {
+    let withoutTrailingSlash = currentSubUrl;
+    if (currentSubUrl.endsWith('/')) {
+        currentSubUrl = currentSubUrl.slice(0, -1);
+    }
+    let current = withoutTrailingSlash;
+    for (const key in knownExtensions) {
+        if (current.endsWith(knownExtensions[key])) {
+            current = current.slice(0, current.length - knownExtensions[key].length);
+        }
+    }
+    if (current.endsWith('/')) {
+        current = current.slice(0, -1);
+    }
+    return current;
+}
 
 const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<string>> => {
     const sessionRes = parseForSessionCookie(log);

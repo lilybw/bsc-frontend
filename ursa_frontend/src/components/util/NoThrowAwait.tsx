@@ -2,8 +2,9 @@ import { Component, createResource, JSX, Show } from "solid-js";
 import Spinner from "../SimpleLoadingSpinner";
 import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
 import { Error, ResErr } from "../../meta/types";
+import Unwrap from "./Unwrap";
 
-export interface NoThrowAwaitProps<T, R extends Component> {
+export interface NoThrowAwaitProps<T> {
     func: () => Promise<ResErr<T>>;
     fallback?: (error: Error) => JSX.Element;
     whilestLoading?: JSX.Element;
@@ -15,7 +16,8 @@ export interface NoThrowAwaitProps<T, R extends Component> {
  * 
  * Does however still also handle normal errors
  */
-const NTAwait = <T, R extends Component>(props: NoThrowAwaitProps<T, R>) => {
+// R is needed here or else the syntax highlighting will break
+const NTAwait = <T, R>(props: NoThrowAwaitProps<T>) => {
     const {func, fallback, children} = props;
     const [resource] = createResource<ResErr<T>>(func);
     return (
@@ -27,12 +29,7 @@ const NTAwait = <T, R extends Component>(props: NoThrowAwaitProps<T, R>) => {
                 {fallback ? fallback(resource.error) : <SomethingWentWrongIcon message={JSON.stringify(resource.error)} />}
             </Show>
             <Show when={resource.latest}>
-                <Show when={resource.latest?.err !== null}>
-                    {fallback ? fallback(resource.latest!.err!) : <SomethingWentWrongIcon message={resource.latest?.err} />}
-                </Show>
-                <Show when={resource.latest?.res !== null}>
-                    {children(resource.latest!.res!)}
-                </Show>
+                <Unwrap func={() => resource.latest!} fallback={fallback} children={children} />
             </Show>
         </>
     );

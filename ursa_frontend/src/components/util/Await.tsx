@@ -3,13 +3,14 @@ import { Error, ResCodeErr } from "../../meta/types";
 import Spinner from "../SimpleLoadingSpinner";
 import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
 
-export interface AwaitProps<T,R extends Component> {
+export interface AwaitProps<T> {
     func: () => Promise<T>;
     fallback?: (error: any) => Component;
     children: (data: T) => JSX.Element;
 }
 
-const Await = <T, R extends Component>(props: AwaitProps<T, R>) => {
+// R is needed here or else the syntax highlighting will break
+const Await = <T, R>(props: AwaitProps<T>) => {
     const {func, fallback, children} = props;
     const [resource, {refetch, mutate}] = createResource<T>(func);
     return (

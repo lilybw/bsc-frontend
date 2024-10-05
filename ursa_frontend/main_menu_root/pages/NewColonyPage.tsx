@@ -50,15 +50,12 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
     const createColonyResponse = await props.context.backend.createColony(body, props.context.backend.localPlayer.id);
 
     // Handle the response as needed
-    if (createColonyResponse.code != 200) {
+    if (createColonyResponse.err !== null) {
         setTextError(String(createColonyResponse.err))
         return
     }
 
-    // Open colony
-    const colonyData = await props.context.backend.getColony(props.context.backend.localPlayer.id, Number(createColonyResponse.res?.id));
-
-    props.context.logger.log("[DELETE ME] implement redirect here!")
+    props.context.nav.goToColony(createColonyResponse.res);
   };
 
   return (
