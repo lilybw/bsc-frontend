@@ -3,6 +3,8 @@
  * 
  * bsc-deployment/otte_docker_deployment/db_creation_scripts/db_data_colony_asset.sql 
  * is the single source of truth.
+ * 
+ * As of right now, only some locations differ in how they're handled on the frontend (namely home and space port).
  */
 export enum KnownLocations {
     OuterWalls = 10,

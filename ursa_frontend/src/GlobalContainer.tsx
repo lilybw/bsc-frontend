@@ -8,6 +8,7 @@ import SolarLoadingSpinner from "./components/SolarLoadingSpinner";
 import { VitecIntegrationInformation } from "./integrations/vitec/vitecDTOs";
 import { ApplicationProps } from "./ts/types";
 import { BundleComponent } from "./meta/types";
+import NTAwait from "./components/util/NoThrowAwait";
 
 interface GlobalContainerProps {
     app: BundleComponent<ApplicationProps>;
@@ -15,23 +16,14 @@ interface GlobalContainerProps {
 }
 
 const GlobalContainer: Component<GlobalContainerProps> = (props) => {
-    const [contextResult, { mutate, refetch}] = createResource<ResErr<ApplicationContext>>(() => initContext(props.vitecInfo));
-    const [latestError, setLatestError] = createSignal<string>("No error");
-
-    //Time to do auth and stuff
     return (
         <div class={appContainerStyle} id="the-global-container">
-            <Show when={contextResult.loading}>
-                <SolarLoadingSpinner />
-            </Show>
-            <Show when={contextResult.state === "ready"}>
-                <Show when={contextResult.latest?.err != null}>
-                    <ErrorPage content={contextResult.latest?.err} />
-                </Show>
-                <Show when={contextResult.latest?.res != null}>
-                    {props.app({context: contextResult.latest?.res!})}
-                </Show>
-            </Show> 
+            <NTAwait func={() => initContext(props.vitecInfo)}
+                fallback={(error) => <ErrorPage content={error} />}
+                whilestLoading={<SolarLoadingSpinner />}    
+            >
+                { context => props.app({ context }) }
+            </NTAwait>
         </div>
     );
 }

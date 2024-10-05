@@ -10,9 +10,9 @@ import SomethingWentWrongIcon from "../../src/components/SomethingWentWrongIcon"
 import SectionSubTitle from "../../src/components/SectionSubTitle";
 import { css } from "@emotion/css";
 import { LanguagePreference } from "../../src/integrations/vitec/vitecDTOs";
-import { assureUniformLanguageCode } from "../../src/integrations/main_backend/internationalization/internationalization";
 import NTAwait from "../../src/components/util/NoThrowAwait";
 import GraphicalAsset from "../../src/components/GraphicalAsset";
+import { assureUniformLanguageCode } from "../../src/integrations/vitec/vitecIntegration";
 
 interface LanguagePageProps extends IBackendBased, IStyleOverwritable {
     onSlideCompleted: () => void;

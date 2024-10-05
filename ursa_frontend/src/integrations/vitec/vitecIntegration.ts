@@ -1,17 +1,15 @@
 import { ResErr, RuntimeMode } from '../../meta/types';
 import { ENV } from '../../environment/manager';
 import { Logger } from '../../logging/filteredLogger';
-import { VitecIntegrationInformation } from './vitecDTOs';
+import { LanguagePreference, LanguagePreferenceAliases, NormalizedVitecIntegrationInformation, VitecIntegrationInformation } from './vitecDTOs';
 /**
  * Single source of truth: The 10-finger angular project: ./src/app/services/auth.service.ts
  */
 const SESSION_COOKIE_NAME = 'mvf_session_id';
 
 export type VitecIntegration = {
-    log: Logger;
-    env: ENV;
     sessionToken: string;
-    baseUrl: string;
+    info: NormalizedVitecIntegrationInformation;
 };
 
 export async function initializeVitecIntegration(
@@ -24,15 +22,41 @@ export async function initializeVitecIntegration(
     if (userInfoRes.err != null) {
         return { res: null, err: userInfoRes.err };
     }
+    const verifiedInfoAttempt = verifyIntegrationInformation(info);
+    if (verifiedInfoAttempt.err != null) {
+        return { res: null, err: verifiedInfoAttempt.err };
+    }
     const integration: VitecIntegration = {
-        log: log,
-        env: environment,
         sessionToken: userInfoRes.res,
-        baseUrl: info.locationUrl,
+        info: verifiedInfoAttempt.res,
     };
     log.trace('[mv int] Vitec integration initialized');
     return { res: integration, err: null };
 }
+
+const verifyIntegrationInformation = (info: VitecIntegrationInformation): ResErr<NormalizedVitecIntegrationInformation> => {
+    const languageRes = assureUniformLanguageCode(info.languagePreference);
+    if (languageRes.err != null) {
+        return { res: null, err: languageRes.err };
+    }
+
+    if (!info.locationUrl.startsWith('http')) {
+        return { res: null, err: `Something's wrong with the location URL: ${info.locationUrl}` };
+    }
+
+    //e.g.: protocol://ip:port/ -> protocol://ip:port
+    if (info.locationUrl.endsWith('/')) {
+        info.locationUrl = info.locationUrl.slice(0, -1);
+    }
+
+    return { res: { 
+        ...info, 
+        languagePreference: languageRes.res 
+        
+    }, 
+        err: null 
+    };
+};
 
 const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<string>> => {
     const sessionRes = parseForSessionCookie(log);
@@ -45,6 +69,19 @@ const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<st
 
     return { res: sessionRes.res, err: null };
 };
+
+export const assureUniformLanguageCode = (language: string): ResErr<LanguagePreference> => {
+    const languageLowerCased = language.toLocaleLowerCase();
+    for (const key in LanguagePreferenceAliases) {
+        for (const alias of LanguagePreferenceAliases[key as LanguagePreference]) {
+            if (alias.toLocaleLowerCase() === languageLowerCased) {
+                return { res: key as LanguagePreference, err: null };
+            }
+        }
+    }
+    return { res: null, err: `Language code ${language} has no registered aliases` };
+};
+
 
 const parseForSessionCookie = (log: Logger): ResErr<string> => {
     const cookies = document.cookie.split(';');

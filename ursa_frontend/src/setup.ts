@@ -24,6 +24,11 @@ export const initApp = (app: BundleComponent<ApplicationProps>) => {
             return;
         }
 
+        if (app.bundle !== vitecInfo.bundleRequested) {
+            console.error('[setup] Bundle mismatch. Expected: ' + vitecInfo.bundleRequested + ', but currently mounting: ' +  app.bundle);
+            return;
+        }
+
         const dispose = render(() => GlobalContainer({ app, vitecInfo }), root);
 
         // Return a cleanup function
@@ -50,13 +55,14 @@ export const initApp = (app: BundleComponent<ApplicationProps>) => {
 export const initContext = async (vitecInfo: VitecIntegrationInformation): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
     const log = initializeLogger(environment);
-    log.trace('Recieved vitec information: ' + JSON.stringify(vitecInfo));
     log.log('[setup] Initializing application context');
 
     const vitecIntegrationResult = await initializeVitecIntegration(vitecInfo, environment, log);
     if (vitecIntegrationResult.err != null) {
         return { res: null, err: vitecIntegrationResult.err };
     }
+    log.trace('Recieved vitec information: ' + JSON.stringify(vitecIntegrationResult.res.info));
+
     const sessionInitInfo: SessionInitiationRequestDTO = {
         userIdentifier: vitecInfo.userIdentifier,
         firstName: vitecInfo.firstName,
@@ -64,17 +70,17 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         currentSessionToken: vitecIntegrationResult.res.sessionToken,
     };
 
-    const navigatorInit = await initNavigator(vitecInfo, log, environment);
-    if (navigatorInit.err != null) {
-        return { res: null, err: navigatorInit.err };
-    }
-
     const backendIntegrationInit = await initializeBackendIntegration(environment, log, sessionInitInfo);
     if (backendIntegrationInit.err != null) {
         return { res: null, err: backendIntegrationInit.err };
     }
 
-    const internationalizationServiceRes = await initializeInternationalizationService(backendIntegrationInit.res, log, vitecInfo);
+    const navigatorInit = await initNavigator(vitecIntegrationResult.res, log, environment, backendIntegrationInit.res.localPlayer);
+    if (navigatorInit.err != null) {
+        return { res: null, err: navigatorInit.err };
+    }
+
+    const internationalizationServiceRes = await initializeInternationalizationService(backendIntegrationInit.res, log, vitecIntegrationResult.res);
     if (internationalizationServiceRes.err != null) {
         return { res: null, err: internationalizationServiceRes.err };
     }
@@ -96,12 +102,12 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
 
     console.log(environment);
     const context: ApplicationContext = Object.freeze({ //Assuring immutability
+        multiplayer: multiplayerIntegrationInit.res!,
         backend: backendIntegrationInit.res,
+        events: eventMultiplexer,
         logger: log,
         vitec: vitecIntegrationResult.res,
-        multiplayer: undefined as any,
         text: internationalizationServiceRes.res,
-        events: eventMultiplexer,
         env: environment,
         nav: navigatorInit.res,
     });

@@ -44,7 +44,7 @@ class InternationalizationServiceImpl implements InternationalizationService {
         }
         this.loadCatalogue(lang).then((err) => {
             if (err != null) {
-                this.log.error(`Failed to load catalogue for language: ${lang}, error: ${err}`);
+                this.log.error(`[faux i18] Failed to load catalogue for language: ${lang}, error: ${err}`);
             } else {
                 this.currentLanguage = lang;
             }
@@ -58,7 +58,7 @@ class InternationalizationServiceImpl implements InternationalizationService {
     };
 
     private loadCatalogue = async (lang: LanguagePreference): Promise<Error | undefined> => {
-        this.log.trace('Loading catalogue, code: ' + lang);
+        this.log.trace('[faux i18] Loading catalogue, code: ' + lang);
         const getCataglogueRes = await this.backend.getCatalogue(lang);
         if (getCataglogueRes.err != null) {
             return getCataglogueRes.err;
@@ -94,15 +94,11 @@ class InternationalizationServiceImpl implements InternationalizationService {
 export const initializeInternationalizationService = async (
     backend: BackendIntegration,
     log: Logger,
-    vitec: VitecIntegrationInformation,
+    vitec: VitecIntegration,
 ): Promise<ResErr<InternationalizationService>> => {
     log.trace('[faux i18] Initializing internationalization service');
-    const languageRes = assureUniformLanguageCode(vitec.languagePreference);
-    if (languageRes.err != null) {
-        return { res: null, err: languageRes.err };
-    }
 
-    const intergration = new InternationalizationServiceImpl(backend, log, languageRes.res);
+    const intergration = new InternationalizationServiceImpl(backend, log, vitec.info.languagePreference);
     const initErr = await intergration.loadInitialCatalogue();
     if (initErr != null) {
         return { res: null, err: initErr };
@@ -110,16 +106,4 @@ export const initializeInternationalizationService = async (
 
     log.trace('[faux i18] Internationalization service initialized');
     return { res: intergration, err: null };
-};
-
-export const assureUniformLanguageCode = (language: string): ResErr<LanguagePreference> => {
-    const languageLowerCased = language.toLocaleLowerCase();
-    for (const key in LanguagePreferenceAliases) {
-        for (const alias of LanguagePreferenceAliases[key as LanguagePreference]) {
-            if (alias.toLocaleLowerCase() === languageLowerCased) {
-                return { res: key as LanguagePreference, err: null };
-            }
-        }
-    }
-    return { res: null, err: `Language code ${language} has no registered aliases` };
 };

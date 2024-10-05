@@ -39,3 +39,7 @@ export type VitecIntegrationInformation = {
     currentSubUrl: string;
     bundleRequested: Bundle;
 };
+
+export type NormalizedVitecIntegrationInformation = VitecIntegrationInformation & {
+    languagePreference: LanguagePreference;
+};
