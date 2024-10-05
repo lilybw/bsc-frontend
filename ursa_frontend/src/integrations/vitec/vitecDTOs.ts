@@ -1,5 +1,3 @@
-import { ENV } from '../../environment/manager';
-import { Logger } from '../../logging/filteredLogger';
 import { Bundle } from '../../meta/types';
 
 /**
@@ -30,10 +28,10 @@ export const LanguagePreferenceAliases: { [key in LanguagePreference]: string[] 
  * Single source of truth: The 10-finger angular project: ./src/app/modules/games/ursa/ursa.integraton.component.ts
  */
 export type VitecIntegrationInformation = {
-    userIdentifier: string;
     /**
-     * Username
+     * Internal UUID
      */
+    userIdentifier: string;
     firstName: string;
     lastName: string;
     languagePreference: string;

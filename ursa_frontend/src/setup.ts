@@ -1,9 +1,8 @@
-import { JSX } from 'solid-js/jsx-runtime';
 import { ENV, initializeEnvironment } from './environment/manager';
 import { initializeBackendIntegration } from './integrations/main_backend/mainBackend';
 import { initializeVitecIntegration } from './integrations/vitec/vitecIntegration';
 import { initializeLogger } from './logging/filteredLogger';
-import { ApplicationContext, Bundle, BundleComponent, MultiplayerMode, ResErr, RuntimeMode } from './meta/types';
+import { ApplicationContext, BundleComponent, MultiplayerMode, ResErr, RuntimeMode } from './meta/types';
 import { render } from 'solid-js/web';
 import GlobalContainer from './GlobalContainer';
 import { SessionInitiationRequestDTO } from './integrations/main_backend/mainBackendDTOs';
@@ -12,13 +11,8 @@ import { ApplicationProps } from './ts/types';
 import { initializeInternationalizationService } from './integrations/main_backend/internationalization/internationalization';
 import { initializeEventMultiplexer } from './integrations/multiplayer_backend/eventMultiplexer';
 import { initializeMultiplayerIntegration } from './integrations/multiplayer_backend/multiplayerBackend';
-
-/**
- * Single source of truth: this
- */
-export const SOLIDJS_MOUNT_ELEMENT_ID = 'solidjs-inlay-root';
-export type URSAInitializationFunction = (vitecInfo: VitecIntegrationInformation) => (() => void) | null;
-export const URSA_INITIALIZATION_FUNCTION_NAME = 'initializeURSABundle';
+import { initNavigator } from './integrations/vitec/navigator';
+import { SOLIDJS_MOUNT_ELEMENT_ID, URSA_INITIALIZATION_FUNCTION_NAME } from './integrations/vitec/integrationConstants';
 
 export const initApp = (app: BundleComponent<ApplicationProps>) => {
     // global function that Angular will call
@@ -26,7 +20,7 @@ export const initApp = (app: BundleComponent<ApplicationProps>) => {
         const root = document.getElementById(SOLIDJS_MOUNT_ELEMENT_ID);
 
         if (!root) {
-            console.error('Root element not found.');
+            console.error('[setup] Root element not found.');
             return;
         }
 
@@ -70,6 +64,11 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         currentSessionToken: vitecIntegrationResult.res.sessionToken,
     };
 
+    const navigatorInit = await initNavigator(vitecInfo, log, environment);
+    if (navigatorInit.err != null) {
+        return { res: null, err: navigatorInit.err };
+    }
+
     const backendIntegrationInit = await initializeBackendIntegration(environment, log, sessionInitInfo);
     if (backendIntegrationInit.err != null) {
         return { res: null, err: backendIntegrationInit.err };
@@ -96,8 +95,7 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     await delaySetupIfDevOrTest(environment);
 
     console.log(environment);
-    const context: ApplicationContext = Object.freeze({
-        //Assuring immutability
+    const context: ApplicationContext = Object.freeze({ //Assuring immutability
         backend: backendIntegrationInit.res,
         logger: log,
         vitec: vitecIntegrationResult.res,
@@ -105,6 +103,7 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         text: internationalizationServiceRes.res,
         events: eventMultiplexer,
         env: environment,
+        nav: navigatorInit.res,
     });
     return Promise.resolve({ res: context, err: null });
 };

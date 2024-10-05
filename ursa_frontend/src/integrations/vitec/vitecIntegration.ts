@@ -1,8 +1,7 @@
 import { ResErr, RuntimeMode } from '../../meta/types';
 import { ENV } from '../../environment/manager';
 import { Logger } from '../../logging/filteredLogger';
-import { LanguagePreference, LanguagePreferenceAliases, VitecIntegrationInformation } from './vitecDTOs';
-import { Accessor, createSignal, Setter } from 'solid-js';
+import { VitecIntegrationInformation } from './vitecDTOs';
 /**
  * Single source of truth: The 10-finger angular project: ./src/app/services/auth.service.ts
  */
@@ -54,7 +53,7 @@ const parseForSessionCookie = (log: Logger): ResErr<string> => {
         if (cookie.startsWith(SESSION_COOKIE_NAME)) {
             const splitOnEquals = cookie.split('=');
             if (splitOnEquals.length < 2) {
-                return { res: null, err: `Session cookie found, but no value found for cookie: ${cookie}` };
+                return { res: null, err: `Session cookie found, but had no value: ${cookie}` };
             }
             return { res: splitOnEquals[1], err: null };
         }

@@ -7,6 +7,7 @@ import { Logger } from '../logging/filteredLogger';
 import { InternationalizationService } from '../integrations/main_backend/internationalization/internationalization';
 import { IEventMultiplexer } from '../integrations/multiplayer_backend/eventMultiplexer';
 import { ENV } from '../environment/manager';
+import { URSANav } from '../integrations/vitec/navigator';
 
 export type Error = string;
 interface ResSuccess<T> {
@@ -80,4 +81,5 @@ export type ApplicationContext = {
     text: InternationalizationService;
     events: IEventMultiplexer;
     env: ENV;
+    nav: URSANav;
 };
