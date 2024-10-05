@@ -2,6 +2,7 @@ import { ResErr, RuntimeMode } from '../../meta/types';
 import { ENV } from '../../environment/manager';
 import { Logger } from '../../logging/filteredLogger';
 import { LanguagePreference, LanguagePreferenceAliases, NormalizedVitecIntegrationInformation, VitecIntegrationInformation } from './vitecDTOs';
+import { SubURLs } from './integrationConstants';
 /**
  * Single source of truth: The 10-finger angular project: ./src/app/services/auth.service.ts
  */
@@ -49,10 +50,23 @@ const verifyIntegrationInformation = (info: VitecIntegrationInformation): ResErr
         info.locationUrl = info.locationUrl.slice(0, -1);
     }
 
+    let computedCommonSubUrl = info.currentSubUrl;
+    let foundMatch = false;
+    for (const suburl of Object.values(SubURLs)) {
+        if (info.currentSubUrl.endsWith(suburl)) {
+            computedCommonSubUrl = info.currentSubUrl.slice(0, -suburl.length);
+            foundMatch = true;
+            break;
+        }
+    }
+    if (!foundMatch) { //If there is not url extension present, it must be the base suburl itself
+        computedCommonSubUrl = info.currentSubUrl;
+    }
+
     return { res: { 
         ...info, 
-        languagePreference: languageRes.res 
-        
+        languagePreference: languageRes.res,
+        commonSubUrl: computedCommonSubUrl
     }, 
         err: null 
     };

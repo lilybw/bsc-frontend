@@ -66,7 +66,7 @@ const slides: SlideEntry[] = [
 ]
 
 const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (props: ApplicationProps) {
-  const [currentSlide, setCurrentSlide] = createSignal(2);
+  const [currentSlide, setCurrentSlide] = createSignal(7);
   const [previousSlide, setPreviousSlide] = createSignal(0);
   const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<LanguagePreference | undefined>(props.context.text.language());
   const [slideStore, setSlides] = createStore<SlideEntry[]>(slides);
@@ -130,14 +130,14 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
             <MultiplayerDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
           </Match>
           <Match when={currentSlide() === 7}>
-            <TutorialCompletePage onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
+            <TutorialCompletePage nav={props.context.nav} onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
           </Match>
         </Switch>
         <div class={navigationFooterStyle} id="tutorial-slide-navigation">
-            {currentSlide() < slideStore.length &&  
+            {currentSlide() < slideStore.length - 1 &&  
               <BigMenuButton onClick={onAdvanceSlide} styleOverwrite={rightNavigationButtonStyle}
                 enable={currentSlideCompleted}>
-                <NTAwait func={() => props.context.backend.getAssetMetadata(1019)}>
+                <NTAwait func={() => props.context.backend.getAssetMetadata(1021)}>
                   {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend}/>}
                 </NTAwait>
               </BigMenuButton>
@@ -175,16 +175,16 @@ const navigationButtonStyle = css`
   position: absolute;
   bottom: 0;
 `
-
-const leftNavigationButtonStyle = css`
-  ${navigationButtonStyle}
-  left: 0;
-`
 const rightNavigationButtonStyle = css`
   ${navigationButtonStyle}
   right: 0;
 `
 
+
+const leftNavigationButtonStyle = css`
+  ${navigationButtonStyle}
+  left: 0;
+`
 const containerStyle = css`
   display: flex;
   flex-direction: column;

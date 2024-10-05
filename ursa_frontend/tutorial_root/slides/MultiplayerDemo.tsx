@@ -1,4 +1,4 @@
-import { JSX, createSignal, createMemo, Show } from "solid-js";
+import { JSX, createSignal, createMemo, Show, onMount } from "solid-js";
 import { css } from "@emotion/css";
 import StarryBackground from "../../src/components/StarryBackground";
 import ActionInput from "../../src/components/colony/MainActionInput";
@@ -34,6 +34,10 @@ export default function MultiplayerDemo(props: MultiplayerDemoProps): JSX.Elemen
 
     const nameOfLocation = props.text.get('LOCATION.SPACE_PORT.NAME');
     const openButtonText = props.text.get('COLONY.UI_BUTTON.OPEN');
+    
+    onMount(() => {
+        setTimeout(props.onSlideCompleted, 100);
+    })
 
     const runSpacePortDemo = () => {
         setInputBuffer('');

@@ -26,7 +26,7 @@ const LandingPage: Component<MenuPageProps> = (props) => {
                 <BigMenuButton enable={tutorialOnly} onClick={() => props.goToPage(MenuPages.JOIN_COLONY)}>
                     {props.context.text.get("MENU.OPTION.JOIN_COLONY").get()}
                 </BigMenuButton>
-                <BigMenuButton onClick={() => (window as any).location.href=props.context.vitec.baseUrl + "/games/ursa/tutorial" }>
+                <BigMenuButton onClick={() => props.context.nav.goToTutorial() }>
                     {props.context.text.get("MENU.OPTION.TUTORIAL").get()}
                 </BigMenuButton>
             </div>

@@ -42,4 +42,5 @@ export type VitecIntegrationInformation = {
 
 export type NormalizedVitecIntegrationInformation = VitecIntegrationInformation & {
     languagePreference: LanguagePreference;
+    commonSubUrl: string;
 };

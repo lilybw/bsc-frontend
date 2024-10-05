@@ -75,17 +75,17 @@ class UrsaNavImpl implements URSANav {
         sessionStorage.setItem(pageSwitchUserInfoKey, JSON.stringify(this.localPlayer));
         sessionStorage.setItem(pageSwitchColonyInfoKey, JSON.stringify(colonyInfo));
         this.logger.log('[nav] Navigating to colony');
-        window.location.href = this.vitecInfo.locationUrl + this.vitecInfo.currentSubUrl + SubURLs.COLONY;
+        window.location.href = this.vitecInfo.locationUrl + this.vitecInfo.commonSubUrl + SubURLs.COLONY;
     };
     goToTutorial = () => {
         sessionStorage.setItem(pageSwitchUserInfoKey, JSON.stringify(this.localPlayer));
         this.logger.log('[nav] Navigating to tutorial');
-        window.location.href = this.vitecInfo.locationUrl + this.vitecInfo.currentSubUrl + SubURLs.TUTORIAL;
+        window.location.href = this.vitecInfo.locationUrl + this.vitecInfo.commonSubUrl + SubURLs.TUTORIAL;
     };
     goToMenu = () => {
         sessionStorage.setItem(pageSwitchUserInfoKey, JSON.stringify(this.localPlayer));
         this.logger.log('[nav] Navigating to menu');
-        window.location.href = this.vitecInfo.locationUrl + this.vitecInfo.currentSubUrl + SubURLs.MENU;
+        window.location.href = this.vitecInfo.locationUrl + this.vitecInfo.commonSubUrl + SubURLs.MENU;
     };
     getRetainedUserInfo = () => {
         const data = sessionStorage.getItem(pageSwitchUserInfoKey);
