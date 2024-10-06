@@ -155,6 +155,7 @@ export type JoinColonyResponseDTO = {
      * Owner of colony to be joined
      */
     ownerID: PlayerID;
+    colonyID: uint32;
     lobbyID: uint32;
     /**
      * Base url: protocol://host:port

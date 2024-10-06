@@ -9,6 +9,7 @@ import SectionSubTitle from "../../src/components/SectionSubTitle";
 import {CreateColonyRequestDTO} from "../../src/integrations/main_backend/mainBackendDTOs"
 import Planet from "../../src/components/Planet";
 import NTAwait from "../../src/components/util/NoThrowAwait";
+import { Styles } from "../../src/sharedCSS";
 
 const NewColonyPage: Component<MenuPageProps> = (props) => {
   const [colonyName, setColonyName] = createSignal("");
@@ -79,7 +80,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
             value={colonyName()}
             placeholder="Pandora"
             onInput={(e) => setColonyName(e.currentTarget.value)}
-            class={inputStyle}
+            class={Styles.MENU_INPUT}
             onFocus={() => setInputEngaged(true)}
           />
         </div>
@@ -139,27 +140,3 @@ const inputContainerStyle = css`
   transform: translateY(-50%);
 `;
 
-const inputStyle = css`
-  border-radius: 1rem;
-  width: 50%;
-  height: 2rem;
-  justify-content: center;
-  padding: 0.5rem;
-  margin-top: 0.5rem;
-  background-color: transparent;
-  border: 0.15rem solid white;
-  color: white;
-  text-align: center;
-  font-size: 1.5rem;
-
-  &:focus {
-    outline: none;
-    filter: drop-shadow(0 0 0.5rem white);
-  }
-
-  &::placeholder {
-    color: white;
-    opacity: 0.5;
-    font-style: italic;
-  }
-`;

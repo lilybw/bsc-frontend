@@ -16,6 +16,36 @@ export const Styles = {
         left: 50%;
         transform: translateX(-50%);
     `,
+    MENU_INPUT: css`
+        position: relative;
+        border-radius: 1rem;
+        width: 50%;
+        height: 2rem;
+        justify-content: center;
+        padding: 0.5rem;
+        background-color: transparent;
+        border: 0.15rem solid white;
+        color: white;
+        text-align: center;
+        font-size: 1.5rem;
+    
+        &:focus {
+            outline: none;
+            filter: drop-shadow(0 0 0.5rem white);
+        }
+    
+        &::placeholder {
+            color: white;
+            opacity: 0.5;
+            font-style: italic;
+        }
+            
+        &::-webkit-inner-spin-button, 
+        &::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    `,
     CROSS_HATCH_GRADIENT: css`
         background-image: repeating-linear-gradient(
             45deg,

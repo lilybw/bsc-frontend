@@ -1,137 +1,149 @@
-import { Component, createSignal } from "solid-js";
+import { Component, createMemo, createSignal } from "solid-js";
 import { MenuPageProps, MenuPages } from "../MainMenuApp";
 import NavigationFooter from "../NavigationFooter";
 import StarryBackground from "../../src/components/StarryBackground";
 import SectionTitle from "../../src/components/SectionTitle";
 import { css } from "@emotion/css";
 import SectionSubTitle from "../../src/components/SectionSubTitle";
+import { Styles } from "../../src/sharedCSS";
 
 const JoinColonyPage: Component<MenuPageProps> = (props) => {
-    const [colonyCode, setcolonyCode] = createSignal("");
-    const [textError, setTextError] = createSignal<string | undefined>(undefined);
-    
+    const [colonyCode, setColonyCode] = createSignal("");
+    const [codeError, setCodeError] = createSignal<string | undefined>(undefined);
+    const [inputEngaged, setInputEngaged] = createSignal(false);
+
     async function handleJoin() {
+        if (!checkInput()) return;
+
+        // Join the colony
+        const response = await props.context.backend.joinColony(Number(colonyCode()));
+
+        // Handle the response as needed
+        if (response.err !== null) {
+            switch (response.code) {
+                case 404: setCodeError("No colony by that code"); break;
+                default: setCodeError(response.err);
+            }
+            return
+        }
+
+        const colonyInfoAttempt = await props.context.backend.getColony(response.res.ownerID, response.res.colonyID);
+        if (colonyInfoAttempt.err !== null) {
+            setCodeError("Failed to get colony info: " + colonyInfoAttempt.err);
+            return;
+        }
+
+        // Go to the colony
+        props.context.nav.goToColony(colonyInfoAttempt.res);
+    };
+
+    const checkInput = (): boolean => {
         const codeLength = 6;
         const inputCode = colonyCode().trim();
 
         // Check if the input is empty
         if (inputCode === "") {
-            setTextError("Please enter a colony code.")
-            return;
+            setCodeError("Please enter a colony code.")
+            return false;
         }
 
         // Check if the input consists only of digits
         if (!/^\d+$/.test(inputCode)) {
-            setTextError("Colony code must contain only numbers.");
-            return;
+            setCodeError("Colony code must contain only numbers.");
+            return false;
         }
 
         // Check the length of the input
         if (inputCode.length < codeLength) {
-            setTextError("Colony code is too short. It must be 6 digits.");
-            return;
+            setCodeError("Colony code is too short. It must be 6 digits.");
+            return false;
         }
 
         if (inputCode.length > codeLength) {
-            setTextError("Colony code is too long. It must be 6 digits.");
-            return;
+            setCodeError("Colony code is too long. It must be 6 digits.");
+            return false;
         }
 
         // Convert to number after all string checks are done
         const numericCode = Number(inputCode);
         if (Number.isNaN(numericCode)) {
-            setTextError("Not a number.")
+            setCodeError("Not a number.")
         }
 
         // Check if the number is negative (although this should never happen given the regex check)
         if (numericCode < 0) {
-            setTextError("Colony code cannot be negative.");
-            return;
+            setCodeError("Colony code cannot be negative.");
+            return false;
         }
 
-        setTextError(undefined)
-        
-        // Join the colony
-        const response = await props.context.backend.joinColony(numericCode);
-
-        // Handle the response as needed
-        if (response.code != 200) {
-            setTextError(String(response.err))
-            return
-        }
-
-        props.context.logger.log("[DELETE ME] implement redirect here!")
-
-    };
+        setCodeError(undefined)
+        setColonyCode(numericCode.toString());
+        return true;
+    }
     
+    const computedInputStyle = createMemo(() => css`
+        ${Styles.MENU_INPUT}
+        ${inputStyleOverwrite}
+    `)
     return (
-        <div class={pageStyle}>
+        <div>
+            {props.context.text.Title('MENU.PAGE_TITLE.JOIN_COLONY')({styleOverwrite: pageTitleStyle})}
+            <div>
+                <div class={inputContainerStyle}>
+                    {props.context.text.SubTitle('MENU.SUB_TITLE.INSERT_CODE_HERE')({})}
+                    <input
+                        id="ColonyCode"
+                        type="number"
+                        value={colonyCode()}
+                        placeholder="123 123"
+                        onInput={(e) => setColonyCode(e.currentTarget.value)}
+                        onFocus={() => setInputEngaged(true)}
+                        class={computedInputStyle()}
+                    />
+                </div>
+            </div>
+            {codeError() && inputEngaged() && <SectionSubTitle styleOverwrite={errMsgStyle}>{codeError()}</SectionSubTitle>}
             <NavigationFooter
                 text={props.context.text} 
                 goBack={{ name: "MENU.NAVIGATION.BACK", func: props.goBack }} 
                 goNext={{ name: "MENU.OPTION.JOIN_COLONY", func: handleJoin}}
+                goNextEnabled={createMemo(() => checkInput() && inputEngaged())}
             />
-            {props.context.text.Title('MENU.PAGE_TITLE.JOIN_COLONY')({})}
-            <div>
-                {props.context.text.SubTitle('MENU.SUB_TITLE.INSERT_CODE_HERE')({})}
-                <div class={inputContainerStyle}>
-                    {textError() && <SectionSubTitle styleOverwrite="color: red;">{textError()}</SectionSubTitle>}
-                    <input
-                    id="ColonyCode"
-                    type="number"
-                    value={colonyCode()}
-                    onInput={(e) => setcolonyCode(e.currentTarget.value)}
-                    class={inputStyle}
-                    />
-                </div>
-            </div>
             <StarryBackground/>
         </div>
     )
 }
+export default JoinColonyPage;
 
-const pageStyle = css`
-    display: grid;
-    width: 100%;
-    height: 100%;
-`;
+const errMsgStyle = css`
+    position: absolute;
+    filter: none;
+    font-size: 1.5rem;
+    top: 65%;
+    left: 50%;
+    transform: translateX(-50%);
+`
+const pageTitleStyle = css`
+    font-size: 5rem;
+    width: 50%;
+`
 
-const joinStyle = css`
-    display: grid;
-    width: 30%;
-    height: 30%;
-`;
+const inputStyleOverwrite = css`
+    font-size: 20vh;
+    width: 80%;
+    height: fit-content;
+`
 
 const inputContainerStyle = css`
-  font-family: Fantasy;
-  font-size: 3rem;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-  margin-bottom: 2rem;
-  display: grid;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  width: 100%;
-`;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 
-const inputStyle = css`
-  border-radius: 1rem;
-  width: 50%;
-  height: 2rem;
-  justify-content: center;
-  padding: 0.5rem;
-  margin-top: 0.5rem;
-  background-color: transparent;
-  border: 0.15rem solid white;
-  color: white;
-  text-align: center;
-  -webkit-appearance: none;
-  -moz-appearance: textfield;
-  &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-`;
+    width: 66%;
+    left: 50%;
+    top: 45%;
 
-export default JoinColonyPage;
+    transform: translate(-50%, -50%);
+`;
