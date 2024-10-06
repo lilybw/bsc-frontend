@@ -63,7 +63,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
 
     return (
         <div>
-            {props.context.text.Title('MENU.PAGE_TITLE.SELECT_COLONY')({})}
+            {props.context.text.Title('MENU.PAGE_TITLE.SELECT_COLONY')({styleOverwrite: pageTitleStyle})}
             <NTAwait func={() => props.context.backend.getColonyOverview(props.context.backend.localPlayer.id)}>{(overview) =>
                 <If condition={overview.colonies.length > 0}>{[
                     <>
@@ -99,6 +99,10 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
 }
 
 export default ColonyListPage;
+
+const pageTitleStyle = css`
+    font-size: 5rem;
+`
 
 const colonyListBackgroundStyle = css`
     display: flex;

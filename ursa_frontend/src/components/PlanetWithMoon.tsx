@@ -16,14 +16,13 @@ const PlanetWithMoon: Component<PlanetWithMoonProps> = (props) => {
     --pvm-size: ${props.size ?? 10}vh;
   `;
 
-  const containerStyle = css`
+  const computedStyles = createMemo(() => css`
     ${cssvars}
     position: relative;
     width: var(--pvm-size);
     height: var(--pvm-size);
-  `;
-
-  const computedStyles = createMemo(() => css`${containerStyle} ${props.styleOverwrite}`)
+    ${props.styleOverwrite}
+  `)
 
   return (
     <div class={computedStyles()}>

@@ -66,7 +66,9 @@ const LanguageSelectInlay: Component<LanguageSelectProps> = (props: LanguageSele
 export default LanguageSelectInlay;
 
 const whilestveHovered = css`
-    height: 25vh;
+    height: 26vh;
+    justify-content: flex-start;
+    padding-top: .5rem;
 `
 
 const subButton = css`
@@ -74,20 +76,20 @@ const subButton = css`
     margin: 0;
     padding: 0;
     overflow: hidden;
-    height: 7vh;
+    height: fit-content;
 `
 
 const imageStyleOverwrite = css`
-    height: 3vw;
-    width: 3vw;
+    height: 7vh;
+    width: 7vh;
 `
 
 const containerStyle = css`
     position: absolute;
     top: 0;
     right: 0;
-    height: 4vw;
-    width: 4vw;
+    height: 8vh;
+    width: 8vh;
     z-index: 100;
     display: flex;
     justify-content: center;
@@ -96,5 +98,7 @@ const containerStyle = css`
     row-gap: 1vh;
     border: none;
     padding: 1rem;
+    padding-top: 0;
+    padding-bottom: 0;
     transition: all .5s ease-in-out;
 `

@@ -83,7 +83,7 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
     });
   });
 
-  const computedStyles = createMemo(() => css`
+  const computedAtmosphereStyles = createMemo(() => css`
     ${atmosphereAndPaddingStyles}
     ${props.styleOverwrite}
   `)
@@ -95,7 +95,7 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
   ${props.imageStyleOverwrite}
   `)
 
-  const computedContainerStyles = createMemo(() => css`
+  const computedImageContainerStyles = createMemo(() => css`
     --rotation-speed: ${props.rotationSpeedS ?? 10}s;
     ${imageMovementContainer}
   `)
@@ -107,12 +107,12 @@ const Planet: Component<SpinningPlanetProps> = (props) => {
 
   return (
     <>
-      {loading() && <Spinner styleOverwrite={computedStyles()} />}
-      {error() && <SomethingWentWrongIcon styleOverwrite={computedStyles()} message={error()} />}
+      {loading() && <Spinner styleOverwrite={computedAtmosphereStyles()} />}
+      {error() && <SomethingWentWrongIcon styleOverwrite={computedAtmosphereStyles()} message={error()} />}
       {currentSrc() && (
-        <div class={computedStyles()} id='Atmosphere'>
+        <div class={computedAtmosphereStyles()} id='Atmosphere'>
             <div class={planetCutoutContainer} id='PlanetContainer'>
-                <div class={computedContainerStyles()}>
+                <div class={computedImageContainerStyles()}>
                     <img
                         src={currentSrc()!}
                         alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
@@ -146,8 +146,8 @@ background-image: radial-gradient(circle at 100% 100%, black 50%, transparent)
 `
 
 const imageMovementContainer =  css`
-z-index: -1;
 position: relative;
+z-index: -1;
 display: flex;
 flex-direction: row;
 
@@ -170,12 +170,15 @@ animation: moveImages var(--rotation-speed) linear infinite;
 `
 
 const imageStyle = css`
-  display: box;
+
+  z-index: -1;
   width: 100%;
   object-fit: fill;
 `
 
 const planetCutoutContainer = css`
+position: relative;
+z-index: -1;
 width: 100%;
 height: 100%;
 border-radius: 50%;
@@ -185,9 +188,11 @@ ${Styles.NO_OVERFLOW}
 `
 
 const atmosphereAndPaddingStyles = css`
+z-index: 100;
+
 width: 40vh;
 height: 40vh;
 
-padding: 5%;
-background-image: radial-gradient(circle, transparent 20%, hsla(0,0%,100%,.35) 63%, transparent 67%);
+padding: 2%;
+background-image: radial-gradient(circle, transparent 20%, hsla(0,0%,100%,1) 63%, transparent 67%);
 `
