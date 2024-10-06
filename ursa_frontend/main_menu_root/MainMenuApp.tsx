@@ -8,6 +8,8 @@ import { ApplicationProps } from '../src/ts/types';
 import ColonyListPage from './pages/ColonyListPage';
 import NewColonyPage from './pages/NewColonyPage';
 import JoinColonyPage from './pages/JoinColony';
+import SlideIcon from '../tutorial_root/SlideIcon';
+import LanguageSelectInlay from './pages/LanguageSelectInlay';
 
 export enum MenuPages {
   LANDING_PAGE = "landing",
@@ -52,6 +54,7 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign((props: App
 
   return (
     <div class={mainMenuAppStyle} id="the-main-menu-app">
+      <LanguageSelectInlay text={props.context.text} backend={props.context.backend} />
       {CurrentPage()({context: props.context, goToPage: goToPage, goBack: goBack})}
     </div>
   );

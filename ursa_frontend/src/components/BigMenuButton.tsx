@@ -1,11 +1,13 @@
 import { css } from "@emotion/css";
 import { Accessor, Component, createEffect, createMemo, createSignal, JSX } from "solid-js";
-import { IStyleOverwritable } from "../ts/types";
+import { IParenting, IStyleOverwritable } from "../ts/types";
 import { BigButtonStyle, Styles } from "../sharedCSS";
 
-interface BigMenuButtonProps extends IStyleOverwritable {
-    children: JSX.Element;
+interface BigMenuButtonProps extends IStyleOverwritable, IParenting {
     onClick?: () => void;
+    onHover?: () => void;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
     enable?: Accessor<boolean>;
 }
 
@@ -27,15 +29,22 @@ const BigMenuButton: Component<BigMenuButtonProps> = (props) => {
         }
     });
 
+    const computedStyle = createMemo(() => css`
+        ${BigButtonStyle}
+        ${props.styleOverwrite}
+        ${isDisabled() ? Styles.CROSS_HATCH_GRADIENT : ''}
+        ${recentlyEnabled() && !isDisabled() ? onReEnabledAnim : ''}
+    `);
+
     return (
-        <button class={css`
-                ${BigButtonStyle}
-                ${props.styleOverwrite}
-                ${isDisabled() ? Styles.CROSS_HATCH_GRADIENT : ''}
-                ${recentlyEnabled() && !isDisabled() ? onReEnabledAnim : ''}
-            `}
+        <button class={computedStyle()}
             disabled={isDisabled()}
-            onMouseDown={props.onClick}>
+            onMouseDown={props.onClick}
+            onMouseOver={props.onHover}
+            onMouseEnter={props.onMouseEnter}
+            onMouseLeave={props.onMouseLeave}
+            >
+            
             {props.children}
         </button>
     );

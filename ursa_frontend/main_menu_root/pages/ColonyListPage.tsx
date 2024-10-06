@@ -1,5 +1,5 @@
 import { Component, createEffect, createResource, createSignal, For, Show } from "solid-js"
-import { MenuPageProps } from "../MainMenuApp"
+import { MenuPageProps, MenuPages } from "../MainMenuApp"
 import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO, UpdateLatestVisitResponseDTO, UpdateLatestVisitRequestDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
 import { ResCodeErr } from "../../src/meta/types";
 import SectionTitle from "../../src/components/SectionTitle";
@@ -12,6 +12,8 @@ import NavigationFooter from "../NavigationFooter";
 import NTAwait from "../../src/components/util/NoThrowAwait";
 import If from "../../src/components/util/If";
 import SectionSubTitle from "../../src/components/SectionSubTitle";
+import BigMenuButton from "../../src/components/BigMenuButton";
+import { Styles } from "../../src/sharedCSS";
 
 const ColonyListPage: Component<MenuPageProps> = (props) => {
     const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);
@@ -61,7 +63,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
 
     return (
         <div>
-            <SectionTitle styleOverwrite={css`font-size: 5rem;`}>Select</SectionTitle>
+            {props.context.text.Title('MENU.PAGE_TITLE.SELECT_COLONY')({})}
             <NTAwait func={() => props.context.backend.getColonyOverview(props.context.backend.localPlayer.id)}>{(overview) =>
                 <If condition={overview.colonies.length > 0}>{[
                     <>
@@ -77,12 +79,17 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                     }</For>
                     </div>
                     </>,
-                    props.context.text.SubTitle('MENU.SUB_TITLE.NO_COLONIES_YET')({})
+                    <>
+                    {props.context.text.SubTitle('MENU.SUB_TITLE.NO_COLONIES_YET')({})}
+                    <BigMenuButton onClick={() => props.goToPage(MenuPages.NEW_COLONY)} styleOverwrite={Styles.TRANSFORM_CENTER}>
+                        {props.context.text.get('MENU.OPTION.CREATE_COLONY').get()}
+                    </BigMenuButton>
+                    </>
                 ]}</If>
             }</NTAwait>
             <NavigationFooter 
                 text={props.context.text}
-                goBack={{name: "MENU.NAVIGATION.BACK", func: props.goBack}} 
+                goBack={{name: "MENU.NAVIGATION.BACK", func: () => props.goToPage(MenuPages.LANDING_PAGE)}} 
                 goNext={{name: "MENU.NAVIGATION.CONFIRM", func: handleGoToColony}} 
                 goNextEnabled={() => selectedColonyId() !== null}
             />

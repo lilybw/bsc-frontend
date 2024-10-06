@@ -8,6 +8,14 @@ export const Styles = {
     NO_OVERFLOW: css`
         overflow: hidden !important;
     `,
+    NO_SHOW: css`
+        display: none !important;
+    `,
+    TRANSFORM_CENTER: css`
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    `,
     CROSS_HATCH_GRADIENT: css`
         background-image: repeating-linear-gradient(
             45deg,
