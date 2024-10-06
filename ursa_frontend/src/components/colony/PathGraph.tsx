@@ -9,13 +9,12 @@ import {
   PLAYER_LEFT_EVENT,
   PlayerLeftMessageDTO,
   LOBBY_CLOSING_EVENT,
-  LobbyClosingMessageDTO,
-  ENTER_LOCATION_EVENT,
-  EnterLocationMessageDTO
+  LobbyClosingMessageDTO
 } from "../../integrations/multiplayer_backend/EventSpecifications-v0.0.7";
 import Location from "../colony/location/Location";
 import NTAwait from "../util/Await";
 import { Camera } from "../../ts/camera";
+import { createWrappedSignal } from '../../ts/wrappedSignal';
 
 interface PathGraphProps extends IBackendBased, IInternationalized, IBufferBased {
     colony: ColonyInfoResponseDTO;
@@ -28,18 +27,18 @@ interface Position {
     y: number;
 }
 
+interface PlayerState {
+    currentLocationId: number;
+    position: Position;
+}
+
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [paths, setPaths] = createSignal<{ from: number; to: number }[]>([]);
-    const [playerPositions, setPlayerPositions] = createSignal<Map<PlayerID, number>>(new Map());
+    const [playerStates, setPlayerStates] = createSignal<Map<PlayerID, PlayerState>>(new Map());
     const [viewportDimensions, setViewportDimensions] = createSignal({ width: 1920, height: 1080 });
     const [scaleFactor, setScaleFactor] = createSignal(1);
 
-    const camera: Camera = { 
-        get: () => ({ x: 0, y: 0 }), 
-        set: (pos) => {
-            // Update camera position logic here
-        } 
-    };
+    const camera: Camera = createWrappedSignal({ x: 0, y: 0 });
 
     const calculateScalars = () => {
         const viewportWidth = window.innerWidth;
@@ -62,39 +61,50 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         }
     };
 
-    const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
-        const newLocation = props.colony.locations.find(l => l.id === data.locationID);
-        if (!newLocation) return;
+    const getLocationPosition = (locationId: number): Position => {
+        const location = props.colony.locations.find(l => l.id === locationId);
+        return location ? { x: location.transform.xOffset, y: location.transform.yOffset } : { x: 0, y: 0 };
+    };
 
+    const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
+        const newLocation = getLocationPosition(data.locationID);
+        
         if (data.playerID === props.localPlayerId) {
-            camera.set({
-                x: newLocation.transform.xOffset,
-                y: newLocation.transform.yOffset
+            // Move the world instead of the local player
+            camera.set(prev => ({
+                x: prev.x - (newLocation.x - prev.x),
+                y: prev.y - (newLocation.y - prev.y)
+            }));
+
+            // Emit the move event to the plexer
+            props.plexer.emit(PLAYER_MOVE_EVENT, {
+                playerID: props.localPlayerId,
+                locationID: data.locationID
+            });
+        } else {
+            // Update other players' positions
+            setPlayerStates(prev => {
+                const newStates = new Map(prev);
+                newStates.set(data.playerID, {
+                    currentLocationId: data.locationID,
+                    position: newLocation
+                });
+                return newStates;
             });
         }
-        setPlayerPositions(prev => {
-            const newPositions = new Map(prev);
-            newPositions.set(data.playerID, data.locationID);
-            return newPositions;
-        });
     };
 
     const handlePlayerLeft = (data: PlayerLeftMessageDTO) => {
-        setPlayerPositions(prev => {
-            const newPositions = new Map(prev);
-            newPositions.delete(data.id);
-            return newPositions;
+        setPlayerStates(prev => {
+            const newStates = new Map(prev);
+            newStates.delete(data.id);
+            return newStates;
         });
     };
 
     const handleLobbyClosing = (data: LobbyClosingMessageDTO) => {
         console.log("Lobby is closing");
         // Implement appropriate UI feedback or navigation here
-    };
-
-    const handleEnterLocation = (data: EnterLocationMessageDTO) => {
-        // This event might be useful for showing which locations other players are entering
-        console.log(`Player ${data.senderID} entered location ${data.id}`);
     };
 
     createEffect(() => {
@@ -105,8 +115,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         const subscriptions = [
             props.plexer.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove),
             props.plexer.subscribe(PLAYER_LEFT_EVENT, handlePlayerLeft),
-            props.plexer.subscribe(LOBBY_CLOSING_EVENT, handleLobbyClosing),
-            props.plexer.subscribe(ENTER_LOCATION_EVENT, handleEnterLocation)
+            props.plexer.subscribe(LOBBY_CLOSING_EVENT, handleLobbyClosing)
         ];
 
         return () => {
@@ -115,14 +124,11 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         };
     });
 
-    const getRelativePosition = (locationId: number): Position => {
-        const location = props.colony.locations.find(l => l.id === locationId);
-        if (!location) return { x: 0, y: 0 };
-
-        const cameraPos = camera.get();
+    const getRelativePosition = (position: Position): Position => {
+        const offset = camera.get();
         return {
-            x: (location.transform.xOffset - cameraPos.x) * scaleFactor() + viewportDimensions().width / 2,
-            y: (location.transform.yOffset - cameraPos.y) * scaleFactor() + viewportDimensions().height / 2
+            x: (position.x + offset.x) * scaleFactor() + viewportDimensions().width / 2,
+            y: (position.y + offset.y) * scaleFactor() + viewportDimensions().height / 2
         };
     };
 
@@ -131,8 +137,8 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             <svg width="100%" height="100%">
                 <For each={paths()}>
                     {(path) => {
-                        const fromPos = getRelativePosition(path.from);
-                        const toPos = getRelativePosition(path.to);
+                        const fromPos = getRelativePosition(getLocationPosition(path.from));
+                        const toPos = getRelativePosition(getLocationPosition(path.to));
                         return (
                             <line
                                 x1={fromPos.x}
@@ -174,10 +180,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     </NTAwait>
                 )}
             </For>
-            <For each={Array.from(playerPositions().entries())}>
-                {([playerId, locationId]) => {
+            <For each={Array.from(playerStates().entries())}>
+                {([playerId, state]) => {
                     if (playerId === props.localPlayerId) return null;
-                    const pos = getRelativePosition(locationId);
+                    const pos = getRelativePosition(state.position);
                     return (
                         <div style={{
                             position: 'absolute',
@@ -186,12 +192,13 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                             width: `${20 * scaleFactor()}px`,
                             height: `${20 * scaleFactor()}px`,
                             background: 'red',
-                            'border-radius': '50%'
+                            'border-radius': '50%',
+                            transition: 'left 0.3s, top 0.3s'
                         }}></div>
                     );
                 }}
             </For>
-            {/* Local player */}
+            {/* Local player (always centered) */}
             <div style={{
                 position: 'absolute',
                 left: `${viewportDimensions().width / 2 - 10 * scaleFactor()}px`,
