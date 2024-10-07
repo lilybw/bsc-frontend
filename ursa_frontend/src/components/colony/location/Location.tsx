@@ -4,7 +4,7 @@ import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOv
 import { css } from "@emotion/css";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 import { createSign } from "crypto";
-import { PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications-v0.0.7";
+import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications-v0.0.7";
 import BufferBasedButton from "../../BufferBasedButton";
 import { Camera } from "../../../ts/camera";
 import AssetCollection from "../AssetCollection";
@@ -34,6 +34,7 @@ const calcNamePlatePosition = (y: number) => {
 const Location: Component<LocationProps> = (props) => {
     const [isUserHere, setUserIsHere] = createSignal(false);
     const [showLocationCard, setShowLocationCard] = createSignal(false);
+    const [idOfDiffSelected, setIdOfDiffSelected] = createSignal(-1);
 
     const currentDisplayText = createMemo(() => isUserHere() ?
         props.text.get("LOCATION.USER_ACTION.ENTER").get() :
@@ -56,7 +57,7 @@ const Location: Component<LocationProps> = (props) => {
     }
 
     onMount(() => {
-        const subscriptionID = props.plexer.subscribe(PLAYER_MOVE_EVENT, (event) => {
+        const playerMoveSubId = props.plexer.subscribe(PLAYER_MOVE_EVENT, (event) => {
             if (event.playerID !== props.backend.localPlayer.id) return;
 
             if (event.locationID === props.colonyLocation.locationID) setUserIsHere(true);
@@ -65,7 +66,13 @@ const Location: Component<LocationProps> = (props) => {
                 setShowLocationCard(false);
             }            
         });
-        onCleanup(() => props.plexer.unsubscribe(subscriptionID))
+        const diffSelectSubId = props.plexer.subscribe(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, (event) => {
+            setIdOfDiffSelected(event.difficultyID);
+        });
+        const diffConfirmedSubId = props.plexer.subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (event) => {
+            setShowLocationCard(false);
+        });
+        onCleanup(() => props.plexer.unsubscribe(playerMoveSubId, diffSelectSubId, diffConfirmedSubId));
     })
 
     const getCollectionForLevel = (level: number, info: LocationInfoResponseDTO) => {

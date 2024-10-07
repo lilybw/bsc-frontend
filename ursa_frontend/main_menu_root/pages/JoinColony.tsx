@@ -1,4 +1,4 @@
-import { Component, createMemo, createSignal } from "solid-js";
+import { Component, createMemo, createSignal, Show } from "solid-js";
 import { MenuPageProps, MenuPages } from "../MainMenuApp";
 import NavigationFooter from "../NavigationFooter";
 import StarryBackground from "../../src/components/StarryBackground";
@@ -6,6 +6,9 @@ import SectionTitle from "../../src/components/SectionTitle";
 import { css } from "@emotion/css";
 import SectionSubTitle from "../../src/components/SectionSubTitle";
 import { Styles } from "../../src/sharedCSS";
+import NTAwait from "../../src/components/util/NoThrowAwait";
+import GraphicalAsset from "../../src/components/GraphicalAsset";
+import { Error } from "../../src/meta/types";
 
 const JoinColonyPage: Component<MenuPageProps> = (props) => {
     const [colonyCode, setColonyCode] = createSignal("");
@@ -43,42 +46,58 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
 
         // Check if the input is empty
         if (inputCode === "") {
-            setCodeError("Please enter a colony code.")
+            setCodeError("ERRORS.PLEASE_ENTER_CODE")
             return false;
         }
 
         // Check if the input consists only of digits
         if (!/^\d+$/.test(inputCode)) {
-            setCodeError("Colony code must contain only numbers.");
+            setCodeError("ERRORS.NUMERIC_ONLY");
             return false;
         }
 
         // Check the length of the input
         if (inputCode.length < codeLength) {
-            setCodeError("Colony code is too short. It must be 6 digits.");
+            setCodeError("ERRORS.CODE_TOO_SHORT");
             return false;
         }
 
         if (inputCode.length > codeLength) {
-            setCodeError("Colony code is too long. It must be 6 digits.");
+            setCodeError("ERRORS.CODE_TOO_LONG");
             return false;
         }
 
         // Convert to number after all string checks are done
         const numericCode = Number(inputCode);
         if (Number.isNaN(numericCode)) {
-            setCodeError("Not a number.")
+            setCodeError("ERRORS.NAN")
         }
 
         // Check if the number is negative (although this should never happen given the regex check)
         if (numericCode < 0) {
-            setCodeError("Colony code cannot be negative.");
+            setCodeError("ERRORS.CODE_CANT_BE_NEGATIVE");
             return false;
         }
 
         setCodeError(undefined)
         setColonyCode(numericCode.toString());
         return true;
+    }
+
+    const getFallbackOnNoConnection = (e: Error) => {
+        return (
+            <>
+            {props.context.text.SubTitle('ERRORS.CONNECTION.MULTIPLAYER_BACKEND')({})}
+            <NTAwait func={() => props.context.backend.getAssetMetadata(1023)}>{(metadata) =>
+                <GraphicalAsset
+                    backend={props.context.backend} 
+                    metadata={metadata} 
+                    styleOverwrite={css`width: 10vw; height: 10vw; left: 50%; transform: translateX(-50%);`} 
+                />
+            }</NTAwait>
+            <SectionSubTitle styleOverwrite={errMsgStyle}>{e}</SectionSubTitle>
+            </>
+        )
     }
     
     const computedInputStyle = createMemo(() => css`
@@ -88,21 +107,29 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
     return (
         <div>
             {props.context.text.Title('MENU.PAGE_TITLE.JOIN_COLONY')({styleOverwrite: pageTitleStyle})}
-            <div>
-                <div class={inputContainerStyle}>
-                    {props.context.text.SubTitle('MENU.SUB_TITLE.INSERT_CODE_HERE')({})}
-                    <input
-                        id="ColonyCode"
-                        type="number"
-                        value={colonyCode()}
-                        placeholder="123 123"
-                        onInput={(e) => setColonyCode(e.currentTarget.value)}
-                        onFocus={() => setInputEngaged(true)}
-                        class={computedInputStyle()}
-                    />
-                </div>
-            </div>
-            {codeError() && inputEngaged() && <SectionSubTitle styleOverwrite={errMsgStyle}>{codeError()}</SectionSubTitle>}
+            <NTAwait func={props.context.backend.healthCheck} fallback={e => getFallbackOnNoConnection(e)}>{status => 
+                <>
+                <Show when={!status.multiplayerStatus.status}>
+                    {getFallbackOnNoConnection("")}
+                </Show>
+                <Show when={status.multiplayerStatus.status}>
+                    <div class={inputContainerStyle}>
+                        {props.context.text.SubTitle('MENU.SUB_TITLE.INSERT_CODE_HERE')({})}
+                        <input
+                            id="ColonyCode"
+                            type="number"
+                            value={colonyCode()}
+                            placeholder="123 123"
+                            onInput={(e) => setColonyCode(e.currentTarget.value)}
+                            onFocus={() => setInputEngaged(true)}
+                            class={computedInputStyle()}
+                        />
+                    </div>
+                    {codeError() && inputEngaged() && props.context.text.SubTitle(codeError()!)({styleOverwrite: errMsgStyle})}
+ 
+                </Show>
+                </>
+            }</NTAwait>
             <NavigationFooter
                 text={props.context.text} 
                 goBack={{ name: "MENU.NAVIGATION.BACK", func: props.goBack }} 
@@ -122,6 +149,8 @@ const errMsgStyle = css`
     top: 65%;
     left: 50%;
     transform: translateX(-50%);
+    width: 100%;
+    margin: 0;
 `
 const pageTitleStyle = css`
     font-size: 5rem;

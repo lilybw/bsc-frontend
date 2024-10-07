@@ -302,3 +302,15 @@ export type UpdateLatestVisitRequestDTO = {
 export type UpdateLatestVisitResponseDTO = {
     latestVisit: string;
 };
+
+export type MBHealthCheckResponseDTO = {
+    multiplayerStatus: {
+        status: boolean;
+        lobbyCount: uint32;
+    };
+    colonyDBStatus: boolean;
+    languageDBStatus: boolean;
+    playerDBStatus: boolean;
+    statusMessage: string;
+    timestamp: string;
+}

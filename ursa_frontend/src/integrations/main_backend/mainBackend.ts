@@ -17,6 +17,7 @@ import {
     LocationInfoFullResponseDTO,
     LocationInfoResponseDTO,
     LODID,
+    MBHealthCheckResponseDTO,
     MinigameDifficultyID,
     MinigameID,
     MinigameInfoResponseDTO,
@@ -74,6 +75,8 @@ export type BaseBackendIntegration = {
  */
 export interface BackendIntegration extends BaseBackendIntegration {
     localPlayer: PlayerInfoResponseDTO;
+    healthCheck: () => Promise<ResCodeErr<MBHealthCheckResponseDTO>>;
+
     getPlayerInfo: (player: PlayerID) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
     getPlayerPreferences: (player: PlayerID) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
     setPlayerPreference: (key: PreferenceKeys, value: string) => Promise<ResCodeErr<void>>;
@@ -161,6 +164,8 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
     return {
         ...base,
         localPlayer: localPlayer,
+        healthCheck: () => base.request<MBHealthCheckResponseDTO>(HTTPMethod.GET, '/api/v1/health', ParseMethod.JSON),
+
         getPlayerInfo: (player) => base.request<PlayerInfoResponseDTO>(
             HTTPMethod.GET, `/api/v1/player/${player}`, ParseMethod.JSON),
         getPlayerPreferences: (player) => base.request<PlayerPreferencesResponseDTO>(

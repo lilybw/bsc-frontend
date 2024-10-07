@@ -28,7 +28,6 @@ interface ResCodeSuccess<T> extends ResSuccess<T> {
 interface ResCodeError extends ResError {
     code: number;
 }
-
 export type ResCodeErr<T> = ResCodeSuccess<T> | ResCodeError;
 
 export type NamedVoidFunction = { name: string; func: () => void };

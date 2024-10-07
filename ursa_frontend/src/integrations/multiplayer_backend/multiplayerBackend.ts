@@ -181,7 +181,10 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
                     this.log.error(`[mp int] Error while processing message: ${e}`);
                 });
 
-        conn.onclose = onClose;
+        conn.onclose = (ce: CloseEvent) => {
+            onClose(ce);
+            this.multiplexer.unsubscribe(...this.subscriptions);
+        };
         return Promise.resolve(undefined);
     };
 }

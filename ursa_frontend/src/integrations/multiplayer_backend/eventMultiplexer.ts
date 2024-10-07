@@ -21,7 +21,7 @@ export interface IEventMultiplexer {
     /**
      * @returns Whether any handlers were unregistered.
      */
-    unsubscribe: (subscriptionID: SubscriptionID) => boolean;
+    unsubscribe: (...subscriptionIDs: SubscriptionID[]) => boolean;
     /**
      * Emit an event into the multiplexer. Multiplayer Integration has special access, however all other access
      * must go through this method.
@@ -63,16 +63,20 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
         return id;
     };
 
-    unsubscribe = (subscriptionID: SubscriptionID) => {
-        const handlerSpecTuple = this.registeredHandlers.get(subscriptionID);
-        if (!handlerSpecTuple || handlerSpecTuple === null || !handlerSpecTuple[1] || handlerSpecTuple[1].length === 0) {
-            return false;
+    unsubscribe = (...subscriptionIDs: SubscriptionID[]) => {
+        let anyWasRemoved = false;
+        for (const subscriptionID of subscriptionIDs) {
+            const handlerSpecTuple = this.registeredHandlers.get(subscriptionID);
+            if (!handlerSpecTuple || handlerSpecTuple === null || !handlerSpecTuple[1] || handlerSpecTuple[1].length === 0) {
+                continue;
+            }
+            for (const handler of handlerSpecTuple[1]) {
+                const newSubscriberArray = this.subscriptions.get(handlerSpecTuple[0])?.filter((func) => func !== handler);
+                this.subscriptions.set(handlerSpecTuple[0], newSubscriberArray || []);
+            }
+            anyWasRemoved = anyWasRemoved || true;
         }
-        for (const handler of handlerSpecTuple[1]) {
-            const newSubscriberArray = this.subscriptions.get(handlerSpecTuple[0])?.filter((func) => func !== handler);
-            this.subscriptions.set(handlerSpecTuple[0], newSubscriberArray || []);
-        }
-        return true;
+        return anyWasRemoved;
     };
 
     emit = async <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => {
