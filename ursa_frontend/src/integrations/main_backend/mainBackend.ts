@@ -161,44 +161,54 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
     return {
         ...base,
         localPlayer: localPlayer,
-        getPlayerInfo: (player) => base.request<PlayerInfoResponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}`, ParseMethod.JSON),
-        getPlayerPreferences: (player) =>
-            base.request<PlayerPreferencesResponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/preferences`, ParseMethod.JSON),
-        setPlayerPreference: (key, value) =>
-            base.request<void>(HTTPMethod.POST, `/api/v1/player/${localPlayer.id}/preferences`, ParseMethod.NONE, { key, value }),
-        grantAchievement: (achievement) =>
-            base.request<void>(HTTPMethod.POST, `/api/v1/player/${localPlayer.id}/achievement/${achievement}`, ParseMethod.NONE),
+        getPlayerInfo: (player) => base.request<PlayerInfoResponseDTO>(
+            HTTPMethod.GET, `/api/v1/player/${player}`, ParseMethod.JSON),
+        getPlayerPreferences: (player) => base.request<PlayerPreferencesResponseDTO>(
+            HTTPMethod.GET, `/api/v1/player/${player}/preferences`, ParseMethod.JSON),
+        setPlayerPreference: (key, value) => base.request<void>(
+            HTTPMethod.POST, `/api/v1/player/${localPlayer.id}/preferences`, ParseMethod.NONE, { key, value }),
+        grantAchievement: (achievement) => base.request<void>(
+            HTTPMethod.POST, `/api/v1/player/${localPlayer.id}/achievement/${achievement}`, ParseMethod.NONE),
 
-        getCatalogue: (locale) =>
-            base.request<InternationalizationCatalogueResponseDTO>(HTTPMethod.GET, `/api/v1/catalog/${locale}`, ParseMethod.JSON),
-        getAvailableLanguages: () => base.request<AvailableLanguagesResponseDTO>(HTTPMethod.GET, `/api/v1/catalog/languages`, ParseMethod.JSON),
+        getCatalogue: (locale) => base.request<InternationalizationCatalogueResponseDTO>(
+            HTTPMethod.GET, `/api/v1/catalog/${locale}`, ParseMethod.JSON),
+        getAvailableLanguages: () => base.request<AvailableLanguagesResponseDTO>(
+            HTTPMethod.GET, `/api/v1/catalog/languages`, ParseMethod.JSON),
 
-        getColony: (player, colony) =>
-            base.request<ColonyInfoResponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/colony/${colony}`, ParseMethod.JSON),
-        updateLatestVisit: (dto, colony) =>
-            base.request<UpdateLatestVisitResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/update-last-visit`, ParseMethod.JSON, dto),
-        getColonyOverview: (player) => base.request<ColonyOverviewReponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
-        openColony: (colony, dto) => base.request<OpenColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON, dto),
-        joinColony: (code) => base.request<JoinColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/join/${code}`, ParseMethod.JSON),
-        createColony: (dto, player) =>
-            base.request<ColonyInfoResponseDTO>(HTTPMethod.POST, `/api/v1/player/${player}/colony/create`, ParseMethod.JSON, dto),
-        getColonyPathGraph: (colony) =>
-            base.request<ColonyPathGraphResponseDTO>(HTTPMethod.GET, `/api/v1/colony/${colony}/pathgraph`, ParseMethod.JSON),
+        getColony: (player, colony) => base.request<ColonyInfoResponseDTO>(
+            HTTPMethod.GET, `/api/v1/player/${player}/colony/${colony}`, ParseMethod.JSON),
+        updateLatestVisit: (dto, colony) => base.request<UpdateLatestVisitResponseDTO>(
+            HTTPMethod.POST, `/api/v1/colony/${colony}/update-last-visit`, ParseMethod.JSON, dto),
+        getColonyOverview: (player) => base.request<ColonyOverviewReponseDTO>(
+            HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
+        openColony: (colony, dto) => base.request<OpenColonyResponseDTO>(
+            HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON, dto),
+        joinColony: (code) => base.request<JoinColonyResponseDTO>(
+            HTTPMethod.POST, `/api/v1/colony/join/${code}`, ParseMethod.JSON),
+        createColony: (dto, player) => base.request<ColonyInfoResponseDTO>(
+            HTTPMethod.POST, `/api/v1/player/${player}/colony/create`, ParseMethod.JSON, dto),
+        getColonyPathGraph: (colony) => base.request<ColonyPathGraphResponseDTO>(
+            HTTPMethod.GET, `/api/v1/colony/${colony}/pathgraph`, ParseMethod.JSON),
 
-        getLocationInfo: (location) => base.request<LocationInfoResponseDTO>(HTTPMethod.GET, `/api/v1/location/${location}`, ParseMethod.JSON),
-        getFullLocationInfo: (location) =>
-            base.request<LocationInfoFullResponseDTO>(HTTPMethod.GET, `/api/v1/location/${location}/full`, ParseMethod.JSON),
+        getLocationInfo: (location) => base.request<LocationInfoResponseDTO>(
+            HTTPMethod.GET, `/api/v1/location/${location}`, ParseMethod.JSON),
+        getFullLocationInfo: (location) => base.request<LocationInfoFullResponseDTO>(
+            HTTPMethod.GET, `/api/v1/location/${location}/full`, ParseMethod.JSON),
 
-        getAssetMetadata: (assetId) => base.request<AssetResponseDTO>(HTTPMethod.GET, `/api/v1/asset/${assetId}`, ParseMethod.JSON),
-        getMetadataOfAssets: (assets) => base.request<AssetResponseDTO[]>(HTTPMethod.GET, `/api/v1/assets?ids=${assets.join(',')}`, ParseMethod.JSON),
-        getLODByAsset: (asset, lod) => base.request<Blob>(HTTPMethod.GET, `/api/v1/asset/${asset}/lod/${lod}`, ParseMethod.BLOB),
-        getLOD: (lod: LODID) => base.request<Blob>(HTTPMethod.GET, `/api/v1/lod/${lod}`, ParseMethod.BLOB),
-        getAssetCollection: (collection) =>
-            base.request<AssetCollectionResponseDTO>(HTTPMethod.GET, `/api/v1/collection/${collection}`, ParseMethod.JSON),
+        getAssetMetadata: (assetId) => base.request<AssetResponseDTO>(
+            HTTPMethod.GET, `/api/v1/asset/${assetId}`, ParseMethod.JSON),
+        getMetadataOfAssets: (assets) => base.request<AssetResponseDTO[]>(
+            HTTPMethod.GET, `/api/v1/assets?ids=${assets.join(',')}`, ParseMethod.JSON),
+        getLODByAsset: (asset, lod) => base.request<Blob>(
+            HTTPMethod.GET, `/api/v1/asset/${asset}/lod/${lod}`, ParseMethod.BLOB),
+        getLOD: (lod: LODID) => base.request<Blob>(
+            HTTPMethod.GET, `/api/v1/lod/${lod}`, ParseMethod.BLOB),
+        getAssetCollection: (collection) => base.request<AssetCollectionResponseDTO>(
+            HTTPMethod.GET, `/api/v1/collection/${collection}`, ParseMethod.JSON),
 
-        getMinigameInfo: (minigame) => base.request<MinigameInfoResponseDTO>(HTTPMethod.GET, `/api/v1/minigame/${minigame}`, ParseMethod.JSON),
-        getMinimizedMinigameInfo: (minigame, difficulty) =>
-            base.request<MinigameInfoResponseDTO>(
+        getMinigameInfo: (minigame) => base.request<MinigameInfoResponseDTO>(
+            HTTPMethod.GET, `/api/v1/minigame/${minigame}`, ParseMethod.JSON),
+        getMinimizedMinigameInfo: (minigame, difficulty) => base.request<MinigameInfoResponseDTO>(
                 HTTPMethod.GET,
                 `/api/v1/minigame/minimized?minigame=${minigame}&difficulty=${difficulty}`,
                 ParseMethod.JSON,
@@ -225,7 +235,7 @@ async function handleArbitraryRequest<T>(
     headers['Content-Type'] = 'application/json';
 
     if ((!userToken || userToken === '' || userToken === null) && !suburl.includes('session')) {
-        integration.logger.log('[umb int] User is not authorized, yet a request for: ' + suburl + ' was made');
+        integration.logger.log('[umb int] User is not yet authorized, yet a request for: ' + suburl + ' was made');
         return { res: null, code: 400, err: USER_NOT_AUTHORIZED_ERROR };
     }
     try {
