@@ -1,4 +1,4 @@
-import { Component, createEffect, createSignal, For } from "solid-js";
+import { Component, onMount, onCleanup, createSignal, For } from "solid-js";
 import { ColonyInfoResponseDTO, LocationInfoResponseDTO, PlayerID } from "../../integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
 import { IBackendBased, IInternationalized, IBufferBased } from "../../ts/types";
@@ -15,11 +15,15 @@ import Location from "../colony/location/Location";
 import NTAwait from "../util/Await";
 import { Camera } from "../../ts/camera";
 import { createWrappedSignal } from '../../ts/wrappedSignal';
+import { LobbyStateResponseDTO, ClientDTO } from "../../integrations/multiplayer_backend/multiplayerDTO";
+import { IMultiplayerIntegration } from "../../integrations/multiplayer_backend/multiplayerBackend";
+import { gameContainerStyle, localPlayerStyle, gameElementStyle, playerLabelStyle } from "./styles/Pathgraph.styles";
 
 interface PathGraphProps extends IBackendBased, IInternationalized, IBufferBased {
     colony: ColonyInfoResponseDTO;
     plexer: IEventMultiplexer;
     localPlayerId: PlayerID;
+    multiplayerIntegration: IMultiplayerIntegration;
 }
 
 interface Position {
@@ -30,6 +34,7 @@ interface Position {
 interface PlayerState {
     currentLocationId: number;
     position: Position;
+    IGN: string;
 }
 
 const PathGraph: Component<PathGraphProps> = (props) => {
@@ -37,6 +42,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [playerStates, setPlayerStates] = createSignal<Map<PlayerID, PlayerState>>(new Map());
     const [viewportDimensions, setViewportDimensions] = createSignal({ width: 1920, height: 1080 });
     const [scaleFactor, setScaleFactor] = createSignal(1);
+    const [cameraPosition, setCameraPosition] = createSignal<Position>({ x: 0, y: 0 });
 
     const camera: Camera = createWrappedSignal({ x: 0, y: 0 });
 
@@ -66,30 +72,65 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         return location ? { x: location.transform.xOffset, y: location.transform.yOffset } : { x: 0, y: 0 };
     };
 
-    const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
-        const newLocation = getLocationPosition(data.locationID);
-        
-        if (data.playerID === props.localPlayerId) {
-            // Move the world instead of the local player
-            camera.set(prev => ({
-                x: prev.x - (newLocation.x - prev.x),
-                y: prev.y - (newLocation.y - prev.y)
-            }));
+    const initializePlayerStates = async () => {
+        try {
+            const lobbyStateResponse = await props.multiplayerIntegration.getLobbyState();
+            if (lobbyStateResponse.err || !lobbyStateResponse.res) {
+                throw new Error(lobbyStateResponse.err || "No response data");
+            }
+            const lobbyState: LobbyStateResponseDTO = lobbyStateResponse.res;
+            
+            const newPlayerStates = new Map<PlayerID, PlayerState>();
+            lobbyState.clients.forEach((client: ClientDTO) => {
+                if (client.id !== props.localPlayerId) {
+                    const position = getLocationPosition(client.state.lastKnownPosition);
+                    newPlayerStates.set(client.id, {
+                        currentLocationId: client.state.lastKnownPosition,
+                        position,
+                        IGN: client.IGN
+                    });
+                } else {
+                    // Set initial camera position based on local player's position
+                    const localPlayerPosition = getLocationPosition(client.state.lastKnownPosition);
+                    setCameraPosition(localPlayerPosition);
+                }
+            });
+            setPlayerStates(newPlayerStates);
+        } catch (error) {
+            console.error("Error initializing player states:", error);
+        }
+    };
 
-            // Emit the move event to the plexer
+    const movePlayer = (playerId: PlayerID, newLocationId: number) => {
+        const newPosition = getLocationPosition(newLocationId);
+
+        if (playerId === props.localPlayerId) {
+            // Move the camera (which moves everything else)
+            setCameraPosition(newPosition);
+        } else {
+            // Update other player's position
+            setPlayerStates(prev => {
+                const newStates = new Map(prev);
+                const currentState = newStates.get(playerId);
+                if (currentState) {
+                    newStates.set(playerId, {
+                        ...currentState,
+                        currentLocationId: newLocationId,
+                        position: newPosition
+                    });
+                }
+                return newStates;
+            });
+        }
+    };
+
+    const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
+        movePlayer(data.playerID, data.locationID);
+
+        if (data.playerID === props.localPlayerId) {
             props.plexer.emit(PLAYER_MOVE_EVENT, {
                 playerID: props.localPlayerId,
                 locationID: data.locationID
-            });
-        } else {
-            // Update other players' positions
-            setPlayerStates(prev => {
-                const newStates = new Map(prev);
-                newStates.set(data.playerID, {
-                    currentLocationId: data.locationID,
-                    position: newLocation
-                });
-                return newStates;
             });
         }
     };
@@ -107,8 +148,9 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         // Implement appropriate UI feedback or navigation here
     };
 
-    createEffect(() => {
+    onMount(() => {
         fetchPaths();
+        initializePlayerStates();
         calculateScalars();
         window.addEventListener('resize', debouncedCalculateScalars);
 
@@ -118,96 +160,106 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             props.plexer.subscribe(LOBBY_CLOSING_EVENT, handleLobbyClosing)
         ];
 
-        return () => {
+        onCleanup(() => {
             window.removeEventListener('resize', debouncedCalculateScalars);
             subscriptions.forEach(id => props.plexer.unsubscribe(id));
-        };
+        });
     });
 
-    const getRelativePosition = (position: Position): Position => {
-        const offset = camera.get();
-        return {
-            x: (position.x + offset.x) * scaleFactor() + viewportDimensions().width / 2,
-            y: (position.y + offset.y) * scaleFactor() + viewportDimensions().height / 2
-        };
-    };
-
     return (
-        <div class={containerStyle} style={{ width: `${viewportDimensions().width}px`, height: `${viewportDimensions().height}px` }}>
-            <svg width="100%" height="100%">
-                <For each={paths()}>
-                    {(path) => {
-                        const fromPos = getRelativePosition(getLocationPosition(path.from));
-                        const toPos = getRelativePosition(getLocationPosition(path.to));
-                        return (
-                            <line
-                                x1={fromPos.x}
-                                y1={fromPos.y}
-                                x2={toPos.x}
-                                y2={toPos.y}
-                                stroke="black"
-                                stroke-width={2 * scaleFactor()}
-                            />
-                        );
-                    }}
-                </For>
-            </svg>
-            <For each={props.colony.locations}>
-                {(location) => (
-                    <NTAwait
-                        func={() => props.backend.getLocationInfo(location.id)}
-                        fallback={(error) => () => <div>Error loading location: {error.message}</div>}
-                    >
-                        {(locationInfo) =>
-                            isLocationInfoResponseDTO(locationInfo) ? (
-                                <Location
-                                    colonyLocation={location}
-                                    location={locationInfo}
-                                    dns={() => ({ x: scaleFactor(), y: scaleFactor() })}
-                                    gas={() => scaleFactor()}
-                                    plexer={props.plexer}
-                                    camera={camera}
-                                    backend={props.backend}
-                                    buffer={props.buffer}
-                                    text={props.text}
-                                    styleOverwrite=""
-                                    register={() => { return () => {}; }}
+        <div class={css`
+            width: ${viewportDimensions().width}px;
+            height: ${viewportDimensions().height}px;
+            overflow: hidden;
+            position: relative;
+        `}>
+            <div class={css`
+                ${gameContainerStyle}
+                transform: translate(${-cameraPosition().x * scaleFactor() + viewportDimensions().width / 2}px, ${-cameraPosition().y * scaleFactor() + viewportDimensions().height / 2}px) scale(${scaleFactor()});
+            `}>
+                <svg width="100%" height="100%">
+                    <For each={paths()}>
+                        {(path) => {
+                            const fromPos = getLocationPosition(path.from);
+                            const toPos = getLocationPosition(path.to);
+                            return (
+                                <line
+                                    x1={fromPos.x}
+                                    y1={fromPos.y}
+                                    x2={toPos.x}
+                                    y2={toPos.y}
+                                    stroke="black"
+                                    stroke-width={2 / scaleFactor()}
                                 />
-                            ) : (
-                                <div>Error loading location data</div>
-                            )
-                        }
-                    </NTAwait>
-                )}
-            </For>
-            <For each={Array.from(playerStates().entries())}>
-                {([playerId, state]) => {
-                    if (playerId === props.localPlayerId) return null;
-                    const pos = getRelativePosition(state.position);
-                    return (
-                        <div style={{
-                            position: 'absolute',
-                            left: `${pos.x - 10 * scaleFactor()}px`,
-                            top: `${pos.y - 10 * scaleFactor()}px`,
-                            width: `${20 * scaleFactor()}px`,
-                            height: `${20 * scaleFactor()}px`,
-                            background: 'red',
-                            'border-radius': '50%',
-                            transition: 'left 0.3s, top 0.3s'
-                        }}></div>
-                    );
-                }}
-            </For>
-            {/* Local player (always centered) */}
-            <div style={{
-                position: 'absolute',
-                left: `${viewportDimensions().width / 2 - 10 * scaleFactor()}px`,
-                top: `${viewportDimensions().height / 2 - 10 * scaleFactor()}px`,
-                width: `${20 * scaleFactor()}px`,
-                height: `${20 * scaleFactor()}px`,
-                background: 'blue',
-                'border-radius': '50%'
-            }}></div>
+                            );
+                        }}
+                    </For>
+                </svg>
+                <For each={props.colony.locations}>
+                    {(location) => (
+                        <NTAwait
+                            func={() => props.backend.getLocationInfo(location.id)}
+                            fallback={(error) => () => (
+                                <div class={css`
+                                    position: absolute;
+                                    left: ${location.transform.xOffset}px;
+                                    top: ${location.transform.yOffset}px;
+                                `}>
+                                    Error loading location: {error.message}
+                                </div>
+                            )}
+                        >
+                            {(locationInfo) =>
+                                isLocationInfoResponseDTO(locationInfo) ? (
+                                    <Location
+                                        colonyLocation={location}
+                                        location={locationInfo}
+                                        dns={() => ({ x: 1, y: 1 })}
+                                        gas={() => 1}
+                                        plexer={props.plexer}
+                                        camera={camera}
+                                        backend={props.backend}
+                                        buffer={props.buffer}
+                                        text={props.text}
+                                        styleOverwrite={css`
+                                            position: absolute;
+                                            left: ${location.transform.xOffset}px;
+                                            top: ${location.transform.yOffset}px;
+                                        `}
+                                        register={() => { return () => {}; }}
+                                    />
+                                ) : (
+                                    <div class={css`
+                                        position: absolute;
+                                        left: ${location.transform.xOffset}px;
+                                        top: ${location.transform.yOffset}px;
+                                    `}>
+                                        Error loading location data
+                                    </div>
+                                )
+                            }
+                        </NTAwait>
+                    )}
+                </For>
+                <For each={Array.from(playerStates().entries())}>
+                    {([playerId, state]) => (
+                        <div class={css`
+                            ${gameElementStyle}
+                            left: ${state.position.x}px;
+                            top: ${state.position.y}px;
+                            width: 20px;
+                            height: 20px;
+                            background-color: red;
+                            border-radius: 50%;
+                        `}>
+                            <div class={playerLabelStyle}>
+                                {state.IGN}
+                            </div>
+                        </div>
+                    )}
+                </For>
+            </div>
+            <div class={localPlayerStyle} />
         </div>
     );
 };
@@ -234,12 +286,5 @@ function debounce(func: Function, wait: number) {
         timeout = setTimeout(later, wait) as unknown as number;
     };
 }
-
-const containerStyle = css`
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-`;
 
 export default PathGraph;

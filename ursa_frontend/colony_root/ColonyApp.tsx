@@ -18,7 +18,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
       <ErrorPage content={error} />
     )
   }
-  
+
   return (
     <div>
       <StarryBackground />
@@ -34,6 +34,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
             backend={props.context.backend}
             buffer={buffer}
             localPlayerId={Number(props.context.nav.getRetainedUserInfo().res?.id)}
+            multiplayerIntegration={props.context.multiplayer}
           />
         )}
       </Unwrap>
