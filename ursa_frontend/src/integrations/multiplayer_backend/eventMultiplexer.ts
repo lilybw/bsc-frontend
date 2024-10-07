@@ -30,6 +30,9 @@ export interface IEventMultiplexer {
     emit: <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => Promise<void>;
 }
 
+/**
+ * Normal IEventMultiplexer but with the option to emit raw events without restrictions.
+ */
 export interface IExpandedAccessMultiplexer extends IEventMultiplexer {
     emitRAW: <T extends IMessage>(data: T) => Promise<void>;
 }

@@ -1,7 +1,6 @@
 import { Bundle, BundleComponent, LogLevel } from '../src/meta/types';
 import { ApplicationProps } from '../src/ts/types';
 import SectionTitle from '../src/components/SectionTitle';
-import SectionSubTitle from '../src/components/SectionSubTitle';
 import StarryBackground from '../src/components/StarryBackground';
 import PathGraph from '../src/components/colony/PathGraph';
 import Unwrap from '../src/components/util/Unwrap';
@@ -19,13 +18,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
       <ErrorPage content={error} />
     )
   }
-
-  // Function to update buffer
-  const updateBuffer = (value: string) => {
-    setBuffer(value);
-    // You might want to perform additional actions here when the buffer changes
-  }
-
+  
   return (
     <div>
       <StarryBackground />

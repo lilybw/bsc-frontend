@@ -24,7 +24,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
                 case 404: setCodeError("No colony by that code"); break;
                 default: setCodeError(response.err);
             }
-            return
+            return;
         }
 
         const colonyInfoAttempt = await props.context.backend.getColony(response.res.ownerID, response.res.colonyID);
