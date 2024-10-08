@@ -7,10 +7,12 @@ import GenericLocationCard from "./GenericLocationCard";
 import { KnownLocations } from "../../../integrations/main_backend/constants";
 import SpacePortLocationCard from "./SpacePortLocationCard";
 import HomeLocationCard from "./HomeLocationCard";
+import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 
 export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colonyLocation: ColonyLocationInformation;
     location: LocationInfoResponseDTO;
+    events: IEventMultiplexer;
     onClose: () => void;
 }
 
@@ -23,6 +25,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             case KnownLocations.Home:
                 return (
                     <HomeLocationCard 
+                        events={props.events}
                         colonyLocation={props.colonyLocation}
                         closeCard={props.onClose}
                         info={locationInfo}
@@ -35,6 +38,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             case KnownLocations.SpacePort:
                 return (
                     <SpacePortLocationCard 
+                        events={props.events}
                         colonyLocation={props.colonyLocation}
                         closeCard={props.onClose} 
                         info={locationInfo}
@@ -47,6 +51,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             default:
                 return (
                     <GenericLocationCard 
+                        events={props.events}
                         colonyLocation={props.colonyLocation}
                         closeCard={props.onClose}
                         info={locationInfo}

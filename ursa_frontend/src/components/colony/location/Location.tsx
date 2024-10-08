@@ -93,6 +93,7 @@ const Location: Component<LocationProps> = (props) => {
         if (showLocationCard()) {
             return (
                 <LocationCard
+                    events={props.plexer}
                     colonyLocation={props.colonyLocation}
                     location={props.location}
                     buffer={props.buffer}

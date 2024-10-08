@@ -181,14 +181,15 @@ export type MinigameInfoResponseDTO = {
      * Some JS object
      */
     settings: any;
-    difficulties: {
-        id: MinigameDifficultyID;
-        name: string;
-        description: string;
-        icon: AssetID;
-        overwritingSettings: any;
-    }[];
+    difficulties: MinigameDifficultyResponseDTO[];
 };
+export type MinigameDifficultyResponseDTO = {
+    id: MinigameDifficultyID;
+    name: string;
+    description: string;
+    icon: AssetID;
+    overwritingSettings: any;
+}
 
 export type MinimizedMinigameInfoResponseDTO = {
     settings: any;

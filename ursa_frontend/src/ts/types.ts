@@ -4,6 +4,7 @@ import { BackendIntegration } from '../integrations/main_backend/mainBackend';
 import { InternationalizationService } from '../integrations/main_backend/internationalization/internationalization';
 import { AddRetainRemoveFunc } from './wrappedStore';
 import { BufferSubscriber } from './actionContext';
+import { IEventMultiplexer } from '../integrations/multiplayer_backend/eventMultiplexer';
 
 export interface ApplicationProps {
     context: ApplicationContext;
@@ -43,4 +44,7 @@ export interface IInternationalized {
  */
 export interface IRegistering<T> {
     register: AddRetainRemoveFunc<BufferSubscriber<T>>;
+}
+export interface IEmitter {
+    emit: IEventMultiplexer["emit"];
 }

@@ -5,10 +5,13 @@ import { css } from "@emotion/css";
 import BufferBasedButton from "../../BufferBasedButton";
 import NTAwait from "../../util/NoThrowAwait";
 import GraphicalAsset from "../../GraphicalAsset";
+import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
+import MinigameDifficultyListEntry from "./MinigameDifficultyListEntry";
 
 export interface GenericLocationCardProps extends IBufferBased, IBackendBased, IInternationalized, IRegistering<string>{
     colonyLocation: ColonyLocationInformation;
     info: LocationInfoResponseDTO;
+    events: IEventMultiplexer;
     closeCard: () => void;
 }
 
@@ -33,9 +36,17 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
             <div class={sideBySideStyle}>
                 <div class={difficultyListStyle}>
                     <NTAwait func={() => props.backend.getMinigameInfo(props.info.minigameID)}>{(minigame) => 
-                            <For each={minigame.difficulties}>{(difficulty) =>
-                                <div>{difficulty.name}</div>
-                            }</For>
+                        <For each={minigame.difficulties}>{(difficulty) =>
+                            <MinigameDifficultyListEntry 
+                                difficulty={difficulty} 
+                                minigameID={minigame.id} 
+                                buffer={props.buffer} 
+                                register={props.register} 
+                                backend={props.backend} 
+                                emit={props.events.emit}
+                                text={props.text}
+                            />
+                        }</For>
                     }</NTAwait>
                 </div>
                 <div class={rightSideContentStyle}>
@@ -45,13 +56,22 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                     {props.text.SubTitle(props.info.description)({styleOverwrite: descriptionStyleOverwrite})}
                 </div>
             </div>
-            <BufferBasedButton 
-                name={props.text.get("LOCATION.USER_ACTION.LEAVE").get()}
-                buffer={props.buffer}
-                register={props.register}
-                onActivation={props.closeCard}
-                styleOverwrite={leaveButtonOverrideStyle}
-            />
+            <div class={leaveButtonContainerStyle}>
+                <BufferBasedButton 
+                    name={props.text.get("LOCATION.USER_ACTION.LEAVE").get()}
+                    buffer={props.buffer}
+                    register={props.register}
+                    onActivation={props.closeCard}
+                    styleOverwrite={leaveButtonOverrideStyle}
+                />
+                <BufferBasedButton 
+                    name={props.text.get("MINIGAME.START").get()}
+                    buffer={props.buffer}
+                    register={props.register}
+                    onActivation={props.closeCard}
+                    styleOverwrite={leaveButtonOverrideStyle}
+                />
+            </div>
         </div>
     )
 }
@@ -68,7 +88,7 @@ font-size: 3.5rem;
 width: 100%;
 text-align: center;
 top: 0;
-margin-top: -10vh;
+margin-top: -5vh;
 `
 const descriptionStyleOverwrite = css`
 font-size: 1.5rem;
@@ -99,12 +119,17 @@ width: 70%;
 column-gap: 1rem;
 `
 
-const leaveButtonOverrideStyle = css`
+const leaveButtonContainerStyle = css`
+display: flex;
+flex-direction: row;
 width: 100%;
-align-self: center;
+justify-content: center;
+align-items: center;
+`
 
+const leaveButtonOverrideStyle = css`
 `
 
 const cardContainerStyle = css`
-
+height: 80%;
 `

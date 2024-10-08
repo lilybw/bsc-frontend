@@ -1,17 +1,36 @@
-import { Accessor, Component, createSignal, onCleanup, onMount, createMemo } from "solid-js";
+import { Accessor, Component, createSignal, onCleanup, onMount, createMemo, createEffect } from "solid-js";
 import { css } from "@emotion/css";
 import BufferHighlightedName, { BufferHighlightedNameProps } from "./BufferHighlightedName";
 import { AddRetainRemoveFunc } from "../ts/wrappedStore";
 import { BufferSubscriber } from "../ts/actionContext";
 import { IParenting, IRegistering } from "../ts/types";
+import { Styles } from "../sharedCSS";
 
 export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IParenting, IRegistering<string> {
     onActivation: () => void;
+    enable?: Accessor<boolean>;
 }
 
 const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     const [activated, setActivated] = createSignal(false);
+    const [recentlyEnabled, setRecentlyEnabled] = createSignal(false);
+    const disabledBuffer = createMemo(() => '');
+   
+    const isDisabled = createMemo(() => {
+        return props.enable ? !props.enable() : false;
+    });
 
+    createEffect(() => {
+        const currentlyDisabled = isDisabled();
+        if (!currentlyDisabled && recentlyEnabled()) {
+            setTimeout(() => {
+                setRecentlyEnabled(false);
+            }, 1000);
+        } else if (currentlyDisabled) {
+            setRecentlyEnabled(true);
+        }
+    });
+    
     const combinedCharBaseStyle = createMemo(() => {
         return css`
             ${props.charBaseStyleOverwrite || ''}
@@ -38,14 +57,17 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
         ${baseStyle} 
         ${props.styleOverwrite} 
         ${activated() ? onActivationShimmerAnim : ''}
+        ${isDisabled() ? Styles.CROSS_HATCH_GRADIENT : ''}
+        ${recentlyEnabled() && !isDisabled() ? onReEnabledAnim : ''}
     `);
 
     return (
         <button class={computedContainerStyles()} 
             id={"buffer-based-button-"+props.name}
+            disabled={isDisabled()}
         >
             <BufferHighlightedName 
-                buffer={props.buffer} 
+                buffer={isDisabled() ? disabledBuffer : props.buffer} 
                 name={props.name} 
                 charHighlightOverwrite={props.charHighlightOverwrite}
                 charBaseStyleOverwrite={combinedCharBaseStyle()}
@@ -85,4 +107,18 @@ const baseStyle = css`
     pointer-events: none;
     background-color: transparent;
     border: none;
+`
+
+
+const onReEnabledAnim = css`
+animation: shimmer ${shimmerTimeS}s ease-in;
+--shimmer-color: ${shimmerColor};
+@keyframes shimmer {
+    0% {
+        filter: drop-shadow(0 0 .1rem var(--shimmer-color));
+    }
+    100% {
+        filter: drop-shadow(0 0 5rem var(--shimmer-color));
+    }
+}
 `
