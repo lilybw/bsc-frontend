@@ -1,28 +1,32 @@
-import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect } from "solid-js";
-import { ColonyInfoResponseDTO, LocationInfoResponseDTO, PlayerID, TransformDTO } from "../../integrations/main_backend/mainBackendDTOs";
+import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect, from } from "solid-js";
+import { ColonyInfoResponseDTO, ColonyLocationInformation, PlayerID, TransformDTO } from "../../integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
 import { IBackendBased, IInternationalized, IBufferBased } from "../../ts/types";
 import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventMultiplexer";
 import { PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from "../../integrations/multiplayer_backend/EventSpecifications";
 import Location from "../colony/location/Location";
-import NTAwait from "../util/Await";
 import { Camera } from "../../ts/camera";
-import { createWrappedSignal } from '../../ts/wrappedSignal';
+import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
 import { IMultiplayerIntegration } from "../../integrations/multiplayer_backend/multiplayerBackend";
-import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
-import Player from "../Player";
 import { ClientDTO } from "../../integrations/multiplayer_backend/multiplayerDTO";
-import { error } from "console";
+import NTAwait from "../util/NoThrowAwait";
+import { KnownLocations } from "../../integrations/main_backend/constants";
+import { BufferSubscriber, TypeIconTuple } from "../../ts/actionContext";
+import { ArrayStore } from "../../ts/wrappedStore";
+import ActionInput from "./MainActionInput";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
 
-interface PathGraphProps extends IBackendBased, IInternationalized, IBufferBased {
+interface PathGraphProps extends IBackendBased, IInternationalized {
     colony: ColonyInfoResponseDTO;
     plexer: IEventMultiplexer;
     localPlayerId: PlayerID;
     multiplayerIntegration: IMultiplayerIntegration;
     existingClients: ClientDTO[]
+    bufferSubscribers: ArrayStore<BufferSubscriber<string>>;
+    buffer: WrappedSignal<string>;
+    actionContext: WrappedSignal<TypeIconTuple>;
 }
 
 const UNIT_TRANSFORM: TransformDTO = {
@@ -42,13 +46,30 @@ function unwrappedFromProps(clients: ClientDTO[]) {
 
     return map
 }
+/**
+ * NOT Colony Location ID
+ */
+const findByLocationID = (locations: ColonyLocationInformation[], locationID: number) => {
+    for (const location of locations) {
+        if (location.locationID === locationID) {
+            return location;
+        }
+    }
+    return null;
+}
+
+const getInitialCameraPosition = (home: ColonyLocationInformation) => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    return {x: home.transform.xOffset + (viewportWidth * .5), y: home.transform.yOffset + (viewportHeight * .5)}
+}
 
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [paths, setPaths] = createSignal<{ from: number; to: number }[]>([]);
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
     const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
-    const camera: Camera = createWrappedSignal({ x: 0, y: 0 });
+    const camera: Camera = createWrappedSignal(getInitialCameraPosition(findByLocationID(props.colony.locations, KnownLocations.Home)!));
     /**
      * This map shows relationships between the players positions and the location that is the position in the graph.
      */
@@ -59,7 +80,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         const currentDNS = DNS()
 
         const transforms = new Map()
-        const tempGAS = Math.min(currentDNS.x, currentDNS.y)
+        const tempGAS = Math.sqrt(Math.min(currentDNS.x, currentDNS.y))
 
         for (const colonyLocationInfo of props.colony.locations) {
             const computedTransform: TransformDTO = {
@@ -74,6 +95,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         }
 
         setLocationTransform(transforms)
+        props.backend.logger.trace('Updated location transforms, camera: ' + JSON.stringify(camera.get()))
     }) 
 
     const calculateScalars = () => {
@@ -83,15 +105,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             x: viewportWidth / EXPECTED_WIDTH, 
             y: viewportHeight / EXPECTED_HEIGHT 
         });
-        setGAS(Math.min(viewportWidth / EXPECTED_WIDTH, viewportHeight / EXPECTED_HEIGHT));
-    };
-
-    const fetchPaths = async () => {
-        const pathData = await props.backend.getColonyPathGraph(props.colony.id);
-
-        if (!pathData.err && pathData.res != null) {
-            setPaths(pathData.res.paths);
-        }
+        setGAS(Math.sqrt(Math.min(viewportWidth / EXPECTED_WIDTH, viewportHeight / EXPECTED_HEIGHT)));
     };
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
@@ -132,72 +146,76 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         });
     });
 
-    const containerTransform = createMemo(() => {
-        const cameraPos = camera.get();
-        return `translate(${-cameraPos.x * GAS() + window.innerWidth / 2}px, ${-cameraPos.y * GAS() + window.innerHeight / 2}px) scale(${GAS()})`;
-    });
-
     return (
-        <div class={css`
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-        `}>
-            <div class={css`
-                position: absolute;
-                transform: ${containerTransform()};
-            `}>
-                <NTAwait
-                    func={() => props.backend.getColonyPathGraph(props.colony.id)}
-                >
-                    {(pathData) => 
-                        <svg width="100%" height="100%">
-                            <For each={paths()}>
-                                {(path) => {
-                                    const fromLocation = locationTransforms().get(path.from);
-                                    const toLocation = locationTransforms().get(path.to);
-                                    if (!fromLocation || !toLocation) return null;
-                                    return (
-                                        <line
-                                            x1={fromLocation.xOffset}
-                                            y1={fromLocation.yOffset}
-                                            x2={toLocation.xOffset}
-                                            y2={toLocation.yOffset}
-                                            stroke="black"
-                                            stroke-width={2 / GAS()}
-                                        />
-                                    );
-                                }}
-                            </For>
-                        </svg>
-                    }
-                </NTAwait>
-        
-                <For each={props.colony.locations}>
-                    {(location) => (
-                        <NTAwait
-                            func={() => props.backend.getLocationInfo(location.locationID)}
-                        >
-                            {(locationInfo) => (
-                                <Location
-                                    colonyLocation={{...location, transform: locationTransforms().get(location.id)!}}
-                                    location={locationInfo.res!}
-                                    gas={GAS}
-                                    plexer={props.plexer}
-                                    backend={props.backend}
-                                    buffer={props.buffer}
-                                    text={props.text}
-                                    register={() => { return () => {}; }}
-                                />
-                            )}
-                        </NTAwait>
-                    )}
-                </For>
-            </div>
+        <div class={pathGraphContainerStyle}>
+            <NTAwait func={() => props.backend.getColonyPathGraph(props.colony.id)}>
+                {(pathData) => 
+                    <svg width="100%" height="100%">
+                        <For each={pathData.paths}>
+                            {(path) => {
+                                let fromLocation = locationTransforms().get(path.from);
+                                let toLocation = locationTransforms().get(path.to);
+                                if (!fromLocation) fromLocation = UNIT_TRANSFORM;
+                                if (!toLocation) toLocation = UNIT_TRANSFORM;
+                                return (
+                                    <line
+                                        x1={fromLocation.xOffset}
+                                        y1={fromLocation.yOffset}
+                                        x2={toLocation.xOffset}
+                                        y2={toLocation.yOffset}
+                                        stroke="white"
+                                        stroke-width={10}
+                                    />
+                                );
+                            }}
+                        </For>
+                    </svg>
+                }
+            </NTAwait>
+    
+            <For each={props.colony.locations}>
+                {(location) => (
+                    <NTAwait
+                        func={() => props.backend.getLocationInfo(location.locationID)}
+                    >
+                        {(locationInfo) => (
+                            <Location
+                                colonyLocation={{...location, transform: locationTransforms().get(location.id)!}}
+                                location={locationInfo}
+                                gas={GAS}
+                                plexer={props.plexer}
+                                backend={props.backend}
+                                buffer={props.buffer.get}
+                                actionContext={props.actionContext}
+                                text={props.text}
+                                register={props.bufferSubscribers.add}
+                            />
+                        )}
+                    </NTAwait>
+                )}
+            </For>
+
+            <ActionInput subscribers={props.bufferSubscribers.get} 
+                text={props.text}
+                backend={props.backend}
+                actionContext={props.actionContext.get} 
+                setInputBuffer={props.buffer.set}
+                inputBuffer={props.buffer.get}
+            />
         </div>
     );
 };
 
 
 export default PathGraph;
+
+const pathGraphContainerStyle = css`
+position: absolute;
+
+left: 0;
+top: 0;
+width: 100vw;
+height: 100vh;
+
+overflow: visible;
+`

@@ -12,7 +12,7 @@ export default function StarryBackground(props: StarryBackgroundProps): JSX.Elem
     );
 }
 const starBackground = css`
-    z-index: -1000;
+    z-index: -10000000;
     position: fixed;
     top: -1px;
     left: -1px;

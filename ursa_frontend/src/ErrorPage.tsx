@@ -20,7 +20,7 @@ export default function ErrorPage(props: ErrorPageProps): JSX.Element {
 
 const titleOverwrite = css`position: absolute; left: 12vw; top: 10vh;`
 
-const subTitleOverwrite = css`position: absolute; right: 0; top: 20vh;`
+const subTitleOverwrite = css`position: absolute; right: 0; top: 20vh; width: 50%;`
 
 
 const backgroundImage = css`

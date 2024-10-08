@@ -14,8 +14,9 @@ interface AssetCollectionProps extends IBackendBased, IStyleOverwritable {
 
 const AssetCollection: Component<AssetCollectionProps> = (props) => {
     const [collectionName, setCollectionName] = createSignal<string>("unknown-collection...");
+    
     const computedContainerStyle = (transform?: TransformDTO) => css`
-        ${Styles.transformToCSSVariables(props.topLevelTransform)}
+        ${Styles.transformToCSSVariables(transform)}
         ${props.topLevelTransform ? Styles.TRANSFORM_APPLICATOR : ""}
         ${props.styleOverwrite}
     `;

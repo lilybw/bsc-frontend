@@ -7,9 +7,15 @@ import Unwrap from '../src/components/util/Unwrap';
 import ErrorPage from '../src/ErrorPage';
 import { createSignal, Accessor, onMount, onCleanup } from 'solid-js';
 import { LOBBY_CLOSING_EVENT, PLAYER_JOINED_EVENT, PLAYER_LEFT_EVENT, SERVER_CLOSING_EVENT } from '../src/integrations/multiplayer_backend/EventSpecifications';
+import { css } from '@emotion/css';
+import { createArrayStore } from '../src/ts/wrappedStore';
+import { ActionContext, BufferSubscriber, TypeIconTuple } from '../src/ts/actionContext';
+import { createWrappedSignal } from '../src/ts/wrappedSignal';
 
 const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: ApplicationProps) => {
-  const [buffer, setBuffer] = createSignal('test');
+  const inputBuffer = createWrappedSignal<string>('');
+  const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.NAVIGATION);
+  const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
 
   const onColonyInfoLoadError = (error: string) => {
     props.context.logger.error('Failed to load colony info: ' + error);
@@ -41,19 +47,23 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   return (
     <div>
       <StarryBackground />
-      <SectionTitle>Colony</SectionTitle>
       <Unwrap func={props.context.nav.getRetainedColonyInfo} fallback={onColonyInfoLoadError}>
         {(colonyInfo) => (
+          <>
+          <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
           <PathGraph 
+            bufferSubscribers={bufferSubscribers}
+            actionContext={actionContext}
             existingClients={[]}
             colony={colonyInfo}
             plexer={props.context.events}
             text={props.context.text}
             backend={props.context.backend}
-            buffer={buffer}
+            buffer={inputBuffer}
             localPlayerId={Number(props.context.nav.getRetainedUserInfo().res?.id)}
             multiplayerIntegration={props.context.multiplayer}
           />
+          </>
         )}
       </Unwrap>
     </div>
@@ -61,3 +71,11 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
 }, {bundle: Bundle.COLONY});
 
 export default ColonyApp;
+
+const colonyTitleStyle = css`
+position: absolute;
+z-index: 100000;
+font-size: 5rem;
+top: 0;
+left: 0;
+`

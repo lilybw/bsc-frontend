@@ -10,11 +10,14 @@ import { Camera } from "../../../ts/camera";
 import AssetCollection from "../AssetCollection";
 import { Styles } from "../../../sharedCSS";
 import LocationCard from "./LocationCard";
+import { WrappedSignal } from "../../../ts/wrappedSignal";
+import { ActionContext, TypeIconTuple } from "../../../ts/actionContext";
 
 interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colonyLocation: ColonyLocationInformation;
     location: LocationInfoResponseDTO;
     plexer: IEventMultiplexer;
+    actionContext: WrappedSignal<TypeIconTuple>;
     /**
      * Graphical Asset Scalar
      */
@@ -30,6 +33,7 @@ const Location: Component<LocationProps> = (props) => {
     const [isUserHere, setUserIsHere] = createSignal(false);
     const [showLocationCard, setShowLocationCard] = createSignal(false);
     const [idOfDiffSelected, setIdOfDiffSelected] = createSignal(-1);
+    const [previousActionContext, setPreviousActionContext] = createSignal(ActionContext.NAVIGATION);
 
     const currentDisplayText = createMemo(() => isUserHere() ?
         props.text.get("LOCATION.USER_ACTION.ENTER").get() :
@@ -40,6 +44,8 @@ const Location: Component<LocationProps> = (props) => {
         if (isUserHere()) {
             console.log("[delete me] showing location card for: " + props.location.name);
             setShowLocationCard(true);
+            setPreviousActionContext(props.actionContext.get());
+            props.actionContext.set(ActionContext.INTERACTION);
             return;
         }
 
@@ -59,6 +65,7 @@ const Location: Component<LocationProps> = (props) => {
             else {
                 setUserIsHere(false);
                 setShowLocationCard(false);
+                props.actionContext.set(previousActionContext());
             }            
         });
         const diffSelectSubId = props.plexer.subscribe(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, (event) => {
@@ -66,6 +73,7 @@ const Location: Component<LocationProps> = (props) => {
         });
         const diffConfirmedSubId = props.plexer.subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (event) => {
             setShowLocationCard(false);
+            props.actionContext.set(previousActionContext());
         });
         onCleanup(() => props.plexer.unsubscribe(playerMoveSubId, diffSelectSubId, diffConfirmedSubId));
     })
@@ -107,6 +115,7 @@ const Location: Component<LocationProps> = (props) => {
         <div class={computedContainerStyle()} id={"location-" + props.location.name + "-level-" + props.colonyLocation.level}>
             <BufferBasedButton
                 styleOverwrite={css`
+                    ${namePlateStyle}
                     ${Styles.transformToCSSVariables(computedButtonTransform())}
                     ${Styles.TRANSFORM_APPLICATOR}   
                 `}
@@ -127,4 +136,8 @@ const Location: Component<LocationProps> = (props) => {
 export default Location;
 
 const locationContainerStyle = css`
+    position: absolute;
+`
+const namePlateStyle = css`
+    position: absolute;
 `
