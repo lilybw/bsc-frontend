@@ -119,8 +119,11 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 <For each={props.colony.locations}>
                     {(location) => (
                         <NTAwait
-                            func={() => props.backend.getLocationInfo(location.id)}
-                            fallback={(e) => e}
+                            func={() => props.backend.getLocationInfo(location.locationID)}
+                            fallback={(error) => {
+                                const ErrorComponent: Component = () => <SomethingWentWrongIcon />;
+                                return ErrorComponent;
+                            }}
                         >
                             {(locationInfo) => (
                                 <Location
@@ -142,7 +145,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             </div>
             {/* Add Player component here */}
             <Player
-                transform={props.colony.locations[0].transform}  // Assuming first location is starting point
+                transform={props.colony.locations[0].transform}
                 dns={DNS}
                 gas={GAS}
                 camera={camera}
