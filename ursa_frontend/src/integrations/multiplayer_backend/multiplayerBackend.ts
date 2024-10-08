@@ -5,7 +5,7 @@ import { BackendIntegration } from '../main_backend/mainBackend';
 import { ColonyCode, PlayerID } from '../main_backend/mainBackendDTOs';
 import { createViewAndSerializeMessage, parseGoTypeAtOffsetInView, readSourceAndEventID } from './binUtil';
 import { IExpandedAccessMultiplexer } from './eventMultiplexer';
-import { EVENT_ID_MAP, EventSpecification, IMessage, OriginType } from './EventSpecifications-v0.0.7';
+import { EVENT_ID_MAP, EventSpecification, IMessage, OriginType } from './EventSpecifications';
 import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
 import { HealthCheckDTO, LobbyStateResponseDTO } from './multiplayerDTO';
 

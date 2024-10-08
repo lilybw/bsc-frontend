@@ -3,7 +3,7 @@ import { ColonyInfoResponseDTO, LocationInfoResponseDTO, PlayerID } from "../../
 import { css } from "@emotion/css";
 import { IBackendBased, IInternationalized, IBufferBased } from "../../ts/types";
 import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventMultiplexer";
-import { PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from "../../integrations/multiplayer_backend/EventSpecifications-v0.0.7";
+import { PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from "../../integrations/multiplayer_backend/EventSpecifications";
 import Location from "../colony/location/Location";
 import NTAwait from "../util/Await";
 import { Camera } from "../../ts/camera";

@@ -1,6 +1,6 @@
 import { expect, suite, test, vi } from 'vitest';
 import { computeActualSizeOfMessage, parseGoTypeAtOffsetInView, placeValueAtOffsetAsTypeInView } from './binUtil';
-import { EventSpecification, GoType } from './EventSpecifications-v0.0.7';
+import { EventSpecification, GoType } from '';
 import { RawMessage } from './multiplayerBackend';
 
 suite('placeValueAtOffsetAsTypeInView', () => {

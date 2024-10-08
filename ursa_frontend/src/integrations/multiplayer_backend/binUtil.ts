@@ -1,4 +1,4 @@
-import { EventSpecification, GoType, IMessage } from './EventSpecifications-v0.0.7';
+import { EventSpecification, GoType, IMessage } from './EventSpecifications';
 import { RawMessage } from './multiplayerBackend';
 
 /**
