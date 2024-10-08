@@ -12,6 +12,7 @@ import { IMultiplayerIntegration } from "../../integrations/multiplayer_backend/
 import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
 import Player from "../Player";
 import { ClientDTO } from "../../integrations/multiplayer_backend/multiplayerDTO";
+import { error } from "console";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -32,17 +33,27 @@ const UNIT_TRANSFORM: TransformDTO = {
     zIndex: 0
 }
 
+function unwrappedFromProps(clients: ClientDTO[]) {
+    const map = new Map()
+
+    for (const client of clients) {
+        map.set(client.id, client.state.lastKnownPosition)
+    }
+
+    return map
+}
+
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [paths, setPaths] = createSignal<{ from: number; to: number }[]>([]);
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
     const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
     const camera: Camera = createWrappedSignal({ x: 0, y: 0 });
-
     /**
      * This map shows relationships between the players positions and the location that is the position in the graph.
      */
-    const [playerPositions, setPlayerPositions] = createSignal<Map<PlayerID, Number>>(new Map())
+    const [nonLocalPlayerPositions, setNonLocalPlayerPositions] = createSignal<Map<PlayerID, Number>>(unwrappedFromProps(props.existingClients))
+
     
     createEffect(() => {
         const currentDNS = DNS()
@@ -76,14 +87,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     };
 
     const fetchPaths = async () => {
-        try {
-            const pathData = await props.backend.getColonyPathGraph(props.colony.id);
-            if (pathData.err || !pathData.res) {
-                throw new Error(pathData.err || "No response data");
-            }
+        const pathData = await props.backend.getColonyPathGraph(props.colony.id);
+
+        if (!pathData.err && pathData.res != null) {
             setPaths(pathData.res.paths);
-        } catch (error) {
-            console.error("Error fetching paths:", error);
         }
     };
 
@@ -101,20 +108,19 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             });
             
         } else {
-            const previousPosition = playerPositions().get(data.playerID)
+            const previousPosition = nonLocalPlayerPositions().get(data.playerID)
 
             if (previousPosition === data.locationID) return;
 
-            const currentPositions = new Map(playerPositions())
+            const currentPositions = new Map(nonLocalPlayerPositions())
 
             currentPositions.set(data.playerID, data.locationID)
 
-            setPlayerPositions(currentPositions)
+            setNonLocalPlayerPositions(currentPositions)
         }
     };
 
     onMount(() => {
-        fetchPaths();
         calculateScalars();
         window.addEventListener('resize', calculateScalars);
 
@@ -142,33 +148,36 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 position: absolute;
                 transform: ${containerTransform()};
             `}>
-                <svg width="100%" height="100%">
-                    <For each={paths()}>
-                        {(path) => {
-                            const fromLocation = props.colony.locations.find(l => l.id === path.from);
-                            const toLocation = props.colony.locations.find(l => l.id === path.to);
-                            if (!fromLocation || !toLocation) return null;
-                            return (
-                                <line
-                                    x1={fromLocation.transform.xOffset}
-                                    y1={fromLocation.transform.yOffset}
-                                    x2={toLocation.transform.xOffset}
-                                    y2={toLocation.transform.yOffset}
-                                    stroke="black"
-                                    stroke-width={2 / GAS()}
-                                />
-                            );
-                        }}
-                    </For>
-                </svg>
+                <NTAwait
+                    func={() => props.backend.getColonyPathGraph(props.colony.id)}
+                >
+                    {(pathData) => 
+                        <svg width="100%" height="100%">
+                            <For each={paths()}>
+                                {(path) => {
+                                    const fromLocation = locationTransforms().get(path.from);
+                                    const toLocation = locationTransforms().get(path.to);
+                                    if (!fromLocation || !toLocation) return null;
+                                    return (
+                                        <line
+                                            x1={fromLocation.xOffset}
+                                            y1={fromLocation.yOffset}
+                                            x2={toLocation.xOffset}
+                                            y2={toLocation.yOffset}
+                                            stroke="black"
+                                            stroke-width={2 / GAS()}
+                                        />
+                                    );
+                                }}
+                            </For>
+                        </svg>
+                    }
+                </NTAwait>
+        
                 <For each={props.colony.locations}>
                     {(location) => (
                         <NTAwait
                             func={() => props.backend.getLocationInfo(location.locationID)}
-                            fallback={(error) => {
-                                const ErrorComponent: Component = () => <SomethingWentWrongIcon />;
-                                return ErrorComponent;
-                            }}
                         >
                             {(locationInfo) => (
                                 <Location
@@ -186,14 +195,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     )}
                 </For>
             </div>
-            {/* Add Player component here */}
-            <Player
-                transform={props.colony.locations[0].transform}
-                dns={DNS}
-                gas={GAS}
-                camera={camera}
-                isLocal={true}
-            />
         </div>
     );
 };
