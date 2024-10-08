@@ -1,4 +1,4 @@
-import { Component } from "solid-js";
+import { Accessor, Component } from "solid-js";
 import { MinigameDifficultyResponseDTO } from "../../../integrations/main_backend/mainBackendDTOs";
 import { IBackendBased, IBufferBased, IEmitter, IInternationalized, IRegistering } from "../../../ts/types";
 import { css } from "@emotion/css";
@@ -8,6 +8,7 @@ import { DIFFICULTY_SELECT_FOR_MINIGAME_EVENT } from "../../../integrations/mult
 interface MinigameDifficultyListEntryProps extends IBackendBased, IBufferBased, IRegistering<string>, IEmitter, IInternationalized{
     difficulty: MinigameDifficultyResponseDTO;
     minigameID: number;
+    enabled: Accessor<boolean>;
 }
 const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> = (props: MinigameDifficultyListEntryProps) => {
     return (
@@ -23,6 +24,7 @@ const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> =
                         difficultyName: props.difficulty.name
                     });
                 }}
+                enable={props.enabled}
             />
             <div>{props.difficulty.description}</div>
         </div>
