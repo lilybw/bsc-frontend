@@ -50,8 +50,8 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
         }
     }
 
-    const isDifficultyUnlocked = (difficultyIndex: number) => {
-        return props.colonyLocation.level >= difficultyIndex - 1;
+    const isDifficultyUnlocked = (diff: MinigameDifficultyResponseDTO) => {
+        return props.colonyLocation.level >= diff.requiredLevel;
     }
 
     return (
@@ -60,7 +60,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
             <div class={sideBySideStyle}>
                 <div class={difficultyListStyle}>
                     <NTAwait func={() => props.backend.getMinigameInfo(props.info.minigameID)}>{(minigame) => 
-                        <For each={minigame.difficulties}>{(difficulty, index) =>
+                        <For each={minigame.difficulties}>{(difficulty) =>
                             <MinigameDifficultyListEntry 
                                 difficulty={difficulty} 
                                 minigameID={minigame.id} 
@@ -69,7 +69,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                                 backend={props.backend} 
                                 emit={props.events.emit}
                                 text={props.text}
-                                enabled={() => isDifficultyUnlocked(index())}
+                                enabled={() => isDifficultyUnlocked(difficulty)}
                             />
                         }</For>
                     }</NTAwait>

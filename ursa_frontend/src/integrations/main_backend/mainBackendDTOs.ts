@@ -189,6 +189,7 @@ export type MinigameDifficultyResponseDTO = {
     description: string;
     icon: AssetID;
     overwritingSettings: any;
+    requiredLevel: number;
 }
 
 export type MinimizedMinigameInfoResponseDTO = {
