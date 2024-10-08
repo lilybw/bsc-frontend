@@ -1,5 +1,5 @@
-import { Component, onMount, onCleanup, createSignal, For, createMemo } from "solid-js";
-import { ColonyInfoResponseDTO, LocationInfoResponseDTO, PlayerID } from "../../integrations/main_backend/mainBackendDTOs";
+import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect } from "solid-js";
+import { ColonyInfoResponseDTO, LocationInfoResponseDTO, PlayerID, TransformDTO } from "../../integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
 import { IBackendBased, IInternationalized, IBufferBased } from "../../ts/types";
 import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventMultiplexer";
@@ -11,6 +11,7 @@ import { createWrappedSignal } from '../../ts/wrappedSignal';
 import { IMultiplayerIntegration } from "../../integrations/multiplayer_backend/multiplayerBackend";
 import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
 import Player from "../Player";
+import { createStore } from "solid-js/store";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -22,13 +23,46 @@ interface PathGraphProps extends IBackendBased, IInternationalized, IBufferBased
     multiplayerIntegration: IMultiplayerIntegration;
 }
 
+const UNIT_TRANSFORM: TransformDTO = {
+    xOffset: 0,
+    yOffset: 0,
+    yScale: 1,
+    xScale: 1,
+    zIndex: 0
+}
+
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [paths, setPaths] = createSignal<{ from: number; to: number }[]>([]);
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
-
+    const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
     const camera: Camera = createWrappedSignal({ x: 0, y: 0 });
 
+    /**
+     * This map shows relationships between the players positions and the location that is the position in the graph.
+     */
+    const [playerPositions, setPlayerPositions] = createSignal<Map<PlayerID, Number>>(new Map())
+    
+    createEffect(() => {
+        const currentDNS = DNS()
+
+        const transforms = new Map()
+        const tempGAS = Math.min(currentDNS.x, currentDNS.y)
+
+        for (const colonyLocationInfo of props.colony.locations) {
+            const computedTransform: TransformDTO = {
+                ...colonyLocationInfo.transform,
+                xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x - camera.get().x,
+                yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y - camera.get().y,
+                xScale: colonyLocationInfo.transform.xScale * tempGAS,
+                yScale: colonyLocationInfo.transform.yScale * tempGAS
+            }
+
+            transforms.set(colonyLocationInfo.id, computedTransform)
+        }
+
+        setLocationTransform(transforms)
+    }) 
 
     const calculateScalars = () => {
         const viewportWidth = window.innerWidth;
@@ -39,8 +73,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         });
         setGAS(Math.min(viewportWidth / EXPECTED_WIDTH, viewportHeight / EXPECTED_HEIGHT));
     };
-
-    const debouncedCalculateScalars = debounce(calculateScalars, 250);
 
     const fetchPaths = async () => {
         try {
@@ -55,28 +87,40 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     };
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
-        const colonyLocationId = data.locationID;
-
-        const newLocation = props.colony.locations.find(l => l.id === colonyLocationId);
-        if (!newLocation) return;
         
         if (data.playerID === props.localPlayerId) {
+            let transform = locationTransforms().get(data.locationID)
+
+            if (!transform) {
+                transform = UNIT_TRANSFORM
+            }
             camera.set({
-                x: newLocation.transform.xOffset,
-                y: newLocation.transform.yOffset
+                x: transform.xOffset - (DNS().x * EXPECTED_WIDTH) / 2,
+                y: transform.yOffset - (DNS().y * EXPECTED_HEIGHT) / 2
             });
+            
+        } else {
+            const previousPosition = playerPositions().get(data.playerID)
+
+            if (previousPosition === data.locationID) return;
+
+            const currentPositions = new Map(playerPositions())
+
+            currentPositions.set(data.playerID, data.locationID)
+
+            setPlayerPositions(currentPositions)
         }
     };
 
     onMount(() => {
         fetchPaths();
         calculateScalars();
-        window.addEventListener('resize', debouncedCalculateScalars);
+        window.addEventListener('resize', calculateScalars);
 
         const subscription = props.plexer.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
 
         onCleanup(() => {
-            window.removeEventListener('resize', debouncedCalculateScalars);
+            window.removeEventListener('resize', calculateScalars);
             props.plexer.unsubscribe(subscription);
         });
     });
@@ -127,12 +171,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         >
                             {(locationInfo) => (
                                 <Location
-                                    colonyLocation={location}
+                                    colonyLocation={{...location, transform: locationTransforms().get(location.id)!}}
                                     location={locationInfo.res!}
-                                    dns={DNS}
                                     gas={GAS}
                                     plexer={props.plexer}
-                                    camera={camera}
                                     backend={props.backend}
                                     buffer={props.buffer}
                                     text={props.text}
@@ -155,16 +197,5 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     );
 };
 
-function debounce(func: Function, wait: number) {
-    let timeout: number | undefined;
-    return function executedFunction(...args: any[]) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait) as unknown as number;
-    };
-}
 
 export default PathGraph;
