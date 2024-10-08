@@ -45,6 +45,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
       <Unwrap func={props.context.nav.getRetainedColonyInfo} fallback={onColonyInfoLoadError}>
         {(colonyInfo) => (
           <PathGraph 
+            existingClients={[]}
             colony={colonyInfo}
             plexer={props.context.events}
             text={props.context.text}
