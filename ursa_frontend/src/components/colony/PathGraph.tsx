@@ -10,7 +10,7 @@ import { Camera } from "../../ts/camera";
 import { createWrappedSignal } from '../../ts/wrappedSignal';
 import { IMultiplayerIntegration } from "../../integrations/multiplayer_backend/multiplayerBackend";
 import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
-import Player from "../Player";  // Assuming we'll create this component
+import Player from "../Player";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -29,11 +29,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
     const camera: Camera = createWrappedSignal({ x: 0, y: 0 });
 
-    const locationIdMap = new Map<number, number>();
-    props.colony.locations.forEach(location => {
-        locationIdMap.set(location.id, location.locationID);
-        locationIdMap.set(location.locationID, location.id);
-    });
 
     const calculateScalars = () => {
         const viewportWidth = window.innerWidth;
@@ -60,8 +55,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     };
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
-        const colonyLocationId = locationIdMap.get(data.locationID);
-        if (colonyLocationId === undefined) return;
+        const colonyLocationId = data.locationID;
 
         const newLocation = props.colony.locations.find(l => l.id === colonyLocationId);
         if (!newLocation) return;
@@ -125,8 +119,8 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 <For each={props.colony.locations}>
                     {(location) => (
                         <NTAwait
-                            func={() => props.backend.getLocationInfo(locationIdMap.get(location.id) || 0)}
-                            fallback={(error) => () => <SomethingWentWrongIcon />}
+                            func={() => props.backend.getLocationInfo(location.id)}
+                            fallback={(e) => e}
                         >
                             {(locationInfo) => (
                                 <Location
@@ -140,7 +134,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                                     buffer={props.buffer}
                                     text={props.text}
                                     register={() => { return () => {}; }}
-                                    styleOverwrite=""
                                 />
                             )}
                         </NTAwait>
