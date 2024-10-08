@@ -11,7 +11,7 @@ import { createWrappedSignal } from '../../ts/wrappedSignal';
 import { IMultiplayerIntegration } from "../../integrations/multiplayer_backend/multiplayerBackend";
 import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
 import Player from "../Player";
-import { createStore } from "solid-js/store";
+import { ClientDTO } from "../../integrations/multiplayer_backend/multiplayerDTO";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -21,6 +21,7 @@ interface PathGraphProps extends IBackendBased, IInternationalized, IBufferBased
     plexer: IEventMultiplexer;
     localPlayerId: PlayerID;
     multiplayerIntegration: IMultiplayerIntegration;
+    existingClients: ClientDTO[]
 }
 
 const UNIT_TRANSFORM: TransformDTO = {
