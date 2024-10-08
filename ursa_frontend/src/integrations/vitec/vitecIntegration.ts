@@ -38,7 +38,7 @@ export async function initializeVitecIntegration(
 const verifyIntegrationInformation = (info: VitecIntegrationInformation): ResErr<NormalizedVitecIntegrationInformation> => {
     const languageRes = assureUniformLanguageCode(info.languagePreference);
     if (languageRes.err != null) {
-        return { res: null, err: languageRes.err };
+        return { res: null, err: "Error assuring unform language code: " + languageRes.err };
     }
 
     if (!info.locationUrl.startsWith('http')) {
