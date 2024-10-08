@@ -18,4 +18,15 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
 export default GenericLocationCard;
 
 const cardContainerStyle = css`
+position: absolute;
+display: flex;
+
+width: 50%;
+height: 66%;
+
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+
+background-color: black;
 `

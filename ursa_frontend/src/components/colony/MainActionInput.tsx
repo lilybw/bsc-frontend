@@ -99,7 +99,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             </svg>
             <div class={css`${inputContainerStyle} ${isShaking() ? shakeAnimation : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}`} id="main-input-container">
                 <div class={actionContextIconStyle} >
-                    {props.actionContext().icon({backend: props.backend})}
+                    {props.actionContext().icon({styleOverwrite: actionContextIconStyle, backend: props.backend})}
                 </div>
                 <input type="text" class={inputFieldStyle}  
                     onKeyDown={onKeyDown}
@@ -201,17 +201,21 @@ font-family: 'Orbitron', sans-serif;
 `
 
 const actionContextIconStyle = css`
-border-radius: 50%;
-border: 2px solid white;
+display: flex;
 align-content: center;
 align-items: center;
 justify-content: center;
+
 --aci-size: 4.2vh;
 width: var(--aci-size);
 height: var(--aci-size);
+margin-left: -1.8rem;
+
+border-radius: 50%;
+border: 2px solid white;
+
 box-shadow: inset 0 0 .3rem white;
 background-color: black;
-margin-left: -1.8rem;
 `
 
 const actionInputContainerStyle = css`
