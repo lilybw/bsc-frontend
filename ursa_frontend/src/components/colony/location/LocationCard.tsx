@@ -11,16 +11,20 @@ import HomeLocationCard from "./HomeLocationCard";
 export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colonyLocation: ColonyLocationInformation;
     location: LocationInfoResponseDTO;
+    onClose: () => void;
 }
 
 
 const LocationCard: Component<LocationCardProps> = (props) => {
 
     const renderCardOfType = (locationInfo: LocationInfoResponseDTO): JSX.Element => {
+        console.log("[delete me] rendering card for: " + locationInfo.name);
         switch (locationInfo.id) {
             case KnownLocations.Home:
                 return (
                     <HomeLocationCard 
+                        colonyLocation={props.colonyLocation}
+                        closeCard={props.onClose}
                         info={locationInfo}
                         buffer={props.buffer}
                         backend={props.backend}
@@ -31,6 +35,8 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             case KnownLocations.SpacePort:
                 return (
                     <SpacePortLocationCard 
+                        colonyLocation={props.colonyLocation}
+                        closeCard={props.onClose} 
                         info={locationInfo}
                         buffer={props.buffer}
                         backend={props.backend}
@@ -41,6 +47,8 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             default:
                 return (
                     <GenericLocationCard 
+                        colonyLocation={props.colonyLocation}
+                        closeCard={props.onClose}
                         info={locationInfo}
                         buffer={props.buffer}
                         backend={props.backend}
@@ -61,4 +69,16 @@ const LocationCard: Component<LocationCardProps> = (props) => {
 export default LocationCard;
 
 const locationCardContainerStyle = css`
+z-index: 100;
+position: fixed;
+display: flex;
+
+width: 50%;
+height: 66%;
+
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+
+background-color: black;
 `

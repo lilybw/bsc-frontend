@@ -99,6 +99,7 @@ const Location: Component<LocationProps> = (props) => {
                     backend={props.backend}
                     text={props.text}
                     register={props.register}
+                    onClose={() => {setShowLocationCard(false); console.log("[delete me] closing location card for: " + props.location.name)}}
                 />
             )
         }
