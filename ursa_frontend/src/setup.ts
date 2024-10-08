@@ -18,7 +18,7 @@ export const initApp = (app: BundleComponent<ApplicationProps>) => {
     // global function that Angular will call
     (window as any)[URSA_INITIALIZATION_FUNCTION_NAME] = (vitecInfo: VitecIntegrationInformation) => {
         const root = document.getElementById(SOLIDJS_MOUNT_ELEMENT_ID);
-
+        console.log("Vitec info: " + JSON.stringify(vitecInfo));
         if (!root) {
             console.error('[setup] Root element not found.');
             return;
