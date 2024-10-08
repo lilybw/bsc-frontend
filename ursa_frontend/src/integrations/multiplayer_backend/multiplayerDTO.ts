@@ -1,5 +1,5 @@
 import { uint32 } from "../main_backend/mainBackendDTOs";
-import { OriginType } from "./EventSpecifications-v0.0.7";
+import { OriginType } from "./EventSpecifications";
 
 export type ClientDTO = {
     id: uint32;

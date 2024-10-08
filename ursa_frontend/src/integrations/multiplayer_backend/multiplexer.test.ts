@@ -1,7 +1,7 @@
 import {test, expect, describe} from 'vitest';
 import { Logger } from "../../logging/filteredLogger";
 import { initializeEventMultiplexer } from './eventMultiplexer';
-import { DEBUG_INFO_EVENT, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from './EventSpecifications-v0.0.7';
+import { DEBUG_INFO_EVENT, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from './EventSpecifications';
 
 const testLogger: Logger = {
     trace: () => {},
