@@ -40,7 +40,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
 
     onMount(() => {
         const removeFunc = props.register((v) => {
-            if (v === props.name) {
+            if (v === props.name && !isDisabled()) {
                 setActivated(true);
                 setTimeout(() => {
                     props.onActivation();

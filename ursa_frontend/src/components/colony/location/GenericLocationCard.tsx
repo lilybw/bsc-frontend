@@ -1,12 +1,13 @@
-import { Component, For } from "solid-js";
+import { Component, createSignal, For, onCleanup, onMount } from "solid-js";
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from "../../../ts/types";
-import { ColonyLocationInformation, LocationInfoResponseDTO, uint32 } from "../../../integrations/main_backend/mainBackendDTOs";
+import { ColonyLocationInformation, LocationInfoResponseDTO, MinigameDifficultyResponseDTO, uint32 } from "../../../integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
 import BufferBasedButton from "../../BufferBasedButton";
 import NTAwait from "../../util/NoThrowAwait";
 import GraphicalAsset from "../../GraphicalAsset";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 import MinigameDifficultyListEntry from "./MinigameDifficultyListEntry";
+import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, DifficultySelectForMinigameMessageDTO } from "../../../integrations/multiplayer_backend/EventSpecifications";
 
 export interface GenericLocationCardProps extends IBufferBased, IBackendBased, IInternationalized, IRegistering<string>{
     colonyLocation: ColonyLocationInformation;
@@ -30,6 +31,25 @@ const getIdOfSplashArt = (level: number, choices: {
 }
 
 const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
+    const [difficultySelected, setDifficultySelected] = createSignal<DifficultySelectForMinigameMessageDTO | null>(null);
+
+    onMount(() => {
+        const diffSelectSubID = props.events.subscribe(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, (data) => {
+            if (data.minigameID === props.info.minigameID) {
+                setDifficultySelected(data);
+            }
+        });
+        onCleanup(() => props.events.unsubscribe(diffSelectSubID));
+    })
+
+    const onDifficultyConfirmed = () => {
+        const diff = difficultySelected();
+        if (diff !== null) {
+            props.events.emit(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, diff);
+            console.log("[delete me] difficulty confirmed for minigame: " + diff.minigameID + " difficulty: " + diff.difficultyID);
+        }
+    }
+
     return (
         <div class={cardContainerStyle} id={"location-card-" + props.info.name}>
             {props.text.Title(props.info.name)({styleOverwrite: titleStyleOverwrite})}
@@ -68,8 +88,9 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                     name={props.text.get("MINIGAME.START").get()}
                     buffer={props.buffer}
                     register={props.register}
-                    onActivation={props.closeCard}
+                    onActivation={onDifficultyConfirmed}
                     styleOverwrite={leaveButtonOverrideStyle}
+                    enable={() => difficultySelected() !== null}
                 />
             </div>
         </div>
