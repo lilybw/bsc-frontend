@@ -89,6 +89,10 @@ const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<st
 };
 
 export const assureUniformLanguageCode = (language: string): ResErr<LanguagePreference> => {
+    if (language === "") {
+        console.error('Language code was empty, defaulting to English');
+        return { res: LanguagePreference.English, err: null };
+    }
     const languageLowerCased = language.toLocaleLowerCase();
     for (const key in LanguagePreferenceAliases) {
         for (const alias of LanguagePreferenceAliases[key as LanguagePreference]) {
