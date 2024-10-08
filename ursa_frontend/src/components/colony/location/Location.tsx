@@ -15,11 +15,6 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
     colonyLocation: ColonyLocationInformation;
     location: LocationInfoResponseDTO;
     plexer: IEventMultiplexer;
-    camera: Camera;
-    /**
-     * Distance normalization vector
-     */
-    dns: Accessor<{x: number, y: number}>;
     /**
      * Graphical Asset Scalar
      */
@@ -102,24 +97,10 @@ const Location: Component<LocationProps> = (props) => {
     }
 
     const computedContainerStyle = createMemo(() => css`${locationContainerStyle} ${props.styleOverwrite}`);
-    const computedCollectionTransform = createMemo<TransformDTO>(() => {
-        const transform = props.colonyLocation.transform;
-        return {
-            xOffset: transform.xOffset * props.dns().x + props.camera.get().x,
-            yOffset: transform.yOffset * props.dns().y + props.camera.get().y,
-            zIndex: transform.zIndex,
-            xScale: transform.xScale * props.gas(),
-            yScale: transform.yScale * props.gas(),
-        }
-    });
     const computedButtonTransform = createMemo<TransformDTO>(() => {
-        const transform = props.colonyLocation.transform;
         return {
-            xOffset: transform.xOffset * props.dns().x + props.camera.get().x,
-            yOffset: (transform.yOffset + calcNamePlatePosition(transform.yOffset)) * props.dns().y + props.camera.get().y,
-            zIndex: transform.zIndex + 10,
-            xScale: transform.xScale * props.gas(),
-            yScale: transform.yScale * props.gas(),
+            ...props.colonyLocation.transform,
+            zIndex: props.colonyLocation.transform.zIndex + 10,
         }
     });
     return (
@@ -137,7 +118,7 @@ const Location: Component<LocationProps> = (props) => {
             <AssetCollection 
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
                 backend={props.backend}
-                topLevelTransform={computedCollectionTransform()}
+                topLevelTransform={props.colonyLocation.transform}
             />
             {appendCard()}
         </div>
