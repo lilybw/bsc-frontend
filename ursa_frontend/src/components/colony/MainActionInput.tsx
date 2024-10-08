@@ -98,7 +98,9 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                 <path d="M0 50 L40 0 L260 0 L300 50 Z"/>
             </svg>
             <div class={css`${inputContainerStyle} ${isShaking() ? shakeAnimation : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}`} id="main-input-container">
-                {props.actionContext().icon({styleOverwrite: actionContextIconStyle})}
+                <div class={actionContextIconStyle} >
+                    {props.actionContext().icon({backend: props.backend})}
+                </div>
                 <input type="text" class={inputFieldStyle}  
                     onKeyDown={onKeyDown}
                     value={props.inputBuffer()}
@@ -203,7 +205,7 @@ border-radius: 50%;
 border: 2px solid white;
 align-content: center;
 align-items: center;
-text-align: center;
+justify-content: center;
 --aci-size: 4.2vh;
 width: var(--aci-size);
 height: var(--aci-size);

@@ -1,5 +1,8 @@
 import { Component } from "solid-js";
-import { IStyleOverwritable } from "./types";
+import { IBackendBased, IStyleOverwritable } from "./types";
+import NTAwait from "../components/util/NoThrowAwait";
+import GraphicalAsset from "../components/GraphicalAsset";
+import { css } from "@emotion/css";
 
 export enum ActionContextTypes {
     NAVIGATION = "NAVIGATION",
@@ -7,29 +10,42 @@ export enum ActionContextTypes {
     ASTEROIDS = "ASTEROIDS",
     TEMPORARILY_DISABLED = "TEMPORARILY_DISABLED",
 }
-
+interface ActionContextIconProps extends IStyleOverwritable, IBackendBased {}
+export const ActionContextIcon = (assetId: number): Component<ActionContextIconProps> => { return (props) => {
+    return (
+        <NTAwait func={() => props.backend.getAssetMetadata(assetId)}>{(asset) => 
+            <GraphicalAsset styleOverwrite={imgStyleOverwrite} backend={props.backend} metadata={asset} />
+        }</NTAwait>
+    )
+}}
+const imgStyleOverwrite = css`
+width: 70%;
+height: 70%;
+`
 export const ActionContext: { [K in ActionContextTypes]: TypeIconTuple } = {
     NAVIGATION: {
-        type: ActionContextTypes.NAVIGATION,
-        icon: (props) => <div class={props.styleOverwrite}>NAV</div>
+        type: ActionContextTypes.NAVIGATION, //1024
+        icon: ActionContextIcon(1024)
     },
     INTERACTION: {
-        type: ActionContextTypes.INTERACTION,
-        icon: (props) => <div class={props.styleOverwrite}>INT</div>
+        type: ActionContextTypes.INTERACTION, //1025
+        icon: ActionContextIcon(1025)
     },
-    ASTEROIDS: {
+    ASTEROIDS: { //1026
         type: ActionContextTypes.ASTEROIDS,
-        icon: (props) => <div class={props.styleOverwrite}>AST</div>
+        icon: ActionContextIcon(1026)
     },
     TEMPORARILY_DISABLED: {
         type: ActionContextTypes.TEMPORARILY_DISABLED,
-        icon: (props) => <div class={props.styleOverwrite}>DIS</div>
+        icon: ActionContextIcon(1027)
     }
 }
 
+
+
 export type TypeIconTuple = {
     type: ActionContextTypes;
-    icon: Component<IStyleOverwritable>;
+    icon: Component<ActionContextIconProps>;
 }
 
 export interface ActionTriggerResult {
