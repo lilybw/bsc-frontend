@@ -66,7 +66,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [GAS, setGAS] = createSignal(1);
     const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
     const camera: Camera = createWrappedSignal(getInitialCameraPosition(findByLocationID(props.colony.locations, KnownLocations.Home)!));
-    const [nonLocalPlayerPositions, setNonLocalPlayerPositions] = createSignal<Map<PlayerID, Number>>(unwrappedFromProps(props.existingClients))
     const colonyLocation = createArrayStore<ColonyLocationInformation>(props.colony.locations)
 
     createEffect(() => {
@@ -118,13 +117,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 y: transform.yOffset - (DNS().y * EXPECTED_HEIGHT) / 2
             });
         } else {
-            const previousPosition = nonLocalPlayerPositions().get(data.playerID)
-
-            if (previousPosition === data.locationID) return;
-
-            const currentPositions = new Map(nonLocalPlayerPositions())
-            currentPositions.set(data.playerID, data.locationID)
-            setNonLocalPlayerPositions(currentPositions)
+            props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
+                client.state.lastKnownPosition = data.locationID
+                return client
+            })
         }
     };
 
