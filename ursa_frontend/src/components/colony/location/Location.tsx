@@ -5,6 +5,7 @@ import { css } from "@emotion/css";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
 import BufferBasedButton from "../../BufferBasedButton";
+import { Camera } from "../../../ts/camera";
 import AssetCollection from "../AssetCollection";
 import { Styles } from "../../../sharedCSS";
 import LocationCard from "./LocationCard";
@@ -14,16 +15,17 @@ import { ActionContext, TypeIconTuple } from "../../../ts/actionContext";
 interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colonyLocation: ColonyLocationInformation;
     location: LocationInfoResponseDTO;
-    worldOffset: { x: number; y: number };
     plexer: IEventMultiplexer;
     actionContext: WrappedSignal<TypeIconTuple>;
+    /**
+     * Graphical Asset Scalar
+     */
     gas: Accessor<number>;
-    dns: Accessor<{ x: number; y: number }>;
-    setWorldOffset: (offset: { x: number; y: number }) => void;
-    getCurrentLocationId: () => number;
 }
 
 const calcNamePlatePosition = (y: number) => {
+    //This output is Distance normalized (using props.dns) and is thus roughly in pixels, but might not be. 
+    //However this should bring the nameplate towards the center of the location in case we're close to the top of the screen.
     return y < 200 ? -200 : 200;
 }
 
@@ -38,18 +40,6 @@ const Location: Component<LocationProps> = (props) => {
         props.text.get(props.location.name).get()
     );
 
-    const computedTransform = createMemo<TransformDTO>(() => {
-        const dns = props.dns();
-        const gas = props.gas();
-        return {
-            xOffset: (props.colonyLocation.transform.xOffset * dns.x) + props.worldOffset.x,
-            yOffset: (props.colonyLocation.transform.yOffset * dns.y) + props.worldOffset.y,
-            xScale: props.colonyLocation.transform.xScale * gas,
-            yScale: props.colonyLocation.transform.yScale * gas,
-            zIndex: props.colonyLocation.transform.zIndex
-        };
-    });
-
     const onButtonActivation = () => {
         if (isUserHere()) {
             console.log("[delete me] showing location card for: " + props.location.name);
@@ -59,22 +49,8 @@ const Location: Component<LocationProps> = (props) => {
             return;
         }
 
-        console.log("[delete me] moving to: " + props.colonyLocation.locationID);
+        console.log("[delete me] moving to: " + props.colonyLocation);
         setUserIsHere(true);
-        
-        const currentLocationId = props.getCurrentLocationId();
-        const currentLocation = props.colonyLocation
-        const newLocation = props.colonyLocation;
-
-        if (currentLocation && newLocation) {
-            const movementVector = {
-                x: currentLocation.transform.xOffset - newLocation.transform.xOffset,
-                y: currentLocation.transform.yOffset - newLocation.transform.yOffset
-            };
-
-            props.setWorldOffset(movementVector);
-        }
-
         props.plexer.emit(PLAYER_MOVE_EVENT, {
             playerID: props.backend.localPlayer.id,
             locationID: props.colonyLocation.locationID,
@@ -131,25 +107,17 @@ const Location: Component<LocationProps> = (props) => {
         }
     }
 
-    const computedContainerStyle = createMemo(() => css`
-        ${locationContainerStyle}
-        ${props.styleOverwrite}
-        ${Styles.transformToCSSVariables(computedTransform())}
-        ${Styles.TRANSFORM_APPLICATOR}
-    `);
-
+    const computedContainerStyle = createMemo(() => css`${locationContainerStyle} ${props.styleOverwrite}`);
     const computedButtonTransform = createMemo<TransformDTO>(() => {
         return {
-            ...computedTransform(),
-            zIndex: computedTransform().zIndex + 10, // Keep zIndex as is for layering
+            ...props.colonyLocation.transform,
+            zIndex: props.colonyLocation.transform.zIndex + 10, // Keep zIndex as is for layering
         }
     });
 
-    console.log('Location transform:', computedTransform());
-    console.log('Button transform:', computedButtonTransform());
+    console.log('Location transform:', props.colonyLocation.transform);
+    console.log('Inverted transform:', computedButtonTransform());
     console.log('GAS:', props.gas());
-    console.log('DNS:', props.dns());
-    console.log('World Offset:', props.worldOffset);
 
     return (
         <div class={computedContainerStyle()} id={"location-" + props.location.name + "-level-" + props.colonyLocation.level}>
@@ -167,7 +135,7 @@ const Location: Component<LocationProps> = (props) => {
             <AssetCollection 
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
                 backend={props.backend}
-                topLevelTransform={computedTransform()}
+                topLevelTransform={props.colonyLocation.transform}
             />
             {appendCard()}
         </div>

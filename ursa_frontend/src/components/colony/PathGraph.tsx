@@ -64,9 +64,36 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [paths, setPaths] = createSignal<{ from: number; to: number }[]>([]);
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
+    const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
+    const camera: Camera = createWrappedSignal(getInitialCameraPosition(findByLocationID(props.colony.locations, KnownLocations.Home)!));
     const colonyLocation = createArrayStore<ColonyLocationInformation>(props.colony.locations)
-    const [worldOffset, setWorldOffset] = createSignal({ x: 0, y: 0 });
-    const [currentLocationId, setCurrentLocationId] = createSignal(KnownLocations.Home);
+
+    createEffect(() => {
+        const currentDNS = DNS()
+        const transforms = new Map()
+        const currentGAS = GAS()
+        const viewportHeight = window.innerHeight
+
+        for (const colonyLocationInfo of colonyLocation.get()) {
+            const computedTransform: TransformDTO = {
+                ...colonyLocationInfo.transform,
+                // Adjust y-coordinate to match web rendering system
+                xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x - camera.get().x,
+                yOffset: viewportHeight - (colonyLocationInfo.transform.yOffset * currentDNS.y) - camera.get().y,
+                xScale: colonyLocationInfo.transform.xScale * currentGAS,
+                yScale: colonyLocationInfo.transform.yScale * currentGAS
+            }
+
+            transforms.set(colonyLocationInfo.id, computedTransform)
+            colonyLocation.mutateElement(colonyLocationInfo, (element) => {
+                element.transform = computedTransform
+                return element
+            })
+        }
+
+        setLocationTransform(transforms)
+        props.backend.logger.trace('Updated location transforms, camera: ' + JSON.stringify(camera.get()))
+    }) 
 
     const calculateScalars = () => {
         const viewportWidth = window.innerWidth;
@@ -80,46 +107,22 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
         if (data.playerID === props.localPlayerId) {
-            const oldLocation = findByLocationID(props.colony.locations, currentLocationId());
-            const newLocation = findByLocationID(props.colony.locations, data.locationID);
-            
-            if (oldLocation && newLocation) {
-                const movementVector = {
-                    x: oldLocation.transform.xOffset - newLocation.transform.xOffset,
-                    y: oldLocation.transform.yOffset - newLocation.transform.yOffset
-                };
-                
-                setWorldOffset(prevOffset => {
-                    const newOffset = {
-                        x: prevOffset.x + movementVector.x,
-                        y: prevOffset.y + movementVector.y
-                    };
-                    console.log('New world offset:', newOffset);
-                    return newOffset;
-                });
+            let transform = locationTransforms().get(data.locationID)
+
+            if (!transform) {
+                transform = UNIT_TRANSFORM
             }
-            
-            setCurrentLocationId(data.locationID);
+            camera.set({
+                x: transform.xOffset - (DNS().x * EXPECTED_WIDTH) / 2,
+                y: transform.yOffset - (DNS().y * EXPECTED_HEIGHT) / 2
+            });
         } else {
             props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
-                client.state.lastKnownPosition = data.locationID;
-                return client;
-            });
+                client.state.lastKnownPosition = data.locationID
+                return client
+            })
         }
     };
-
-    const setWorldOffsetWrapper = (movementVector: { x: number; y: number }) => {
-        setWorldOffset(prevOffset => {
-            const newOffset = {
-                x: prevOffset.x + movementVector.x,
-                y: prevOffset.y + movementVector.y
-            };
-            console.log('New world offset from wrapper:', newOffset);
-            return newOffset;
-        });
-    };
-
-    const getCurrentLocationId = () => currentLocationId();
 
     onMount(() => {
         calculateScalars();
@@ -140,15 +143,16 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     <svg width="100%" height="100%">
                         <For each={pathData.paths}>
                             {(path) => {
-                                let fromLocation = colonyLocation.get().find(loc => loc.id === path.from);
-                                let toLocation = colonyLocation.get().find(loc => loc.id === path.to);
-                                if (!fromLocation || !toLocation) return null;
+                                let fromLocation = locationTransforms().get(path.from);
+                                let toLocation = locationTransforms().get(path.to);
+                                if (!fromLocation) fromLocation = UNIT_TRANSFORM;
+                                if (!toLocation) toLocation = UNIT_TRANSFORM;
                                 return (
                                     <line
-                                        x1={fromLocation.transform.xOffset + worldOffset().x}
-                                        y1={fromLocation.transform.yOffset + worldOffset().y}
-                                        x2={toLocation.transform.xOffset + worldOffset().x}
-                                        y2={toLocation.transform.yOffset + worldOffset().y}
+                                        x1={fromLocation.xOffset}
+                                        y1={fromLocation.yOffset}
+                                        x2={toLocation.xOffset}
+                                        y2={toLocation.yOffset}
                                         stroke="white"
                                         stroke-width={10}
                                     />
@@ -164,23 +168,22 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     <NTAwait
                         func={() => props.backend.getLocationInfo(colonyLocation.locationID)}
                     >
-                        {(locationInfo) => (
-                            <Location
-                                colonyLocation={colonyLocation}
-                                location={locationInfo}
-                                worldOffset={worldOffset()}
-                                gas={GAS}
-                                dns={DNS}
-                                plexer={props.plexer}
-                                backend={props.backend}
-                                buffer={props.buffer.get}
-                                actionContext={props.actionContext}
-                                text={props.text}
-                                register={props.bufferSubscribers.add}
-                                setWorldOffset={setWorldOffsetWrapper}
-                                getCurrentLocationId={getCurrentLocationId}
-                            />
-                        )}
+                        {(locationInfo) => {
+                            console.log('Location info from backend:', locationInfo);
+                            return (
+                                <Location
+                                    colonyLocation={colonyLocation}
+                                    location={locationInfo}
+                                    gas={GAS}
+                                    plexer={props.plexer}
+                                    backend={props.backend}
+                                    buffer={props.buffer.get}
+                                    actionContext={props.actionContext}
+                                    text={props.text}
+                                    register={props.bufferSubscribers.add}
+                                />
+                            );
+                        }}
                     </NTAwait>
                 )}
             </For>
