@@ -20,6 +20,11 @@ export interface ArrayStore<T> {
      */
     add: AddRetainRemoveFunc<T>;
     mutateElement: (element: T, mutator: (element: T) => T) => void;
+    find: (predicate: (element: T) => boolean) => T | undefined;
+    /**
+     * Mutate all elements with the given mutator function that satisfy the predicate.
+     */
+    mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => void;
 }
 
 /**
@@ -40,6 +45,10 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
         },
         mutateElement: (element: T, mutator: (element: T) => T) => {
             storeTuple[1](storeTuple[0].map((v) => v === element ? mutator(v) : v));
-        }
+        },
+        find: (predicate: (element: T) => boolean) => storeTuple[0].find(predicate),
+        mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => {
+            storeTuple[1](storeTuple[0].map((v) => predicate(v) ? mutator(v) : v));
+        },
     };
 }
