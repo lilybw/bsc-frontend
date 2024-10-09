@@ -79,6 +79,28 @@ export const Styles = {
         top: var(--transform-y);
         z-index: var(--transform-index);
         transform: scale(var(--transform-xScale), var(--transform-yScale));
+    `,
+    FANCY_BORDER: css`
+        border-radius: 5%;
+        border: .25rem solid white;
+        border-left: 0px;
+        border-right: 0px;
+
+        backdrop-filter: blur(.5rem);
+        -webkit-backdrop-filter: blur(.5rem);  // For Safari support
+        box-shadow: 0 0 1rem rgba(255, 255, 255, .2) inset, 0 0 1rem black;
+    `,
+    ANIM_FADE_OUT: (seconds: number) => css`
+        opacity: 1;
+        animation: fadeOut ${seconds}s linear;
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
     `
 };
 export const BigButtonStyle = css`

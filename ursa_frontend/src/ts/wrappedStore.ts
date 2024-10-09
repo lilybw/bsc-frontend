@@ -19,6 +19,7 @@ export interface ArrayStore<T> {
      * @returns a function that removes the value from the store
      */
     add: AddRetainRemoveFunc<T>;
+    mutateElement: (element: T, mutator: (element: T) => T) => void;
 }
 
 /**
@@ -37,5 +38,8 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
                 storeTuple[1](storeTuple[0].filter((v) => v !== value));
             };
         },
+        mutateElement: (element: T, mutator: (element: T) => T) => {
+            storeTuple[1](storeTuple[0].map((v) => v === element ? mutator(v) : v));
+        }
     };
 }
