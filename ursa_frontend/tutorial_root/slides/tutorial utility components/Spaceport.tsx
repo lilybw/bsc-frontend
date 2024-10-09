@@ -6,7 +6,7 @@ import GraphicalAsset from "../../../src/components/GraphicalAsset";
 import ActionInput from "../../../src/components/colony/MainActionInput";
 import BufferBasedButton from "../../../src/components/BufferBasedButton";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../../src/ts/actionContext";
-import { createArrayStore } from "../../../src/ts/wrappedStore";
+import { createArrayStore } from "../../../src/ts/arrayStore";
 import { BigButtonStyle } from "../../../src/sharedCSS";
 
 interface SpacePortInterfaceProps extends IInternationalized, IBackendBased {

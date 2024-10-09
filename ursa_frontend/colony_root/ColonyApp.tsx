@@ -8,7 +8,7 @@ import ErrorPage from '../src/ErrorPage';
 import { createSignal, Accessor, onMount, onCleanup, JSX, For } from 'solid-js';
 import { LOBBY_CLOSING_EVENT, PLAYER_JOINED_EVENT, PLAYER_LEFT_EVENT, SERVER_CLOSING_EVENT } from '../src/integrations/multiplayer_backend/EventSpecifications';
 import { css } from '@emotion/css';
-import { createArrayStore } from '../src/ts/wrappedStore';
+import { createArrayStore } from '../src/ts/arrayStore';
 import { ActionContext, BufferSubscriber, TypeIconTuple } from '../src/ts/actionContext';
 import { createWrappedSignal } from '../src/ts/wrappedSignal';
 import { IExpandedAccessMultiplexer } from '../src/integrations/multiplayer_backend/eventMultiplexer';

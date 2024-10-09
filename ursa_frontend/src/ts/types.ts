@@ -2,7 +2,7 @@ import { Accessor, Component, JSX } from 'solid-js';
 import { ApplicationContext } from '../meta/types';
 import { BackendIntegration } from '../integrations/main_backend/mainBackend';
 import { InternationalizationService } from '../integrations/main_backend/internationalization/internationalization';
-import { AddRetainRemoveFunc } from './wrappedStore';
+import { AddRetainRemoveFunc } from './arrayStore';
 import { BufferSubscriber } from './actionContext';
 import { IEventMultiplexer } from '../integrations/multiplayer_backend/eventMultiplexer';
 

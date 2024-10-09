@@ -19,12 +19,17 @@ export interface ArrayStore<T> {
      * @returns a function that removes the value from the store
      */
     add: AddRetainRemoveFunc<T>;
-    mutateElement: (element: T, mutator: (element: T) => T) => void;
+    /**
+     * Change the value of some element in the store reactively.
+     * @returns true if any element was mutated, false otherwise
+     */
+    mutateElement: (element: T, mutator: (element: T) => T) => boolean;
     find: (predicate: (element: T) => boolean) => T | undefined;
     /**
      * Mutate all elements with the given mutator function that satisfy the predicate.
+     * @returns the number of elements mutated
      */
-    mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => void;
+    mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => number;
 }
 
 /**
@@ -33,22 +38,39 @@ export interface ArrayStore<T> {
  * @author GustavBW
  */
 export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<T> {
-    const storeTuple = createStore<T[]>(initValue ?? []);
+    const [currentValue, setStore] = createStore<T[]>(initValue ?? []);
     return {
-        get: () => storeTuple[0],
-        set: storeTuple[1],
+        get: () => currentValue,
+        set: setStore,
         add: (value: T) => {
-            storeTuple[1]([...storeTuple[0], value]);
+            setStore(prev => [...prev, value]);
             return () => {
-                storeTuple[1](storeTuple[0].filter((v) => v !== value));
+                setStore(prev => prev.filter((v) => v !== value));
             };
         },
         mutateElement: (element: T, mutator: (element: T) => T) => {
-            storeTuple[1](storeTuple[0].map((v) => v === element ? mutator(v) : v));
+            let mutated = false;
+            setStore(prev => prev.map((v) => {
+                if (v === element) {
+                    mutated = true;
+                    return mutator(v);
+                } 
+                return v
+            }));
+            return mutated;
         },
-        find: (predicate: (element: T) => boolean) => storeTuple[0].find(predicate),
+        find: (predicate: (element: T) => boolean) => currentValue.find(predicate),
         mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => {
-            storeTuple[1](storeTuple[0].map((v) => predicate(v) ? mutator(v) : v));
+            let mutationCount = 0;
+            setStore(prev => prev.map((v) => {
+                    if (predicate(v)) {
+                        mutationCount++;
+                        return mutator(v); 
+                    }
+                    return v;
+                }
+            ));
+            return mutationCount;
         },
     };
 }

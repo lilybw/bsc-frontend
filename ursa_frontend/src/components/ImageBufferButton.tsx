@@ -1,6 +1,6 @@
 import { Component, createMemo, mergeProps } from "solid-js";
 import BufferBasedButton, { BufferBasedButtonProps } from "./BufferBasedButton";
-import { AddRetainRemoveFunc } from "../ts/wrappedStore";
+import { AddRetainRemoveFunc } from "../ts/arrayStore";
 import { BufferSubscriber } from "../ts/actionContext";
 import { IBackendBased, IBufferBased, IRegistering, IStyleOverwritable } from "../ts/types";
 import { css } from "@emotion/css";

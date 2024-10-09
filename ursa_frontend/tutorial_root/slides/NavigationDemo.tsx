@@ -4,7 +4,7 @@ import { css } from "@emotion/css";
 import ActionInput from "../../src/components/colony/MainActionInput";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../src/ts/actionContext";
 import { createMemo, createSignal } from "solid-js";
-import { createArrayStore } from "../../src/ts/wrappedStore";
+import { createArrayStore } from "../../src/ts/arrayStore";
 import VideoFrame from "./VideoFrame";
 import ImageBufferButton from "../../src/components/ImageBufferButton";
 import SectionSubTitle from "../../src/components/SectionSubTitle";
