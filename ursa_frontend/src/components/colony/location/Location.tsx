@@ -135,13 +135,7 @@ const Location: Component<LocationProps> = (props) => {
             <AssetCollection 
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
                 backend={props.backend}
-                topLevelTransform={{
-                    xOffset: -props.colonyLocation.transform.xOffset,
-                    yOffset: -props.colonyLocation.transform.yOffset,
-                    xScale: props.colonyLocation.transform.xScale,
-                    yScale: props.colonyLocation.transform.yScale,
-                    zIndex: props.colonyLocation.transform.zIndex,
-                }}
+                topLevelTransform={props.colonyLocation.transform}
             />
             {appendCard()}
         </div>
