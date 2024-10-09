@@ -110,14 +110,17 @@ const Location: Component<LocationProps> = (props) => {
     const computedContainerStyle = createMemo(() => css`${locationContainerStyle} ${props.styleOverwrite}`);
     const computedButtonTransform = createMemo<TransformDTO>(() => {
         return {
-            // Nullify the transform by setting all values to their neutral state
-            xOffset: 0,
-            yOffset: 0,
-            xScale: 1,
-            yScale: 1,
+            xOffset: -props.colonyLocation.transform.xOffset,
+            yOffset: -props.colonyLocation.transform.yOffset,
+            xScale: props.colonyLocation.transform.xScale,
+            yScale: props.colonyLocation.transform.yScale,
             zIndex: props.colonyLocation.transform.zIndex + 10, // Keep zIndex as is for layering
         }
     });
+
+    console.log('Location transform:', props.colonyLocation.transform);
+    console.log('Inverted transform:', computedButtonTransform());
+    console.log('GAS:', props.gas());
 
     return (
         <div class={computedContainerStyle()} id={"location-" + props.location.name + "-level-" + props.colonyLocation.level}>
@@ -136,11 +139,10 @@ const Location: Component<LocationProps> = (props) => {
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
                 backend={props.backend}
                 topLevelTransform={{
-                    // Nullify the transform for AssetCollection as well
-                    xOffset: 0,
-                    yOffset: 0,
-                    xScale: 1,
-                    yScale: 1,
+                    xOffset: -props.colonyLocation.transform.xOffset,
+                    yOffset: -props.colonyLocation.transform.yOffset,
+                    xScale: props.colonyLocation.transform.xScale,
+                    yScale: props.colonyLocation.transform.yScale,
                     zIndex: props.colonyLocation.transform.zIndex,
                 }}
             />

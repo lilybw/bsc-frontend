@@ -39,11 +39,9 @@ const UNIT_TRANSFORM: TransformDTO = {
 
 function unwrappedFromProps(clients: ClientDTO[]) {
     const map = new Map()
-
     for (const client of clients) {
         map.set(client.id, client.state.lastKnownPosition)
     }
-
     return map
 }
 
@@ -73,18 +71,18 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     createEffect(() => {
         const currentDNS = DNS()
         const transforms = new Map()
-        const tempGAS = Math.sqrt(Math.min(currentDNS.x, currentDNS.y))
+        const currentGAS = GAS()
 
         for (const colonyLocationInfo of props.colony.locations) {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
-                // 1. Apply DNS to x and y offsets (nullified)
-                // 2. Apply camera offset (nullified)
-                xOffset: colonyLocationInfo.transform.xOffset * Math.pow(currentDNS.x, 0) - camera.get().x * Math.pow(1, 0),
-                yOffset: colonyLocationInfo.transform.yOffset * Math.pow(currentDNS.y, 0) - camera.get().y * Math.pow(1, 0),
-                // 3. Apply GAS to scales (nullified)
-                xScale: colonyLocationInfo.transform.xScale * Math.pow(tempGAS, 0),
-                yScale: colonyLocationInfo.transform.yScale * Math.pow(tempGAS, 0)
+                // 1. Apply DNS to x and y offsets
+                // 2. Apply camera offset
+                xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x - camera.get().x,
+                yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y - camera.get().y,
+                // 3. Apply GAS to scales
+                xScale: colonyLocationInfo.transform.xScale * currentGAS,
+                yScale: colonyLocationInfo.transform.yScale * currentGAS
             }
 
             transforms.set(colonyLocationInfo.id, computedTransform)
@@ -97,12 +95,12 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const calculateScalars = () => {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        // 4. Calculate DNS (affects subsequent scalar applications)
+        // 4. Calculate DNS (applied in step 1)
         setDNS({ 
             x: viewportWidth / EXPECTED_WIDTH, 
             y: viewportHeight / EXPECTED_HEIGHT 
         });
-        // 5. Calculate GAS (used in step 3)
+        // 5. Calculate GAS (now being applied in step 3)
         setGAS(Math.sqrt(Math.min(viewportWidth / EXPECTED_WIDTH, viewportHeight / EXPECTED_HEIGHT)));
     };
 
@@ -113,10 +111,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             if (!transform) {
                 transform = UNIT_TRANSFORM
             }
-            // 6. Apply DNS to camera positioning (nullified)
+            // 6. Apply DNS to camera positioning
             camera.set({
-                x: transform.xOffset - (Math.pow(DNS().x, 0) * EXPECTED_WIDTH) / 2,
-                y: transform.yOffset - (Math.pow(DNS().y, 0) * EXPECTED_HEIGHT) / 2
+                x: transform.xOffset - (DNS().x * EXPECTED_WIDTH) / 2,
+                y: transform.yOffset - (DNS().y * EXPECTED_HEIGHT) / 2
             });
         } else {
             const previousPosition = nonLocalPlayerPositions().get(data.playerID)
