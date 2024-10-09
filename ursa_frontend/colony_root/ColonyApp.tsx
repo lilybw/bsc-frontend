@@ -137,12 +137,13 @@ justify-content: left;
 align-items: center;
 
 width: 90%;
-height: 6vh;
+height: 5vh;
 font-size: 1.5rem;
 padding: 0.5rem;
 
 color: white;
 ${Styles.FANCY_BORDER}
+background-color: rgba(0, 0, 0, 0.7);
 border-color: rgba(255, 255, 255, 0.5);
 ${Styles.ANIM_FADE_OUT(eventFeedMessageDurationMS / 1000)}
 `
@@ -158,6 +159,8 @@ right: 0;
 bottom: 0;
 height: 50vh;
 width: 15vw;
+row-gap: 1vh;
+z-index: 1000;
 
 overflow: hidden;
 `	

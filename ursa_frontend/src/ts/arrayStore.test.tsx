@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createRoot, createEffect } from 'solid-js';
+import { createRoot, createEffect, createSignal } from 'solid-js';
 import { createArrayStore, ArrayStore } from './arrayStore';
-import { render } from "@solidjs/testing-library"
+import { render, testEffect } from "@solidjs/testing-library"
 import userEvent from "@testing-library/user-event"
+import { createStore } from 'solid-js/store';
 
 describe('ArrayStore', () => {
   it('should initialize with an empty array if no initial value is provided', () => {
@@ -57,24 +58,77 @@ describe('ArrayStore', () => {
     ]);
   });
 
-  it('should be reactive', () => {
-    createRoot((dispose) => {
+  it('does testEffect run once on "mount" always - yes', () => {
+    return testEffect((dispose) => {
+      const [value, setValue] = createSignal(0);
+      createEffect(() => {
+        setValue(1);
+        expect(value()).toBe(1);
+        dispose();
+      });
+    });
+  })
+
+  it('add should be reactive', () => {
+    return testEffect((dispose) => {
       const store = createArrayStore<{ id: number }>();
-      let effectCount = 0;
+      let effectCount = 0; //runs once on "mount"
+      createEffect(() => { 
+        store.get();
+        effectCount++;
+      });
+
+      const element = { id: 1 };
+      store.add(element);
+      expect(effectCount).toBe(1); 
+
+      dispose();
+    });
+  });
+
+  it('in-place mutateElement should be reactive', () => {
+    return testEffect((dispose) => {
+      const element = { id: 1 };
+      const store = createArrayStore<{ id: number }>([element]);
+      let effectCount = 0; //runs once on "mount"
+
       createEffect(() => {
         store.get();
         effectCount++;
       });
 
-      store.add({ id: 1 });
-      expect(effectCount).toBe(1); // Initial effect + one for the add
-
-      store.mutateElement({ id: 1 }, (el) => ({ ...el, id: 2 }));
-      expect(effectCount).toBe(2);
+      store.mutateElement(element, (el) => {el.id++; return el;});
+      expect(effectCount).toBe(1);
+      expect(element.id).toBe(2);
 
       dispose();
     });
-  });
+  })
+
+  it('object replace mutateElement should be reactive', () => {
+    return testEffect((done) => {
+      const element = { id: 1 };
+      const store = createArrayStore<{ id: number }>([element]);
+      let effectCount = 0;
+
+      createEffect(() => {
+        store.get();
+        effectCount++;
+      });
+
+      store.mutateElement(element, () => ({ id: 2 }));
+      expect(effectCount).toBe(1);
+      expect(element.id).toBe(1);
+      expect(store.get()[0].id).toBe(2);
+
+      store.mutateElement(element, () => ({ id: 3 }));
+      expect(effectCount).toBe(2);
+      expect(element.id).toBe(1);
+      expect(store.get()[0].id).toBe(3);
+
+      done();
+    });
+  })
 
   it('should work correctly in a component', async () => {
     const store = createArrayStore<{ id: number }>();
@@ -104,3 +158,22 @@ describe('ArrayStore', () => {
 
   });
 });
+
+describe('baseline store behaviour', () => {
+  it('is reactive', { timeout: 10_000}, async () => {
+    return testEffect((dispose) => {
+      const [store, setStore] = createStore<{ id: number }>({ id: 0 });
+      const [effectCount, setEffectCount] = createSignal(0);
+
+      createEffect(() => {
+        if (store.id < 10) {
+          setEffectCount((prev) => prev + 1);
+        } else {
+          expect(effectCount()).toBe(10);
+          dispose();
+        }
+        setStore((prev) => {return { id: prev.id + 1 };});
+      });
+    })
+  });
+})

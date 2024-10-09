@@ -1,6 +1,5 @@
 import { expect, suite, test, vi } from 'vitest';
 import { computeActualSizeOfMessage, parseGoTypeAtOffsetInView, placeValueAtOffsetAsTypeInView } from './binUtil';
-import { EventSpecification, GoType } from '';
 import { RawMessage } from './multiplayerBackend';
 
 suite('placeValueAtOffsetAsTypeInView', () => {
@@ -264,6 +263,7 @@ suite('parseGoTypeAtOffsetInView', () => {
 });
 
 import * as moduleToTest from './binUtil';
+import { EventSpecification, GoType } from './EventSpecifications';
 // Create a type-safe mock of the entire module
 const mockedModule = vi.mocked(moduleToTest, true);
 

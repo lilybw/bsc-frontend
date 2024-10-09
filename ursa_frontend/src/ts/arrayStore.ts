@@ -77,7 +77,7 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
             setStore(prev => prev.map((v) => {
                     if (predicate(v)) {
                         mutationCount++;
-                        return mutator(v); 
+                        return mutator(v);
                     }
                     return v;
                 }

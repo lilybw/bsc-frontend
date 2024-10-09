@@ -5,6 +5,7 @@ import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../ts/
 import { ArrayStore } from "../../ts/arrayStore";
 import NTAwait from "../util/NoThrowAwait";
 import GraphicalAsset from "../GraphicalAsset";
+import { Styles } from "../../sharedCSS";
 
 interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternationalized {
     actionContext: Accessor<TypeIconTuple>;
@@ -94,7 +95,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                 </NTAwait>
             }
             <svg xmlns="http://www.w3.org/2000/svg" class={backgroundTrapezoidStyle} viewBox="0 0 300 50" 
-                fill="black" stroke="white">
+                fill="hsla(0,0%,0%,.5)" stroke="white">
                 <path d="M0 50 L40 0 L260 0 L300 50 Z"/>
             </svg>
             <div class={css`${inputContainerStyle} ${isShaking() ? shakeAnimation : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}`} id="main-input-container">
@@ -235,30 +236,38 @@ const inputContainerStyle = css`
 position: absolute;
 display: flex;
 flex-direction: row;
-column-gap: .7rem;
 align-items: center;
 justify-content: flex-start;
+
 z-index: 2;
-color: white;
-border-radius: 1rem;
-border: 1px solid white;
-width: 15vw;
-max-width: 12vw;
-height: 3vh;
 bottom: 50%;
 left: 51%;
-transform: translate(-50%, 50%);
+height: 3vh;
+width: 15vw;
+max-width: 12vw;
 padding: .5rem;
-box-shadow: inset 0 0 .3rem white;
+
+column-gap: .7rem;
+transform: translate(-50%, 50%);
+
+border: 1px solid white;
+border-radius: 1rem;
 cursor: pointer;
+
+color: white;
 text-shadow: none;
+background-color: rgba(0,0,0,.5);
+box-shadow: inset 0 0 .3rem white;
 `
 
 const backgroundTrapezoidStyle = css`
 position: relative;
+
 z-index: 1;
 width: 100%;
 min-width: 5rem;
 height: auto; /* Let the height be determined by the SVG content */
 min-height: 5rem;
+
+filter: drop-shadow(0 0 .5rem black);
 `
