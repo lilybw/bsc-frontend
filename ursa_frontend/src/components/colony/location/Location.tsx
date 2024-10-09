@@ -110,10 +110,7 @@ const Location: Component<LocationProps> = (props) => {
     const computedContainerStyle = createMemo(() => css`${locationContainerStyle} ${props.styleOverwrite}`);
     const computedButtonTransform = createMemo<TransformDTO>(() => {
         return {
-            xOffset: -props.colonyLocation.transform.xOffset,
-            yOffset: -props.colonyLocation.transform.yOffset,
-            xScale: props.colonyLocation.transform.xScale,
-            yScale: props.colonyLocation.transform.yScale,
+            ...props.colonyLocation.transform,
             zIndex: props.colonyLocation.transform.zIndex + 10, // Keep zIndex as is for layering
         }
     });
