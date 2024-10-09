@@ -46,9 +46,7 @@ function unwrappedFromProps(clients: ClientDTO[]) {
 
     return map
 }
-/**
- * NOT Colony Location ID
- */
+
 const findByLocationID = (locations: ColonyLocationInformation[], locationID: number) => {
     for (const location of locations) {
         if (location.locationID === locationID) {
@@ -70,25 +68,23 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [GAS, setGAS] = createSignal(1);
     const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
     const camera: Camera = createWrappedSignal(getInitialCameraPosition(findByLocationID(props.colony.locations, KnownLocations.Home)!));
-    /**
-     * This map shows relationships between the players positions and the location that is the position in the graph.
-     */
     const [nonLocalPlayerPositions, setNonLocalPlayerPositions] = createSignal<Map<PlayerID, Number>>(unwrappedFromProps(props.existingClients))
 
-    
     createEffect(() => {
         const currentDNS = DNS()
-
         const transforms = new Map()
         const tempGAS = Math.sqrt(Math.min(currentDNS.x, currentDNS.y))
 
         for (const colonyLocationInfo of props.colony.locations) {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
-                xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x - camera.get().x,
-                yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y - camera.get().y,
-                xScale: colonyLocationInfo.transform.xScale * tempGAS,
-                yScale: colonyLocationInfo.transform.yScale * tempGAS
+                // 1. Apply DNS to x and y offsets (nullified)
+                // 2. Apply camera offset (nullified)
+                xOffset: colonyLocationInfo.transform.xOffset * Math.pow(currentDNS.x, 0) - camera.get().x * Math.pow(1, 0),
+                yOffset: colonyLocationInfo.transform.yOffset * Math.pow(currentDNS.y, 0) - camera.get().y * Math.pow(1, 0),
+                // 3. Apply GAS to scales (nullified)
+                xScale: colonyLocationInfo.transform.xScale * Math.pow(tempGAS, 0),
+                yScale: colonyLocationInfo.transform.yScale * Math.pow(tempGAS, 0)
             }
 
             transforms.set(colonyLocationInfo.id, computedTransform)
@@ -101,35 +97,34 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const calculateScalars = () => {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
+        // 4. Calculate DNS (affects subsequent scalar applications)
         setDNS({ 
             x: viewportWidth / EXPECTED_WIDTH, 
             y: viewportHeight / EXPECTED_HEIGHT 
         });
+        // 5. Calculate GAS (used in step 3)
         setGAS(Math.sqrt(Math.min(viewportWidth / EXPECTED_WIDTH, viewportHeight / EXPECTED_HEIGHT)));
     };
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
-        
         if (data.playerID === props.localPlayerId) {
             let transform = locationTransforms().get(data.locationID)
 
             if (!transform) {
                 transform = UNIT_TRANSFORM
             }
+            // 6. Apply DNS to camera positioning (nullified)
             camera.set({
-                x: transform.xOffset - (DNS().x * EXPECTED_WIDTH) / 2,
-                y: transform.yOffset - (DNS().y * EXPECTED_HEIGHT) / 2
+                x: transform.xOffset - (Math.pow(DNS().x, 0) * EXPECTED_WIDTH) / 2,
+                y: transform.yOffset - (Math.pow(DNS().y, 0) * EXPECTED_HEIGHT) / 2
             });
-            
         } else {
             const previousPosition = nonLocalPlayerPositions().get(data.playerID)
 
             if (previousPosition === data.locationID) return;
 
             const currentPositions = new Map(nonLocalPlayerPositions())
-
             currentPositions.set(data.playerID, data.locationID)
-
             setNonLocalPlayerPositions(currentPositions)
         }
     };
@@ -206,16 +201,13 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     );
 };
 
-
 export default PathGraph;
 
 const pathGraphContainerStyle = css`
 position: absolute;
-
 left: 0;
 top: 0;
 width: 100vw;
 height: 100vh;
-
 overflow: visible;
 `

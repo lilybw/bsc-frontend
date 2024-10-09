@@ -3,7 +3,6 @@ import { ColonyLocationInformation, LocationInfoResponseDTO, TransformDTO } from
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from "../../../ts/types";
 import { css } from "@emotion/css";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
-import { createSign } from "crypto";
 import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
 import BufferBasedButton from "../../BufferBasedButton";
 import { Camera } from "../../../ts/camera";
@@ -23,6 +22,7 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
      */
     gas: Accessor<number>;
 }
+
 const calcNamePlatePosition = (y: number) => {
     //This output is Distance normalized (using props.dns) and is thus roughly in pixels, but might not be. 
     //However this should bring the nameplate towards the center of the location in case we're close to the top of the screen.
@@ -89,6 +89,7 @@ const Location: Component<LocationProps> = (props) => {
         }
         return appearance;
     }
+
     const appendCard = () => {
         if (showLocationCard()) {
             return (
@@ -109,10 +110,15 @@ const Location: Component<LocationProps> = (props) => {
     const computedContainerStyle = createMemo(() => css`${locationContainerStyle} ${props.styleOverwrite}`);
     const computedButtonTransform = createMemo<TransformDTO>(() => {
         return {
-            ...props.colonyLocation.transform,
-            zIndex: props.colonyLocation.transform.zIndex + 10,
+            // Nullify the transform by setting all values to their neutral state
+            xOffset: 0,
+            yOffset: 0,
+            xScale: 1,
+            yScale: 1,
+            zIndex: props.colonyLocation.transform.zIndex + 10, // Keep zIndex as is for layering
         }
     });
+
     return (
         <div class={computedContainerStyle()} id={"location-" + props.location.name + "-level-" + props.colonyLocation.level}>
             <BufferBasedButton
@@ -129,17 +135,30 @@ const Location: Component<LocationProps> = (props) => {
             <AssetCollection 
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
                 backend={props.backend}
-                topLevelTransform={props.colonyLocation.transform}
+                topLevelTransform={{
+                    // Nullify the transform for AssetCollection as well
+                    xOffset: 0,
+                    yOffset: 0,
+                    xScale: 1,
+                    yScale: 1,
+                    zIndex: props.colonyLocation.transform.zIndex,
+                }}
             />
             {appendCard()}
         </div>
     )
 }
+
 export default Location;
 
 const locationContainerStyle = css`
     position: absolute;
+    left: 0;
+    top: 0;
 `
+
 const namePlateStyle = css`
     position: absolute;
+    left: 0;
+    top: 0;
 `
