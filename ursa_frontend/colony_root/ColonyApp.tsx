@@ -14,6 +14,7 @@ import { createWrappedSignal } from '../src/ts/wrappedSignal';
 import { IExpandedAccessMultiplexer } from '../src/integrations/multiplayer_backend/eventMultiplexer';
 import { Styles } from '../src/sharedCSS';
 import { ColonyInfoResponseDTO, PlayerInfoResponseDTO } from '../src/integrations/main_backend/mainBackendDTOs';
+import { ClientDTO } from '../src/integrations/multiplayer_backend/multiplayerDTO';
 
 type StrictJSX = Node | JSX.ArrayElement | (string & {});
 const eventFeedMessageDurationMS = 10_000;
@@ -23,6 +24,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.NAVIGATION);
   const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
   const eventFeed = createArrayStore<StrictJSX>();
+  const clients = createArrayStore<ClientDTO>();
 
   const onColonyInfoLoadError = (error: string) => {
     props.context.logger.error('Failed to load colony info: ' + error);
@@ -107,7 +109,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
           <PathGraph 
             bufferSubscribers={bufferSubscribers}
             actionContext={actionContext}
-            existingClients={[]}
+            existingClients={clients}
             colony={colonyInfo}
             plexer={props.context.events}
             text={props.context.text}
