@@ -1,7 +1,7 @@
 import { Accessor, Component, createSignal, onCleanup, onMount, createMemo, createEffect } from "solid-js";
 import { css } from "@emotion/css";
 import BufferHighlightedName, { BufferHighlightedNameProps } from "./BufferHighlightedName";
-import { AddRetainRemoveFunc } from "../ts/wrappedStore";
+import { AddRetainRemoveFunc } from "../ts/arrayStore";
 import { BufferSubscriber } from "../ts/actionContext";
 import { IParenting, IRegistering } from "../ts/types";
 import { Styles } from "../sharedCSS";

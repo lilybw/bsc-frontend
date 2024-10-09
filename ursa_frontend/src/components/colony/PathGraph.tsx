@@ -12,7 +12,7 @@ import { ClientDTO } from "../../integrations/multiplayer_backend/multiplayerDTO
 import NTAwait from "../util/NoThrowAwait";
 import { KnownLocations } from "../../integrations/main_backend/constants";
 import { BufferSubscriber, TypeIconTuple } from "../../ts/actionContext";
-import { ArrayStore, createArrayStore } from "../../ts/wrappedStore";
+import { ArrayStore, createArrayStore } from "../../ts/arrayStore";
 import ActionInput from "./MainActionInput";
 
 export const EXPECTED_WIDTH = 1920;

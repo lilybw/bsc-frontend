@@ -3,7 +3,7 @@ import { css } from "@emotion/css";
 import StarryBackground from "../../src/components/StarryBackground";
 import ActionInput from "../../src/components/colony/MainActionInput";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../src/ts/actionContext";
-import { createArrayStore } from "../../src/ts/wrappedStore";
+import { createArrayStore } from "../../src/ts/arrayStore";
 import VideoFrame from "./VideoFrame";
 import ImageBufferButton from "../../src/components/ImageBufferButton";
 import NTAwait from "../../src/components/util/NoThrowAwait";

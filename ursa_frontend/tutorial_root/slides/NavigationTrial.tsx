@@ -4,7 +4,7 @@ import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../src
 import { createMemo, createSignal } from "solid-js";
 import ActionInput from "../../src/components/colony/MainActionInput";
 import { ActionContext, BufferSubscriber } from "../../src/ts/actionContext";
-import { createArrayStore } from "../../src/ts/wrappedStore";
+import { createArrayStore } from "../../src/ts/arrayStore";
 import { css } from "@emotion/css";
 
 interface NavigationTrialProps extends IStyleOverwritable, IInternationalized, IBackendBased {
