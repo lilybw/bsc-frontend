@@ -116,14 +116,7 @@ const colonyListBackgroundStyle = css`
     padding: 1rem;
     gap: 1rem;
 
-    border-radius: 5%;
-    border: .25rem solid white;
-    border-left: 0px;
-    border-right: 0px;
-
-    backdrop-filter: blur(.5rem);
-    -webkit-backdrop-filter: blur(.5rem);  // For Safari support
-    box-shadow: 0 0 1rem rgba(255, 255, 255, .2) inset, 0 0 1rem black;
+    ${Styles.FANCY_BORDER}
 `
 
 const colonyListStyle = css`
