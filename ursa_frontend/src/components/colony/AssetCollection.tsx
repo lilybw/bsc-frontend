@@ -19,6 +19,8 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
         ${Styles.transformToCSSVariables(transform)}
         ${props.topLevelTransform ? Styles.TRANSFORM_APPLICATOR : ""}
         ${props.styleOverwrite}
+        width: fit-content;
+        height: fit-content;
     `;
     return (
         <div class={computedContainerStyle(props.topLevelTransform)} id={collectionName()}>
