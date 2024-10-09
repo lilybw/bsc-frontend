@@ -21,15 +21,27 @@ export interface ArrayStore<T> {
     add: AddRetainRemoveFunc<T>;
     /**
      * Change the value of some element in the store reactively.
+     * 
+     * Element object reference does not have to be preserved. (I.e. replacing the element with a new one is fine)
      * @returns true if any element was mutated, false otherwise
      */
     mutateElement: (element: T, mutator: (element: T) => T) => boolean;
     find: (predicate: (element: T) => boolean) => T | undefined;
     /**
-     * Mutate all elements with the given mutator function that satisfy the predicate.
+     * Mutate all elements that satisfy the predicate with the given mutator function.
+     * 
+     * Element object reference does not have to be preserved. (I.e. replacing the element with a new one is fine)
      * @returns the number of elements mutated
      */
     mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => number;
+    /**
+     * Create a new store with all values from this store that are in the given index range. (End inclusive)
+     */
+    slice: (start: number, end?: number) => ArrayStore<T>;
+    /**
+     * Create a new store with all values from this store that satisfy the predicate.
+     */
+    sliceByPredicate: (predicate: (element: T) => boolean) => ArrayStore<T>;
 }
 
 /**
@@ -72,5 +84,11 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
             ));
             return mutationCount;
         },
+        slice: (start: number, end?: number) => {
+            return createArrayStore(currentValue.slice(start, end));
+        },
+        sliceByPredicate: (predicate: (element: T) => boolean) => {
+            return createArrayStore(currentValue.filter(predicate));
+        }
     };
 }

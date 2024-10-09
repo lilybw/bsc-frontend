@@ -23,7 +23,6 @@ const PlanetWithMoon: Component<PlanetWithMoonProps> = (props) => {
     height: var(--pvm-size);
     ${props.styleOverwrite}
   `)
-
   return (
     <div class={computedStyles()}>
       <NTAwait func={() => props.backend.getAssetMetadata(props.planetAssetOverwrite ?? 3001)}>
