@@ -12,7 +12,7 @@ import { ClientDTO } from "../../integrations/multiplayer_backend/multiplayerDTO
 import NTAwait from "../util/NoThrowAwait";
 import { KnownLocations } from "../../integrations/main_backend/constants";
 import { BufferSubscriber, TypeIconTuple } from "../../ts/actionContext";
-import { ArrayStore } from "../../ts/wrappedStore";
+import { ArrayStore, createArrayStore } from "../../ts/wrappedStore";
 import ActionInput from "./MainActionInput";
 
 export const EXPECTED_WIDTH = 1920;
@@ -67,25 +67,29 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
     const camera: Camera = createWrappedSignal(getInitialCameraPosition(findByLocationID(props.colony.locations, KnownLocations.Home)!));
     const [nonLocalPlayerPositions, setNonLocalPlayerPositions] = createSignal<Map<PlayerID, Number>>(unwrappedFromProps(props.existingClients))
+    const colonyLocation = createArrayStore<ColonyLocationInformation>(props.colony.locations)
 
     createEffect(() => {
         const currentDNS = DNS()
         const transforms = new Map()
         const currentGAS = GAS()
+        const viewportHeight = window.innerHeight
 
-        for (const colonyLocationInfo of props.colony.locations) {
+        for (const colonyLocationInfo of colonyLocation.get()) {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
-                // 1. Apply DNS to x and y offsets
-                // 2. Apply camera offset
+                // Adjust y-coordinate to match web rendering system
                 xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x - camera.get().x,
-                yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y - camera.get().y,
-                // 3. Apply GAS to scales
+                yOffset: viewportHeight - (colonyLocationInfo.transform.yOffset * currentDNS.y) - camera.get().y,
                 xScale: colonyLocationInfo.transform.xScale * currentGAS,
                 yScale: colonyLocationInfo.transform.yScale * currentGAS
             }
 
             transforms.set(colonyLocationInfo.id, computedTransform)
+            colonyLocation.mutateElement(colonyLocationInfo, (element) => {
+                element.transform = computedTransform
+                return element
+            })
         }
 
         setLocationTransform(transforms)
@@ -95,12 +99,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const calculateScalars = () => {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        // 4. Calculate DNS (applied in step 1)
         setDNS({ 
             x: viewportWidth / EXPECTED_WIDTH, 
             y: viewportHeight / EXPECTED_HEIGHT 
         });
-        // 5. Calculate GAS (now being applied in step 3)
         setGAS(Math.sqrt(Math.min(viewportWidth / EXPECTED_WIDTH, viewportHeight / EXPECTED_HEIGHT)));
     };
 
@@ -111,7 +113,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             if (!transform) {
                 transform = UNIT_TRANSFORM
             }
-            // 6. Apply DNS to camera positioning
             camera.set({
                 x: transform.xOffset - (DNS().x * EXPECTED_WIDTH) / 2,
                 y: transform.yOffset - (DNS().y * EXPECTED_HEIGHT) / 2
@@ -166,24 +167,27 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 }
             </NTAwait>
     
-            <For each={props.colony.locations}>
-                {(location) => (
+            <For each={colonyLocation.get()}>
+                {(colonyLocation) => (
                     <NTAwait
-                        func={() => props.backend.getLocationInfo(location.locationID)}
+                        func={() => props.backend.getLocationInfo(colonyLocation.locationID)}
                     >
-                        {(locationInfo) => (
-                            <Location
-                                colonyLocation={{...location, transform: locationTransforms().get(location.id)!}}
-                                location={locationInfo}
-                                gas={GAS}
-                                plexer={props.plexer}
-                                backend={props.backend}
-                                buffer={props.buffer.get}
-                                actionContext={props.actionContext}
-                                text={props.text}
-                                register={props.bufferSubscribers.add}
-                            />
-                        )}
+                        {(locationInfo) => {
+                            console.log('Location info from backend:', locationInfo);
+                            return (
+                                <Location
+                                    colonyLocation={colonyLocation}
+                                    location={locationInfo}
+                                    gas={GAS}
+                                    plexer={props.plexer}
+                                    backend={props.backend}
+                                    buffer={props.buffer.get}
+                                    actionContext={props.actionContext}
+                                    text={props.text}
+                                    register={props.bufferSubscribers.add}
+                                />
+                            );
+                        }}
                     </NTAwait>
                 )}
             </For>
