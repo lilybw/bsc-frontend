@@ -23,7 +23,7 @@ interface PathGraphProps extends IBackendBased, IInternationalized {
     plexer: IEventMultiplexer;
     localPlayerId: PlayerID;
     multiplayerIntegration: IMultiplayerIntegration;
-    existingClients: ClientDTO[]
+    existingClients: ArrayStore<ClientDTO>;
     bufferSubscribers: ArrayStore<BufferSubscriber<string>>;
     buffer: WrappedSignal<string>;
     actionContext: WrappedSignal<TypeIconTuple>;
