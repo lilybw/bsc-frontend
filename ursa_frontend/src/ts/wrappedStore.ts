@@ -23,8 +23,9 @@ export interface ArrayStore<T> {
     find: (predicate: (element: T) => boolean) => T | undefined;
     /**
      * Mutate all elements with the given mutator function that satisfy the predicate.
+     * @returns the number of elements mutated
      */
-    mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => void;
+    mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => number;
 }
 
 /**
@@ -48,7 +49,16 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
         },
         find: (predicate: (element: T) => boolean) => storeTuple[0].find(predicate),
         mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => {
-            storeTuple[1](storeTuple[0].map((v) => predicate(v) ? mutator(v) : v));
+            let mutationCount = 0;
+            storeTuple[1](storeTuple[0].map((v) => {
+                    if (predicate(v)) {
+                        mutationCount++;
+                        return mutator(v); 
+                    }
+                    return v;
+                }
+            ));
+            return mutationCount;
         },
     };
 }
