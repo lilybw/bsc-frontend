@@ -69,19 +69,26 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
     const transformMap = new Map<Number, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations))
     const camera = createWrappedSignal({x: 0, y: 0})
-    const originalPositions = new Map<number, { x: number, y: number }>();
+    const [viewportDimensions, setViewportDimensions] = createSignal({width: window.innerWidth, height: window.innerHeight});
+    const [triggerRecalculation, setTriggerRecalculation] = createSignal(0);
 
     createEffect(() => {
         const currentDNS = DNS()
         const currentGAS = GAS()
         const currentCamera = camera.get()
+        const { width, height } = viewportDimensions()
+        triggerRecalculation(); // Depend on this to ensure the effect runs when calculateScalars is called
+
+        // Calculate the center offset
+        const centerOffsetX = width / 2
+        const centerOffsetY = height / 2
 
         for (const colonyLocationInfo of colonyLocation.get()) {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
-                // Apply camera offset to each location
-                xOffset: (colonyLocationInfo.transform.xOffset - currentCamera.x) * currentDNS.x,
-                yOffset: (colonyLocationInfo.transform.yOffset - currentCamera.y) * currentDNS.y,
+                // Apply camera offset to each location and center it
+                xOffset: (colonyLocationInfo.transform.xOffset - (currentCamera.x - centerOffsetX)),
+                yOffset: (colonyLocationInfo.transform.yOffset - (currentCamera.y - centerOffsetY)),
                 xScale: colonyLocationInfo.transform.xScale * currentGAS,
                 yScale: colonyLocationInfo.transform.yScale * currentGAS
             }
@@ -93,17 +100,19 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             })
         }
 
-        console.log("Recalculated transforms. Camera position:", currentCamera)
+        console.log("Recalculated transforms. Camera position:", currentCamera, "Viewport:", { width, height })
     })
 
     const calculateScalars = () => {
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
+        const newWidth = window.innerWidth;
+        const newHeight = window.innerHeight;
+        setViewportDimensions({ width: newWidth, height: newHeight });
         setDNS({ 
-            x: 1, // viewportWidth / EXPECTED_WIDTH
-            y: 1 // viewportHeight / EXPECTED_HEIGHT 
+            x: newWidth / EXPECTED_WIDTH,
+            y: newHeight / EXPECTED_HEIGHT 
         });
-        setGAS( 1 ); // Math.sqrt(Math.min(viewportWidth / EXPECTED_WIDTH, viewportHeight / EXPECTED_HEIGHT))
+        setGAS(1); // Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT))
+        setTriggerRecalculation(prev => prev + 1); // Force effect to run
     };
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
@@ -113,11 +122,9 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             const targetLocation = colonyLocation.get().find(loc => loc.id === data.locationID);
 
             if (!targetLocation) {
-                console.error("Target location not found");
                 return;
             }
 
-            // Update camera position to the target position
             camera.set({
                 x: targetLocation.transform.xOffset,
                 y: targetLocation.transform.yOffset
@@ -135,7 +142,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     onMount(() => {
         calculateScalars();
         window.addEventListener('resize', calculateScalars);
-
         const subscription = props.plexer.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
 
         onCleanup(() => {

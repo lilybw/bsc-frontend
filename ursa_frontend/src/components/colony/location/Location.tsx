@@ -5,7 +5,6 @@ import { css } from "@emotion/css";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
 import BufferBasedButton from "../../BufferBasedButton";
-import { Camera } from "../../../ts/camera";
 import AssetCollection from "../AssetCollection";
 import { Styles } from "../../../sharedCSS";
 import LocationCard from "./LocationCard";
