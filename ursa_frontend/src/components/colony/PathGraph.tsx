@@ -69,19 +69,19 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
     const transformMap = new Map<Number, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations))
     const camera = createWrappedSignal({x: 0, y: 0})
+    const originalPositions = new Map<number, { x: number, y: number }>();
 
     createEffect(() => {
         const currentDNS = DNS()
         const currentGAS = GAS()
-        const viewportHeight = window.innerHeight
-        const cameraState = camera.get()
+        const currentCamera = camera.get()
 
         for (const colonyLocationInfo of colonyLocation.get()) {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
-                // Adjust y-coordinate to match web rendering system
-                xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x - cameraState.x,
-                yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y - cameraState.y,
+                // Apply camera offset to each location
+                xOffset: (colonyLocationInfo.transform.xOffset - currentCamera.x) * currentDNS.x,
+                yOffset: (colonyLocationInfo.transform.yOffset - currentCamera.y) * currentDNS.y,
                 xScale: colonyLocationInfo.transform.xScale * currentGAS,
                 yScale: colonyLocationInfo.transform.yScale * currentGAS
             }
@@ -93,7 +93,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             })
         }
 
-        console.log("recalculated transforms")
+        console.log("Recalculated transforms. Camera position:", currentCamera)
     })
 
     const calculateScalars = () => {
@@ -110,22 +110,20 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         console.log("Player Moved" + JSON.stringify(data))
 
         if (data.playerID === props.localPlayerId) {
-            const transform = transformMap.get(data.locationID)
-            
+            const targetLocation = colonyLocation.get().find(loc => loc.id === data.locationID);
 
-            if (!transform) {
-                camera.set({x: 0, y: 0})
-                return
+            if (!targetLocation) {
+                console.error("Target location not found");
+                return;
             }
 
-            console.log(camera.get().x + " " + camera.get().y)
-
-            const locationTransform = transform.get()
-
+            // Update camera position to the target position
             camera.set({
-                x: locationTransform.xOffset,
-                y: locationTransform.yOffset
+                x: targetLocation.transform.xOffset,
+                y: targetLocation.transform.yOffset
             });
+
+            console.log("Moving camera to:", camera.get())
         } else {
             props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
                 client.state.lastKnownPosition = data.locationID;
