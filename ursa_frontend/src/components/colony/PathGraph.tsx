@@ -1,4 +1,4 @@
-import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect, from } from "solid-js";
+import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect, from, Accessor, AccessorArray } from "solid-js";
 import { ColonyInfoResponseDTO, ColonyLocationInformation, PlayerID, TransformDTO } from "../../integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
 import { IBackendBased, IInternationalized, IBufferBased } from "../../ts/types";
@@ -37,14 +37,6 @@ const UNIT_TRANSFORM: TransformDTO = {
     zIndex: 0
 }
 
-function unwrappedFromProps(clients: ClientDTO[]) {
-    const map = new Map()
-    for (const client of clients) {
-        map.set(client.id, client.state.lastKnownPosition)
-    }
-    return map
-}
-
 const findByLocationID = (locations: ColonyLocationInformation[], locationID: number) => {
     for (const location of locations) {
         if (location.locationID === locationID) {
@@ -60,67 +52,85 @@ const getInitialCameraPosition = (home: ColonyLocationInformation) => {
     return {x: home.transform.xOffset + (viewportWidth * .5), y: home.transform.yOffset + (viewportHeight * .5)}
 }
 
+function arrayToMap(array: ColonyLocationInformation[]) {
+    const map = new Map()
+
+    for (const element of array) {
+        map.set(element.id, createWrappedSignal(element.transform))
+    }
+
+    return map
+}
+
 const PathGraph: Component<PathGraphProps> = (props) => {
-    const [paths, setPaths] = createSignal<{ from: number; to: number }[]>([]);
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
-    const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
-    const camera: Camera = createWrappedSignal(getInitialCameraPosition(findByLocationID(props.colony.locations, KnownLocations.Home)!));
     const colonyLocation = createArrayStore<ColonyLocationInformation>(props.colony.locations)
+    const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
+    const transformMap = new Map<Number, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations))
+    const camera = createWrappedSignal({x: 0, y: 0})
 
     createEffect(() => {
         const currentDNS = DNS()
-        const transforms = new Map()
         const currentGAS = GAS()
         const viewportHeight = window.innerHeight
+        const cameraState = camera.get()
 
         for (const colonyLocationInfo of colonyLocation.get()) {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
                 // Adjust y-coordinate to match web rendering system
-                xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x - camera.get().x,
-                yOffset: viewportHeight - (colonyLocationInfo.transform.yOffset * currentDNS.y) - camera.get().y,
+                xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x - cameraState.x,
+                yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y - cameraState.y,
                 xScale: colonyLocationInfo.transform.xScale * currentGAS,
                 yScale: colonyLocationInfo.transform.yScale * currentGAS
             }
 
-            transforms.set(colonyLocationInfo.id, computedTransform)
+            transformMap.get(colonyLocationInfo.id)!.set(computedTransform)
             colonyLocation.mutateElement(colonyLocationInfo, (element) => {
                 element.transform = computedTransform
                 return element
             })
         }
 
-        setLocationTransform(transforms)
-        props.backend.logger.trace('Updated location transforms, camera: ' + JSON.stringify(camera.get()))
-    }) 
+        console.log("recalculated transforms")
+    })
 
     const calculateScalars = () => {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         setDNS({ 
-            x: viewportWidth / EXPECTED_WIDTH, 
-            y: viewportHeight / EXPECTED_HEIGHT 
+            x: 1, // viewportWidth / EXPECTED_WIDTH
+            y: 1 // viewportHeight / EXPECTED_HEIGHT 
         });
-        setGAS(Math.sqrt(Math.min(viewportWidth / EXPECTED_WIDTH, viewportHeight / EXPECTED_HEIGHT)));
+        setGAS( 1 ); // Math.sqrt(Math.min(viewportWidth / EXPECTED_WIDTH, viewportHeight / EXPECTED_HEIGHT))
     };
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
+        console.log("Player Moved" + JSON.stringify(data))
+
         if (data.playerID === props.localPlayerId) {
-            let transform = locationTransforms().get(data.locationID)
+            const transform = transformMap.get(data.locationID)
+            
 
             if (!transform) {
-                transform = UNIT_TRANSFORM
+                camera.set({x: 0, y: 0})
+                return
             }
+
+            console.log(camera.get().x + " " + camera.get().y)
+
+            const locationTransform = transform.get()
+
             camera.set({
-                x: transform.xOffset - (DNS().x * EXPECTED_WIDTH) / 2,
-                y: transform.yOffset - (DNS().y * EXPECTED_HEIGHT) / 2
+                x: locationTransform.xOffset,
+                y: locationTransform.yOffset
             });
         } else {
             props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
-                client.state.lastKnownPosition = data.locationID
-                return client
-            })
+                client.state.lastKnownPosition = data.locationID;
+                return client;
+            });
         }
     };
 
@@ -136,23 +146,33 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         });
     });
 
+    const svgContainerStyles = createMemo(() => css`
+        position: absolute;
+        top: ${camera.get().y} px;
+        left: ${camera.get().x} px;
+    `) 
+
     return (
         <div class={pathGraphContainerStyle}>
             <NTAwait func={() => props.backend.getColonyPathGraph(props.colony.id)}>
                 {(pathData) => 
-                    <svg width="100%" height="100%">
+                    <svg width="100%" height="100%" class={svgContainerStyles()}>
                         <For each={pathData.paths}>
                             {(path) => {
-                                let fromLocation = locationTransforms().get(path.from);
-                                let toLocation = locationTransforms().get(path.to);
-                                if (!fromLocation) fromLocation = UNIT_TRANSFORM;
-                                if (!toLocation) toLocation = UNIT_TRANSFORM;
+                                let fromLocation = transformMap.get(path.from);
+                                let toLocation = transformMap.get(path.to);
+                                if (!fromLocation || !toLocation) return null;
+                                
+                                const transformA = fromLocation.get()
+                                const transformB = toLocation.get()
+
+                                const cameraState = camera.get()
                                 return (
                                     <line
-                                        x1={fromLocation.xOffset}
-                                        y1={fromLocation.yOffset}
-                                        x2={toLocation.xOffset}
-                                        y2={toLocation.yOffset}
+                                        x1={transformA.xOffset + cameraState.x}
+                                        y1={transformA.yOffset + cameraState.y}
+                                        x2={transformB.xOffset + cameraState.x}
+                                        y2={transformB.yOffset + cameraState.y}
                                         stroke="white"
                                         stroke-width={10}
                                     />
@@ -168,22 +188,20 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     <NTAwait
                         func={() => props.backend.getLocationInfo(colonyLocation.locationID)}
                     >
-                        {(locationInfo) => {
-                            console.log('Location info from backend:', locationInfo);
-                            return (
-                                <Location
-                                    colonyLocation={colonyLocation}
-                                    location={locationInfo}
-                                    gas={GAS}
-                                    plexer={props.plexer}
-                                    backend={props.backend}
-                                    buffer={props.buffer.get}
-                                    actionContext={props.actionContext}
-                                    text={props.text}
-                                    register={props.bufferSubscribers.add}
-                                />
-                            );
-                        }}
+                        {(locationInfo) => (
+                            <Location
+                                colonyLocation={colonyLocation}
+                                location={locationInfo}
+                                gas={GAS}
+                                plexer={props.plexer}
+                                backend={props.backend}
+                                buffer={props.buffer.get}
+                                actionContext={props.actionContext}
+                                text={props.text}
+                                register={props.bufferSubscribers.add}
+                                transform={transformMap.get(colonyLocation.id)!}
+                            />
+                        )}
                     </NTAwait>
                 )}
             </For>

@@ -6,10 +6,11 @@ import NTAwait from "../util/NoThrowAwait";
 import GraphicalAsset from "../GraphicalAsset";
 import { combineTransforms, getRandHash } from "../../ts/ursaMath";
 import { Styles } from "../../sharedCSS";
+import { WrappedSignal } from "../../ts/wrappedSignal";
 
 interface AssetCollectionProps extends IBackendBased, IStyleOverwritable {
     id: AssetCollectionID;
-    topLevelTransform?: TransformDTO;
+    topLevelTransform?: WrappedSignal<TransformDTO>;
 }
 
 const AssetCollection: Component<AssetCollectionProps> = (props) => {
@@ -23,7 +24,7 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
         height: fit-content;
     `;
     return (
-        <div class={computedContainerStyle(props.topLevelTransform)} id={collectionName()}>
+        <div class={computedContainerStyle(props.topLevelTransform?.get())} id={collectionName()}>
             <NTAwait func={() => props.backend.getAssetCollection(props.id)}>{collection => {
                 setCollectionName(collection.name + " - " + getRandHash());
                 return (
@@ -33,7 +34,7 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
                             metadata={entry.asset}
                             transform={
                                 props.topLevelTransform ? 
-                                    combineTransforms(props.topLevelTransform, entry.transform) 
+                                    combineTransforms(props.topLevelTransform.get(), entry.transform) 
                                     : entry.transform
                             }
                         />

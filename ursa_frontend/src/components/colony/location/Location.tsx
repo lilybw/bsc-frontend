@@ -21,6 +21,7 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
      * Graphical Asset Scalar
      */
     gas: Accessor<number>;
+    transform: WrappedSignal<TransformDTO>
 }
 
 const calcNamePlatePosition = (y: number) => {
@@ -34,6 +35,7 @@ const Location: Component<LocationProps> = (props) => {
     const [showLocationCard, setShowLocationCard] = createSignal(false);
     const [idOfDiffSelected, setIdOfDiffSelected] = createSignal(-1);
     const [previousActionContext, setPreviousActionContext] = createSignal(ActionContext.NAVIGATION);
+
 
     const currentDisplayText = createMemo(() => isUserHere() ?
         props.text.get("LOCATION.USER_ACTION.ENTER").get() :
@@ -53,7 +55,7 @@ const Location: Component<LocationProps> = (props) => {
         setUserIsHere(true);
         props.plexer.emit(PLAYER_MOVE_EVENT, {
             playerID: props.backend.localPlayer.id,
-            locationID: props.colonyLocation.locationID,
+            locationID: props.colonyLocation.id,
         });
     }
 
@@ -110,8 +112,8 @@ const Location: Component<LocationProps> = (props) => {
     const computedContainerStyle = createMemo(() => css`${locationContainerStyle} ${props.styleOverwrite}`);
     const computedButtonTransform = createMemo<TransformDTO>(() => {
         return {
-            ...props.colonyLocation.transform,
-            zIndex: props.colonyLocation.transform.zIndex + 10, // Keep zIndex as is for layering
+            ...props.transform.get(),
+            zIndex: props.transform.get().zIndex + 10, // Keep zIndex as is for layering
         }
     });
 
@@ -135,7 +137,7 @@ const Location: Component<LocationProps> = (props) => {
             <AssetCollection 
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
                 backend={props.backend}
-                topLevelTransform={props.colonyLocation.transform}
+                topLevelTransform={props.transform}
             />
             {appendCard()}
         </div>
