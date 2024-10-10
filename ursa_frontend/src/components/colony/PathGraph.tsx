@@ -87,8 +87,8 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
                 // Apply camera offset to each location and center it
-                xOffset: (colonyLocationInfo.transform.xOffset - (currentCamera.x - centerOffsetX)),
-                yOffset: (colonyLocationInfo.transform.yOffset - (currentCamera.y - centerOffsetY)),
+                xOffset: ((colonyLocationInfo.transform.xOffset * currentDNS.x) - ((currentCamera.x * currentDNS.x) - centerOffsetX)),
+                yOffset: ((colonyLocationInfo.transform.yOffset * currentDNS.y) - ((currentCamera.y * currentDNS.y) - centerOffsetY)),
                 xScale: colonyLocationInfo.transform.xScale * currentGAS,
                 yScale: colonyLocationInfo.transform.yScale * currentGAS
             }
@@ -111,7 +111,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             x: newWidth / EXPECTED_WIDTH,
             y: newHeight / EXPECTED_HEIGHT 
         });
-        setGAS(1); // Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT))
+        setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)))
         setTriggerRecalculation(prev => prev + 1); // Force effect to run
     };
 
