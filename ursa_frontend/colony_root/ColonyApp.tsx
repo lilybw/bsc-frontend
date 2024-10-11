@@ -93,7 +93,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   }
 
   return (
-    <div>
+    <div id="colony-app">
       <StarryBackground />
       <Unwrap func={handleInfoRetrieval} fallback={onColonyInfoLoadError}>
         {({colonyInfo, playerInfo}) =>

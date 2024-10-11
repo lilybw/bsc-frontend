@@ -29,19 +29,30 @@ const calcNamePlatePosition = (y: number) => {
     return y < 200 ? -200 : 200;
 }
 
+
+const getCollectionForLevel = (level: number, info: LocationInfoResponseDTO) => {
+    const sorted = info.appearances.sort((a, b) => a.level - b.level);
+    let appearance = sorted[sorted.length - 1];
+    for (let i = 0; i < sorted.length; i++) {
+        if (sorted[i].level == level) {
+            appearance = sorted[i];
+            break;
+        }
+    }
+    return appearance;
+}
+
 const Location: Component<LocationProps> = (props) => {
     const [isUserHere, setUserIsHere] = createSignal(false);
     const [showLocationCard, setShowLocationCard] = createSignal(false);
     const [idOfDiffSelected, setIdOfDiffSelected] = createSignal(-1);
     const [previousActionContext, setPreviousActionContext] = createSignal(ActionContext.NAVIGATION);
 
-
-    const currentDisplayText = createMemo(() => {
-        console.log("Recomputing location name, user is here is: " + isUserHere());
-        return isUserHere() ?
-        props.text.get("LOCATION.USER_ACTION.ENTER").get() :
+    const currentDisplayText = createMemo(() => isUserHere() ?
+        props.text.get("LOCATION.USER_ACTION.ENTER").get() 
+        :
         props.text.get(props.location.name).get()
-    });
+    );
 
     const onButtonActivation = () => {
         if (isUserHere()) {
@@ -81,16 +92,9 @@ const Location: Component<LocationProps> = (props) => {
         onCleanup(() => props.plexer.unsubscribe(playerMoveSubId, diffSelectSubId, diffConfirmedSubId));
     })
 
-    const getCollectionForLevel = (level: number, info: LocationInfoResponseDTO) => {
-        const sorted = info.appearances.sort((a, b) => a.level - b.level);
-        let appearance = sorted[sorted.length - 1];
-        for (let i = 0; i < sorted.length; i++) {
-            if (sorted[i].level == level) {
-                appearance = sorted[i];
-                break;
-            }
-        }
-        return appearance;
+    const onLocationCardClose = () => {
+        setShowLocationCard(false);
+        props.actionContext.set(previousActionContext());
     }
 
     const appendCard = () => {
@@ -104,7 +108,7 @@ const Location: Component<LocationProps> = (props) => {
                     backend={props.backend}
                     text={props.text}
                     register={props.register}
-                    onClose={() => {setShowLocationCard(false); console.log("[delete me] closing location card for: " + props.location.name)}}
+                    onClose={onLocationCardClose}
                 />
             )
         }

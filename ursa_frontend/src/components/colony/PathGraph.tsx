@@ -75,7 +75,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     createEffect(() => {
         const currentDNS = DNS()
         const currentGAS = GAS()
-        const currentCamera = camera.get()
         const { width, height } = viewportDimensions()
         triggerRecalculation(); // Depend on this to ensure the effect runs when calculateScalars is called
 
@@ -86,9 +85,9 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         for (const colonyLocationInfo of colonyLocation.get) {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
-                // Apply camera offset to each location and center it
-                xOffset: ((colonyLocationInfo.transform.xOffset * currentDNS.x) - ((currentCamera.x * currentDNS.x) - centerOffsetX)),
-                yOffset: ((colonyLocationInfo.transform.yOffset * currentDNS.y) - ((currentCamera.y * currentDNS.y) - centerOffsetY)),
+                // Camera is applied to the parent. Not here.
+                xOffset: (colonyLocationInfo.transform.xOffset * currentDNS.x) - centerOffsetX,
+                yOffset: (colonyLocationInfo.transform.yOffset * currentDNS.y) - centerOffsetY,
                 xScale: colonyLocationInfo.transform.xScale * currentGAS,
                 yScale: colonyLocationInfo.transform.yScale * currentGAS
             }
@@ -100,7 +99,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             })
         }
 
-        console.log("Recalculated transforms. Camera position:", currentCamera, "Viewport:", { width, height })
+        console.log("Recalculated transforms. Viewport:", { width, height })
     })
 
     const calculateScalars = () => {
@@ -130,7 +129,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 y: targetLocation.transform.yOffset
             });
 
-            console.log("Moving camera to:", camera.get())
+            console.log("Moving camera to:", JSON.stringify(targetLocation))
         } else {
             props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
                 client.state.lastKnownPosition = data.locationID;
@@ -150,65 +149,68 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         });
     });
 
-    const svgContainerStyles = createMemo(() => css`
-        position: absolute;
-        top: ${camera.get().y} px;
-        left: ${camera.get().x} px;
-    `) 
+    const computedCameraContainerStyles = createMemo(() => {
+        const cameraState = camera.get()
+        return css`
+            ${cameraContainer}
+            top: ${cameraState.y}px;
+            left: ${cameraState.x}px;
+        `}
+    ); 
 
     return (
-        <div class={pathGraphContainerStyle}>
-            <NTAwait func={() => props.backend.getColonyPathGraph(props.colony.id)}>
-                {(pathData) => 
-                    <svg width="100%" height="100%" class={svgContainerStyles()}>
-                        <For each={pathData.paths}>
-                            {(path) => {
-                                let fromLocation = transformMap.get(path.from);
-                                let toLocation = transformMap.get(path.to);
-                                if (!fromLocation || !toLocation) return null;
-                                
-                                const transformA = fromLocation.get()
-                                const transformB = toLocation.get()
+        <div class={pathGraphContainerStyle} id={props.colony.name+"-path-graph"}>
+            <div class={computedCameraContainerStyles()} id="camera-container">
+                <NTAwait func={() => props.backend.getColonyPathGraph(props.colony.id)}>
+                    {(pathData) => 
+                        <svg width="100%" height="100%" id="paths" class={css`position: absolute;`}>
+                            <For each={pathData.paths}>
+                                {(path) => {
+                                    let fromLocation = transformMap.get(path.from);
+                                    let toLocation = transformMap.get(path.to);
+                                    if (!fromLocation || !toLocation) return null;
+                                    
+                                    const transformA = fromLocation.get()
+                                    const transformB = toLocation.get()
+                                    return (
+                                        <line
+                                            x1={transformA.xOffset}
+                                            y1={transformA.yOffset}
+                                            x2={transformB.xOffset}
+                                            y2={transformB.yOffset}
+                                            stroke="white"
+                                            stroke-width={10}
+                                        />
+                                    );
+                                }}
+                            </For>
+                        </svg>
+                    }
+                </NTAwait>
 
-                                const cameraState = camera.get()
-                                return (
-                                    <line
-                                        x1={transformA.xOffset + cameraState.x}
-                                        y1={transformA.yOffset + cameraState.y}
-                                        x2={transformB.xOffset + cameraState.x}
-                                        y2={transformB.yOffset + cameraState.y}
-                                        stroke="white"
-                                        stroke-width={10}
-                                    />
-                                );
-                            }}
-                        </For>
-                    </svg>
-                }
-            </NTAwait>
-    
-            <For each={colonyLocation.get}>
-                {(colonyLocation) => (
-                    <NTAwait
-                        func={() => props.backend.getLocationInfo(colonyLocation.locationID)}
-                    >
-                        {(locationInfo) => (
-                            <Location
-                                colonyLocation={colonyLocation}
-                                location={locationInfo}
-                                gas={GAS}
-                                plexer={props.plexer}
-                                backend={props.backend}
-                                buffer={props.buffer.get}
-                                actionContext={props.actionContext}
-                                text={props.text}
-                                register={props.bufferSubscribers.add}
-                                transform={transformMap.get(colonyLocation.id)!}
-                            />
-                        )}
-                    </NTAwait>
-                )}
-            </For>
+                <For each={colonyLocation.get}>
+                    {(colonyLocation) => (
+                        <NTAwait
+                            func={() => props.backend.getLocationInfo(colonyLocation.locationID)}
+                        >
+                            {(locationInfo) => (
+                                <Location
+                                    colonyLocation={colonyLocation}
+                                    location={locationInfo}
+                                    gas={GAS}
+                                    plexer={props.plexer}
+                                    backend={props.backend}
+                                    buffer={props.buffer.get}
+                                    actionContext={props.actionContext}
+                                    text={props.text}
+                                    register={props.bufferSubscribers.add}
+                                    transform={transformMap.get(colonyLocation.id)!}
+                                />
+                            )}
+                        </NTAwait>
+                    )}
+                </For>
+            </div>
 
             <ActionInput subscribers={props.bufferSubscribers} 
                 text={props.text}
@@ -222,6 +224,14 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 };
 
 export default PathGraph;
+
+const cameraContainer = css`
+position: absolute;
+top: 0;
+left: 0;
+overflow: visible;
+transition: top 0.5s ease-in-out, left 0.5s ease-in-out;
+`
 
 const pathGraphContainerStyle = css`
 position: absolute;
