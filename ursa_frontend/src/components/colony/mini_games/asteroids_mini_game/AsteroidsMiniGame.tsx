@@ -23,7 +23,7 @@ import { ApplicationContext } from "../../../../meta/types";
 interface AsteroidsGameProps {
   context: ApplicationContext
   difficulty: DifficultyConfirmedForMinigameMessageDTO;
-  onGameEnd: (score: number) => void;
+  returnToColony: () => void
 }
 
 const BASE_KEYCODE_LENGTH = 3;
