@@ -1,4 +1,4 @@
-import { Component } from 'solid-js';
+import { Component, JSX } from 'solid-js';
 import { BackendIntegration } from '../integrations/main_backend/mainBackend';
 import { PlayerInfoResponseDTO } from '../integrations/main_backend/mainBackendDTOs';
 import { IMultiplayerIntegration } from '../integrations/multiplayer_backend/multiplayerBackend';
@@ -82,3 +82,6 @@ export type ApplicationContext = {
     env: ENV;
     nav: URSANav;
 };
+
+
+  

@@ -6,7 +6,7 @@ import PathGraph from '../src/components/colony/PathGraph';
 import Unwrap from '../src/components/util/Unwrap';
 import ErrorPage from '../src/ErrorPage';
 import { createSignal, Accessor, onMount, onCleanup, JSX, For } from 'solid-js';
-import { LOBBY_CLOSING_EVENT, PLAYER_JOINED_EVENT, PLAYER_LEFT_EVENT, SERVER_CLOSING_EVENT } from '../src/integrations/multiplayer_backend/EventSpecifications';
+import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DifficultyConfirmedForMinigameMessageDTO, LOBBY_CLOSING_EVENT, PLAYER_JOINED_EVENT, PLAYER_LEFT_EVENT, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, SERVER_CLOSING_EVENT } from '../src/integrations/multiplayer_backend/EventSpecifications';
 import { css } from '@emotion/css';
 import { createArrayStore } from '../src/ts/arrayStore';
 import { ActionContext, BufferSubscriber, TypeIconTuple } from '../src/ts/actionContext';
@@ -19,9 +19,12 @@ import { RetainedColonyInfoForPageSwap } from '../src/integrations/vitec/navigat
 import NTAwait from '../src/components/util/NoThrowAwait';
 import MNTAwait from '../src/components/util/MultiNoThrowAwait';
 import BufferBasedButton from '../src/components/BufferBasedButton';
+import AsteroidsMiniGame from '../src/components/colony/mini_games/asteroids_mini_game/AsteroidsMiniGame';
 
-type StrictJSX = Node | JSX.ArrayElement | (string & {});
 const eventFeedMessageDurationMS = 10_000;
+type StrictJSX = Node | JSX.ArrayElement | (string & {}) 
+  | NonNullable<Exclude<Exclude<Exclude<JSX.Element, string>, number>, boolean>>
+  | Element;
 
 const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: ApplicationProps) => {
   const inputBuffer = createWrappedSignal<string>('');
@@ -29,7 +32,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
   const eventFeed = createArrayStore<StrictJSX>();
   const clients = createArrayStore<ClientDTO>();
-
+  const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
   const onColonyInfoLoadError = (error: string[]) => {
     props.context.logger.error('Failed to load colony info: ' + error);
     setTimeout(() => props.context.nav.goToMenu(), 0);
@@ -37,6 +40,44 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
       <ErrorPage content={error} />
     )
   }
+  const colonyLayout = () => {
+    return (
+      <Unwrap data={[props.context.nav.getRetainedColonyInfo(), props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
+        {(colonyInfo, playerInfo) =>
+          <>
+          <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
+          <BufferBasedButton 
+            name={props.context.text.get('COLONY.UI.LEAVE').get}
+            buffer={inputBuffer.get}
+            onActivation={() => props.context.nav.goToMenu()}
+            register={bufferSubscribers.add}
+            styleOverwrite='position: absolute; top: 13vh; left: 2vw;'
+          />
+          <MNTAwait funcs={
+              [() => props.context.backend.getColony(colonyInfo.owner, colonyInfo.id),
+              () => props.context.backend.getColonyPathGraph(colonyInfo.id)]
+          }>{ (colony, graph) =>
+            <PathGraph 
+              ownerID={colonyInfo.owner}
+              graph={graph}
+              bufferSubscribers={bufferSubscribers}
+              actionContext={actionContext}
+              existingClients={clients}
+              colony={colony}
+              plexer={props.context.events}
+              text={props.context.text}
+              backend={props.context.backend}
+              buffer={inputBuffer}
+              localPlayerId={playerInfo.id}
+              multiplayerIntegration={props.context.multiplayer}
+            />
+          }</MNTAwait>
+          </>
+        }
+      </Unwrap>
+    ) as StrictJSX;
+  }
+  const [pageContet, setPageContent] = createSignal<StrictJSX>(colonyLayout());
 
   onMount(() => {
     const playerLeaveSubId = props.context.events.subscribe(PLAYER_LEFT_EVENT, (data) => {
@@ -75,46 +116,38 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
       ) as StrictJSX);
       setTimeout(removeFunc, eventFeedMessageDurationMS);
     })
+    const diffConfirmedSubId = props.context.events.subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, data => {
+      setConfirmedDifficulty(data);
+    })
+    const declareIntentSubId = props.context.events.subscribe(PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, data => {
+      const diff = confirmedDifficulty();
+      if (diff === null) {
+        console.error('Received intent declaration before difficulty was confirmed');
+        return;
+      }
+      const onGameEnd = () => {
+        console.log("Game ended, going back to colony.")
+        setPageContent(colonyLayout());
+      }
+      setPageContent((
+        <AsteroidsMiniGame 
+          context={props.context}
+          difficulty={diff}
+          onGameEnd={onGameEnd}
+        />
+      ) as StrictJSX);
+    })
 
-    onCleanup(() => { props.context.events.unsubscribe(playerLeaveSubId, playerJoinSubId, serverClosingSubId, lobbyClosingSubId) })
+    onCleanup(() => { props.context.events.unsubscribe(
+      playerLeaveSubId, playerJoinSubId, serverClosingSubId, 
+      lobbyClosingSubId, diffConfirmedSubId, declareIntentSubId
+    ) })
   })
 
   return (
     <div id="colony-app">
       <StarryBackground />
-      <Unwrap data={[props.context.nav.getRetainedColonyInfo(), props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
-        {(colonyInfo, playerInfo) =>
-          <>
-          <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
-          <BufferBasedButton 
-            name={props.context.text.get('COLONY.UI.LEAVE').get}
-            buffer={inputBuffer.get}
-            onActivation={() => props.context.nav.goToMenu()}
-            register={bufferSubscribers.add}
-            styleOverwrite='position: absolute; top: 13vh; left: 2vw;'
-          />
-          <MNTAwait funcs={
-              [() => props.context.backend.getColony(colonyInfo.owner, colonyInfo.id),
-              () => props.context.backend.getColonyPathGraph(colonyInfo.id)]
-          }>{ (colony, graph) =>
-            <PathGraph 
-              ownerID={colonyInfo.owner}
-              graph={graph}
-              bufferSubscribers={bufferSubscribers}
-              actionContext={actionContext}
-              existingClients={clients}
-              colony={colony}
-              plexer={props.context.events}
-              text={props.context.text}
-              backend={props.context.backend}
-              buffer={inputBuffer}
-              localPlayerId={playerInfo.id}
-              multiplayerIntegration={props.context.multiplayer}
-            />
-          }</MNTAwait>
-          </>
-        }
-      </Unwrap>
+      {pageContet()}
       <div class={eventFeedContainerStyle} id="event-feed">
         <For each={eventFeed.get}>{event => event}</For>
       </div>
