@@ -36,10 +36,12 @@ const Location: Component<LocationProps> = (props) => {
     const [previousActionContext, setPreviousActionContext] = createSignal(ActionContext.NAVIGATION);
 
 
-    const currentDisplayText = createMemo(() => isUserHere() ?
+    const currentDisplayText = createMemo(() => {
+        console.log("Recomputing location name, user is here is: " + isUserHere());
+        return isUserHere() ?
         props.text.get("LOCATION.USER_ACTION.ENTER").get() :
         props.text.get(props.location.name).get()
-    );
+    });
 
     const onButtonActivation = () => {
         if (isUserHere()) {
@@ -51,7 +53,6 @@ const Location: Component<LocationProps> = (props) => {
         }
 
         console.log("[delete me] moving to: " + props.colonyLocation);
-        setUserIsHere(true);
         props.plexer.emit(PLAYER_MOVE_EVENT, {
             playerID: props.backend.localPlayer.id,
             locationID: props.colonyLocation.id,
@@ -62,8 +63,9 @@ const Location: Component<LocationProps> = (props) => {
         const playerMoveSubId = props.plexer.subscribe(PLAYER_MOVE_EVENT, (event) => {
             if (event.playerID !== props.backend.localPlayer.id) return;
 
-            if (event.locationID === props.colonyLocation.locationID) setUserIsHere(true);
-            else {
+            if (event.locationID === props.colonyLocation.id){ 
+                setUserIsHere(true);
+            }else {
                 setUserIsHere(false);
                 setShowLocationCard(false);
                 props.actionContext.set(previousActionContext());

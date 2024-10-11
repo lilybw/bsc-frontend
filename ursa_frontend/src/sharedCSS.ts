@@ -78,7 +78,7 @@ export const Styles = {
         left: var(--transform-x);
         top: var(--transform-y);
         z-index: var(--transform-index);
-        transform: scale(var(--transform-xScale), var(--transform-yScale));
+        transform: scale(var(--transform-xScale), var(--transform-yScale)) translate(-50%, -50%);
     `,
     FANCY_BORDER: css`
         border-radius: 5%;
