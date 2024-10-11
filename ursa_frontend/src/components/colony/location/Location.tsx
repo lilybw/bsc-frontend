@@ -68,7 +68,7 @@ const Location: Component<LocationProps> = (props) => {
         console.log("[delete me] moving to: " + props.colonyLocation);
         props.plexer.emit(PLAYER_MOVE_EVENT, {
             playerID: props.backend.localPlayer.id,
-            locationID: props.colonyLocation.id,
+            colonyLocationID: props.colonyLocation.id,
         });
     }
 
@@ -76,7 +76,7 @@ const Location: Component<LocationProps> = (props) => {
         const playerMoveSubId = props.plexer.subscribe(PLAYER_MOVE_EVENT, (event) => {
             if (event.playerID !== props.backend.localPlayer.id) return;
 
-            if (event.locationID === props.colonyLocation.id){ 
+            if (event.colonyLocationID === props.colonyLocation.id){ 
                 setUserIsHere(true);
             }else {
                 setUserIsHere(false);

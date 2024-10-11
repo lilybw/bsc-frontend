@@ -109,10 +109,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
         if (data.playerID === props.localPlayerId) {
-            const targetLocation = colonyLocation.findFirst(loc => loc.id === data.locationID);
+            const targetLocation = colonyLocation.findFirst(loc => loc.id === data.colonyLocationID);
 
             if (!targetLocation) {
-                console.error(`Unable to find location with ID on player move: ${data.locationID}`);
+                console.error(`Unable to find location with ID on player move: ${data.colonyLocationID}`);
                 return;
             }
 
@@ -124,7 +124,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         } else {
             props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
                 //locationID is id of Colony Location
-                return {...client, state: {...client.state, lastKnownPosition: data.locationID}};
+                return {...client, state: {...client.state, lastKnownPosition: data.colonyLocationID}};
             });
         }
     };
