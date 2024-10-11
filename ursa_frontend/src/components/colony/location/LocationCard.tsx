@@ -74,7 +74,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
 export default LocationCard;
 
 const locationCardContainerStyle = css`
-z-index: 10_000;
+z-index: 10000;
 position: fixed;
 display: flex;
 

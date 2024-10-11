@@ -3,12 +3,19 @@ import { Component } from "solid-js";
 import { IStyleOverwritable } from "../ts/types";
 
 interface SomethingWentWrongIconProps extends IStyleOverwritable {
-    message?: string | null;
+    message?: (string | null) | (string | null)[];
 }
 
 const SomethingWentWrongIcon: Component<SomethingWentWrongIconProps> = (props) => {
+    const normalized = Array.isArray(props.message) ? props.message : [props.message];
+    let combinedMessage = '';
+    for (const item of normalized) {
+        if (item !== null) {
+            combinedMessage += item + ', ';
+        }
+    }
     return (
-        <div class={css`${styles} ${props.styleOverwrite}`} title={props.message ?? ''}>?!</div>
+        <div class={css`${styles} ${props.styleOverwrite}`} title={combinedMessage}>?!</div>
     );
 }
 export default SomethingWentWrongIcon;

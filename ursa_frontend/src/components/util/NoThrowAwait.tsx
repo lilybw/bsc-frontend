@@ -29,7 +29,7 @@ const NTAwait = <T, R>(props: NoThrowAwaitProps<T>) => {
                 {fallback ? fallback(resource.error) : <SomethingWentWrongIcon message={JSON.stringify(resource.error)} />}
             </Show>
             <Show when={resource.latest}>
-                <Unwrap func={() => resource.latest!} fallback={fallback} children={children} />
+                <Unwrap data={resource.latest!} fallback={fallback} children={children} />
             </Show>
         </>
     );

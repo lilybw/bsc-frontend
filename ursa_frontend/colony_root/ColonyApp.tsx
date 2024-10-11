@@ -17,6 +17,7 @@ import { ColonyInfoResponseDTO, PlayerInfoResponseDTO } from '../src/integration
 import { ClientDTO } from '../src/integrations/multiplayer_backend/multiplayerDTO';
 import { RetainedColonyInfoForPageSwap } from '../src/integrations/vitec/navigator';
 import NTAwait from '../src/components/util/NoThrowAwait';
+import MNTAwait from '../src/components/util/MultiNoThrowAwait';
 
 type StrictJSX = Node | JSX.ArrayElement | (string & {});
 const eventFeedMessageDurationMS = 10_000;
@@ -95,12 +96,16 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   return (
     <div id="colony-app">
       <StarryBackground />
-      <Unwrap func={handleInfoRetrieval} fallback={onColonyInfoLoadError}>
+      <Unwrap data={handleInfoRetrieval()} fallback={onColonyInfoLoadError}>
         {({colonyInfo, playerInfo}) =>
           <>
           <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
-          <NTAwait func={() => props.context.backend.getColony(colonyInfo.owner, colonyInfo.id)}>{ (colony) =>
+          <MNTAwait funcs={
+              [() => props.context.backend.getColony(colonyInfo.owner, colonyInfo.id),
+              () => props.context.backend.getColonyPathGraph(colonyInfo.id)]
+          }>{ (colony, graph) =>
             <PathGraph 
+              graph={graph}
               bufferSubscribers={bufferSubscribers}
               actionContext={actionContext}
               existingClients={clients}
@@ -112,7 +117,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
               localPlayerId={playerInfo.id}
               multiplayerIntegration={props.context.multiplayer}
             />
-          }</NTAwait>
+          }</MNTAwait>
           </>
         }
       </Unwrap>

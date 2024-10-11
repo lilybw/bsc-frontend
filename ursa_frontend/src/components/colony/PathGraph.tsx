@@ -1,5 +1,5 @@
 import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect, from, Accessor, AccessorArray } from "solid-js";
-import { ColonyInfoResponseDTO, ColonyLocationInformation, PlayerID, TransformDTO } from "../../integrations/main_backend/mainBackendDTOs";
+import { ColonyInfoResponseDTO, ColonyLocationInformation, ColonyPathGraphResponseDTO, PlayerID, TransformDTO } from "../../integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
 import { IBackendBased, IInternationalized, IBufferBased } from "../../ts/types";
 import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventMultiplexer";
@@ -27,6 +27,7 @@ interface PathGraphProps extends IBackendBased, IInternationalized {
     bufferSubscribers: ArrayStore<BufferSubscriber<string>>;
     buffer: WrappedSignal<string>;
     actionContext: WrappedSignal<TypeIconTuple>;
+    graph: ColonyPathGraphResponseDTO;
 }
 
 const UNIT_TRANSFORM: TransformDTO = {
@@ -66,7 +67,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
     const colonyLocation = createArrayStore<ColonyLocationInformation>(props.colony.locations)
-    const [locationTransforms, setLocationTransform] = createSignal<Map<Number, TransformDTO>>(new Map())
     const transformMap = new Map<Number, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations))
     const camera = createWrappedSignal({x: 0, y: 0})
     const [viewportDimensions, setViewportDimensions] = createSignal({width: window.innerWidth, height: window.innerHeight});
@@ -94,8 +94,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 return element
             })
         }
-
-        console.log("Recalculated transforms. Viewport:", { width, height })
     })
 
     const calculateScalars = () => {
@@ -144,6 +142,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     };
 
     onMount(() => {
+        console.log("[detete me] graph recieved:    ", props.graph)
         calculateScalars();
         window.addEventListener('resize', calculateScalars);
         const subscription = props.plexer.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
@@ -171,32 +170,26 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     return (
         <div class={pathGraphContainerStyle} id={props.colony.name+"-path-graph"}>
             <div class={computedCameraContainerStyles()} id="camera-container">
-                <NTAwait func={() => props.backend.getColonyPathGraph(props.colony.id)}>
-                    {(pathData) => 
-                        <svg width="100%" height="100%" id="paths" class={css`position: absolute;`}>
-                            <For each={pathData.paths}>
-                                {(path) => {
-                                    let fromLocation = transformMap.get(path.from);
-                                    let toLocation = transformMap.get(path.to);
-                                    if (!fromLocation || !toLocation) return null;
-                                    
-                                    const transformA = fromLocation.get()
-                                    const transformB = toLocation.get()
-                                    return (
-                                        <line
-                                            x1={transformA.xOffset}
-                                            y1={transformA.yOffset}
-                                            x2={transformB.xOffset}
-                                            y2={transformB.yOffset}
-                                            stroke="white"
-                                            stroke-width={10}
-                                        />
-                                    );
-                                }}
-                            </For>
-                        </svg>
-                    }
-                </NTAwait>
+                <svg width="100%" height="100%" id="paths" class={css`position: absolute; z-index: 10; overflow: visible;`}>
+                    <For each={props.graph.paths}>{(path) => {
+                        let fromLocation = transformMap.get(path.from);
+                        let toLocation = transformMap.get(path.to);
+                        if (!fromLocation || !toLocation) return null;
+                        
+                        const transformA = fromLocation.get()
+                        const transformB = toLocation.get()
+                        return (
+                            <line
+                                x1={transformA.xOffset}
+                                y1={transformA.yOffset}
+                                x2={transformB.xOffset}
+                                y2={transformB.yOffset}
+                                stroke="white"
+                                stroke-width={10}
+                            />
+                        );
+                    }}</For>
+                </svg>
 
                 <For each={colonyLocation.get}>
                     {(colonyLocation) => (
