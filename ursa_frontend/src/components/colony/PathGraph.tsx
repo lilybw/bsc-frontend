@@ -78,16 +78,12 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         const { width, height } = viewportDimensions()
         triggerRecalculation(); // Depend on this to ensure the effect runs when calculateScalars is called
 
-        // Calculate the center offset
-        const centerOffsetX = width / 2
-        const centerOffsetY = height / 2
-
         for (const colonyLocationInfo of colonyLocation.get) {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
                 // Camera is applied to the parent. Not here.
-                xOffset: (colonyLocationInfo.transform.xOffset * currentDNS.x) - centerOffsetX,
-                yOffset: (colonyLocationInfo.transform.yOffset * currentDNS.y) - centerOffsetY,
+                xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x,
+                yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y,
                 xScale: colonyLocationInfo.transform.xScale * currentGAS,
                 yScale: colonyLocationInfo.transform.yScale * currentGAS
             }
@@ -114,6 +110,15 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         setTriggerRecalculation(prev => prev + 1); // Force effect to run
     };
 
+    const centerCameraOnPoint = (x: number, y: number) => {
+        const dim = viewportDimensions();
+        const dns = DNS();
+        camera.set({
+            x: (-1 * x * dns.x) + (dim.width * .5), 
+            y: (-1 * y * dns.y) + (dim.height * .5)
+        })
+    }
+
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
         console.log("Player Moved" + JSON.stringify(data))
 
@@ -124,10 +129,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 return;
             }
 
-            camera.set({
-                x: targetLocation.transform.xOffset,
-                y: targetLocation.transform.yOffset
-            });
+            centerCameraOnPoint(
+                targetLocation.transform.xOffset,
+                targetLocation.transform.yOffset
+            );
 
             console.log("Moving camera to:", JSON.stringify(targetLocation))
         } else {
@@ -150,8 +155,8 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
         //Set initial camera position
         //Only works because the createEffect statement is evaluated before this onMount as of right now
-        const trans = colonyLocation.findFirst(loc => loc.locationID === KnownLocations.Home)!.transform
-        camera.set({x: trans.xOffset, y: trans.yOffset});
+        const trans = colonyLocation.findFirst(loc => loc.locationID === KnownLocations.Home)!.transform;
+        centerCameraOnPoint(trans.xOffset, trans.yOffset);
     });
 
     const computedCameraContainerStyles = createMemo(() => {
