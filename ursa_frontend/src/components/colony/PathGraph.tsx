@@ -147,6 +147,11 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             window.removeEventListener('resize', calculateScalars);
             props.plexer.unsubscribe(subscription);
         });
+
+        //Set initial camera position
+        //Only works because the createEffect statement is evaluated before this onMount as of right now
+        const trans = colonyLocation.findFirst(loc => loc.locationID === KnownLocations.Home)!.transform
+        camera.set({x: trans.xOffset, y: trans.yOffset});
     });
 
     const computedCameraContainerStyles = createMemo(() => {
