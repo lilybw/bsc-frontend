@@ -125,15 +125,11 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
         console.error('Received intent declaration before difficulty was confirmed');
         return;
       }
-      const onGameEnd = () => {
-        console.log("Game ended, going back to colony.")
-        setPageContent(colonyLayout());
-      }
       setPageContent((
         <AsteroidsMiniGame 
           context={props.context}
           difficulty={diff}
-          onGameEnd={onGameEnd}
+          returnToColony={() => setPageContent(colonyLayout())}
         />
       ) as StrictJSX);
     })
