@@ -17,8 +17,8 @@ export interface NoThrowAwaitProps<T extends any[]> {
 /**
  * Same as NTAwait, but takes in any amount of functions which return a promise,
  * 
- * and thusly expects and function as child, which takes in that many arguments, correlating to the return
- * type of the functions (in order), and returns a JSX element.
+ * and thusly expects a function as child, which takes in that many arguments, whose order 
+ * correlates to the order of the functions, and returns a JSX element.
  */
 const MNTAwait = <T extends any[]>(props: NoThrowAwaitProps<T>) => {
     const {funcs, fallback, children} = props;

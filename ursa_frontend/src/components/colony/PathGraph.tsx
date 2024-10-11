@@ -124,8 +124,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         } else {
             props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
                 //locationID is id of Colony Location
-                client.state.lastKnownPosition = data.locationID;
-                return client;
+                return {...client, state: {...client.state, lastKnownPosition: data.locationID}};
             });
         }
     };
