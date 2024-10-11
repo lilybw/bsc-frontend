@@ -71,15 +71,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
       ) as StrictJSX);
       setTimeout(removeFunc, eventFeedMessageDurationMS);
     })
-    let toggle = true;
-    setInterval(() => {
-      if (toggle) {
-        (props.context.events as IExpandedAccessMultiplexer).emitRAW({eventID: PLAYER_JOINED_EVENT.id, senderID: 999, id: 1, ign: 'Test Player'});
-      } else {
-        (props.context.events as IExpandedAccessMultiplexer).emitRAW({eventID: PLAYER_LEFT_EVENT.id, senderID: 999, id: 1, ign: 'Test Player'});
-      }
-      toggle = !toggle;
-    }, 2000)
 
     onCleanup(() => { props.context.events.unsubscribe(playerLeaveSubId, playerJoinSubId, serverClosingSubId, lobbyClosingSubId) })
   })
@@ -122,7 +113,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
         )}
       </Unwrap>
       <div class={eventFeedContainerStyle} id="event-feed">
-        <For each={eventFeed.get()}>{event => event}</For>
+        <For each={eventFeed.get}>{event => event}</For>
       </div>
     </div>
   );

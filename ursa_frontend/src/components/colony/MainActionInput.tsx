@@ -15,7 +15,7 @@ interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternati
      * Store of all subscribers to the input buffer.
      * Each will be invoked on 'Enter' key press.
      */
-    subscribers: Accessor<BufferSubscriber<string>[]>;
+    subscribers: ArrayStore<BufferSubscriber<string>>;
     /**
      * If true, the input will be not be auto focused and be uninteractible by the user.
      * Also, on 'Enter' a giant floating Enter is shown.
@@ -62,7 +62,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
         if(props.demoMode) {
             await new Promise((resolve) => setTimeout(resolve, 1000))
         }
-        for (const subscriber of props.subscribers()) {
+        for (const subscriber of props.subscribers.get) {
             const result = subscriber(props.inputBuffer());
             if (result.consumed) {
                 consumed = true;

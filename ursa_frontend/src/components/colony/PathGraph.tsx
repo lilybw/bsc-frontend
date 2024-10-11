@@ -83,7 +83,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         const centerOffsetX = width / 2
         const centerOffsetY = height / 2
 
-        for (const colonyLocationInfo of colonyLocation.get()) {
+        for (const colonyLocationInfo of colonyLocation.get) {
             const computedTransform: TransformDTO = {
                 ...colonyLocationInfo.transform,
                 // Apply camera offset to each location and center it
@@ -94,7 +94,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             }
 
             transformMap.get(colonyLocationInfo.id)!.set(computedTransform)
-            colonyLocation.mutateElement(colonyLocationInfo, (element) => {
+            colonyLocation.mutateByPredicate((e) => e === colonyLocationInfo, (element) => {
                 element.transform = computedTransform
                 return element
             })
@@ -119,7 +119,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         console.log("Player Moved" + JSON.stringify(data))
 
         if (data.playerID === props.localPlayerId) {
-            const targetLocation = colonyLocation.get().find(loc => loc.id === data.locationID);
+            const targetLocation = colonyLocation.findFirst(loc => loc.id === data.locationID);
 
             if (!targetLocation) {
                 return;
@@ -187,7 +187,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 }
             </NTAwait>
     
-            <For each={colonyLocation.get()}>
+            <For each={colonyLocation.get}>
                 {(colonyLocation) => (
                     <NTAwait
                         func={() => props.backend.getLocationInfo(colonyLocation.locationID)}
@@ -210,7 +210,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 )}
             </For>
 
-            <ActionInput subscribers={props.bufferSubscribers.get} 
+            <ActionInput subscribers={props.bufferSubscribers} 
                 text={props.text}
                 backend={props.backend}
                 actionContext={props.actionContext.get} 

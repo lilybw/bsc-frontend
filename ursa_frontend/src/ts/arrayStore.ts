@@ -1,4 +1,5 @@
-import { createStore, SetStoreFunction } from 'solid-js/store';
+import { batch } from 'solid-js';
+import { createStore, produce, SetStoreFunction } from 'solid-js/store';
 
 /**
  * Any function that adds some element to some structure, but also returns a function that removes it again.
@@ -12,25 +13,35 @@ export type AddRetainRemoveFunc<T> = (value: T) => () => void;
  * @author GustavBW
  */
 export interface ArrayStore<T> {
-    get: () => T[];
-    set: SetStoreFunction<T[]>;
+    get: T[];
+    set: (val: T[]) => void;
     /**
      * @param value to add to the store
      * @returns a function that removes the value from the store
      */
     add: AddRetainRemoveFunc<T>;
     /**
+     * @param predicate cannot rely on object eqauivalence, unless also used with unwrap
+     * @returns the first element that satisfies the predicate, or undefined if none do
+     */
+    findFirst: (predicate: (element: T) => boolean) => T | undefined;
+    /**
+     * @param predicate cannot rely on object eqauivalence, unless also used with unwrap
+     * @returns the first element that satisfies the predicate, or undefined if none do
+     */
+    findAll: (predicate: (element: T) => boolean) => T[];
+    /**
      * Change the value of some element in the store reactively.
      * 
-     * Element object reference does not have to be preserved. (I.e. replacing the element with a new one is fine)
-     * @returns true if any element was mutated, false otherwise
+     * Element object reference is never preserved.
+     * @returns true if the element was found and mutated, false if the index was out of bounds
      */
-    mutateElement: (element: T, mutator: (element: T) => T) => boolean;
-    find: (predicate: (element: T) => boolean) => T | undefined;
+    mutateElement: (index: number, mutator: (element: T) => T) => boolean;
     /**
      * Mutate all elements that satisfy the predicate with the given mutator function.
      * 
-     * Element object reference does not have to be preserved. (I.e. replacing the element with a new one is fine)
+     * Element object reference is never preserved.
+     * @param predicate cannot rely on object eqauivalence, unless also used with unwrap.
      * @returns the number of elements mutated
      */
     mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => number;
@@ -42,6 +53,7 @@ export interface ArrayStore<T> {
      * Create a new store with all values from this store that satisfy the predicate.
      */
     sliceByPredicate: (predicate: (element: T) => boolean) => ArrayStore<T>;
+    sort: Array<T>['sort'];
 }
 
 /**
@@ -50,45 +62,46 @@ export interface ArrayStore<T> {
  * @author GustavBW
  */
 export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<T> {
-    const [currentValue, setStore] = createStore<T[]>(initValue ?? []);
+    const [proxy, setStore] = createStore<T[]>(initValue ?? []);
     return {
-        get: () => currentValue,
-        set: setStore,
+        get: proxy,
+        set: (val) => setStore(val),
         add: (value: T) => {
-            setStore(prev => [...prev, value]);
+            setStore((prev) => [...prev, value]);
             return () => {
                 setStore(prev => prev.filter((v) => v !== value));
             };
         },
-        mutateElement: (element: T, mutator: (element: T) => T) => {
-            let mutated = false;
-            setStore(prev => prev.map((v) => {
-                if (v === element) {
-                    mutated = true;
-                    return mutator(v);
-                } 
-                return v
-            }));
-            return mutated;
+        mutateElement: (index: number, mutator: (element: T) => T): boolean => {
+            if(index < 0 || index >= proxy.length) {
+                return false;
+            }
+            setStore(index, prev => mutator(prev));
+            return true;
         },
-        find: (predicate: (element: T) => boolean) => currentValue.find(predicate),
+        findFirst: (predicate: (element: T) => boolean) => proxy.find(predicate),
+        findAll: (predicate: (element: T) => boolean) => proxy.filter(predicate),
         mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => {
             let mutationCount = 0;
-            setStore(prev => prev.map((v) => {
-                    if (predicate(v)) {
+            batch(() => {
+                for (let i = 0; i < proxy.length; i++) {
+                    if (predicate(proxy[i])) {
                         mutationCount++;
-                        return mutator(v);
+                        setStore(i, e => mutator(e));
                     }
-                    return v;
                 }
-            ));
+            })
             return mutationCount;
         },
         slice: (start: number, end?: number) => {
-            return createArrayStore(currentValue.slice(start, end));
+            return createArrayStore(proxy.slice(start, end));
         },
         sliceByPredicate: (predicate: (element: T) => boolean) => {
-            return createArrayStore(currentValue.filter(predicate));
+            return createArrayStore(proxy.filter(predicate));
+        },
+        sort: (func) => {
+            setStore(produce(s => s.sort(func)));
+            return proxy;
         }
     };
 }

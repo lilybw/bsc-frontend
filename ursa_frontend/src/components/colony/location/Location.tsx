@@ -20,7 +20,7 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
      * Graphical Asset Scalar
      */
     gas: Accessor<number>;
-    transform: WrappedSignal<TransformDTO>
+    transform: WrappedSignal<TransformDTO>;
 }
 
 const calcNamePlatePosition = (y: number) => {
