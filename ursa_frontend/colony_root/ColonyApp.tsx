@@ -30,7 +30,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   const eventFeed = createArrayStore<StrictJSX>();
   const clients = createArrayStore<ClientDTO>();
 
-  const onColonyInfoLoadError = (error: string) => {
+  const onColonyInfoLoadError = (error: string[]) => {
     props.context.logger.error('Failed to load colony info: ' + error);
     setTimeout(() => props.context.nav.goToMenu(), 0);
     return (
@@ -79,26 +79,11 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
     onCleanup(() => { props.context.events.unsubscribe(playerLeaveSubId, playerJoinSubId, serverClosingSubId, lobbyClosingSubId) })
   })
 
-  const handleInfoRetrieval = (): ResErr<{colonyInfo: RetainedColonyInfoForPageSwap, playerInfo: PlayerInfoResponseDTO}> => {
-    const colonyInfoRes = props.context.nav.getRetainedColonyInfo();
-    const playerInfoRes = props.context.nav.getRetainedUserInfo();
-    if (colonyInfoRes.err !== null || playerInfoRes.err !== null) {
-      return {
-        res: null,
-        err: 'Failed to get colony or player info: ' + colonyInfoRes.err + ' ' + playerInfoRes.err
-      }
-    }
-    return {
-      res: {colonyInfo: colonyInfoRes.res, playerInfo: playerInfoRes.res},
-      err: null
-    }
-  }
-
   return (
     <div id="colony-app">
       <StarryBackground />
-      <Unwrap data={handleInfoRetrieval()} fallback={onColonyInfoLoadError}>
-        {({colonyInfo, playerInfo}) =>
+      <Unwrap data={[props.context.nav.getRetainedColonyInfo(), props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
+        {(colonyInfo, playerInfo) =>
           <>
           <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
           <BufferBasedButton 

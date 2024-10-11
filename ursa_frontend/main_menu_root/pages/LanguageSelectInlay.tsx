@@ -8,9 +8,7 @@ import { Styles } from "../../src/sharedCSS";
 import { assureUniformLanguageCode } from "../../src/integrations/vitec/vitecIntegration";
 import { PreferenceKeys } from "../../src/integrations/main_backend/mainBackendDTOs";
 
-interface LanguageSelectProps extends IInternationalized, IBackendBased{
-
-}
+interface LanguageSelectProps extends IInternationalized, IBackendBased{}
 
 const LanguageSelectInlay: Component<LanguageSelectProps> = (props: LanguageSelectProps) => {
     const [mouseIsHere, setMouseIsHere] = createSignal(false);

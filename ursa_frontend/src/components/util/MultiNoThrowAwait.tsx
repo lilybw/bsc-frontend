@@ -31,16 +31,23 @@ const MNTAwait = <T extends any[]>(props: NoThrowAwaitProps<T>) => {
         }
     };
     const [resource] = createResource(executeFuncs);
+
+    const onFallback = (error: Error | Error[] | any) => {
+        return (<>
+            {fallback ? fallback(JSON.stringify(error)) : <SomethingWentWrongIcon message={JSON.stringify(error)} />}
+        </>)
+    }
+
     return (
         <>
             <Show when={resource.loading}>
                 {props.whilestLoading ? props.whilestLoading : <Spinner />}
             </Show>
             <Show when={resource.error}>
-                {fallback ? fallback(resource.error) : <SomethingWentWrongIcon message={JSON.stringify(resource.error)} />}
+                {onFallback(resource.error)}
             </Show>
             <Show when={resource.latest}>
-                <Unwrap data={resource.latest!} fallback={fallback} children={children} />
+                <Unwrap data={resource.latest! as T} fallback={onFallback} children={children} />
             </Show>
         </>
     );
