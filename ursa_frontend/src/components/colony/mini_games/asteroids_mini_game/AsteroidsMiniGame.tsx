@@ -18,6 +18,7 @@ import ActionInput from "../../MainActionInput";
 import MNTAwait from "../../../util/MultiNoThrowAwait";
 import AsteroidsGameLoop from "./AsteroidsGameLoop";
 import BufferBasedButton from "../../../BufferBasedButton";
+import { ApplicationContext } from "../../../../meta/types";
 
 // Update IEventMultiplexer to include localPlayer
 interface IEventMultiplexerWithLocalPlayer extends IEventMultiplexer {
@@ -25,7 +26,7 @@ interface IEventMultiplexerWithLocalPlayer extends IEventMultiplexer {
 }
 
 interface AsteroidsGameProps extends IBackendBased, IInternationalized {
-  plexer: IEventMultiplexerWithLocalPlayer; // Update this line
+  context: ApplicationContext
   difficulty: DifficultyConfirmedForMinigameMessageDTO;
   onGameEnd: (score: number) => void;
   bufferSubscribers: ArrayStore<BufferSubscriber<string>>;
@@ -62,7 +63,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
 
   createEffect(() => {
     const subscriptions = [
-      props.plexer.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
+      props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
         setGameState("asteroids", (asteroids) => {
           const newAsteroids = new Map(asteroids);
           newAsteroids.set(data.id, {
@@ -74,23 +75,23 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
           return newAsteroids;
         });
       }),
-      props.plexer.subscribe(ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT, (data) => {
+      props.context.events.subscribe(ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT, (data) => {
         setGameState("colonyHealth", data.colonyHPLeft);
       }),
-      props.plexer.subscribe(ASTEROIDS_GAME_WON_EVENT, () => {
+      props.context.events.subscribe(ASTEROIDS_GAME_WON_EVENT, () => {
         props.onGameEnd(gameState.score * props.difficulty.difficultyID);
       }),
-      props.plexer.subscribe(ASTEROIDS_GAME_LOST_EVENT, () => {
+      props.context.events.subscribe(ASTEROIDS_GAME_LOST_EVENT, () => {
         props.onGameEnd(gameState.score * props.difficulty.difficultyID);
       }),
     ];
 
-    return () => subscriptions.forEach((sub) => props.plexer.unsubscribe(sub));
+    return () => subscriptions.forEach((sub) => props.context.events.unsubscribe(sub));
   });
 
   const handleAsteroidDestruction = (id: number) => {
-    props.plexer.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {
-      id: props.plexer.localPlayer,
+    props.context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {
+      id: props.backend.localPlayer.id,
       code: gameState.asteroids.get(id)?.charCode || "",
     });
 
@@ -132,7 +133,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
       {(backgroundAsset) => (
         <div class={gameContainerStyle}>
           <AsteroidsGameLoop
-            plexer={props.plexer}
+            plexer={props.context.events}
             difficulty={props.difficulty.difficultyID}
             onGameEnd={(won) => props.onGameEnd(gameState.score * props.difficulty.difficultyID)}
           />
