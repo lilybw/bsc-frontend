@@ -7,7 +7,8 @@ import {
   ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
   ASTEROIDS_GAME_WON_EVENT,
   ASTEROIDS_GAME_LOST_EVENT,
-  ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT
+  ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT,
+  DifficultyConfirmedForMinigameMessageDTO
 } from "../../../../integrations/multiplayer_backend/EventSpecifications";
 import { IBackendBased, IInternationalized } from "../../../../ts/types";
 import { ArrayStore } from "../../../../ts/arrayStore";
@@ -25,7 +26,7 @@ interface IEventMultiplexerWithLocalPlayer extends IEventMultiplexer {
 
 interface AsteroidsGameProps extends IBackendBased, IInternationalized {
   plexer: IEventMultiplexerWithLocalPlayer; // Update this line
-  difficulty: number;
+  difficulty: DifficultyConfirmedForMinigameMessageDTO;
   onGameEnd: (score: number) => void;
   bufferSubscribers: ArrayStore<BufferSubscriber<string>>;
   buffer: WrappedSignal<string>;
@@ -48,7 +49,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
   const [GAS, setGAS] = createSignal(1);
   const [viewportDimensions, setViewportDimensions] = createSignal({width: window.innerWidth, height: window.innerHeight});
 
-  const keycodeLength = createMemo(() => BASE_KEYCODE_LENGTH + props.difficulty - 1);
+  const keycodeLength = createMemo(() => BASE_KEYCODE_LENGTH + props.difficulty.difficultyID - 1);
 
   const generateUniqueKeycode = (length: number): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -77,10 +78,10 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
         setGameState("colonyHealth", data.colonyHPLeft);
       }),
       props.plexer.subscribe(ASTEROIDS_GAME_WON_EVENT, () => {
-        props.onGameEnd(gameState.score * props.difficulty);
+        props.onGameEnd(gameState.score * props.difficulty.difficultyID);
       }),
       props.plexer.subscribe(ASTEROIDS_GAME_LOST_EVENT, () => {
-        props.onGameEnd(gameState.score * props.difficulty);
+        props.onGameEnd(gameState.score * props.difficulty.difficultyID);
       }),
     ];
 
@@ -125,15 +126,15 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
   return (
     <MNTAwait
       funcs={[
-        () => props.backend.getAssetMetadata(1011), // Assuming this is the asset ID for the game background
+        () => props.backend.getAssetMetadata(1011),
       ]}
     >
       {(backgroundAsset) => (
         <div class={gameContainerStyle}>
           <AsteroidsGameLoop
             plexer={props.plexer}
-            difficulty={props.difficulty}
-            onGameEnd={(won) => props.onGameEnd(gameState.score * props.difficulty)}
+            difficulty={props.difficulty.difficultyID}
+            onGameEnd={(won) => props.onGameEnd(gameState.score * props.difficulty.difficultyID)}
           />
           <div class={colonyStyle}>Colony</div>
           <For each={Array.from(gameState.asteroids.values())}>
