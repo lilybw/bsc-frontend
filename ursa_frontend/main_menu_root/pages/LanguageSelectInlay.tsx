@@ -6,6 +6,7 @@ import GraphicalAsset from "../../src/components/GraphicalAsset";
 import BigMenuButton from "../../src/components/BigMenuButton";
 import { Styles } from "../../src/sharedCSS";
 import { assureUniformLanguageCode } from "../../src/integrations/vitec/vitecIntegration";
+import { PreferenceKeys } from "../../src/integrations/main_backend/mainBackendDTOs";
 
 interface LanguageSelectProps extends IInternationalized, IBackendBased{
 
@@ -20,6 +21,7 @@ const LanguageSelectInlay: Component<LanguageSelectProps> = (props: LanguageSele
             props.backend.logger.error("Tried to change language, but got: " + res.err);
         } else {
             props.text.setLanguage(res.res);
+            props.backend.setPlayerPreference(PreferenceKeys.LANGUAGE, res.res);
         }
     }
 

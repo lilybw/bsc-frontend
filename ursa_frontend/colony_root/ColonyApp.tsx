@@ -18,6 +18,7 @@ import { ClientDTO } from '../src/integrations/multiplayer_backend/multiplayerDT
 import { RetainedColonyInfoForPageSwap } from '../src/integrations/vitec/navigator';
 import NTAwait from '../src/components/util/NoThrowAwait';
 import MNTAwait from '../src/components/util/MultiNoThrowAwait';
+import BufferBasedButton from '../src/components/BufferBasedButton';
 
 type StrictJSX = Node | JSX.ArrayElement | (string & {});
 const eventFeedMessageDurationMS = 10_000;
@@ -100,6 +101,13 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
         {({colonyInfo, playerInfo}) =>
           <>
           <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
+          <BufferBasedButton 
+            name={props.context.text.get('COLONY.UI.LEAVE').get}
+            buffer={inputBuffer.get}
+            onActivation={() => props.context.nav.goToMenu()}
+            register={bufferSubscribers.add}
+            styleOverwrite='position: absolute; top: 13vh; left: 2vw;'
+          />
           <MNTAwait funcs={
               [() => props.context.backend.getColony(colonyInfo.owner, colonyInfo.id),
               () => props.context.backend.getColonyPathGraph(colonyInfo.id)]

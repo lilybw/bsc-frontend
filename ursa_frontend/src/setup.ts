@@ -5,7 +5,7 @@ import { initializeLogger } from './logging/filteredLogger';
 import { ApplicationContext, BundleComponent, MultiplayerMode, ResErr, RuntimeMode } from './meta/types';
 import { render } from 'solid-js/web';
 import GlobalContainer from './GlobalContainer';
-import { SessionInitiationRequestDTO } from './integrations/main_backend/mainBackendDTOs';
+import { PreferenceKeys, SessionInitiationRequestDTO } from './integrations/main_backend/mainBackendDTOs';
 import { LanguagePreference, VitecIntegrationInformation } from './integrations/vitec/vitecDTOs';
 import { ApplicationProps } from './ts/types';
 import { initializeInternationalizationService } from './integrations/main_backend/internationalization/internationalization';
@@ -73,6 +73,17 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     const backendIntegrationInit = await initializeBackendIntegration(environment, log, sessionInitInfo);
     if (backendIntegrationInit.err != null) {
         return { res: null, err: backendIntegrationInit.err };
+    }
+
+    const playerPreferencesAttempt = await backendIntegrationInit.res.getPlayerPreferences(backendIntegrationInit.res.localPlayer.id);
+    const preferences = playerPreferencesAttempt.res;
+    if (preferences == null) {
+        console.error("[setup] Failed to load preferences: " + playerPreferencesAttempt.err);
+    } else {
+        const langVal = preferences.preferences.find(p => p.key === PreferenceKeys.LANGUAGE)?.chosenValue;
+        if (langVal && langVal != null) {
+            vitecIntegrationResult.res.info.languagePreference = langVal as LanguagePreference;
+        }
     }
 
     const navigatorInit = await initNavigator(vitecIntegrationResult.res, log, environment, backendIntegrationInit.res.localPlayer);
