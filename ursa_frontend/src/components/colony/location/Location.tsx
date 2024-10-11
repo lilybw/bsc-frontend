@@ -24,9 +24,8 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
 }
 
 const calcNamePlatePosition = (y: number) => {
-    //This output is Distance normalized (using props.dns) and is thus roughly in pixels, but might not be. 
     //However this should bring the nameplate towards the center of the location in case we're close to the top of the screen.
-    return y < 200 ? -200 : 200;
+    return y < 100 ? y + 100 : y - 50;
 }
 
 
@@ -121,19 +120,25 @@ const Location: Component<LocationProps> = (props) => {
             zIndex: props.transform.get().zIndex + 10, // Keep zIndex as is for layering
         }
     });
+    const computedNamePlateStyle = createMemo(() => {
+        const transform = computedButtonTransform();
+        return css`
+            ${namePlateStyle}
+            ${Styles.transformToCSSVariables(transform)}
+            ${Styles.TRANSFORM_APPLICATOR}  
+            top: ${calcNamePlatePosition(transform.yOffset)}px; 
+        `
+    })
 
     return (
         <div class={computedContainerStyle()} id={"location-" + props.location.name + "-level-" + props.colonyLocation.level}>
             <BufferBasedButton
-                styleOverwrite={css`
-                    ${namePlateStyle}
-                    ${Styles.transformToCSSVariables(computedButtonTransform())}
-                    ${Styles.TRANSFORM_APPLICATOR}   
-                `}
+                styleOverwrite={computedNamePlateStyle()}
                 onActivation={onButtonActivation}
                 name={currentDisplayText} 
                 buffer={props.buffer}
                 register={props.register}
+                charBaseStyleOverwrite={namePlateTextOverwrite}
             />
             <AssetCollection 
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
@@ -157,4 +162,8 @@ const namePlateStyle = css`
     position: absolute;
     left: 0;
     top: 0;
+`
+const namePlateTextOverwrite = css`
+    color: cyan;
+    text-shadow: 5px 5px 10px black;
 `

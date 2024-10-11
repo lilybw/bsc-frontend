@@ -37,6 +37,7 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
                                     combineTransforms(props.topLevelTransform.get(), entry.transform) 
                                     : entry.transform
                             }
+                            styleOverwrite={entryStyleOverwrite}
                         />
                     }</For>
                 )}}
@@ -45,3 +46,9 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
     )
 }
 export default AssetCollection;
+
+const entryStyleOverwrite = css`
+position: absolute;
+top: 0;
+left: 0;
+`

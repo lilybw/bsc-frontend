@@ -170,7 +170,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     return (
         <div class={pathGraphContainerStyle} id={props.colony.name+"-path-graph"}>
             <div class={computedCameraContainerStyles()} id="camera-container">
-                <svg width="100%" height="100%" id="paths" class={css`position: absolute; z-index: 10; overflow: visible;`}>
+                <svg id="paths" class={svgContainerStyle}>
                     <For each={props.graph.paths}>{(path) => {
                         let fromLocation = transformMap.get(path.from);
                         let toLocation = transformMap.get(path.to);
@@ -227,6 +227,16 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 };
 
 export default PathGraph;
+
+const svgContainerStyle = css`
+position: absolute; 
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh; 
+z-index: 10; 
+overflow: visible !important;
+`
 
 const cameraContainer = css`
 position: absolute;
