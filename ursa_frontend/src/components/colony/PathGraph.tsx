@@ -1,5 +1,5 @@
 import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect, from, Accessor, AccessorArray } from "solid-js";
-import { ColonyInfoResponseDTO, ColonyLocationInformation, ColonyPathGraphResponseDTO, PlayerID, TransformDTO } from "../../integrations/main_backend/mainBackendDTOs";
+import { ColonyInfoResponseDTO, ColonyLocationInformation, ColonyPathGraphResponseDTO, PlayerID, TransformDTO, uint32 } from "../../integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
 import { IBackendBased, IInternationalized, IBufferBased } from "../../ts/types";
 import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventMultiplexer";
@@ -14,12 +14,14 @@ import { KnownLocations } from "../../integrations/main_backend/constants";
 import { BufferSubscriber, TypeIconTuple } from "../../ts/actionContext";
 import { ArrayStore, createArrayStore } from "../../ts/arrayStore";
 import ActionInput from "./MainActionInput";
+import { Styles } from "../../sharedCSS";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
 
 interface PathGraphProps extends IBackendBased, IInternationalized {
     colony: ColonyInfoResponseDTO;
+    ownerID: PlayerID;
     plexer: IEventMultiplexer;
     localPlayerId: PlayerID;
     multiplayerIntegration: IMultiplayerIntegration;
@@ -28,29 +30,6 @@ interface PathGraphProps extends IBackendBased, IInternationalized {
     buffer: WrappedSignal<string>;
     actionContext: WrappedSignal<TypeIconTuple>;
     graph: ColonyPathGraphResponseDTO;
-}
-
-const UNIT_TRANSFORM: TransformDTO = {
-    xOffset: 0,
-    yOffset: 0,
-    yScale: 1,
-    xScale: 1,
-    zIndex: 0
-}
-
-const findByLocationID = (locations: ColonyLocationInformation[], locationID: number) => {
-    for (const location of locations) {
-        if (location.locationID === locationID) {
-            return location;
-        }
-    }
-    return null;
-}
-
-const getInitialCameraPosition = (home: ColonyLocationInformation) => {
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    return {x: home.transform.xOffset + (viewportWidth * .5), y: home.transform.yOffset + (viewportHeight * .5)}
 }
 
 function arrayToMap(array: ColonyLocationInformation[]) {
@@ -62,21 +41,33 @@ function arrayToMap(array: ColonyLocationInformation[]) {
 
     return map
 }
+type ColonyLocationID = uint32;
+const loadPathMap = (paths: ColonyPathGraphResponseDTO["paths"]): Map<ColonyLocationID, ColonyLocationID[]> => {
+    const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>();
+    for (const path of paths) {
+        if (!pathMap.has(path.from)) {
+            pathMap.set(path.from, []);
+        }
+        pathMap.get(path.from)!.push(path.to);
+    }
+    return pathMap;
+}
 
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
     const colonyLocation = createArrayStore<ColonyLocationInformation>(props.colony.locations)
-    const transformMap = new Map<Number, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations))
     const camera = createWrappedSignal({x: 0, y: 0})
     const [viewportDimensions, setViewportDimensions] = createSignal({width: window.innerWidth, height: window.innerHeight});
-    const [triggerRecalculation, setTriggerRecalculation] = createSignal(0);
+    const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal(
+        props.colony.locations.find(loc => loc.locationID === KnownLocations.Home)?.id!);
+
+    const transformMap = new Map<ColonyLocationID, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations))
+    const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>(loadPathMap(props.graph.paths))
 
     createEffect(() => {
         const currentDNS = DNS()
         const currentGAS = GAS()
-        const { width, height } = viewportDimensions()
-        triggerRecalculation(); // Depend on this to ensure the effect runs when calculateScalars is called
 
         for (const colonyLocationInfo of colonyLocation.get) {
             const computedTransform: TransformDTO = {
@@ -105,7 +96,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             y: newHeight / EXPECTED_HEIGHT 
         });
         setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)))
-        setTriggerRecalculation(prev => prev + 1); // Force effect to run
     };
 
     const centerCameraOnPoint = (x: number, y: number) => {
@@ -118,23 +108,22 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     }
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
-        console.log("Player Moved" + JSON.stringify(data))
-
         if (data.playerID === props.localPlayerId) {
             const targetLocation = colonyLocation.findFirst(loc => loc.id === data.locationID);
 
             if (!targetLocation) {
+                console.error(`Unable to find location with ID on player move: ${data.locationID}`);
                 return;
             }
 
+            setCurrentLocationOfLocalPlayer(targetLocation.locationID);
             centerCameraOnPoint(
                 targetLocation.transform.xOffset,
                 targetLocation.transform.yOffset
             );
-
-            console.log("Moving camera to:", JSON.stringify(targetLocation))
         } else {
             props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
+                //locationID is id of Colony Location
                 client.state.lastKnownPosition = data.locationID;
                 return client;
             });
@@ -142,7 +131,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     };
 
     onMount(() => {
-        console.log("[detete me] graph recieved:    ", props.graph)
         calculateScalars();
         window.addEventListener('resize', calculateScalars);
         const subscription = props.plexer.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
@@ -166,6 +154,16 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             left: ${cameraState.x}px;
         `}
     ); 
+
+    const computedNonLocalPlayerStyle = (client: ClientDTO) => createMemo(() => {
+        const transform = transformMap.get(client.state.lastKnownPosition)!.get()
+        return css`
+            ${localPlayerStyle}
+            background-color: green;
+            ${Styles.transformToCSSVariables(transform)}
+            ${Styles.TRANSFORM_APPLICATOR}
+        `
+    })
 
     return (
         <div class={pathGraphContainerStyle} id={props.colony.name+"-path-graph"}>
@@ -213,20 +211,37 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         </NTAwait>
                     )}
                 </For>
+
+                
+                <For each={props.existingClients.get}>{ client => 
+                    <div class={computedNonLocalPlayerStyle(client)()} />
+                }</For>
             </div>
 
             <ActionInput subscribers={props.bufferSubscribers} 
                 text={props.text}
                 backend={props.backend}
-                actionContext={props.actionContext.get} 
+                actionContext={props.actionContext.get}
                 setInputBuffer={props.buffer.set}
                 inputBuffer={props.buffer.get}
             />
+            <div id="local-player" class={localPlayerStyle}/>
         </div>
     );
 };
-
 export default PathGraph;
+
+const localPlayerStyle = css`
+position: absolute;
+z-index: 200;
+top: 50%;
+left: 50%;
+width: 20px;
+height: 20px;
+background-color: blue;
+border-radius: 50%;
+transform: translate(-50%, -50%);
+`
 
 const svgContainerStyle = css`
 position: absolute; 

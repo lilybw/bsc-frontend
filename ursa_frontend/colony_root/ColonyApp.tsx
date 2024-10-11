@@ -105,6 +105,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
               () => props.context.backend.getColonyPathGraph(colonyInfo.id)]
           }>{ (colony, graph) =>
             <PathGraph 
+              ownerID={colonyInfo.owner}
               graph={graph}
               bufferSubscribers={bufferSubscribers}
               actionContext={actionContext}
