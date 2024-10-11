@@ -14,6 +14,11 @@ export interface RawMessage<T> extends IMessage {
 }
 
 export interface IMultiplayerIntegration {
+    /**
+     * Updates to reflect whether the local player (current user of this frontend instance)
+     * 
+     * Defaults to MultiplayerMode.AS_GUEST
+     */
     getMode: Accessor<MultiplayerMode>;
     /**
      * Exceptionally allowed to THROW
