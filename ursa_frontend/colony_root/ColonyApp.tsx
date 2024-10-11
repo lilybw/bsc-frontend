@@ -15,6 +15,8 @@ import { IExpandedAccessMultiplexer } from '../src/integrations/multiplayer_back
 import { Styles } from '../src/sharedCSS';
 import { ColonyInfoResponseDTO, PlayerInfoResponseDTO } from '../src/integrations/main_backend/mainBackendDTOs';
 import { ClientDTO } from '../src/integrations/multiplayer_backend/multiplayerDTO';
+import { RetainedColonyInfoForPageSwap } from '../src/integrations/vitec/navigator';
+import NTAwait from '../src/components/util/NoThrowAwait';
 
 type StrictJSX = Node | JSX.ArrayElement | (string & {});
 const eventFeedMessageDurationMS = 10_000;
@@ -75,7 +77,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
     onCleanup(() => { props.context.events.unsubscribe(playerLeaveSubId, playerJoinSubId, serverClosingSubId, lobbyClosingSubId) })
   })
 
-  const handleInfoRetrieval = (): ResErr<{colonyInfo: ColonyInfoResponseDTO, playerInfo: PlayerInfoResponseDTO}> => {
+  const handleInfoRetrieval = (): ResErr<{colonyInfo: RetainedColonyInfoForPageSwap, playerInfo: PlayerInfoResponseDTO}> => {
     const colonyInfoRes = props.context.nav.getRetainedColonyInfo();
     const playerInfoRes = props.context.nav.getRetainedUserInfo();
     if (colonyInfoRes.err !== null || playerInfoRes.err !== null) {
@@ -94,23 +96,25 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
     <div>
       <StarryBackground />
       <Unwrap func={handleInfoRetrieval} fallback={onColonyInfoLoadError}>
-        {({colonyInfo, playerInfo}) => (
+        {({colonyInfo, playerInfo}) =>
           <>
           <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
-          <PathGraph 
-            bufferSubscribers={bufferSubscribers}
-            actionContext={actionContext}
-            existingClients={clients}
-            colony={colonyInfo}
-            plexer={props.context.events}
-            text={props.context.text}
-            backend={props.context.backend}
-            buffer={inputBuffer}
-            localPlayerId={playerInfo.id}
-            multiplayerIntegration={props.context.multiplayer}
-          />
+          <NTAwait func={() => props.context.backend.getColony(colonyInfo.owner, colonyInfo.id)}>{ (colony) =>
+            <PathGraph 
+              bufferSubscribers={bufferSubscribers}
+              actionContext={actionContext}
+              existingClients={clients}
+              colony={colony}
+              plexer={props.context.events}
+              text={props.context.text}
+              backend={props.context.backend}
+              buffer={inputBuffer}
+              localPlayerId={playerInfo.id}
+              multiplayerIntegration={props.context.multiplayer}
+            />
+          }</NTAwait>
           </>
-        )}
+        }
       </Unwrap>
       <div class={eventFeedContainerStyle} id="event-feed">
         <For each={eventFeed.get}>{event => event}</For>

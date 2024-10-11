@@ -66,7 +66,11 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
         return
     }
 
-    props.context.nav.goToColony(createColonyResponse.res);
+    props.context.nav.goToColony(
+      createColonyResponse.res.id, 
+      createColonyResponse.res.name,
+      props.context.backend.localPlayer.id
+    );
   };
 
   return (

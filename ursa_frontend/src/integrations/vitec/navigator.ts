@@ -1,7 +1,7 @@
 import { ENV } from '../../environment/manager';
 import { Logger } from '../../logging/filteredLogger';
 import { ResErr } from '../../meta/types';
-import { ColonyInfoResponseDTO, PlayerInfoResponseDTO } from '../main_backend/mainBackendDTOs';
+import { ColonyInfoResponseDTO, PlayerID, PlayerInfoResponseDTO } from '../main_backend/mainBackendDTOs';
 import { SubURLs } from './integrationConstants';
 import { NormalizedVitecIntegrationInformation, VitecIntegrationInformation } from './vitecDTOs';
 import { VitecIntegration } from './vitecIntegration';
@@ -15,7 +15,7 @@ export type URSANav = {
      * 
      * Only data passed to this function will be retained.
      */
-    goToColony: (colony: ColonyInfoResponseDTO) => void;
+    goToColony: (colonyID: number, name: string, owner: PlayerID) => void;
     /**
      * Change page to show the tutorial.
      * 
@@ -35,8 +35,14 @@ export type URSANav = {
     /**
      * When called, the content is removed from storage solution to avoid state management issues.
      */
-    getRetainedColonyInfo: () => ResErr<ColonyInfoResponseDTO>;
+    getRetainedColonyInfo: () => ResErr<RetainedColonyInfoForPageSwap>;
 };
+
+export type RetainedColonyInfoForPageSwap = {
+    id: number;
+    name: string;
+    owner: PlayerID;
+}
 
 export const initNavigator = async (vitec: VitecIntegration, logger: Logger, environment: ENV, localPlayer?: PlayerInfoResponseDTO): Promise<ResErr<URSANav>> => {
     if (!vitec.info.locationUrl) {
@@ -71,9 +77,16 @@ class UrsaNavImpl implements URSANav {
             this.localPlayer = player;
         }
     }
-    goToColony = (colonyInfo: ColonyInfoResponseDTO) => {
+    /**
+     * Made as seperate function for type safety.
+     */
+    private setColonyData = (data: RetainedColonyInfoForPageSwap) => {
+        sessionStorage.setItem(pageSwitchColonyInfoKey, JSON.stringify(data));
+    }
+
+    goToColony = (colonyID: number, name: string, owner: PlayerID) => {
         sessionStorage.setItem(pageSwitchUserInfoKey, JSON.stringify(this.localPlayer));
-        sessionStorage.setItem(pageSwitchColonyInfoKey, JSON.stringify(colonyInfo));
+        this.setColonyData({ id: colonyID, name, owner });
         this.logger.log('[nav] Navigating to colony');
         window.location.href = this.vitecInfo.locationUrl + this.vitecInfo.commonSubUrl + SubURLs.COLONY;
     };

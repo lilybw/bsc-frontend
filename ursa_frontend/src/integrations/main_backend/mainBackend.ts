@@ -12,6 +12,7 @@ import {
     ColonyOverviewReponseDTO,
     ColonyPathGraphResponseDTO,
     CreateColonyRequestDTO,
+    CreateColonyResponseDTO,
     InternationalizationCatalogueResponseDTO,
     JoinColonyResponseDTO,
     LocationInfoFullResponseDTO,
@@ -90,7 +91,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     getColonyOverview: (player: PlayerID) => Promise<ResCodeErr<ColonyOverviewReponseDTO>>;
     openColony: (colony: number, dto: OpenColonyRequestDTO) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
     joinColony: (code: ColonyCode) => Promise<ResCodeErr<JoinColonyResponseDTO>>;
-    createColony: (dto: CreateColonyRequestDTO, player: PlayerID) => Promise<ResCodeErr<ColonyInfoResponseDTO>>;
+    createColony: (dto: CreateColonyRequestDTO, player: PlayerID) => Promise<ResCodeErr<CreateColonyResponseDTO>>;
     getColonyPathGraph: (colony: number) => Promise<ResCodeErr<ColonyPathGraphResponseDTO>>;
 
     getLocationInfo: (location: number) => Promise<ResCodeErr<LocationInfoResponseDTO>>;

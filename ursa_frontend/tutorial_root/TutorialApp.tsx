@@ -137,7 +137,7 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
             {currentSlide() < slideStore.length - 1 &&  
               <BigMenuButton onClick={onAdvanceSlide} styleOverwrite={rightNavigationButtonStyle}
                 enable={currentSlideCompleted}>
-                <NTAwait func={() => props.context.backend.getAssetMetadata(1021)}>
+                <NTAwait func={() => props.context.backend.getAssetMetadata(1019)}>
                   {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend}/>}
                 </NTAwait>
               </BigMenuButton>

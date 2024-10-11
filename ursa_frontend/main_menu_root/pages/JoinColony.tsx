@@ -19,25 +19,29 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
         if (!checkInput()) return;
 
         // Join the colony
-        const response = await props.context.backend.joinColony(Number(colonyCode()));
-
+        const joinResponse = await props.context.backend.joinColony(Number(colonyCode()));
+        
         // Handle the response as needed
-        if (response.err !== null) {
-            switch (response.code) {
+        if (joinResponse.err !== null) {
+            switch (joinResponse.code) {
                 case 404: setCodeError("No colony by that code"); break;
-                default: setCodeError(response.err);
+                default: setCodeError(joinResponse.err);
             }
             return;
         }
 
-        const colonyInfoAttempt = await props.context.backend.getColony(response.res.ownerID, response.res.colonyID);
+        const colonyInfoAttempt = await props.context.backend.getColony(joinResponse.res.ownerID, joinResponse.res.colonyID);
         if (colonyInfoAttempt.err !== null) {
             setCodeError("Failed to get colony info: " + colonyInfoAttempt.err);
             return;
         }
 
         // Go to the colony
-        props.context.nav.goToColony(colonyInfoAttempt.res);
+        props.context.nav.goToColony(
+            colonyInfoAttempt.res.id,
+            colonyInfoAttempt.res.name,
+            joinResponse.res.ownerID,
+        );
     };
 
     const checkInput = (): boolean => {

@@ -58,7 +58,12 @@ export type ColonyInfoResponseDTO = {
     locations: ColonyLocationInformation[];
 };
 
-export type CreateColonyResponseDTO = ColonyInfoResponseDTO;
+export type CreateColonyResponseDTO = {
+    id: uint32;
+    name: string;
+    accLevel: uint32;
+    latestVisit: string;
+}
 export type ColonyOverviewReponseDTO = {
     colonies: ColonyInfoResponseDTO[];
 };

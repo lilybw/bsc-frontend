@@ -56,7 +56,11 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                     props.context.logger.error("Failed to get colony: " + res.err);
                     return;
                 } else {
-                    props.context.nav.goToColony(res.res);
+                    props.context.nav.goToColony(
+                        res.res.id,
+                        res.res.name,
+                        props.context.backend.localPlayer.id
+                    );
                 }
             })
     }
