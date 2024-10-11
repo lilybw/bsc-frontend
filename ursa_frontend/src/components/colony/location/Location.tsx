@@ -116,10 +116,6 @@ const Location: Component<LocationProps> = (props) => {
         }
     });
 
-    console.log('Location transform:', props.colonyLocation.transform);
-    console.log('Inverted transform:', computedButtonTransform());
-    console.log('GAS:', props.gas());
-
     return (
         <div class={computedContainerStyle()} id={"location-" + props.location.name + "-level-" + props.colonyLocation.level}>
             <BufferBasedButton
@@ -129,7 +125,7 @@ const Location: Component<LocationProps> = (props) => {
                     ${Styles.TRANSFORM_APPLICATOR}   
                 `}
                 onActivation={onButtonActivation}
-                name={currentDisplayText()} 
+                name={currentDisplayText} 
                 buffer={props.buffer}
                 register={props.register}
             />

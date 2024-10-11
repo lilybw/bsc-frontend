@@ -4,7 +4,7 @@ import { css } from "@emotion/css";
 import SectionTitle from "./SectionTitle";
 
 export interface BufferHighlightedNameProps extends IStyleOverwritable, IBufferBased {
-    name: string;
+    name: Accessor<string> | string;
     nameCompleteOverwrite?: string;
     charHighlightOverwrite?: string;
     charBaseStyleOverwrite?: string;
@@ -32,9 +32,17 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
         return computedCharBaseStyle();
     }
 
+    const splitString = (name: Accessor<string> | string) => {
+        if (typeof name === 'string') {
+            return name.split('');
+        }else {
+            return name().split('');
+        }
+    }
+
     return (
         <div class={css`${locationNameContainerStyle} ${props.styleOverwrite}`} id={"buffer-highlighted-name-"+props.name}>
-            <For each={props.name.split('')}>{(char, index) => (
+            <For each={splitString(props.name)}>{(char, index) => (
                 <SectionTitle styleOverwrite={getCharStyle(index, char)}>{char}</SectionTitle>
             )}</For>
         </div>
