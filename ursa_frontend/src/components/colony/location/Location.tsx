@@ -3,7 +3,7 @@ import { ColonyLocationInformation, LocationInfoResponseDTO, TransformDTO } from
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from "../../../ts/types";
 import { css } from "@emotion/css";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
-import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
+import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, ENTER_LOCATION_EVENT, PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
 import BufferBasedButton from "../../BufferBasedButton";
 import AssetCollection from "../AssetCollection";
 import { Styles } from "../../../sharedCSS";
@@ -59,6 +59,9 @@ const Location: Component<LocationProps> = (props) => {
             setShowLocationCard(true);
             setPreviousActionContext(props.actionContext.get());
             props.actionContext.set(ActionContext.INTERACTION);
+            props.plexer.emit(ENTER_LOCATION_EVENT, {
+                id: props.colonyLocation.id,
+            })
             return;
         }
 
