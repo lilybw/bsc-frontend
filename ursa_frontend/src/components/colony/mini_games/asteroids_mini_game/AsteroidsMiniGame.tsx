@@ -11,8 +11,8 @@ import {
   DifficultyConfirmedForMinigameMessageDTO
 } from "../../../../integrations/multiplayer_backend/EventSpecifications";
 import { IBackendBased, IInternationalized } from "../../../../ts/types";
-import { ArrayStore } from "../../../../ts/arrayStore";
-import { BufferSubscriber, TypeIconTuple } from "../../../../ts/actionContext";
+import { ArrayStore, createArrayStore } from "../../../../ts/arrayStore";
+import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../../../ts/actionContext";
 import { WrappedSignal, createWrappedSignal } from "../../../../ts/wrappedSignal";
 import ActionInput from "../../MainActionInput";
 import MNTAwait from "../../../util/MultiNoThrowAwait";
@@ -25,13 +25,10 @@ interface IEventMultiplexerWithLocalPlayer extends IEventMultiplexer {
   localPlayer: number;
 }
 
-interface AsteroidsGameProps extends IBackendBased, IInternationalized {
+interface AsteroidsGameProps {
   context: ApplicationContext
   difficulty: DifficultyConfirmedForMinigameMessageDTO;
   onGameEnd: (score: number) => void;
-  bufferSubscribers: ArrayStore<BufferSubscriber<string>>;
-  buffer: WrappedSignal<string>;
-  actionContext: WrappedSignal<TypeIconTuple>;
 }
 
 const BASE_KEYCODE_LENGTH = 3;
@@ -49,6 +46,9 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
   const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
   const [GAS, setGAS] = createSignal(1);
   const [viewportDimensions, setViewportDimensions] = createSignal({width: window.innerWidth, height: window.innerHeight});
+  const inputBuffer = createWrappedSignal<string>('');
+  const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.ASTEROIDS);
+  const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
 
   const keycodeLength = createMemo(() => BASE_KEYCODE_LENGTH + props.difficulty.difficultyID - 1);
 
@@ -91,7 +91,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
 
   const handleAsteroidDestruction = (id: number) => {
     props.context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {
-      id: props.backend.localPlayer.id,
+      id: props.context.backend.localPlayer.id,
       code: gameState.asteroids.get(id)?.charCode || "",
     });
 
@@ -127,7 +127,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
   return (
     <MNTAwait
       funcs={[
-        () => props.backend.getAssetMetadata(1011),
+        () => props.context.backend.getAssetMetadata(1011),
       ]}
     >
       {(backgroundAsset) => (
@@ -151,21 +151,21 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
               >
                 <BufferBasedButton
                   name={asteroid.charCode}
-                  buffer={props.buffer.get}
+                  buffer={inputBuffer.get}
                   onActivation={() => handleAsteroidDestruction(asteroid.id)}
-                  register={props.bufferSubscribers.add}
+                  register={bufferSubscribers.add}
                   styleOverwrite={asteroidButtonStyle}
                 />
               </div>
             )}
           </For>
           <ActionInput
-            subscribers={props.bufferSubscribers}
-            text={props.text}
-            backend={props.backend}
-            actionContext={props.actionContext.get}
-            setInputBuffer={props.buffer.set}
-            inputBuffer={props.buffer.get}
+            subscribers={bufferSubscribers}
+            text={props.context.text}
+            backend={props.context.backend}
+            actionContext={actionContext.get}
+            setInputBuffer={inputBuffer.set}
+            inputBuffer={inputBuffer.get}
             styleOverwrite={actionInputStyleOverwrite}
           />
           <div class={statusStyle}>
@@ -235,6 +235,8 @@ const statusStyle = css`
   position: absolute;
   top: 10px;
   left: 10px;
-  color: white;
+  color: transparent;
   font-size: 18px;
+
+  text-shadow: 0 0 5px cyan;
 `;
