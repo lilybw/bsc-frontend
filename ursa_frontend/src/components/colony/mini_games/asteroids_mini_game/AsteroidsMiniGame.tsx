@@ -1,7 +1,7 @@
 import { Component, createSignal, createEffect, For, createMemo, onMount, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
 import { css } from "@emotion/css";
-import { IEventMultiplexer } from "../../../../integrations/multiplayer_backend/eventMultiplexer";
+import { IEventMultiplexer, IExpandedAccessMultiplexer } from "../../../../integrations/multiplayer_backend/eventMultiplexer";
 import {
   ASTEROIDS_ASTEROID_SPAWN_EVENT,
   ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
@@ -19,11 +19,6 @@ import MNTAwait from "../../../util/MultiNoThrowAwait";
 import AsteroidsGameLoop from "./AsteroidsGameLoop";
 import BufferBasedButton from "../../../BufferBasedButton";
 import { ApplicationContext } from "../../../../meta/types";
-
-// Update IEventMultiplexer to include localPlayer
-interface IEventMultiplexerWithLocalPlayer extends IEventMultiplexer {
-  localPlayer: number;
-}
 
 interface AsteroidsGameProps {
   context: ApplicationContext
@@ -50,6 +45,8 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
   const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.ASTEROIDS);
   const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
 
+  const rawAccessEvents = props.context.events as IExpandedAccessMultiplexer;
+
   const keycodeLength = createMemo(() => BASE_KEYCODE_LENGTH + props.difficulty.difficultyID - 1);
 
   const generateUniqueKeycode = (length: number): string => {
@@ -61,7 +58,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
     return keycode;
   };
 
-  createEffect(() => {
+  onMount(() => {
     const subscriptions = [
       props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
         setGameState("asteroids", (asteroids) => {
@@ -86,8 +83,14 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
       }),
     ];
 
-    return () => subscriptions.forEach((sub) => props.context.events.unsubscribe(sub));
-  });
+    calculateScalars();
+    window.addEventListener('resize', calculateScalars);
+
+    onCleanup(() => {
+      subscriptions.forEach((sub) => props.context.events.unsubscribe(sub));
+      window.removeEventListener('resize', calculateScalars);
+    })
+  })
 
   const handleAsteroidDestruction = (id: number) => {
     props.context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {
@@ -114,15 +117,6 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
     });
     setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)))
   };
-
-  onMount(() => {
-    calculateScalars();
-    window.addEventListener('resize', calculateScalars);
-  });
-
-  onCleanup(() => {
-    window.removeEventListener('resize', calculateScalars);
-  });
 
   return (
     <MNTAwait
