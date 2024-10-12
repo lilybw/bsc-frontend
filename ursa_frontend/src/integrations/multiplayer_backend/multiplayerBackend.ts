@@ -3,7 +3,7 @@ import { Logger } from '../../logging/filteredLogger';
 import { type Error, MultiplayerMode, ResCodeErr, ResErr } from '../../meta/types';
 import { BackendIntegration } from '../main_backend/mainBackend';
 import { ColonyCode, PlayerID } from '../main_backend/mainBackendDTOs';
-import { createViewAndSerializeMessage, parseGoTypeAtOffsetInView, readSourceAndEventID } from './binUtil';
+import { createViewAndSerializeMessage, parseGoTypeAtOffsetInView, readSourceAndEventID, serializeTypeFromViewAndSpec as serializeTypeFromData } from './binUtil';
 import { IExpandedAccessMultiplexer } from './eventMultiplexer';
 import { EVENT_ID_MAP, EventSpecification, IMessage, OriginType } from './EventSpecifications';
 import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
@@ -169,16 +169,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
                         return;
                     }
 
-                    let decoded: RawMessage<unknown> = {
-                        senderID: sourceID,
-                        eventID,
-                    };
-
-                    for (const messageElement of spec.structure) {
-                        const fieldName = messageElement.fieldName;
-                        const value = parseGoTypeAtOffsetInView(view, messageElement.offset, messageElement.type);
-                        decoded[fieldName] = value;
-                    }
+                    const decoded = serializeTypeFromData(view, sourceID, spec);
 
                     this.multiplexer.emitRAW(decoded);
                 })

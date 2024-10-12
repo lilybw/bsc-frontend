@@ -1,3 +1,4 @@
+import { PlayerID } from '../main_backend/mainBackendDTOs';
 import { EventSpecification, GoType, IMessage } from './EventSpecifications';
 import { RawMessage } from './multiplayerBackend';
 
@@ -5,8 +6,8 @@ import { RawMessage } from './multiplayerBackend';
  * Reads the header of the message (sourceID and eventID)
  */
 export const readSourceAndEventID = (view: DataView): { sourceID: number; eventID: number } => {
-    const sourceID = view.getUint32(0, true);
-    const eventID = view.getUint32(4, true);
+    const sourceID = view.getUint32(0, false);
+    const eventID = view.getUint32(4, false);
     return { sourceID, eventID };
 };
 
@@ -27,7 +28,7 @@ export const createViewAndSerializeMessage = <T extends IMessage>(data: T, spec:
 
     //Write sourceID and eventID
     placeValueAtOffsetAsTypeInView(view, 0, data.senderID, GoType.UINT32);
-    placeValueAtOffsetAsTypeInView(view, 4, data.eventID, GoType.UINT32);
+    placeValueAtOffsetAsTypeInView(view, 4, spec.id, GoType.UINT32);
     //Write data
     let offset = 8;
     for (const messageElement of spec.structure) {
@@ -37,8 +38,14 @@ export const createViewAndSerializeMessage = <T extends IMessage>(data: T, spec:
 
     return view;
 };
-
-export const placeValueAtOffsetAsTypeInView = <T>(view: DataView, offset: number, value: T, type: GoType, littleEndian: boolean = true): void => {
+/**
+ * Serialize a value to its binary version in the view
+ * 
+ * By default uses big endian.
+ * 
+ * EXCEPTIONALLY allowed to THROW
+ */
+export const placeValueAtOffsetAsTypeInView = <T>(view: DataView, offset: number, value: T, type: GoType, littleEndian: boolean = false): void => {
     switch (type) {
         case GoType.UINT8:
             view.setUint8(offset, value as unknown as number);
@@ -109,12 +116,30 @@ export const computeActualSizeOfMessage = <T extends IMessage>(data: T, spec: Ev
     }
     return size;
 };
+
+export const serializeTypeFromViewAndSpec = <T extends IMessage>(view: DataView, sourceID: PlayerID, spec: EventSpecification<T>): T => {
+    const decoded: T = {
+        senderID: sourceID,
+        eventID: spec.id,
+    } as T;
+
+    for (const messageElement of spec.structure) {
+        const fieldName = messageElement.fieldName;
+        const value = parseGoTypeAtOffsetInView(view, messageElement.offset, messageElement.type);
+        decoded[fieldName as keyof T] = value as T[keyof T];
+    }
+
+    return decoded;
+}
+
 /**
  * Read the bytes at that offset and use DataView.getXXXX to parse them into the corresponding JS type.
  *
+ * Defaults to reading as big endian.
+ * 
  * Exeptionally allowed to THROW
  */
-export const parseGoTypeAtOffsetInView = <T>(view: DataView, offset: number, type: GoType, littleEndian: boolean = true): T => {
+export const parseGoTypeAtOffsetInView = <T>(view: DataView, offset: number, type: GoType, littleEndian: boolean = false): T => {
     switch (type) {
         case GoType.UINT8:
             return view.getUint8(offset) as unknown as T;
