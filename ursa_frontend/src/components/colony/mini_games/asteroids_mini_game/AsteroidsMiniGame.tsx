@@ -76,10 +76,10 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
         setGameState("colonyHealth", data.colonyHPLeft);
       }),
       props.context.events.subscribe(ASTEROIDS_GAME_WON_EVENT, () => {
-        props.onGameEnd(gameState.score * props.difficulty.difficultyID);
+        props.returnToColony()
       }),
       props.context.events.subscribe(ASTEROIDS_GAME_LOST_EVENT, () => {
-        props.onGameEnd(gameState.score * props.difficulty.difficultyID);
+        props.returnToColony()
       }),
     ];
 
@@ -121,7 +121,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
   return (
     <MNTAwait
       funcs={[
-        () => props.context.backend.getAssetMetadata(1011),
+        () => props.context.backend.getAssetMetadata(1007),
       ]}
     >
       {(backgroundAsset) => (
@@ -129,7 +129,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
           <AsteroidsGameLoop
             plexer={props.context.events}
             difficulty={props.difficulty.difficultyID}
-            onGameEnd={(won) => props.onGameEnd(gameState.score * props.difficulty.difficultyID)}
+            onGameEnd={(won) => 10 } // score
           />
           <div class={colonyStyle}>Colony</div>
           <For each={Array.from(gameState.asteroids.values())}>
