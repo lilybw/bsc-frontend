@@ -1,3 +1,4 @@
+// charCodeGenerator.ts
 
 class CharPool {
   private indexPointer: number = 0;

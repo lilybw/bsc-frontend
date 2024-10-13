@@ -1,110 +1,58 @@
-import { Component, createSignal, createEffect, For, createMemo, onMount, onCleanup } from "solid-js";
-import { createStore } from "solid-js/store";
+// AsteroidsMiniGame.tsx
+
+import { Component, createSignal, createMemo, onMount, onCleanup, For } from "solid-js";
 import { css } from "@emotion/css";
-import { IEventMultiplexer, IExpandedAccessMultiplexer } from "../../../../integrations/multiplayer_backend/eventMultiplexer";
 import {
-  ASTEROIDS_ASTEROID_SPAWN_EVENT,
   ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
-  ASTEROIDS_GAME_WON_EVENT,
-  ASTEROIDS_GAME_LOST_EVENT,
-  ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT,
   DifficultyConfirmedForMinigameMessageDTO
 } from "../../../../integrations/multiplayer_backend/EventSpecifications";
-import { IBackendBased, IInternationalized } from "../../../../ts/types";
-import { ArrayStore, createArrayStore } from "../../../../ts/arrayStore";
+import { ApplicationContext } from "../../../../meta/types";
+import { createArrayStore } from "../../../../ts/arrayStore";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../../../ts/actionContext";
-import { WrappedSignal, createWrappedSignal } from "../../../../ts/wrappedSignal";
+import { createWrappedSignal } from "../../../../ts/wrappedSignal";
 import ActionInput from "../../MainActionInput";
 import MNTAwait from "../../../util/MultiNoThrowAwait";
-import AsteroidsGameLoop from "./AsteroidsGameLoop";
 import BufferBasedButton from "../../../BufferBasedButton";
-import { ApplicationContext } from "../../../../meta/types";
+import { createAsteroidsGameLoop } from "./AsteroidsGameLoop";
 
 interface AsteroidsGameProps {
-  context: ApplicationContext
+  context: ApplicationContext;
   difficulty: DifficultyConfirmedForMinigameMessageDTO;
-  returnToColony: () => void
+  returnToColony: () => void;
 }
 
-const BASE_KEYCODE_LENGTH = 3;
 const ASTEROID_TRAVEL_TIME = 15; // seconds
 const EXPECTED_WIDTH = 1920;
 const EXPECTED_HEIGHT = 1080;
 
 const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
-  const [gameState, setGameState] = createStore({
-    asteroids: new Map<number, { id: number; x: number; y: number; charCode: string }>(),
-    colonyHealth: 3,
-    score: 0,
-  });
-
   const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
   const [GAS, setGAS] = createSignal(1);
   const [viewportDimensions, setViewportDimensions] = createSignal({width: window.innerWidth, height: window.innerHeight});
+
   const inputBuffer = createWrappedSignal<string>('');
-  const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.ASTEROIDS);
   const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
+  const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.ASTEROIDS);
 
-  const rawAccessEvents = props.context.events as IExpandedAccessMultiplexer;
-
-  const keycodeLength = createMemo(() => BASE_KEYCODE_LENGTH + props.difficulty.difficultyID - 1);
-
-  const generateUniqueKeycode = (length: number): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let keycode: string;
-    do {
-      keycode = Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    } while (Array.from(gameState.asteroids.values()).some(asteroid => asteroid.charCode === keycode));
-    return keycode;
+  const handleGameEnd = (won: boolean) => {
+    const finalScore = gameLoop.state.score * props.difficulty.difficultyID;
+    console.log(`Game ended. Won: ${won}, Final Score: ${finalScore}`);
+    props.returnToColony();
   };
 
-  onMount(() => {
-    const subscriptions = [
-      props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
-        setGameState("asteroids", (asteroids) => {
-          const newAsteroids = new Map(asteroids);
-          newAsteroids.set(data.id, {
-            id: data.id,
-            x: data.x,
-            y: data.y,
-            charCode: generateUniqueKeycode(keycodeLength()),
-          });
-          return newAsteroids;
-        });
-      }),
-      props.context.events.subscribe(ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT, (data) => {
-        setGameState("colonyHealth", data.colonyHPLeft);
-      }),
-      props.context.events.subscribe(ASTEROIDS_GAME_WON_EVENT, () => {
-        props.returnToColony()
-      }),
-      props.context.events.subscribe(ASTEROIDS_GAME_LOST_EVENT, () => {
-        props.returnToColony()
-      }),
-    ];
+  const gameLoop = createAsteroidsGameLoop(
+    props.context.events,
+    props.difficulty,
+    handleGameEnd,
+    props.context.backend.localPlayer.id
+  );
 
-    calculateScalars();
-    window.addEventListener('resize', calculateScalars);
-
-    onCleanup(() => {
-      subscriptions.forEach((sub) => props.context.events.unsubscribe(sub));
-      window.removeEventListener('resize', calculateScalars);
-    })
-  })
-
-  const handleAsteroidDestruction = (id: number) => {
+  const handleAsteroidDestruction = (id: number, charCode: string) => {
     props.context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {
       id: props.context.backend.localPlayer.id,
-      code: gameState.asteroids.get(id)?.charCode || "",
+      code: charCode,
     });
-
-    setGameState("asteroids", (asteroids) => {
-      const newAsteroids = new Map(asteroids);
-      newAsteroids.delete(id);
-      return newAsteroids;
-    });
-
-    setGameState("score", (score) => score + 1);
+    gameLoop.updateScore(1);
   };
 
   const calculateScalars = () => {
@@ -115,24 +63,32 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
       x: newWidth / EXPECTED_WIDTH,
       y: newHeight / EXPECTED_HEIGHT 
     });
-    setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)))
+    setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)));
   };
+
+  onMount(() => {
+    const unsubscribe = gameLoop.setupEventListeners();
+    gameLoop.startGame();
+    calculateScalars();
+    window.addEventListener('resize', calculateScalars);
+
+    onCleanup(() => {
+      unsubscribe();
+      gameLoop.stopGame();
+      window.removeEventListener('resize', calculateScalars);
+    });
+  });
 
   return (
     <MNTAwait
       funcs={[
-        () => props.context.backend.getAssetMetadata(1007),
+        () => props.context.backend.getAssetMetadata(1011), // Assuming this is the asset ID for the game background
       ]}
     >
       {(backgroundAsset) => (
         <div class={gameContainerStyle}>
-          <AsteroidsGameLoop
-            plexer={props.context.events}
-            difficulty={props.difficulty.difficultyID}
-            onGameEnd={(won) => 10 } // score
-          />
           <div class={colonyStyle}>Colony</div>
-          <For each={Array.from(gameState.asteroids.values())}>
+          <For each={Array.from(gameLoop.state.asteroids.values())}>
             {(asteroid) => (
               <div
                 class={asteroidStyle}
@@ -146,7 +102,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
                 <BufferBasedButton
                   name={asteroid.charCode}
                   buffer={inputBuffer.get}
-                  onActivation={() => handleAsteroidDestruction(asteroid.id)}
+                  onActivation={() => handleAsteroidDestruction(asteroid.id, asteroid.charCode)}
                   register={bufferSubscribers.add}
                   styleOverwrite={asteroidButtonStyle}
                 />
@@ -163,7 +119,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
             styleOverwrite={actionInputStyleOverwrite}
           />
           <div class={statusStyle}>
-            Health: {'❤'.repeat(gameState.colonyHealth)} | Score: {gameState.score}
+            Health: {'❤'.repeat(gameLoop.state.colonyHealth)} | Score: {gameLoop.state.score}
           </div>
         </div>
       )}
@@ -229,8 +185,6 @@ const statusStyle = css`
   position: absolute;
   top: 10px;
   left: 10px;
-  color: transparent;
+  color: white;
   font-size: 18px;
-
-  text-shadow: 0 0 5px cyan;
 `;
