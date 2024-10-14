@@ -1,7 +1,7 @@
 import { ENV } from '../../environment/manager';
 import { Logger } from '../../logging/filteredLogger';
 import { ResErr } from '../../meta/types';
-import { ColonyInfoResponseDTO, PlayerID, PlayerInfoResponseDTO } from '../main_backend/mainBackendDTOs';
+import { ColonyCode, ColonyInfoResponseDTO, PlayerID, PlayerInfoResponseDTO } from '../main_backend/mainBackendDTOs';
 import { SubURLs } from './integrationConstants';
 import { NormalizedVitecIntegrationInformation, VitecIntegrationInformation } from './vitecDTOs';
 import { VitecIntegration } from './vitecIntegration';
@@ -15,7 +15,7 @@ export type URSANav = {
      * 
      * Only data passed to this function will be retained.
      */
-    goToColony: (colonyID: number, name: string, owner: PlayerID) => void;
+    goToColony: (colonyID: number, name: string, owner: PlayerID, code?: number) => void;
     /**
      * Change page to show the tutorial.
      * 
@@ -42,6 +42,7 @@ export type RetainedColonyInfoForPageSwap = {
     id: number;
     name: string;
     owner: PlayerID;
+    colonyCode?: ColonyCode;
 }
 
 export const initNavigator = async (vitec: VitecIntegration, logger: Logger, environment: ENV, localPlayer?: PlayerInfoResponseDTO): Promise<ResErr<URSANav>> => {
@@ -84,9 +85,9 @@ class UrsaNavImpl implements URSANav {
         sessionStorage.setItem(pageSwitchColonyInfoKey, JSON.stringify(data));
     }
 
-    goToColony = (colonyID: number, name: string, owner: PlayerID) => {
+    goToColony = (colonyID: number, name: string, owner: PlayerID, code?: ColonyCode) => {
         sessionStorage.setItem(pageSwitchUserInfoKey, JSON.stringify(this.localPlayer));
-        this.setColonyData({ id: colonyID, name, owner });
+        this.setColonyData({ id: colonyID, name, owner, colonyCode: code });
         this.logger.log('[nav] Navigating to colony');
         window.location.href = this.vitecInfo.locationUrl + this.vitecInfo.commonSubUrl + SubURLs.COLONY;
     };

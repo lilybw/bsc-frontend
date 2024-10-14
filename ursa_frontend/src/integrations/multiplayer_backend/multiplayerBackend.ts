@@ -1,6 +1,6 @@
 import { Accessor, createSignal } from 'solid-js';
 import { Logger } from '../../logging/filteredLogger';
-import { type Error, MultiplayerMode, ResCodeErr, ResErr } from '../../meta/types';
+import { ColonyState, type Error, MultiplayerMode, ResCodeErr, ResErr } from '../../meta/types';
 import { BackendIntegration } from '../main_backend/mainBackend';
 import { ColonyCode, PlayerID } from '../main_backend/mainBackendDTOs';
 import { createViewAndSerializeMessage, parseGoTypeAtOffsetInView, readSourceAndEventID, serializeTypeFromViewAndSpec as serializeTypeFromData } from './binUtil';
@@ -20,10 +20,11 @@ export interface IMultiplayerIntegration {
      * Defaults to MultiplayerMode.AS_GUEST
      */
     getMode: Accessor<MultiplayerMode>;
+    getState: Accessor<ColonyState>;
     /**
      * Exceptionally allowed to THROW
      */
-    connect: (lobbyID: number, onClose: (ev: CloseEvent) => void) => Promise<Error | undefined>;
+    connect: (code: ColonyCode, onClose: (ev: CloseEvent) => void) => Promise<Error | undefined>;
     getServerStatus: () => Promise<ResCodeErr<HealthCheckDTO>>;
     /**
      * Get the state for the currently connected lobby.
@@ -49,6 +50,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
      */
     private subscriptions: number[] = [];
     private mode: WrappedSignal<MultiplayerMode> = createWrappedSignal<MultiplayerMode>(MultiplayerMode.AS_GUEST);
+    private state: WrappedSignal<ColonyState> = createWrappedSignal<ColonyState>(ColonyState.CLOSED); 
     private connectedLobbyID: number | null = null;
     private serverAddress: string | null = null;
     constructor(
@@ -61,6 +63,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
     }
 
     public getMode = this.mode.get; //Function ref to Accessor<MultiplayerMode>
+    public getState = this.state.get;
 
     public getServerStatus = async (): Promise<ResCodeErr<HealthCheckDTO>> => {
         if (this.serverAddress === null) {
@@ -116,6 +119,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         }
 
         this.mode.set(ownerOfColonyJoined === this.backend.localPlayer.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST);
+        this.state.set(ColonyState.OPEN);
         this.connectedLobbyID = lobbyID;
         this.serverAddress = address;
 

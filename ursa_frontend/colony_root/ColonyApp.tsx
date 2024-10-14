@@ -33,6 +33,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   const eventFeed = createArrayStore<StrictJSX>();
   const clients = createArrayStore<ClientDTO>();
   const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
+  const colonyInfo = props.context.nav.getRetainedColonyInfo();
   const onColonyInfoLoadError = (error: string[]) => {
     props.context.logger.error('Failed to load colony info: ' + error);
     setTimeout(() => props.context.nav.goToMenu(), 0);
@@ -42,7 +43,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   }
   const colonyLayout = () => {
     return (
-      <Unwrap data={[props.context.nav.getRetainedColonyInfo(), props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
+      <Unwrap data={[colonyInfo, props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
         {(colonyInfo, playerInfo) =>
           <>
           <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
@@ -79,7 +80,8 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   }
   const [pageContet, setPageContent] = createSignal<StrictJSX>(colonyLayout());
 
-  onMount(() => {
+  onMount(async () => {
+
     const playerLeaveSubId = props.context.events.subscribe(PLAYER_LEFT_EVENT, (data) => {
       const removeFunc = eventFeed.add((
         <div class={eventFeedMessageStyle}>
@@ -133,6 +135,12 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
         />
       ) as StrictJSX);
     })
+    
+    // Check open/closed state
+    if (colonyInfo.res?.colonyCode) {
+      const err = await props.context.multiplayer.connect(colonyInfo.res?.colonyCode, (ev) => console.log('connection closed'));
+      console.error(err);
+    }
 
     onCleanup(() => { props.context.events.unsubscribe(
       playerLeaveSubId, playerJoinSubId, serverClosingSubId, 

@@ -17,9 +17,9 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
 
     async function handleJoin() {
         if (!checkInput()) return;
-
+        const code = Number(colonyCode());
         // Join the colony
-        const joinResponse = await props.context.backend.joinColony(Number(colonyCode()));
+        const joinResponse = await props.context.backend.joinColony(Number(code));
         
         // Handle the response as needed
         if (joinResponse.err !== null) {
@@ -41,6 +41,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
             colonyInfoAttempt.res.id,
             colonyInfoAttempt.res.name,
             joinResponse.res.ownerID,
+            code
         );
     };
 

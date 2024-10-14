@@ -53,6 +53,11 @@ export enum MultiplayerMode {
     AS_OWNER = 'as_owner',
 }
 
+export enum ColonyState {
+    OPEN = 'open',
+    CLOSED = 'closed',
+}
+
 export enum LogLevel {
     ERROR = 'error',
     WARN = 'warn',
