@@ -40,9 +40,9 @@ export const createViewAndSerializeMessage = <T extends IMessage>(data: T, spec:
 };
 /**
  * Serialize a value to its binary version in the view
- * 
+ *
  * By default uses big endian.
- * 
+ *
  * EXCEPTIONALLY allowed to THROW
  */
 export const placeValueAtOffsetAsTypeInView = <T>(view: DataView, offset: number, value: T, type: GoType, littleEndian: boolean = false): void => {
@@ -130,13 +130,13 @@ export const serializeTypeFromViewAndSpec = <T extends IMessage>(view: DataView,
     }
 
     return decoded;
-}
+};
 
 /**
  * Read the bytes at that offset and use DataView.getXXXX to parse them into the corresponding JS type.
  *
  * Defaults to reading as big endian.
- * 
+ *
  * Exeptionally allowed to THROW
  */
 export const parseGoTypeAtOffsetInView = <T>(view: DataView, offset: number, type: GoType, littleEndian: boolean = false): T => {

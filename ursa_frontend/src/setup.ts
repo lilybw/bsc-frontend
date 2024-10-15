@@ -18,14 +18,14 @@ export const initApp = (app: BundleComponent<ApplicationProps>) => {
     // global function that Angular will call
     (window as any)[URSA_INITIALIZATION_FUNCTION_NAME] = (vitecInfo: VitecIntegrationInformation) => {
         const root = document.getElementById(SOLIDJS_MOUNT_ELEMENT_ID);
-        console.log("Vitec info: " + JSON.stringify(vitecInfo));
+        console.log('Vitec info: ' + JSON.stringify(vitecInfo));
         if (!root) {
             console.error('[setup] Root element not found.');
             return;
         }
 
         if (app.bundle !== vitecInfo.bundleRequested) {
-            console.error('[setup] Bundle mismatch. Expected: ' + vitecInfo.bundleRequested + ', but currently mounting: ' +  app.bundle);
+            console.error('[setup] Bundle mismatch. Expected: ' + vitecInfo.bundleRequested + ', but currently mounting: ' + app.bundle);
             return;
         }
 
@@ -78,9 +78,9 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     const playerPreferencesAttempt = await backendIntegrationInit.res.getPlayerPreferences(backendIntegrationInit.res.localPlayer.id);
     const preferences = playerPreferencesAttempt.res;
     if (preferences == null) {
-        console.error("[setup] Failed to load preferences: " + playerPreferencesAttempt.err);
+        console.error('[setup] Failed to load preferences: ' + playerPreferencesAttempt.err);
     } else {
-        const langVal = preferences.preferences.find(p => p.key === PreferenceKeys.LANGUAGE)?.chosenValue;
+        const langVal = preferences.preferences.find((p) => p.key === PreferenceKeys.LANGUAGE)?.chosenValue;
         if (langVal && langVal != null) {
             vitecIntegrationResult.res.info.languagePreference = langVal as LanguagePreference;
         }
@@ -112,7 +112,8 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     await delaySetupIfDevOrTest(environment);
 
     console.log(environment);
-    const context: ApplicationContext = Object.freeze({ //Assuring immutability
+    const context: ApplicationContext = Object.freeze({
+        //Assuring immutability
         multiplayer: multiplayerIntegrationInit.res!,
         backend: backendIntegrationInit.res,
         events: eventMultiplexer,

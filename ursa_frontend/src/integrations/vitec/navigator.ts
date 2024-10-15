@@ -12,19 +12,19 @@ import { VitecIntegration } from './vitecIntegration';
 export type URSANav = {
     /**
      * Change page to show the colony.
-     * 
+     *
      * Only data passed to this function will be retained.
      */
     goToColony: (colonyID: number, name: string, owner: PlayerID, code?: number) => void;
     /**
      * Change page to show the tutorial.
-     * 
+     *
      * Only data passed to this function will be retained.
      */
     goToTutorial: () => void;
     /**
      * Change page to show the menu.
-     * 
+     *
      * Only data passed to this function will be retained.
      */
     goToMenu: () => void;
@@ -43,9 +43,14 @@ export type RetainedColonyInfoForPageSwap = {
     name: string;
     owner: PlayerID;
     colonyCode?: ColonyCode;
-}
+};
 
-export const initNavigator = async (vitec: VitecIntegration, logger: Logger, environment: ENV, localPlayer?: PlayerInfoResponseDTO): Promise<ResErr<URSANav>> => {
+export const initNavigator = async (
+    vitec: VitecIntegration,
+    logger: Logger,
+    environment: ENV,
+    localPlayer?: PlayerInfoResponseDTO,
+): Promise<ResErr<URSANav>> => {
     if (!vitec.info.locationUrl) {
         return { res: null, err: 'Location URL missing' };
     }
@@ -66,7 +71,7 @@ class UrsaNavImpl implements URSANav {
         private readonly logger: Logger,
         private readonly environment: ENV,
         player?: PlayerInfoResponseDTO,
-    ){
+    ) {
         if (!player) {
             const userInfoAttempt = this.getRetainedUserInfo();
             if (userInfoAttempt.err) {
@@ -83,7 +88,7 @@ class UrsaNavImpl implements URSANav {
      */
     private setColonyData = (data: RetainedColonyInfoForPageSwap) => {
         sessionStorage.setItem(pageSwitchColonyInfoKey, JSON.stringify(data));
-    }
+    };
 
     goToColony = (colonyID: number, name: string, owner: PlayerID, code?: ColonyCode) => {
         sessionStorage.setItem(pageSwitchUserInfoKey, JSON.stringify(this.localPlayer));
@@ -106,7 +111,7 @@ class UrsaNavImpl implements URSANav {
         sessionStorage.removeItem(pageSwitchUserInfoKey);
         const parseAttempt = parseAsJSON(data);
         if (parseAttempt.err) {
-            return { res: null, err: "Error retrieving retained user info: " + parseAttempt.err };
+            return { res: null, err: 'Error retrieving retained user info: ' + parseAttempt.err };
         }
         return { res: parseAttempt.res, err: null };
     };
@@ -115,9 +120,9 @@ class UrsaNavImpl implements URSANav {
         sessionStorage.removeItem(pageSwitchColonyInfoKey);
         const parseAttempt = parseAsJSON(data);
         if (parseAttempt.err) {
-            return { res: null, err: "Error retrieving retained colony info: " + parseAttempt.err };
+            return { res: null, err: 'Error retrieving retained colony info: ' + parseAttempt.err };
         }
-        return { res: parseAttempt.res, err: null }
+        return { res: parseAttempt.res, err: null };
     };
 }
 
@@ -130,4 +135,4 @@ const parseAsJSON = (data: string | null): ResErr<any> => {
     } catch (e) {
         return { res: null, err: 'Failed to parse JSON: ' + e };
     }
-}
+};

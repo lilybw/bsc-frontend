@@ -32,14 +32,14 @@ export interface ArrayStore<T> {
     findAll: (predicate: (element: T) => boolean) => T[];
     /**
      * Change the value of some element in the store reactively.
-     * 
+     *
      * Element object reference is never preserved.
      * @returns true if the element was found and mutated, false if the index was out of bounds
      */
     mutateElement: (index: number, mutator: (element: T) => T) => boolean;
     /**
      * Mutate all elements that satisfy the predicate with the given mutator function.
-     * 
+     *
      * Element object reference is never preserved.
      * @param predicate cannot rely on object eqauivalence, unless also used with unwrap.
      * @returns the number of elements mutated
@@ -69,14 +69,14 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
         add: (value: T) => {
             setStore((prev) => [...prev, value]);
             return () => {
-                setStore(prev => prev.filter((v) => v !== value));
+                setStore((prev) => prev.filter((v) => v !== value));
             };
         },
         mutateElement: (index: number, mutator: (element: T) => T): boolean => {
-            if(index < 0 || index >= proxy.length) {
+            if (index < 0 || index >= proxy.length) {
                 return false;
             }
-            setStore(index, prev => mutator(prev));
+            setStore(index, (prev) => mutator(prev));
             return true;
         },
         findFirst: (predicate: (element: T) => boolean) => proxy.find(predicate),
@@ -87,10 +87,10 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
                 for (let i = 0; i < proxy.length; i++) {
                     if (predicate(proxy[i])) {
                         mutationCount++;
-                        setStore(i, e => mutator(e));
+                        setStore(i, (e) => mutator(e));
                     }
                 }
-            })
+            });
             return mutationCount;
         },
         slice: (start: number, end?: number) => {
@@ -100,8 +100,8 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
             return createArrayStore(proxy.filter(predicate));
         },
         sort: (func) => {
-            setStore(produce(s => s.sort(func)));
+            setStore(produce((s) => s.sort(func)));
             return proxy;
-        }
+        },
     };
 }

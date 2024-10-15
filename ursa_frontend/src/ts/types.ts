@@ -46,5 +46,5 @@ export interface IRegistering<T> {
     register: AddRetainRemoveFunc<BufferSubscriber<T>>;
 }
 export interface IEmitter {
-    emit: IEventMultiplexer["emit"];
+    emit: IEventMultiplexer['emit'];
 }

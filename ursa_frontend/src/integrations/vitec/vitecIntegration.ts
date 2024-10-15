@@ -38,7 +38,7 @@ export async function initializeVitecIntegration(
 const verifyIntegrationInformation = (info: VitecIntegrationInformation): ResErr<NormalizedVitecIntegrationInformation> => {
     const languageRes = assureUniformLanguageCode(info.languagePreference);
     if (languageRes.err != null) {
-        return { res: null, err: "Error assuring unform language code: " + languageRes.err };
+        return { res: null, err: 'Error assuring unform language code: ' + languageRes.err };
     }
 
     if (!info.locationUrl.startsWith('http')) {
@@ -50,12 +50,13 @@ const verifyIntegrationInformation = (info: VitecIntegrationInformation): ResErr
         info.locationUrl = info.locationUrl.slice(0, -1);
     }
 
-    return { res: { 
-        ...info, 
-        languagePreference: languageRes.res,
-        commonSubUrl: computeCommonSubUrl(info.currentSubUrl, SubURLs),
-    }, 
-        err: null 
+    return {
+        res: {
+            ...info,
+            languagePreference: languageRes.res,
+            commonSubUrl: computeCommonSubUrl(info.currentSubUrl, SubURLs),
+        },
+        err: null,
     };
 };
 
@@ -74,7 +75,7 @@ export const computeCommonSubUrl = (currentSubUrl: string, knownExtensions: { [k
         current = current.slice(0, -1);
     }
     return current;
-}
+};
 
 const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<string>> => {
     const sessionRes = parseForSessionCookie(log);
@@ -89,7 +90,7 @@ const getSessionToken = async (environment: ENV, log: Logger): Promise<ResErr<st
 };
 
 export const assureUniformLanguageCode = (language: string): ResErr<LanguagePreference> => {
-    if (language === "") {
+    if (language === '') {
         console.error('Language code was empty, defaulting to English');
         return { res: LanguagePreference.English, err: null };
     }
@@ -103,7 +104,6 @@ export const assureUniformLanguageCode = (language: string): ResErr<LanguagePref
     }
     return { res: null, err: `Language code ${language} has no registered aliases` };
 };
-
 
 const parseForSessionCookie = (log: Logger): ResErr<string> => {
     const cookies = document.cookie.split(';');

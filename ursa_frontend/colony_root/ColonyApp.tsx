@@ -140,6 +140,8 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
     if (colonyInfo.res?.colonyCode) {
       const err = await props.context.multiplayer.connect(colonyInfo.res?.colonyCode, (ev) => console.log('connection closed'));
       console.error(err);
+    } else {
+
     }
 
     onCleanup(() => { props.context.events.unsubscribe(

@@ -63,7 +63,7 @@ export type CreateColonyResponseDTO = {
     name: string;
     accLevel: uint32;
     latestVisit: string;
-}
+};
 export type ColonyOverviewReponseDTO = {
     colonies: ColonyInfoResponseDTO[];
 };
@@ -195,7 +195,7 @@ export type MinigameDifficultyResponseDTO = {
     icon: AssetID;
     overwritingSettings: any;
     requiredLevel: number;
-}
+};
 
 export type MinimizedMinigameInfoResponseDTO = {
     settings: any;
@@ -320,4 +320,4 @@ export type MBHealthCheckResponseDTO = {
     playerDBStatus: boolean;
     statusMessage: string;
     timestamp: string;
-}
+};

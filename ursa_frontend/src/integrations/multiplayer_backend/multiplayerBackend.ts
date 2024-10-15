@@ -3,7 +3,12 @@ import { Logger } from '../../logging/filteredLogger';
 import { ColonyState, type Error, MultiplayerMode, ResCodeErr, ResErr } from '../../meta/types';
 import { BackendIntegration } from '../main_backend/mainBackend';
 import { ColonyCode, PlayerID } from '../main_backend/mainBackendDTOs';
-import { createViewAndSerializeMessage, parseGoTypeAtOffsetInView, readSourceAndEventID, serializeTypeFromViewAndSpec as serializeTypeFromData } from './binUtil';
+import {
+    createViewAndSerializeMessage,
+    parseGoTypeAtOffsetInView,
+    readSourceAndEventID,
+    serializeTypeFromViewAndSpec as serializeTypeFromData,
+} from './binUtil';
 import { IExpandedAccessMultiplexer } from './eventMultiplexer';
 import { EVENT_ID_MAP, EventSpecification, IMessage, OriginType } from './EventSpecifications';
 import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
@@ -16,7 +21,7 @@ export interface RawMessage<T> extends IMessage {
 export interface IMultiplayerIntegration {
     /**
      * Updates to reflect whether the local player (current user of this frontend instance)
-     * 
+     *
      * Defaults to MultiplayerMode.AS_GUEST
      */
     getMode: Accessor<MultiplayerMode>;
@@ -50,7 +55,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
      */
     private subscriptions: number[] = [];
     private mode: WrappedSignal<MultiplayerMode> = createWrappedSignal<MultiplayerMode>(MultiplayerMode.AS_GUEST);
-    private state: WrappedSignal<ColonyState> = createWrappedSignal<ColonyState>(ColonyState.CLOSED); 
+    private state: WrappedSignal<ColonyState> = createWrappedSignal<ColonyState>(ColonyState.CLOSED);
     private connectedLobbyID: number | null = null;
     private serverAddress: string | null = null;
     constructor(
@@ -70,7 +75,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             return { res: null, code: 600, err: 'Not connected to a server' };
         }
         let res;
-        try{
+        try {
             res = await fetch(`${this.serverAddress}/health`);
         } catch (e) {
             return { res: null, code: 600, err: 'Failed to send request for server status' };
@@ -80,7 +85,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         }
         const json = await res.json();
         return { res: json, code: res.status, err: null };
-    }
+    };
 
     public getLobbyState = async (): Promise<ResCodeErr<LobbyStateResponseDTO>> => {
         if (this.connectedLobbyID === null || this.serverAddress === null) {
@@ -97,7 +102,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         }
         const json = await res.json();
         return { res: json, code: res.status, err: null };
-    }
+    };
 
     public connect = async (colonyCode: ColonyCode, onClose: (ev: CloseEvent) => void): Promise<Error | undefined> => {
         const { res, code, err } = await this.backend.joinColony(colonyCode);
