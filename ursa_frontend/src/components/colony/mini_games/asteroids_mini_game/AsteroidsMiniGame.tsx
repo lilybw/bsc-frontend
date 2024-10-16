@@ -12,6 +12,7 @@ import ActionInput from "../../MainActionInput";
 import MNTAwait from "../../../util/MultiNoThrowAwait";
 import BufferBasedButton from "../../../BufferBasedButton";
 import { createAsteroidsGameLoop } from "./AsteroidsGameLoop";
+import { MinigameProps } from "../minigameLoader";
 
 /**
  * Props for the AsteroidsMiniGame component

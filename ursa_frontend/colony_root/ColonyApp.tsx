@@ -114,7 +114,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
       // Use MockServer for closed colony state
       const mockServerInstance = new MockServer(props.context);
       setMockServer(mockServerInstance);
-      mockServerInstance.setMinigame(AsteroidsMiniGame);
+      // mockServerInstance.setMinigame();
       mockServerInstance.start();
     } else {
       // Use online server for open colony state
@@ -186,12 +186,12 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
               <MinigameComponent
                 context={props.context}
                 settings={{ difficulty: diff }}
+                returnToColony={() => setPageContent(colonyLayout())}
               />
             ) as StrictJSX);
           }
         }
       } else {
-        // Use existing handling for online server
         setPageContent((
           <AsteroidsMiniGame 
             context={props.context}
