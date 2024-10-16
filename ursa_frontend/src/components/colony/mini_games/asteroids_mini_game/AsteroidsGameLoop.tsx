@@ -45,7 +45,6 @@ export function createAsteroidsGameLoop(
   plexer: IEventMultiplexer,
   difficulty: DifficultyConfirmedForMinigameMessageDTO,
   onGameEnd: (won: boolean) => void,
-  playerID: PlayerID
 ) {
   const codeLength = BASE_CODE_LENGTH + difficulty.difficultyID - 1;
   const charCodeGenerator = new CharCodeGenerator(SYMBOL_SET, codeLength);

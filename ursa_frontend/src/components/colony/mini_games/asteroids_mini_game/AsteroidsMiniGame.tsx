@@ -1,6 +1,4 @@
-// AsteroidsMiniGame.tsx
-
-import { Component, createSignal, createMemo, onMount, onCleanup, For } from "solid-js";
+import { Component, createSignal, onMount, onCleanup, For } from "solid-js";
 import { css } from "@emotion/css";
 import {
   ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
@@ -15,7 +13,10 @@ import MNTAwait from "../../../util/MultiNoThrowAwait";
 import BufferBasedButton from "../../../BufferBasedButton";
 import { createAsteroidsGameLoop } from "./AsteroidsGameLoop";
 
-interface AsteroidsGameProps {
+/**
+ * Props for the AsteroidsMiniGame component
+ */
+export interface AsteroidsGameProps {
   context: ApplicationContext;
   difficulty: DifficultyConfirmedForMinigameMessageDTO;
   returnToColony: () => void;
@@ -25,6 +26,9 @@ const ASTEROID_TRAVEL_TIME = 15; // seconds
 const EXPECTED_WIDTH = 1920;
 const EXPECTED_HEIGHT = 1080;
 
+/**
+ * AsteroidsMiniGame component responsible for rendering and managing the Asteroids minigame.
+ */
 const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
   const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
   const [GAS, setGAS] = createSignal(1);
@@ -44,7 +48,6 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
     props.context.events,
     props.difficulty,
     handleGameEnd,
-    props.context.backend.localPlayer.id
   );
 
   const handleAsteroidDestruction = (id: number, charCode: string) => {
@@ -129,6 +132,7 @@ const AsteroidsMiniGame: Component<AsteroidsGameProps> = (props) => {
 
 export default AsteroidsMiniGame;
 
+// Styles
 const gameContainerStyle = css`
   position: relative;
   width: 100vw;
