@@ -1,10 +1,13 @@
 import { Component } from "solid-js";
-import { ApplicationContext } from "../../../meta/types";
+import { ApplicationContext, ResErr } from "../../../meta/types";
+import { DifficultyConfirmedForMinigameMessageDTO } from "../../../integrations/multiplayer_backend/EventSpecifications";
+import { BackendIntegration } from "../../../integrations/main_backend/mainBackend";
 
 // Define the props interface for minigame components
 export interface MinigameProps<T extends object> {
     context: ApplicationContext;
     settings: T;
+    returnToColony: () => void;
 }
 
 // Define the main Minigame interface
@@ -16,4 +19,8 @@ export interface Minigame<T extends object> {
     // The top-level component for the minigame
     // It returns a Solid.js component that accepts MinigameProps
     topLevelComponent: () => Component<MinigameProps<T>>;
+}
+
+export enum KnownMinigames {
+    ASTEROIDS = 1
 }

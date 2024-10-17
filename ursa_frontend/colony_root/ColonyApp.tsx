@@ -42,8 +42,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   const eventFeed = createArrayStore<StrictJSX>();
   const clients = createArrayStore<ClientDTO>();
   const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
-  const [mockServer, setMockServer] = createSignal<MockServer | null>(null);
-  const [colonyState, setColonyState] = createSignal<ColonyState>(ColonyState.CLOSED);
   const colonyInfo = props.context.nav.getRetainedColonyInfo();
 
   /**
@@ -105,23 +103,20 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
 
   const [pageContent, setPageContent] = createSignal<StrictJSX>(colonyLayout());
 
+  const mockServer = new MockServer(props.context, setPageContent, () => setPageContent(colonyLayout()))
+
   onMount(async () => {
+    // Use online server for open colony state
+    if (colonyInfo.res?.colonyCode) {
+      const err = await props.context.multiplayer.connect(colonyInfo.res?.colonyCode, (ev) => console.log('connection closed'));
+      console.error(err);
+    }
+
     // Determine colony state
     const state = props.context.multiplayer.getState();
-    setColonyState(state);
 
     if (state === ColonyState.CLOSED) {
-      // Use MockServer for closed colony state
-      const mockServerInstance = new MockServer(props.context);
-      setMockServer(mockServerInstance);
-      // mockServerInstance.setMinigame();
-      mockServerInstance.start();
-    } else {
-      // Use online server for open colony state
-      if (colonyInfo.res?.colonyCode) {
-        const err = await props.context.multiplayer.connect(colonyInfo.res?.colonyCode, (ev) => console.log('connection closed'));
-        console.error(err);
-      }
+      mockServer.start();
     }
 
     // Set up event subscriptions
@@ -175,37 +170,9 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
         console.error('Received intent declaration before difficulty was confirmed');
         return;
       }
-
-      if (colonyState() === ColonyState.CLOSED) {
-        // Use MockServer to get the minigame component
-        const mockServerInstance = mockServer();
-        if (mockServerInstance) {
-          const MinigameComponent = mockServerInstance.getMinigameComponent();
-          if (MinigameComponent) {
-            setPageContent((
-              <MinigameComponent
-                context={props.context}
-                settings={{ difficulty: diff }}
-                returnToColony={() => setPageContent(colonyLayout())}
-              />
-            ) as StrictJSX);
-          }
-        }
-      } else {
-        setPageContent((
-          <AsteroidsMiniGame 
-            context={props.context}
-            difficulty={diff}
-            returnToColony={() => setPageContent(colonyLayout())}
-          />
-        ) as StrictJSX);
-      }
-    });
+    })
 
     onCleanup(() => {
-      if (colonyState() === ColonyState.CLOSED) {
-        mockServer()?.shutdown();
-      }
       props.context.events.unsubscribe(
         playerLeaveSubId, playerJoinSubId, serverClosingSubId, 
         lobbyClosingSubId, diffConfirmedSubId, declareIntentSubId

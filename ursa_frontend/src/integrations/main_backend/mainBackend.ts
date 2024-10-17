@@ -22,6 +22,7 @@ import {
     MinigameDifficultyID,
     MinigameID,
     MinigameInfoResponseDTO,
+    MinimizedMinigameInfoResponseDTO,
     OpenColonyRequestDTO,
     OpenColonyResponseDTO,
     PlayerID,
@@ -104,7 +105,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     getAssetCollection: (collection: AssetCollectionID) => Promise<ResCodeErr<AssetCollectionResponseDTO>>;
 
     getMinigameInfo: (minigame: number) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
-    getMinimizedMinigameInfo: (minigame: MinigameID, diffulty: MinigameDifficultyID) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
+    getMinimizedMinigameInfo: (minigame: MinigameID, diffulty: MinigameDifficultyID) => Promise<ResCodeErr<MinimizedMinigameInfoResponseDTO>>;
 }
 /**
  * @since 0.0.1
@@ -204,7 +205,7 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
 
         getMinigameInfo: (minigame) => base.request<MinigameInfoResponseDTO>(HTTPMethod.GET, `/api/v1/minigame/${minigame}`, ParseMethod.JSON),
         getMinimizedMinigameInfo: (minigame, difficulty) =>
-            base.request<MinigameInfoResponseDTO>(
+            base.request<MinimizedMinigameInfoResponseDTO>(
                 HTTPMethod.GET,
                 `/api/v1/minigame/minimized?minigame=${minigame}&difficulty=${difficulty}`,
                 ParseMethod.JSON,

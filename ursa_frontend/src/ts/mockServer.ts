@@ -1,4 +1,4 @@
-import { Component } from "solid-js";
+import { Component, JSX } from "solid-js";
 import { IExpandedAccessMultiplexer } from '../integrations/multiplayer_backend/eventMultiplexer';
 import {
     DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
@@ -10,9 +10,10 @@ import {
     ASTEROIDS_GAME_LOST_EVENT,
     DifficultyConfirmedForMinigameMessageDTO,
     IMessage,
+    ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT,
 } from '../integrations/multiplayer_backend/EventSpecifications';
-import { ApplicationContext } from '../meta/types';
-import { Minigame, MinigameProps } from "../components/colony/mini_games/minigameLoader";
+import { ApplicationContext, ResErr } from '../meta/types';
+import { KnownMinigames, Minigame } from "../components/colony/mini_games/miniGame";
 
 /**
  * Interface defining the basic operations of the MockServer.
@@ -48,11 +49,6 @@ export class MockServer implements IMockServer {
     private readonly messageQueue: IMessage[] = [];
     private lobbyPhase: LobbyPhase = LobbyPhase.RoamingColony;
     private readonly events: IExpandedAccessMultiplexer;
-    
-    private currentMinigame: Minigame<any> | null = null;
-    private minigameSettings: any | null = null;
-    private stopGameLoop: (() => void) | null = null;
-    private error: string | undefined = undefined;
 
     /**
      * Constructs a new MockServer instance.
@@ -60,6 +56,8 @@ export class MockServer implements IMockServer {
      */
     constructor(
         private context: ApplicationContext,
+        private readonly setPageContent: ((content: JSX.Element) => void),
+        private readonly returnToColony: (() => void),
     ) {
         this.events = context.events as IExpandedAccessMultiplexer;
     }
@@ -81,18 +79,15 @@ export class MockServer implements IMockServer {
             clearInterval(this.intervalId);
         }
         this.context.events.unsubscribe(...this.subscriptionIDs);
-        this.stopMinigame();
     };
 
     /**
      * Resets the MockServer to its initial state.
      */
     private reset = () => {
-        this.stopMinigame();
         this.difficultyConfirmed = null;
         this.messageQueue.length = 0;
         this.lobbyPhase = LobbyPhase.RoamingColony;
-        this.error = undefined;
     }
 
     /**
@@ -126,22 +121,19 @@ export class MockServer implements IMockServer {
                 case LobbyPhase.DeclareIntent: {
                     // Handle player ready for minigame
                     if (message.eventID === PLAYER_READY_FOR_MINIGAME_EVENT.id) {
-                        this.startMinigame();
-                        if (!this.error) {
-                            this.lobbyPhase = LobbyPhase.InMinigame;
-                        }
+                        this.lobbyPhase = LobbyPhase.InMinigame;
                     }
                     break;
                 }
                 case LobbyPhase.InMinigame: {
-                    // Handle game end events
-                    if (message.eventID === ASTEROIDS_GAME_WON_EVENT.id || message.eventID === ASTEROIDS_GAME_LOST_EVENT.id) {
-                        this.handleGameEnd();
-                    }
-                    break;
+
                 }
             }
         }
+    }
+
+    private gameFinished() {
+        this.returnToColony()
     }
 
     /**
@@ -158,51 +150,10 @@ export class MockServer implements IMockServer {
         this.subscriptionIDs.push(this.context.events.subscribe(PLAYER_READY_FOR_MINIGAME_EVENT, pushToQueue));
         this.subscriptionIDs.push(this.context.events.subscribe(PLAYER_ABORTING_MINIGAME_EVENT, pushToQueue));
         this.subscriptionIDs.push(this.context.events.subscribe(PLAYER_JOIN_ACTIVITY_EVENT, pushToQueue));
-        this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_WON_EVENT, pushToQueue));
-        this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_LOST_EVENT, pushToQueue));
-    }
-
-    /**
-     * Sets the current minigame.
-     * @param minigame The minigame to set as the current minigame.
-     */
-    public setMinigame<T extends object>(minigame: Minigame<T>) {
-        this.currentMinigame = minigame;
-    }
-
-    /**
-     * Fetches minigame settings from the backend.
-     * @returns The fetched minigame settings as an object, or null if an error occurred.
-     */
-    private async fetchMinigameSettings<T extends object>(): Promise<T | null> {
-        if (!this.difficultyConfirmed) {
-            this.error = "Difficulty not confirmed";
-            return null;
-        }
-
-        const response = await this.context.backend.getMinimizedMinigameInfo(
-            this.difficultyConfirmed.minigameID,
-            this.difficultyConfirmed.difficultyID
-        );
-
-        if (response.err !== null) {
-            this.error = `Error fetching minigame settings: ${response.err}`;
-            return null;
-        }
-
-        if (!response.res || typeof response.res.settings !== 'string') {
-            this.error = "Invalid minigame settings returned";
-            return null;
-        }
-
-        let parsedSettings: T;
-        if (this.isValidJSON(response.res.settings)) {
-            parsedSettings = JSON.parse(response.res.settings);
-            return parsedSettings;
-        } else {
-            this.error = "Invalid JSON in minigame settings";
-            return null;
-        }
+        
+        this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_WON_EVENT, this.gameFinished));
+        this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_LOST_EVENT, this.gameFinished));
+        this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT, this.gameFinished));
     }
 
     /**
@@ -220,74 +171,23 @@ export class MockServer implements IMockServer {
         }
     }
 
-    /**
-     * Starts the current minigame by fetching settings and initializing the game loop.
-     */
-    private async startMinigame() {
-        if (!this.currentMinigame) {
-            this.error = "No minigame set";
-            return;
+    private async loadMiniGame(): Promise<ResErr<Minigame<any>>> {
+        if (this.difficultyConfirmed === null) return {res: null, err: "Could not load minigame difficualty information is null."};
+
+        const response = await this.context.backend.getMinimizedMinigameInfo(this.difficultyConfirmed.minigameID, this.difficultyConfirmed.difficultyID);
+
+        if (response.err !== null) return response;
+
+        const computedSettings = {...response.res.settings, ...response.res.overwritingSettings}
+
+        let component;
+
+        switch (this.difficultyConfirmed.difficultyID) {
+            case KnownMinigames.ASTEROIDS: {
+                
+            }
         }
 
-        this.minigameSettings = await this.fetchMinigameSettings();
-        if (this.minigameSettings === null) {
-            // Error is already set in fetchMinigameSettings
-            return;
-        }
-
-        this.stopGameLoop = this.currentMinigame.mockServerGameloop(this.minigameSettings);
-    }
-
-    /**
-     * Stops the current minigame and cleans up related resources.
-     */
-    private stopMinigame() {
-        if (this.stopGameLoop) {
-            this.stopGameLoop();
-            this.stopGameLoop = null;
-        }
-        this.currentMinigame = null;
-        this.minigameSettings = null;
-    }
-
-    /**
-     * Handles the end of a game, regardless of win or loss.
-     */
-    private handleGameEnd() {
-        this.stopMinigame();
-        this.reset();
-        console.log("Game ended");
-    }
-
-    /**
-     * Gets the top-level component of the current minigame.
-     * @returns The minigame component, or null if no minigame is set.
-     */
-    public getMinigameComponent(): Component<MinigameProps<any>> | null {
-        return this.currentMinigame ? this.currentMinigame.topLevelComponent() : null;
-    }
-
-    /**
-     * Gets the confirmed difficulty for the current minigame.
-     * @returns The confirmed difficulty, or null if not set.
-     */
-    public getDifficultyConfirmed(): DifficultyConfirmedForMinigameMessageDTO | null {
-        return this.difficultyConfirmed;
-    }
-
-    /**
-     * Gets the current minigame settings.
-     * @returns The minigame settings, or null if not set.
-     */
-    public getMinigameSettings(): any | null {
-        return this.minigameSettings;
-    }
-
-    /**
-     * Gets the current error state of the MockServer.
-     * @returns The current error message, or undefined if no error.
-     */
-    public getError(): string | undefined {
-        return this.error;
+        this.setPageContent(component)
     }
 }
