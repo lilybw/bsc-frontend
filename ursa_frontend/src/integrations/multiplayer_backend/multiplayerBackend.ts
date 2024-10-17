@@ -20,11 +20,17 @@ export interface RawMessage<T> extends IMessage {
 
 export interface IMultiplayerIntegration {
     /**
-     * Updates to reflect whether the local player (current user of this frontend instance)
+     * Updates to reflect whether the local player (current user of this frontend instance) is the owner of the
+     * currently open colony in question, or a guest
      *
      * Defaults to MultiplayerMode.AS_GUEST
      */
     getMode: Accessor<MultiplayerMode>;
+    /**
+     * The current state of the colony local player is on. 
+     * Open means connected to a lobby, and thus multiplayer.
+     * Closed is singleplayer.
+     */
     getState: Accessor<ColonyState>;
     /**
      * Exceptionally allowed to THROW
@@ -68,7 +74,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
     }
 
     public getMode = this.mode.get; //Function ref to Accessor<MultiplayerMode>
-    public getState = this.state.get;
+    public getState = this.state.get; //Function ref to Accessor<ColonyState>
 
     public getServerStatus = async (): Promise<ResCodeErr<HealthCheckDTO>> => {
         if (this.serverAddress === null) {
@@ -114,7 +120,6 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         const computedIGN = this.backend.localPlayer.firstName + ' ' + this.backend.localPlayer.lastName;
         const ownerOfColonyJoined = res.ownerID;
 
-        //url: ws://localhost:8080/connect?IGN=ItsaMe&lobbyID=0&clientID=1
         //protocol://host:port is provided by the main backend, as well as lobby id
         let conn;
         try {
