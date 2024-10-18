@@ -70,18 +70,21 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                 <div class={contentGridStyle}>
                     <div class={difficultyListStyle}>
                         <NTAwait func={() => props.backend.getMinigameInfo(props.info.minigameID)}>{(minigame) => 
-                            <For each={minigame.difficulties}>{(difficulty) =>
-                                <MinigameDifficultyListEntry 
-                                    difficulty={difficulty} 
-                                    minigameID={minigame.id} 
-                                    buffer={props.buffer} 
-                                    register={props.register} 
-                                    backend={props.backend} 
-                                    emit={props.events.emit}
-                                    text={props.text}
-                                    enabled={() => isDifficultyUnlocked(difficulty)}
-                                />
-                            }</For>
+                            <For each={minigame.difficulties}>
+                                {(difficulty, index) =>
+                                    <MinigameDifficultyListEntry 
+                                        difficulty={difficulty} 
+                                        minigameID={minigame.id} 
+                                        buffer={props.buffer} 
+                                        register={props.register} 
+                                        backend={props.backend} 
+                                        emit={props.events.emit}
+                                        text={props.text}
+                                        enabled={() => isDifficultyUnlocked(difficulty)}
+                                        index={index()}
+                                    />
+                                }
+                            </For>
                         }</NTAwait>
                     </div>
                     <div class={imageContainerStyle}>
