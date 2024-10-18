@@ -276,7 +276,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
             >
               <NTAwait func={() => props.context.backend.getAssetMetadata(1011 /* Asset for asteroid*/)}>
                     {(asset) => (
-                        <GraphicalAsset metadata={asset} backend={props.context.backend} />
+                        <GraphicalAsset metadata={asset} backend={props.context.backend}/>
                     )}
               </NTAwait>
               <BufferBasedButton
@@ -292,7 +292,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
 
         <For each={lazerBeams.get}>
           {(beam) => (
-            <div
+            <>
+              <div
               class={lazerBeamStyle}
               style={{
                 left: `${beam.startX}px`,
@@ -301,7 +302,16 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
                 transform: `rotate(${Math.atan2(beam.endY - beam.startY, beam.endX - beam.startX)}rad)`,
                 opacity: beam.opacity,
               }}
-            />
+              />
+              <div
+              class={impactCircleStyle}
+              style={{
+                left: `${beam.endX}px`,
+                top: `${beam.endY}px`,
+                opacity: beam.opacity,
+              }}
+              />
+            </>
           )}
         </For>
 
