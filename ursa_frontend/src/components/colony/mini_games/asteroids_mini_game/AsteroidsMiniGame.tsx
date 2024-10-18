@@ -21,8 +21,6 @@ import StarryBackground from "../../../StarryBackground";
 import NTAwait from "../../../util/NoThrowAwait";
 import GraphicalAsset from "../../../GraphicalAsset";
 
-const ASTEROID_TRAVEL_TIME = 15; // seconds
-
 type AsteroidsSettings = {
     minTimeTillImpactS: number,
     maxTimeTillImpactS: number,
@@ -41,6 +39,7 @@ type AsteroidsSettings = {
 }
 
 interface Asteroid extends AsteroidsAsteroidSpawnMessageDTO {
+  speed: number,
   destroy: () => void,
   
 }
@@ -64,6 +63,10 @@ interface LazerBeam {
   endX: number,
   endY: number,
   opacity: number,
+}
+
+function getRandomInRange(min: number, max: number) {
+  return Math.random() * (max - min) + min;
 }
 
 /**
@@ -183,7 +186,9 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
     }, 100);
 
     const spawnSubID = props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
-      const removeFunc = asteroids.add({...data, destroy: () => {
+      const removeFunc = asteroids.add({...data,
+        speed:(getRandomInRange(props.settings.minTimeTillImpactS, props.settings.maxTimeTillImpactS)),
+        destroy: () => {
         handleAsteroidDestruction(data.id)
       }})
       asteroidsRemoveFuncs.set(data.id, removeFunc)
@@ -266,7 +271,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
                 left: `${asteroid.x * 100}%`,
                 top: `${asteroid.y * 100}%`,
                 transform: `translate(-50%, -50%)`,
-                transition: `left ${ASTEROID_TRAVEL_TIME}s linear, bottom ${ASTEROID_TRAVEL_TIME}s linear`,
+                transition: `left ${asteroid.speed}s linear, bottom ${asteroid.speed}s linear`,
               }}
             >
               <NTAwait func={() => props.context.backend.getAssetMetadata(1011 /* Asset for asteroid*/)}>
