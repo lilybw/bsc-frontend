@@ -8,13 +8,11 @@ import {
   AsteroidsAssignPlayerDataMessageDTO,
   AsteroidsAsteroidSpawnMessageDTO,
   AsteroidsPlayerShootAtCodeMessageDTO,
-  DifficultyConfirmedForMinigameMessageDTO
 } from "../../../../integrations/multiplayer_backend/EventSpecifications";
 import { createArrayStore } from "../../../../ts/arrayStore";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../../../ts/actionContext";
 import { createWrappedSignal } from "../../../../ts/wrappedSignal";
 import ActionInput from "../../MainActionInput";
-import MNTAwait from "../../../util/MultiNoThrowAwait";
 import BufferBasedButton from "../../../BufferBasedButton";
 import { MinigameProps } from "../miniGame";
 import { uint32 } from "../../../../integrations/main_backend/mainBackendDTOs";
@@ -24,8 +22,6 @@ import NTAwait from "../../../util/NoThrowAwait";
 import GraphicalAsset from "../../../GraphicalAsset";
 
 const ASTEROID_TRAVEL_TIME = 15; // seconds
-const EXPECTED_WIDTH = 1920;
-const EXPECTED_HEIGHT = 1080;
 
 type AsteroidsSettings = {
     minTimeTillImpactS: number,
@@ -55,6 +51,8 @@ interface Player extends AsteroidsAssignPlayerDataMessageDTO {
   y: number,
   type: number, // Tank type, asset id
   code: string, // Charcode
+  isStunned: boolean,
+  isDisabled: boolean,
 
   stun: () => void,
   disable: () => void,
@@ -197,30 +195,45 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
     })
 
     const loadPlayerDataSubID = props.context.events.subscribe(ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, (data) => {
-      players.add({...data,
+      players.add({
+        ...data,
+        isStunned: false,
+        isDisabled: false,
         stun: () => {
           clearTimeout(stunTimer) // Clear existing stun timeouts to avoid issues with overlaps 
-
-          setIsStunned(true) // Stun the player
-
+    
+          players.mutateByPredicate(
+            (p) => p.id === data.id,
+            (p) => ({ ...p, isStunned: true })
+          );
+    
           disableButtonsHandler(data, props.settings.stunDurationS) // If local player, disable buttons (emits should be ignored on server).
-
+    
           stunTimer = setTimeout(() => {
-            setIsStunned(false); // For stun effect/animation
+            players.mutateByPredicate(
+              (p) => p.id === data.id,
+              (p) => ({ ...p, isStunned: false })
+            );
             clearTimeout(stunTimer)
           }, props.settings.stunDurationS);
         },
         disable: () => {
           clearTimeout(penaltyTimer) // Clear existing disable timeouts to avoid issues with overlaps 
-
-          setIsSDisabled(true)
-
+    
+          players.mutateByPredicate(
+            (p) => p.id === data.id,
+            (p) => ({ ...p, isDisabled: true })
+          );
+    
           disableButtonsHandler(data, props.settings.friendlyFirePenaltyS * props.settings.friendlyFirePenaltyMultiplier) // If local player, disable buttons (emits should be ignored on server).
-
+    
           penaltyTimer = setTimeout(() => {
-            setIsSDisabled(false); // For disable effect/animation
+            players.mutateByPredicate(
+              (p) => p.id === data.id,
+              (p) => ({ ...p, isDisabled: false })
+            );
             clearTimeout(penaltyTimer)
-          }, props.settings.friendlyFirePenaltyS * props.settings.friendlyFirePenaltyMultiplier); // QUESTION: Based on player, mamanged serverside?
+          }, props.settings.friendlyFirePenaltyS * props.settings.friendlyFirePenaltyMultiplier); // QUESTION: Based on player, managed serverside?
         }
       }) // QUESTION: (ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT) Determined serverside? Called once per player?
     });
@@ -309,8 +322,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
                 onActivation={() => localPlayerShootAtCodeHandler(player.code)}
                 register={bufferSubscribers.add}
               />
-              {isStunned() && <div class={stunnedStyle} />}
-              {isDisabled() && <div class={disabledStyle} />}
+              {player.isStunned && <div class={stunnedStyle} />}
+              {player.isDisabled && <div class={disabledStyle} />}
             </div>
           )}
         </For>
