@@ -7,6 +7,7 @@ import {
   ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
   AsteroidsAssignPlayerDataMessageDTO,
   AsteroidsAsteroidSpawnMessageDTO,
+  AsteroidsPlayerShootAtCodeMessageDTO,
   DifficultyConfirmedForMinigameMessageDTO
 } from "../../../../integrations/multiplayer_backend/EventSpecifications";
 import { createArrayStore } from "../../../../ts/arrayStore";
@@ -18,6 +19,9 @@ import BufferBasedButton from "../../../BufferBasedButton";
 import { MinigameProps } from "../miniGame";
 import { uint32 } from "../../../../integrations/main_backend/mainBackendDTOs";
 import Countdown from "../../../util/Countdown";
+import StarryBackground from "../../../StarryBackground";
+import NTAwait from "../../../util/NoThrowAwait";
+import GraphicalAsset from "../../../GraphicalAsset";
 
 const ASTEROID_TRAVEL_TIME = 15; // seconds
 const EXPECTED_WIDTH = 1920;
@@ -52,8 +56,16 @@ interface Player extends AsteroidsAssignPlayerDataMessageDTO {
   type: number, // Tank type, asset id
   code: string // Charcode
 
-  stun: (seconds: number) => void,
-  disable: (seconds: number) => void,
+  stun: () => void,
+  disable: () => void,
+}
+
+interface LazerBeam {
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  opacity: number,
 }
 
 /**
@@ -71,9 +83,11 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
   const [isStunned, setIsStunned] = createSignal<boolean>(false) // Used to disable buttons and display stun
   const [isDisabled, setIsSDisabled] = createSignal<boolean>(false) // Used to disable buttons and display disable
   const [disableButtons, setDisableButtons] = createSignal<boolean>(false) // Used to disable buttons and display disable
+  const lazerBeams = createArrayStore<LazerBeam>()
 
   let stunTimer: NodeJS.Timeout;
-  let disableTimer: NodeJS.Timeout;
+  let penaltyTimer: NodeJS.Timeout;
+  let buttonDisableTimer: NodeJS.Timeout;
 
   const handleAsteroidDestruction = (asteroidID: number) => {
     const removeFunc = asteroidsRemoveFuncs.get(asteroidID);
@@ -87,25 +101,88 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
   };
 
   const localPlayerShootAtCodeHandler = (charCode: string) => {
-    // Player emits event, will not be replicated locally, so handle as if on server.
-    props.context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {id: props.context.backend.localPlayer.id, code: charCode});
+    if (charCode) {
+      // Player emits event, will not be replicated locally, so handle as if from server.
+      props.context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {id: props.context.backend.localPlayer.id, code: charCode});
 
-    // Char code mathces player
-    const hitPlayers = players.findAll((p) => p.code === charCode);
-    if (hitPlayers) {
-      hitPlayers.forEach((p) => p.stun(props.settings.stunDurationS)); // Penalty increase handled on server
-      // Disbale buttons locally or ignore emits on server?
+      handlePlayerShootAtCodeEvent({
+        id: props.context.backend.localPlayer.id,
+        code: charCode,
+        senderID: props.context.backend.localPlayer.id,
+        eventID: ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT.id,
+      }); // Handle local player shooting as any other event, but locally.
     }
-
-    // Char code mathces asteroid
-    asteroids.findAll((a) => a.charCode === charCode)
-    .forEach((a) => a.destroy())
-
-
-
   }
 
+  const handlePlayerShootAtCodeEvent = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
+    const shooter = players.findFirst((p) => p.id === data.id)
+
+    if (shooter) {
+
+      // Char code mathces player
+      const hitPlayers = players.findAll((p) => p.code === data.code);
+      if (!hitPlayers.length) {
+        hitPlayers.forEach((p) => {
+          spawnLazerBeam(shooter.x, shooter.y, p.x, p.y)
+          p.stun()
+        }); // Penalty increase handled on server
+        
+        shooter.disable() // Disable the player that has shot at another player.
+      }
+
+      // Char code mathces asteroid
+      const hitAsteroids = asteroids.findAll((a) => a.charCode === data.code)
+      if (!hitAsteroids.length) {
+        hitAsteroids.forEach((a) => {
+          spawnLazerBeam(shooter.x, shooter.y, a.x, a.y)
+          a.destroy()
+        })
+      }
+
+      // If nothing is hit
+      if (!hitPlayers.length && !hitAsteroids.length) {
+        spawnLazerBeam(shooter.x, shooter.y, (Math.random() + 1) * window.innerWidth, (Math.random() + 1) * window.innerHeight)
+      }
+    }
+  }
+
+  const disableButtonsHandler = (data: AsteroidsAssignPlayerDataMessageDTO, time: number) => {
+    if (data.id === props.context.backend.localPlayer.id) { 
+      clearTimeout(buttonDisableTimer) // Clear existing button disable timeouts to avoid issues with overlaps
+      setDisableButtons(true) // For button disable
+
+      buttonDisableTimer = setTimeout(() => {
+        setDisableButtons(false) // For button disable 
+        clearTimeout(buttonDisableTimer)
+      }, time);
+    }
+  }
+
+  const spawnLazerBeam = (shooterX: number, shootery: number, targetX: number, targetY: number) => {
+    const newBeam: LazerBeam = {
+      startX: shooterX,
+      startY: shootery,
+      endX: targetX,
+      endY: targetY,
+      opacity: 1, // Duration in milliseconds
+    };
+
+    lazerBeams.add(newBeam)
+  };
+
   onMount(() => {
+    const updateLazerBeams = setInterval(() => {
+      lazerBeams.mutateByPredicate(
+        (beam) => beam.opacity > 0,
+        (beam) => ({ ...beam, opacity: beam.opacity - 0.1 })
+      );
+    
+      const beamsToRemove = lazerBeams.findAll((beam) => beam.opacity <= 0);
+      beamsToRemove.forEach((beam) => {
+        const removeBeam = lazerBeams.add(beam);
+        removeBeam();
+      });
+    }, 100);
 
     const spawnSubID = props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
       const removeFunc = asteroids.add({...data, destroy: () => {
@@ -124,83 +201,126 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
         stun: () => {
           clearTimeout(stunTimer) // Clear existing stun timeouts to avoid issues with overlaps 
 
-          setIsStunned(true)
-          if (data.id === props.context.backend.localPlayer.id) setDisableButtons(true) // If local player, disabel buttons (emits should be ignored on server).
+          setIsStunned(true) // Stun the player
+
+          disableButtonsHandler(data, props.settings.stunDurationS) // If local player, disable buttons (emits should be ignored on server).
 
           stunTimer = setTimeout(() => {
             setIsStunned(false); // For stun effect/animation
-            setDisableButtons(false) // For button disable 
             clearTimeout(stunTimer)
           }, props.settings.stunDurationS);
         },
         disable: () => {
-          clearTimeout(disableTimer)
+          clearTimeout(penaltyTimer) // Clear existing disable timeouts to avoid issues with overlaps 
 
           setIsSDisabled(true)
-          if (data.id === props.context.backend.localPlayer.id) setDisableButtons(true) // If local player, disabel buttons (emits should be ignored on server).
 
-          disableTimer = setTimeout(() => {
+          disableButtonsHandler(data, props.settings.friendlyFirePenaltyS * props.settings.friendlyFirePenaltyMultiplier) // If local player, disable buttons (emits should be ignored on server).
+
+          penaltyTimer = setTimeout(() => {
             setIsSDisabled(false); // For disable effect/animation
-            setDisableButtons(false) // For button disable
-            clearTimeout(disableTimer)
-          }, props.settings.friendlyFirePenaltyS); // Based on player?
+            clearTimeout(penaltyTimer)
+          }, props.settings.friendlyFirePenaltyS * props.settings.friendlyFirePenaltyMultiplier); // QUESTION: Based on player, mamanged serverside?
         }
-      }) // (ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT) Determined serverside? Called once per player?
+      }) // QUESTION: (ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT) Determined serverside? Called once per player?
     });
 
+    const playerShootSubID = props.context.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, (data) => handlePlayerShootAtCodeEvent(data));
+
     onCleanup(() => {
-      props.context.events.unsubscribe(spawnSubID, asteroidImpactSubID, loadPlayerDataSubID)
+      props.context.events.unsubscribe(spawnSubID, asteroidImpactSubID, loadPlayerDataSubID, playerShootSubID)
+
+      clearInterval(updateLazerBeams)
     });
   });
 
   return (
     <div>
+      <StarryBackground />
+      <div class={wallStyle} id="Outer-Wall"/>
+
       <div class={statusStyle}>
         Health: {'❤'.repeat(health())}
       </div>
+      
       <Countdown duration={props.settings.survivalTimeS}/>
-      <MNTAwait
-        funcs={[
-          () => props.context.backend.getAssetMetadata(1011), // Assuming this is the asset ID for the game background
-        ]}
-      >
-        {(backgroundAsset) => (
-          <div class={gameContainerStyle}>
-            <div class={colonyStyle}>Colony</div>
-            <For each={asteroids.get}>
-              {(asteroid) => (
-                <div
-                  class={asteroidStyle}
-                  style={{
-                    left: `${asteroid.x * 100}%`,
-                    top: `${asteroid.y * 100}%`,
-                    transform: `translate(-50%, -50%)`,
-                    transition: `left ${ASTEROID_TRAVEL_TIME}s linear, top ${ASTEROID_TRAVEL_TIME}s linear`,
-                  }}
-                >
-                  <BufferBasedButton
-                    enable={isStunned} // Disable buttons when player is stunned or disbaled
-                    name={asteroid.charCode}
-                    buffer={inputBuffer.get}
-                    onActivation={() => localPlayerShootAtCodeHandler(asteroid.charCode)}
-                    register={bufferSubscribers.add}
-                    styleOverwrite={asteroidButtonStyle}
-                  />
-                </div>
-              )}
-            </For>
-            <ActionInput
-              subscribers={bufferSubscribers}
-              text={props.context.text}
-              backend={props.context.backend}
-              actionContext={actionContext.get}
-              setInputBuffer={inputBuffer.set}
-              inputBuffer={inputBuffer.get}
-              styleOverwrite={actionInputStyleOverwrite}
+      <div class={gameContainerStyle}>
+        <For each={asteroids.get}>
+          {(asteroid) => (
+            <div
+              class={asteroidStyle}
+              style={{
+                left: `${asteroid.x * 100}%`,
+                top: `${asteroid.y * 100}%`,
+                transform: `translate(-50%, -50%)`,
+                transition: `left ${ASTEROID_TRAVEL_TIME}s linear, bottom ${ASTEROID_TRAVEL_TIME}s linear`,
+              }}
+            >
+              <NTAwait func={() => props.context.backend.getAssetMetadata(1011 /* Asset for asteroid*/)}>
+                    {(asset) => (
+                        <GraphicalAsset metadata={asset} backend={props.context.backend} />
+                    )}
+              </NTAwait>
+              <BufferBasedButton
+                enable={disableButtons} // Disable buttons when player is stunned or disbaled
+                name={asteroid.charCode}
+                buffer={inputBuffer.get}
+                onActivation={() => localPlayerShootAtCodeHandler(asteroid.charCode)}
+                register={bufferSubscribers.add}
+              />
+            </div>
+          )}
+        </For>
+
+        <For each={lazerBeams.get}>
+          {(beam) => (
+            <div
+              class={lazerBeamStyle}
+              style={{
+                left: `${beam.startX}px`,
+                top: `${beam.startY}px`,
+                width: `${Math.hypot(beam.endX - beam.startX, beam.endY - beam.startY)}px`,
+                transform: `rotate(${Math.atan2(beam.endY - beam.startY, beam.endX - beam.startX)}rad)`,
+                opacity: beam.opacity,
+              }}
             />
-          </div>
-        )}
-      </MNTAwait>
+          )}
+        </For>
+
+        <For each={players.get}>
+          {(player) => (
+            <div
+              class={playerStyle}
+              style={{
+                left: `${player.x * 100}%`,
+                top: `${player.y * 100}%`,
+                transform: `translate(-50%, -50%)`,
+              }}
+            >
+              <NTAwait func={() => props.context.backend.getAssetMetadata(1011 /* Asset for player (can vary in future)*/)}>
+                    {(asset) => (
+                        <GraphicalAsset metadata={asset} backend={props.context.backend} />
+                    )}
+              </NTAwait>
+              <BufferBasedButton
+                enable={disableButtons} // Disable buttons when player is stunned or disbaled
+                name={player.code}
+                buffer={inputBuffer.get}
+                onActivation={() => localPlayerShootAtCodeHandler(player.code)}
+                register={bufferSubscribers.add}
+              />
+            </div>
+          )}
+        </For>
+        <ActionInput
+          subscribers={bufferSubscribers}
+          text={props.context.text}
+          backend={props.context.backend}
+          actionContext={actionContext.get}
+          setInputBuffer={inputBuffer.set}
+          inputBuffer={inputBuffer.get}
+        />
+      </div>
     </div>
   );
 };
@@ -216,48 +336,28 @@ const gameContainerStyle = css`
   overflow: hidden;
 `;
 
-const colonyStyle = css`
+const wallStyle = css`
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 50px;
-  height: 50px;
-  background-color: blue;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
+  top: 0;
+  left: 0;
+  width: 1vw;
+  height: 100vh;
+  background: linear-gradient(to right, #4a4a4a, #bebebe);
+  overflow: hidden;
 `;
 
 const asteroidStyle = css`
   position: absolute;
-  width: 60px;
-  height: 60px;
-  background-color: gray;
-  border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
 `;
 
-const asteroidButtonStyle = css`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
-`;
-
-const actionInputStyleOverwrite = css`
+const playerStyle = css`
   position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 
 const statusStyle = css`
@@ -266,4 +366,30 @@ const statusStyle = css`
   left: 10px;
   color: white;
   font-size: 18px;
+`;
+
+const lazerBeamStyle = css`
+  position: absolute;
+  height: 2px;
+  transform-origin: left center;
+  background: linear-gradient(
+    to right,
+    rgba(255, 0, 0, 0.5),
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 0, 0, 0.5)
+  );
+`;
+
+const impactCircleStyle = css`
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 0, 0, 1) 50%,
+    rgba(255, 0, 0, 0) 100%
+  );
 `;
