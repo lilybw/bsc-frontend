@@ -54,7 +54,7 @@ interface Player extends AsteroidsAssignPlayerDataMessageDTO {
   x: number,
   y: number,
   type: number, // Tank type, asset id
-  code: string // Charcode
+  code: string, // Charcode
 
   stun: () => void,
   disable: () => void,
@@ -303,12 +303,14 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
                     )}
               </NTAwait>
               <BufferBasedButton
-                enable={disableButtons} // Disable buttons when player is stunned or disbaled
+                enable={disableButtons} // Disable buttons when player is stunned or disabled
                 name={player.code}
                 buffer={inputBuffer.get}
                 onActivation={() => localPlayerShootAtCodeHandler(player.code)}
                 register={bufferSubscribers.add}
               />
+              {isStunned() && <div class={stunnedStyle} />}
+              {isDisabled() && <div class={disabledStyle} />}
             </div>
           )}
         </For>
@@ -353,13 +355,6 @@ const asteroidStyle = css`
   align-items: center;
 `;
 
-const playerStyle = css`
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
 const statusStyle = css`
   position: absolute;
   top: 10px;
@@ -392,4 +387,77 @@ const impactCircleStyle = css`
     rgba(255, 0, 0, 1) 50%,
     rgba(255, 0, 0, 0) 100%
   );
+`;
+
+const playerStyle = css`
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const stunnedStyle = css`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: radial-gradient(ellipse at center, rgba(173,216,230,0.5) 0%, rgba(173,216,230,0) 70%);
+    border-radius: 50%;
+    animation: smoke 3s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 0.9; }
+    100% { transform: scale(0.95); opacity: 0.7; }
+  }
+
+  @keyframes smoke {
+    0% { transform: translateY(0) scale(1); opacity: 0.3; }
+    100% { transform: translateY(-20px) scale(1.5); opacity: 0; }
+  }
+`;
+
+const disabledStyle = css`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    background: radial-gradient(ellipse at center, rgba(255,69,0,0.5) 0%, rgba(255,69,0,0) 70%);
+    border-radius: 50%;
+    animation: flicker 0.5s infinite alternate;
+  }
+
+  @keyframes flicker {
+    0% { opacity: 0.5; transform: scale(0.98); }
+    100% { opacity: 0.8; transform: scale(1.02); }
+  }
 `;
