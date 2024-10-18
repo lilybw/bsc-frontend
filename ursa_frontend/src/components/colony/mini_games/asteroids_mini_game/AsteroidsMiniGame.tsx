@@ -274,7 +274,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
                 transition: `left ${asteroid.speed}s linear, bottom ${asteroid.speed}s linear`,
               }}
             >
-              <NTAwait func={() => props.context.backend.getAssetMetadata(1011 /* Asset for asteroid*/)}>
+              <NTAwait func={() => props.context.backend.getAssetMetadata(7001 /* Asset for asteroid | QUESTION: Load once per asteroid and use reference? */)}>
                     {(asset) => (
                         <GraphicalAsset metadata={asset} backend={props.context.backend}/>
                     )}
@@ -325,7 +325,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) =
                 transform: `translate(-50%, -50%)`,
               }}
             >
-              <NTAwait func={() => props.context.backend.getAssetMetadata(1011 /* Asset for player (can vary in future)*/)}>
+              <NTAwait func={() => props.context.backend.getAssetMetadata(7002 /* Asset for player/cannon | QUESTION: Load once per player and use reference? */)}>
                     {(asset) => (
                         <GraphicalAsset metadata={asset} backend={props.context.backend} />
                     )}
