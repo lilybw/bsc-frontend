@@ -10,11 +10,12 @@ interface MinigameDifficultyListEntryProps extends IBackendBased, IBufferBased, 
     minigameID: number;
     enabled: Accessor<boolean>;
     index: number;
+    maxIndex: number;
 }
 
 const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> = (props: MinigameDifficultyListEntryProps) => {
     return (
-        <div class={containerStyles(props.index)}>
+        <div class={containerStyles(props.index, props.maxIndex)}>
             <div class={contentStyles}>
                 <BufferBasedButton 
                     name={props.text.get(props.difficulty.name).get()}
@@ -52,15 +53,14 @@ const pulse = keyframes`
   }
 `;
 
-const containerStyles = (index: number) => {
-    const maxIndex = 5; // Adjust based on your maximum number of difficulty levels
+const containerStyles = (index: number, maxIndex: number) => {
     const blueColor = "0, 100, 200"; // Base blue color
     const redColor = "255, 0, 0";   // Peak red color
 
     const peakColor = `
-        ${Math.round((maxIndex - index) / maxIndex * parseInt(blueColor.split(',')[0]) + index / maxIndex * parseInt(redColor.split(',')[0]))},
-        ${Math.round((maxIndex - index) / maxIndex * parseInt(blueColor.split(',')[1]) + index / maxIndex * parseInt(redColor.split(',')[1]))},
-        ${Math.round((maxIndex - index) / maxIndex * parseInt(blueColor.split(',')[2]) + index / maxIndex * parseInt(redColor.split(',')[2]))}
+        ${Math.round(((maxIndex - index) / maxIndex) * parseInt(blueColor.split(',')[0]) + (index / maxIndex) * parseInt(redColor.split(',')[0]))},
+        ${Math.round(((maxIndex - index) / maxIndex) * parseInt(blueColor.split(',')[1]) + (index / maxIndex) * parseInt(redColor.split(',')[1]))},
+        ${Math.round(((maxIndex - index) / maxIndex) * parseInt(blueColor.split(',')[2]) + (index / maxIndex) * parseInt(redColor.split(',')[2]))}
     `;
 
     return css`
@@ -101,7 +101,7 @@ const contentStyles = css`
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 80%; // Adjust this value to control the width of the centered content
+    max-width: 80%;
 `;
 
 const descriptionStyles = css`

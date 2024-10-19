@@ -82,6 +82,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                                         text={props.text}
                                         enabled={() => isDifficultyUnlocked(difficulty)}
                                         index={index()}
+                                        maxIndex={minigame.difficulties.length}
                                     />
                                 }
                             </For>
