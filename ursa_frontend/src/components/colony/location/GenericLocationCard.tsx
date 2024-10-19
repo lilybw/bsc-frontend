@@ -1,4 +1,4 @@
-import { Component, createSignal, For, onCleanup, onMount } from "solid-js";
+import { Component, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { css, keyframes } from "@emotion/css";
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from "../../../ts/types";
 import { ColonyLocationInformation, LocationInfoResponseDTO, MinigameDifficultyResponseDTO, uint32 } from "../../../integrations/main_backend/mainBackendDTOs";
@@ -69,24 +69,46 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                 {props.text.Title(props.info.name)({styleOverwrite: titleStyleOverwrite})}
                 <div class={contentGridStyle}>
                     <div class={difficultyListStyle}>
-                        <NTAwait func={() => props.backend.getMinigameInfo(props.info.minigameID)}>{(minigame) => 
-                            <For each={minigame.difficulties}>
-                                {(difficulty, index) =>
-                                    <MinigameDifficultyListEntry 
-                                        difficulty={difficulty} 
-                                        minigameID={minigame.id} 
-                                        buffer={props.buffer} 
-                                        register={props.register} 
-                                        backend={props.backend} 
-                                        emit={props.events.emit}
-                                        text={props.text}
-                                        enabled={() => isDifficultyUnlocked(difficulty)}
-                                        index={index()}
-                                        maxIndex={minigame.difficulties.length}
-                                    />
-                                }
-                            </For>
-                        }</NTAwait>
+                        <NTAwait 
+                            func={() => props.backend.getMinigameInfo(props.info.minigameID)}
+                            fallback={(error) => (
+                                <div class={fallbackAnimationStyle}>
+                                    <div class={spaceStationStyle}></div>
+                                    <div class={satelliteStyle}></div>
+                                    {props.text.get("LOCATION.UNDER_CONSTRUCTION").get()}
+                                </div>
+                            )}
+                        >
+                            {(minigame) => 
+                                <Show
+                                    when={minigame.difficulties.length > 0}
+                                    fallback={
+                                        <div class={fallbackAnimationStyle}>
+                                            <div class={spaceStationStyle}></div>
+                                            <div class={satelliteStyle}></div>
+                                            {props.text.get("LOCATION.NO_DIFFICULTIES").get()}
+                                        </div>
+                                    }
+                                >
+                                    <For each={minigame.difficulties}>
+                                        {(difficulty, index) =>
+                                            <MinigameDifficultyListEntry 
+                                                difficulty={difficulty} 
+                                                minigameID={minigame.id} 
+                                                buffer={props.buffer} 
+                                                register={props.register} 
+                                                backend={props.backend} 
+                                                emit={props.events.emit}
+                                                text={props.text}
+                                                enabled={() => isDifficultyUnlocked(difficulty)}
+                                                index={index()}
+                                                maxIndex={minigame.difficulties.length - 1}
+                                            />
+                                        }
+                                    </For>
+                                </Show>
+                            }
+                        </NTAwait>
                     </div>
                     <div class={imageContainerStyle}>
                         <NTAwait func={() => props.backend.getAssetMetadata(getIdOfSplashArt(props.colonyLocation.level, props.info.appearances))}>
@@ -126,6 +148,16 @@ const moveBackground = keyframes`
     100% {
         transform: translateX(-50%);
     }
+`;
+
+const rotate = keyframes`
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+`;
+
+const orbit = keyframes`
+    0% { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
 `;
 
 const cardContainerStyle = css`
@@ -226,4 +258,51 @@ const buttonContainerStyle = css`
     gap: 1rem;
     position: relative;
     z-index: 1;
+`;
+
+const fallbackAnimationStyle = css`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #00ffff;
+    font-size: 1.2rem;
+    text-align: center;
+`;
+
+const spaceStationStyle = css`
+    width: 100px;
+    height: 100px;
+    background-color: #333;
+    border-radius: 50%;
+    position: relative;
+    margin-bottom: 20px;
+    animation: ${rotate} 10s linear infinite;
+    &:before, &:after {
+        content: '';
+        position: absolute;
+        background-color: #555;
+    }
+    &:before {
+        width: 120px;
+        height: 20px;
+        top: 40px;
+        left: -10px;
+    }
+    &:after {
+        width: 20px;
+        height: 120px;
+        top: -10px;
+        left: 40px;
+    }
+`;
+
+const satelliteStyle = css`
+    width: 20px;
+    height: 20px;
+    background-color: #00ffff;
+    border-radius: 50%;
+    position: absolute;
+    animation: ${orbit} 5s linear infinite;
 `;
