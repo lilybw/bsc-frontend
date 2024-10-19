@@ -8,6 +8,7 @@ import GraphicalAsset from "../../GraphicalAsset";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 import MinigameDifficultyListEntry from "./MinigameDifficultyListEntry";
 import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, DifficultySelectForMinigameMessageDTO } from "../../../integrations/multiplayer_backend/EventSpecifications";
+import UnderConstruction from "../../UnderConstruction";
 
 export interface GenericLocationCardProps extends IBufferBased, IBackendBased, IInternationalized, IRegistering<string> {
     colonyLocation: ColonyLocationInformation;
@@ -71,24 +72,12 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                     <div class={difficultyListStyle}>
                         <NTAwait 
                             func={() => props.backend.getMinigameInfo(props.info.minigameID)}
-                            fallback={(error) => (
-                                <div class={fallbackAnimationStyle}>
-                                    <div class={spaceStationStyle}></div>
-                                    <div class={satelliteStyle}></div>
-                                    {props.text.get("LOCATION.UNDER_CONSTRUCTION").get()}
-                                </div>
-                            )}
+                            fallback={() => <UnderConstruction />}
                         >
                             {(minigame) => 
                                 <Show
                                     when={minigame.difficulties.length > 0}
-                                    fallback={
-                                        <div class={fallbackAnimationStyle}>
-                                            <div class={spaceStationStyle}></div>
-                                            <div class={satelliteStyle}></div>
-                                            {props.text.get("LOCATION.NO_DIFFICULTIES").get()}
-                                        </div>
-                                    }
+                                    fallback={<UnderConstruction />}
                                 >
                                     <For each={minigame.difficulties}>
                                         {(difficulty, index) =>
