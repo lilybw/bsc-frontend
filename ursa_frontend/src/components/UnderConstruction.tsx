@@ -52,63 +52,53 @@ const MatrixRain = (props: MatrixRainProps) => {
     ctx.font = `${fontSize}px 'Orbitron', sans-serif`;
     ctx.textBaseline = 'top';
 
-    if (!specialTextState && Math.random() < 0.001) {
+    if (!specialTextState && Math.random() < 0.003) {
       const text = props.specialText || "UNDER CONSTRUCTION";
       const wrappedText = wrapText(text);
       const position = Math.floor(Math.random() * (columns - wrappedText[0].length));
       specialTextState = { text: wrappedText, position, yOffset: 0 };
     }
 
+    // Draw regular characters
     for (let i = 0; i < drops.length; i++) {
-      let text = characters[Math.floor(Math.random() * characters.length)];
-      let isSpecial = false;
-      let specialLineIndex = -1;
-
-      if (specialTextState) {
-        specialTextState.text.forEach((line, index) => {
-          if (i >= specialTextState!.position && i < specialTextState!.position + line.length) {
-            const charIndex = i - specialTextState!.position;
-            if (charIndex < line.length) {
-              text = line[charIndex];
-              isSpecial = true;
-              specialLineIndex = index;
-            }
-          }
-        });
-      }
-
+      const text = characters[Math.floor(Math.random() * characters.length)];
+      
       const blue = Math.floor(Math.random() * 55) + 200;
       const green = Math.floor(blue * 0.8);
       const alpha = Math.random() * 0.5 + 0.5;
 
-      if (isSpecial) {
-        ctx.fillStyle = `rgba(255, 0, 0, ${alpha})`;
-        ctx.shadowColor = 'rgba(255, 0, 0, 0.8)';
-      } else {
-        ctx.fillStyle = `rgba(100, ${green}, ${blue}, ${alpha})`;
-        ctx.shadowColor = `rgba(100, ${green}, ${blue}, 0.8)`;
-      }
+      ctx.fillStyle = `rgba(100, ${green}, ${blue}, ${alpha})`;
+      ctx.shadowColor = `rgba(100, ${green}, ${blue}, 0.8)`;
       ctx.shadowBlur = 2;
 
       const x = i * columnWidth;
-      const y = isSpecial 
-        ? (specialTextState!.yOffset + specialLineIndex) * fontSize 
-        : drops[i] * fontSize;
+      const y = drops[i] * fontSize;
 
       ctx.fillText(text, x, y);
 
       ctx.shadowBlur = 0;
 
-      if (!isSpecial) {
-        drops[i] += 0.75;
+      drops[i] += 0.75;
 
-        if (drops[i] * fontSize > dimensions().height && Math.random() > 0.99) {
-          drops[i] = 0;
-        }
+      if (drops[i] * fontSize > dimensions().height && Math.random() > 0.99) {
+        drops[i] = 0;
       }
     }
 
+    // Draw special text separately
     if (specialTextState) {
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+      ctx.shadowColor = 'rgba(255, 0, 0, 0.8)';
+      ctx.shadowBlur = 2;
+
+      specialTextState.text.forEach((line, index) => {
+        const x = specialTextState!.position * columnWidth;
+        const y = (specialTextState!.yOffset + index) * fontSize;
+        ctx.fillText(line, x, y);
+      });
+
+      ctx.shadowBlur = 0;
+
       specialTextState.yOffset += 0.75;
       if (specialTextState.yOffset * fontSize > dimensions().height) {
         specialTextState = null;

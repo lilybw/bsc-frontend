@@ -72,7 +72,9 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                     <div class={difficultyListStyle}>
                         <NTAwait 
                             func={() => props.backend.getMinigameInfo(props.info.minigameID)}
-                            fallback={() => <UnderConstruction />}
+                            fallback={() => <UnderConstruction 
+                                specialText={props.text.get("LOCATION.UNDER_CONSTRUCTION").get()}
+                            />}
                         >
                             {(minigame) => 
                                 <Show
