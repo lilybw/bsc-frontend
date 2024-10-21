@@ -1,5 +1,5 @@
 import { Component, createMemo, JSX } from "solid-js";
-import { ColonyLocationInformation, LocationInfoResponseDTO } from "../../../integrations/main_backend/mainBackendDTOs";
+import { ColonyInfoResponseDTO, ColonyLocationInformation, LocationInfoResponseDTO } from "../../../integrations/main_backend/mainBackendDTOs";
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from "../../../ts/types";
 import { css } from "@emotion/css";
 import NTAwait from "../../util/NoThrowAwait";
@@ -10,6 +10,7 @@ import HomeLocationCard from "./HomeLocationCard";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 
 export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
+    colony: ColonyInfoResponseDTO;
     colonyLocation: ColonyLocationInformation;
     location: LocationInfoResponseDTO;
     events: IEventMultiplexer;
@@ -38,6 +39,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             case KnownLocations.SpacePort:
                 return (
                     <SpacePortLocationCard 
+                        colony={props.colony}
                         events={props.events}
                         colonyLocation={props.colonyLocation}
                         closeCard={props.onClose} 

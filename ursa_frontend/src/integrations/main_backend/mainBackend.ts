@@ -91,6 +91,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     updateLatestVisit: (dto: UpdateLatestVisitRequestDTO, colony: number) => Promise<ResCodeErr<UpdateLatestVisitResponseDTO>>;
     getColonyOverview: (player: PlayerID) => Promise<ResCodeErr<ColonyOverviewReponseDTO>>;
     openColony: (colony: number, dto: OpenColonyRequestDTO) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
+    closeColony: (colony: number) => Promise<ResCodeErr<void>>;
     joinColony: (code: ColonyCode) => Promise<ResCodeErr<JoinColonyResponseDTO>>;
     createColony: (dto: CreateColonyRequestDTO, player: PlayerID) => Promise<ResCodeErr<CreateColonyResponseDTO>>;
     getColonyPathGraph: (colony: number) => Promise<ResCodeErr<ColonyPathGraphResponseDTO>>;
@@ -186,6 +187,8 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
             base.request<UpdateLatestVisitResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/update-last-visit`, ParseMethod.JSON, dto),
         getColonyOverview: (player) => base.request<ColonyOverviewReponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
         openColony: (colony, dto) => base.request<OpenColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON, dto),
+        closeColony: (colony) => 
+            base.request<void>(HTTPMethod.POST, `/api/v1/colony/${colony}/close`, ParseMethod.NONE),
         joinColony: (code) => base.request<JoinColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/join/${code}`, ParseMethod.JSON),
         createColony: (dto, player) =>
             base.request<ColonyInfoResponseDTO>(HTTPMethod.POST, `/api/v1/player/${player}/colony/create`, ParseMethod.JSON, dto),

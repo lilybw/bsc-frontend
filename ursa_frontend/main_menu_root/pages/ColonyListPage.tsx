@@ -35,7 +35,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
         const getCurrentDateTimeLocaleString = () => {
             const now = new Date();
             return now.toLocaleString('en-US', { 
-                timeZone: 'Europe/Copenhagen',
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',

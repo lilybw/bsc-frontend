@@ -1,5 +1,5 @@
 import { Accessor, Component, createMemo, createSignal, onCleanup, onMount } from "solid-js";
-import { ColonyLocationInformation, LocationInfoResponseDTO, TransformDTO } from "../../../integrations/main_backend/mainBackendDTOs";
+import { ColonyInfoResponseDTO, ColonyLocationInformation, LocationInfoResponseDTO, TransformDTO } from "../../../integrations/main_backend/mainBackendDTOs";
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from "../../../ts/types";
 import { css } from "@emotion/css";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
@@ -12,6 +12,7 @@ import { WrappedSignal } from "../../../ts/wrappedSignal";
 import { ActionContext, TypeIconTuple } from "../../../ts/actionContext";
 
 interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
+    colony: ColonyInfoResponseDTO;
     colonyLocation: ColonyLocationInformation;
     location: LocationInfoResponseDTO;
     plexer: IEventMultiplexer;
@@ -103,6 +104,7 @@ const Location: Component<LocationProps> = (props) => {
         if (showLocationCard()) {
             return (
                 <LocationCard
+                    colony={props.colony}
                     events={props.plexer}
                     colonyLocation={props.colonyLocation}
                     location={props.location}

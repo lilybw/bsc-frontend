@@ -15,6 +15,7 @@ import { BufferSubscriber, TypeIconTuple } from "../../ts/actionContext";
 import { ArrayStore, createArrayStore } from "../../ts/arrayStore";
 import ActionInput from "./MainActionInput";
 import { Styles } from "../../sharedCSS";
+import { ApplicationContext } from "../../meta/types";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -195,6 +196,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         >
                             {(locationInfo) => (
                                 <Location
+                                    colony={props.colony}
                                     colonyLocation={colonyLocation}
                                     location={locationInfo}
                                     gas={GAS}
