@@ -78,12 +78,12 @@ export interface ArbitraryResponseDefinition<H extends { [key: string]: any }> {
 }
 
 export type ApplicationContext = {
-    multiplayer: IMultiplayerIntegration;
-    backend: BackendIntegration;
-    events: IEventMultiplexer;
-    logger: Logger;
-    vitec: VitecIntegration;
-    text: InternationalizationService;
-    env: ENV;
-    nav: URSANav;
+    multiplayer: Readonly<IMultiplayerIntegration>;
+    backend: Readonly<BackendIntegration>;
+    events: Readonly<IEventMultiplexer>;
+    logger: Readonly<Logger>;
+    vitec: Readonly<VitecIntegration>;
+    text: Readonly<InternationalizationService>;
+    env: Readonly<ENV>;
+    nav: Readonly<URSANav>;
 };

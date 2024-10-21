@@ -44,7 +44,7 @@ class InternationalizationServiceImpl implements InternationalizationService {
         }
         this.loadCatalogue(lang).then((err) => {
             if (err != null) {
-                this.log.error(`[faux i18] Failed to load catalogue for language: ${lang}, error: ${err}`);
+                this.log.error(`   Failed to load catalogue for language: ${lang}, error: ${err}`);
             } else {
                 this.currentLanguage = lang;
             }
@@ -58,7 +58,7 @@ class InternationalizationServiceImpl implements InternationalizationService {
     };
 
     private loadCatalogue = async (lang: LanguagePreference): Promise<Error | undefined> => {
-        this.log.trace('[faux i18] Loading catalogue, code: ' + lang);
+        this.log.trace('   Loading catalogue, code: ' + lang);
         const getCataglogueRes = await this.backend.getCatalogue(lang);
         if (getCataglogueRes.err != null) {
             return getCataglogueRes.err;
@@ -93,10 +93,11 @@ class InternationalizationServiceImpl implements InternationalizationService {
 
 export const initializeInternationalizationService = async (
     backend: BackendIntegration,
-    log: Logger,
+    logger: Logger,
     vitec: VitecIntegration,
 ): Promise<ResErr<InternationalizationService>> => {
-    log.trace('[faux i18] Initializing internationalization service');
+    const log = logger.copyFor('faux i18');
+    log.trace('   Initializing internationalization service');
 
     const intergration = new InternationalizationServiceImpl(backend, log, vitec.info.languagePreference);
     const initErr = await intergration.loadInitialCatalogue();
@@ -104,6 +105,6 @@ export const initializeInternationalizationService = async (
         return { res: null, err: initErr };
     }
 
-    log.trace('[faux i18] Internationalization service initialized');
+    log.trace('   Internationalization service initialized');
     return { res: intergration, err: null };
 };

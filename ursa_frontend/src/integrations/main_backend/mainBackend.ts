@@ -29,12 +29,14 @@ import {
     PlayerInfoResponseDTO,
     PlayerPreferencesResponseDTO,
     PreferenceKeys,
+    ResponseBlob,
     SessionInitiationRequestDTO,
     SessionInitiationResponseDTO,
     UpdateLatestVisitRequestDTO,
     UpdateLatestVisitResponseDTO,
 } from './mainBackendDTOs';
 import { LanguagePreference } from '../vitec/vitecDTOs';
+import { initializeObjectURLCache, IObjectURLCache } from './objectUrlCache';
 /**
  * @since 0.0.1
  * @author GustavBW
@@ -101,36 +103,48 @@ export interface BackendIntegration extends BaseBackendIntegration {
 
     getAssetMetadata: (asset: AssetID) => Promise<ResCodeErr<AssetResponseDTO>>;
     getMetadataOfAssets: (assets: AssetID[]) => Promise<ResCodeErr<AssetResponseDTO[]>>;
-    getLODByAsset: (asset: AssetID, detailLevel: number) => Promise<ResCodeErr<Blob>>;
-    getLOD: (lod: LODID) => Promise<ResCodeErr<Blob>>;
+    getLODByAsset: (asset: AssetID, detailLevel: number) => Promise<ResCodeErr<ResponseBlob>>;
+    getLOD: (lod: LODID) => Promise<ResCodeErr<ResponseBlob>>;
     getAssetCollection: (collection: AssetCollectionID) => Promise<ResCodeErr<AssetCollectionResponseDTO>>;
+    objectUrlCache: IObjectURLCache;
 
     getMinigameInfo: (minigame: number) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
     getMinimizedMinigameInfo: (minigame: MinigameID, diffulty: MinigameDifficultyID) => Promise<ResCodeErr<MinimizedMinigameInfoResponseDTO>>;
 }
+
+/**
+ * In raw binary responses (blob), further information about the asset is provided in the headers.
+ */
+export const URSA_HEADER_DETAIL_LEVEL = "URSA-DETAIL-LEVEL";
+/**
+ * In raw binary responses (blob), further information about the asset is provided in the headers.
+ */
+export const URSA_HEADER_ASSET_ID = "URSA-ASSET-ID";
+
 /**
  * @since 0.0.1
  * @author GustavBW
  */
 export async function initializeBackendIntegration(
     environment: ENV,
-    log: Logger,
+    logger: Logger,
     userData: SessionInitiationRequestDTO,
 ): Promise<ResErr<BackendIntegration>> {
-    log.trace('[umb int] Initializing backend integration');
+    const log = logger.copyFor('umb int');
+    log.trace('Initializing backend integration');
     const { mainBackendIP, mainBackendPort } = environment;
     let mainBackendRootUrl = `https://${mainBackendIP}:${mainBackendPort}`;
     if (environment.proxyMainBackendRequests) {
-        log.log('[umb int] Proxying main backend requests');
+        log.log('Proxying main backend requests');
 
         if (mainBackendRootUrl === undefined || mainBackendRootUrl === null) {
-            log.error('[umb int] Proxying main backend requests is enabled, but no proxy url is provided');
+            log.error('  Proxying main backend requests is enabled, but no proxy url is provided');
             return { res: null, err: 'Proxying main backend requests is enabled, but no proxy url is provided' };
         }
 
         mainBackendRootUrl = environment.mainBackendURLWhenProxied!;
     }
-    log.log(`[umb int] Main backend root url: ${mainBackendRootUrl}`);
+    log.log(`Main backend root url: ${mainBackendRootUrl}`);
     const placeholder = () => {
         throw new Error('backend integration not initialized');
     };
@@ -155,8 +169,9 @@ export async function initializeBackendIntegration(
         return { res: null, err: playerInfoRes.err };
     }
     const integration = applyRouteImplementations(base, playerInfoRes.res);
+    integration.objectUrlCache = initializeObjectURLCache(integration, log);
 
-    log.trace('[umb int] Backend integration initialized');
+    log.trace('  Backend integration initialized');
     return { res: integration, err: null };
 }
 /**
@@ -201,10 +216,11 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
 
         getAssetMetadata: (assetId) => base.request<AssetResponseDTO>(HTTPMethod.GET, `/api/v1/asset/${assetId}`, ParseMethod.JSON),
         getMetadataOfAssets: (assets) => base.request<AssetResponseDTO[]>(HTTPMethod.GET, `/api/v1/assets?ids=${assets.join(',')}`, ParseMethod.JSON),
-        getLODByAsset: (asset, lod) => base.request<Blob>(HTTPMethod.GET, `/api/v1/asset/${asset}/lod/${lod}`, ParseMethod.BLOB),
-        getLOD: (lod: LODID) => base.request<Blob>(HTTPMethod.GET, `/api/v1/lod/${lod}`, ParseMethod.BLOB),
+        getLODByAsset: (asset, lod) => base.request<ResponseBlob>(HTTPMethod.GET, `/api/v1/asset/${asset}/lod/${lod}`, ParseMethod.BLOB),
+        getLOD: (lod: LODID) => base.request<ResponseBlob>(HTTPMethod.GET, `/api/v1/lod/${lod}`, ParseMethod.BLOB),
         getAssetCollection: (collection) =>
             base.request<AssetCollectionResponseDTO>(HTTPMethod.GET, `/api/v1/collection/${collection}`, ParseMethod.JSON),
+        objectUrlCache: null as any, //Field initialized in initializeBackendIntegration
 
         getMinigameInfo: (minigame) => base.request<MinigameInfoResponseDTO>(HTTPMethod.GET, `/api/v1/minigame/${minigame}`, ParseMethod.JSON),
         getMinimizedMinigameInfo: (minigame, difficulty) =>
@@ -235,11 +251,11 @@ async function handleArbitraryRequest<T>(
     headers['Content-Type'] = 'application/json';
 
     if ((!userToken || userToken === '' || userToken === null) && !suburl.includes('session')) {
-        integration.logger.log('[umb int] User is not yet authorized, yet a request for: ' + suburl + ' was made');
+        integration.logger.log('  User is not yet authorized, yet a request for: ' + suburl + ' was made');
         return { res: null, code: 400, err: USER_NOT_AUTHORIZED_ERROR };
     }
     try {
-        integration.logger.trace(`[umb int] OUT: ${method} ${integration.mainBackendRootUrl}${suburl}`);
+        integration.logger.trace(`  OUT: ${method} ${integration.mainBackendRootUrl}${suburl}`);
         const response = await fetch(integration.mainBackendRootUrl + suburl, {
             method: method,
             body: body ? JSON.stringify(body) : undefined,
@@ -247,7 +263,7 @@ async function handleArbitraryRequest<T>(
         });
         const ddh = response.headers.get('Ursa-Ddh');
         if (ddh != null) {
-            integration.logger.warn('[umb int] DDH: ' + ddh);
+            integration.logger.warn('  DDH: ' + ddh);
         }
         const code = response.status;
         if (!(code >= 200 && code < 300)) {
@@ -263,14 +279,16 @@ async function handleArbitraryRequest<T>(
             case ParseMethod.TEXT:
                 return { res: (await response.text()) as unknown as T, code: code, err: null };
             case ParseMethod.BLOB:
-                return { res: (await response.blob()) as unknown as T, code: code, err: null };
+                const blob = await response.blob();
+                const amalgamation = Object.assign(blob, { headers: response.headers });
+                return { res: amalgamation as unknown as T, code: code, err: null };
             case ParseMethod.ARRAYBUFFER:
                 return { res: (await response.arrayBuffer()) as unknown as T, code: code, err: null };
             case ParseMethod.NONE:
                 return { res: undefined as unknown as T, code: code, err: null };
         }
     } catch (error) {
-        integration.logger.error(('[umb int] Error: ' + error) as string);
+        integration.logger.error(('  Error: ' + error) as string);
         return { res: null, code: 600, err: error as string };
     }
 }
