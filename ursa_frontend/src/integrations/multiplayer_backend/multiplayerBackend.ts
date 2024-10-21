@@ -55,22 +55,23 @@ export const initializeMultiplayerIntegration = (
 };
 
 class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
+    // All of the below are overwritten connection.
     private connection: WebSocket | null = null;
-    /**
-     * All of the below are overwritten on connect
-     */
-    private subscriptions: number[] = [];
-    private mode: WrappedSignal<MultiplayerMode> = createWrappedSignal<MultiplayerMode>(MultiplayerMode.AS_GUEST);
-    private state: WrappedSignal<ColonyState> = createWrappedSignal<ColonyState>(ColonyState.CLOSED);
     private connectedLobbyID: number | null = null;
     private serverAddress: string | null = null;
+    private subscriptions: number[] = [];
+    
+    private readonly mode: WrappedSignal<MultiplayerMode> = createWrappedSignal<MultiplayerMode>(MultiplayerMode.AS_GUEST);
+    private readonly state: WrappedSignal<ColonyState> = createWrappedSignal<ColonyState>(ColonyState.CLOSED);
+    private readonly log: Logger;
     constructor(
         private readonly backend: BackendIntegration,
-        private readonly log: Logger,
+        log: Logger,
         private readonly multiplexer: IExpandedAccessMultiplexer,
         mode: MultiplayerMode,
     ) {
         this.mode = createWrappedSignal(mode);
+        this.log = log.copyFor('mp int');
     }
 
     public getMode = this.mode.get; //Function ref to Accessor<MultiplayerMode>
@@ -133,6 +134,11 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         this.connectedLobbyID = lobbyID;
         this.serverAddress = address;
 
+        //Unsubscribe from all previous subscriptions, if any
+        if (this.subscriptions && this.subscriptions.length > 0) {
+            this.multiplexer.unsubscribe(...this.subscriptions);
+        }
+        
         //Subscribe to all events coming from this frontend's user's actions
         //in order to replicate them back to the server, which will then send them to all other clients
         //However only subscribe to those which this user is allowed to send to the server in the first place

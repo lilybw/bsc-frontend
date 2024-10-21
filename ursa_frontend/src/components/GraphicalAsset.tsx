@@ -6,6 +6,8 @@ import SomethingWentWrongIcon from './SomethingWentWrongIcon';
 import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from '../ts/types';
 import { getRandHash } from '../ts/ursaMath';
 import { Styles } from '../sharedCSS';
+import { ObjectURL } from '../integrations/main_backend/objectUrlCache';
+import { url } from 'inspector';
 
 interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IBackendBased {
   metadata: AssetResponseDTO | MinimizedAssetDTO;
@@ -16,7 +18,8 @@ interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IB
 }
 
 const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
-  const [currentSrc, setCurrentSrc] = createSignal<string | null>(null);
+  const log = props.backend.logger.copyFor("asset");
+  const [currentSrc, setCurrentSrc] = createSignal<ObjectURL | null>(null);
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal<string | undefined>(undefined);
   const [currentLODLevel, setCurrentLODLevel] = createSignal(9001);
@@ -33,24 +36,21 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
         for (const lod of sortedLODs) {
           if (!mounted) break;
 
-          const lodResponse = await props.backend.getLOD(lod.id);
-          if (lodResponse.err || lodResponse.res === null) {
-            props.backend.logger.warn(`Failed to load LOD ${lod.detailLevel} for asset ${props.metadata}: ${lodResponse.err}`);
+          const urlAttempt = await props.backend.objectUrlCache.getByLODID(lod.id);
+          if (urlAttempt.err || urlAttempt.res === null) {
+            log.warn(`Failed to load LOD ${lod.detailLevel} for asset ${props.metadata}: ${urlAttempt.err}`);
             continue; // Try next LOD
           }
 
-          const blob = lodResponse.res;
-          const objectUrl = URL.createObjectURL(blob);
-
           const img = new Image();
-          img.src = objectUrl;
+          img.src = urlAttempt.res;
 
           await new Promise<void>((resolve) => {
             img.onload = () => {
               if (mounted) {
                 setCurrentSrc((prevSrc) => {
-                  if (prevSrc) URL.revokeObjectURL(prevSrc);
-                  return objectUrl;
+                  if (prevSrc) prevSrc.release();
+                  return urlAttempt.res;
                 });
                 setCurrentLODLevel(lod.detailLevel);
                 setLoading(false);
@@ -58,7 +58,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
               resolve();
             };
             img.onerror = () => {
-              URL.revokeObjectURL(objectUrl);
+              urlAttempt.res.release();
               resolve();
             };
           });
@@ -66,7 +66,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
           if (lod.detailLevel === 0) break; // Stop if we've loaded the highest detail LOD
         }
       } catch (error) {
-        props.backend.logger.error(`Error loading asset ${props.metadata.alias}: ` + error);
+        log.error(`Error loading asset ${props.metadata.alias}: ` + error);
         setError((error as Error).message);
         setLoading(false);
       }
@@ -76,11 +76,13 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
 
     onCleanup(() => {
       mounted = false;
-      if (currentSrc()) {
-        URL.revokeObjectURL(currentSrc()!);
+      const src = currentSrc();
+      if (src) {
+        src.release();
       }
     });
   });
+
   const computedStyles = createMemo(() => css`
     ${baseStyles}
     ${Styles.transformToCSSVariables(props.transform)}

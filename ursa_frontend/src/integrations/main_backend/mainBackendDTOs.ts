@@ -13,6 +13,7 @@ export type LocationID = uint32;
 export type ColonyCode = uint32;
 export type MinigameDifficultyID = uint32;
 export type PlayerID = uint32;
+export type ResponseBlob = Blob & { headers: Headers };
 
 export type PlayerInfoResponseDTO = {
     id: PlayerID;

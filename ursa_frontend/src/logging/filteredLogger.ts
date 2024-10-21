@@ -1,47 +1,52 @@
 import { ENV } from '../environment/manager';
 import { LogLevel } from '../meta/types';
 
-export type Logger = {
+export interface Logger {
     trace: (message: string) => void;
     log: (message: string) => void;
     warn: (message: string) => void;
     error: (message: string) => void;
+    copyFor: (name: string) => Logger;
 };
 
-const ErrorOnlyLogger: Logger = {
-    trace: () => {},
-    log: () => {},
-    warn: () => {},
-    error: console.error,
-};
+class ErrorOnlyLogger implements Logger {
+    constructor(
+        readonly name: string = 'ursa',
+    ){}
+    trace = (msg: string) => {};
+    log = (msg: string) => {};
+    warn = (msg: string) => {};
+    error = (msg: string) => console.error(`[${this.name}] ${msg}`);
+    copyFor = (name: string) => new ErrorOnlyLogger(name);
+}
 
-const WarningLogger: Logger = {
-    ...ErrorOnlyLogger,
-    warn: console.warn,
-};
+class WarningLogger extends ErrorOnlyLogger {
+    warn = (msg: string) => console.warn(`[${this.name}] ${msg}`);
+    copyFor = (name: string) => new WarningLogger(name);
+}
 
-const VerboseLogger: Logger = {
-    ...WarningLogger,
-    log: console.log,
-};
+class VerboseLogger extends WarningLogger {
+    log = (msg: string) => console.log(`[${this.name}] ${msg}`);
+    copyFor = (name: string) => new VerboseLogger(name);
+}
 
-const Blogger: Logger = {
-    ...VerboseLogger,
-    trace: console.log,
-};
+class Blogger extends VerboseLogger {
+    trace = (msg: string) => console.log(`[${this.name}] ${msg}`);
+    copyFor = (name: string) => new Blogger(name);
+}
 
 export const initializeLogger = (environment: ENV): Logger => {
     switch (environment.logLevel) {
         case LogLevel.TRACE:
-            return Blogger;
+            return new Blogger();
         case LogLevel.INFO:
-            return VerboseLogger;
+            return new VerboseLogger();
         case LogLevel.WARN:
-            return WarningLogger;
+            return new WarningLogger();
         case LogLevel.ERROR:
-            return ErrorOnlyLogger;
+            return new ErrorOnlyLogger();
         default:
             console.error(`Unknown log level: ${environment.logLevel}`);
-            return VerboseLogger;
+            return new VerboseLogger();
     }
 };

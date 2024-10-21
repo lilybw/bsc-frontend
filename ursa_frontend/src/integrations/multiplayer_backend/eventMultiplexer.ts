@@ -8,8 +8,8 @@ export type EventID = number;
 
 export interface IEventMultiplexer {
     /**
-     * Subscripe to any amount of events.
-     * @returns A subscription ID that can be used to unregister all handlers given in this call.
+     * Subscripe to any amount of events. The callback given is queued as a micro task when an event of the specified type is emitted.
+     * @returns A subscription ID that can be used to unregister the handler given in this call.
      *
      * Usage
      * ```typescript
@@ -37,19 +37,23 @@ export interface IExpandedAccessMultiplexer extends IEventMultiplexer {
     emitRAW: <T extends IMessage>(data: T) => Promise<void>;
 }
 
-export const initializeEventMultiplexer = (log: Logger, localPlayer: PlayerID): IExpandedAccessMultiplexer => {
-    const plexer = new EventMultiplexerImpl(localPlayer);
+export const initializeEventMultiplexer = (logger: Logger, localPlayer: PlayerID): IExpandedAccessMultiplexer => {
+    const log = logger.copyFor('events');
+    const plexer = new EventMultiplexerImpl(localPlayer, log);
     const unsubscribeID = plexer.subscribe(DEBUG_INFO_EVENT, (data) => {
-        log.log(`[emp debug] from ${data.senderID}: ${data.message}`);
+        log.log(`debug event from ${data.senderID}: ${data.message}`);
     });
     return plexer;
 };
 
 class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
-    private subscriptions = new Map<EventID, OnEventCallback<any>[]>();
-    private registeredHandlers = new Map<SubscriptionID, [EventID, OnEventCallback<any>[]]>();
+    private readonly subscriptions = new Map<EventID, OnEventCallback<any>[]>();
+    private readonly registeredHandlers = new Map<SubscriptionID, [EventID, OnEventCallback<any>[]]>();
     private nextSubscriptionID = 0;
-    constructor(private readonly player: PlayerID) {}
+    constructor(
+        private readonly player: PlayerID,
+        private readonly log: Logger
+    ) {}
 
     subscribe = <T extends IMessage>(spec: EventSpecification<T>, callback: OnEventCallback<T>) => {
         let handlerArr = this.subscriptions.get(spec.id);
@@ -93,8 +97,12 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
         if (!handlers || handlers === null || handlers.length === 0) {
             return;
         }
-        for (const handler of handlers) {
-            handler(data);
-        }
+        // Use Promise.all with queueMicrotask for better performance
+        await Promise.all(handlers.map(handler => new Promise<void>(resolve => {
+            queueMicrotask(() => {
+                handler(data);
+                resolve();
+            });
+        })));
     };
 }
