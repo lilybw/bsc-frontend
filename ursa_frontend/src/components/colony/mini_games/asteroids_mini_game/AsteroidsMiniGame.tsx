@@ -44,15 +44,16 @@ interface Asteroid extends AsteroidsAsteroidSpawnMessageDTO {
 }
 
 interface Player extends AsteroidsAssignPlayerDataMessageDTO {
-  id: number,
-  x: number,
-  y: number,
-  type: number, // Tank type, asset id
-  code: string, // Charcode
   isStunned: boolean,
   isDisabled: boolean,
 
+  /**
+   * You got shot
+   */
   stun: () => void,
+  /**
+   * You shot someone (penalty)
+   */
   disable: () => void,
 }
 

@@ -12,10 +12,13 @@ import {
     IMessage,
     ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT,
 } from '../integrations/multiplayer_backend/EventSpecifications';
-import { ApplicationContext, ResErr } from '../meta/types';
+import { ApplicationContext, Error, ResErr } from '../meta/types';
 import { KnownMinigames, Minigame } from "../components/colony/mini_games/miniGame";
 import { Logger } from "../logging/filteredLogger";
 import { uint32 } from "../integrations/main_backend/mainBackendDTOs";
+import AsteroidsMiniGame, { AsteroidsSettingsDTO } from "../components/colony/mini_games/asteroids_mini_game/AsteroidsMiniGame";
+import { BackendIntegration } from "../integrations/main_backend/mainBackend";
+import { createAsteroidsGameLoop } from "../components/colony/mini_games/asteroids_mini_game/AsteroidsGameLoop";
 
 /**
  * Interface defining the basic operations of the MockServer.
@@ -132,6 +135,7 @@ export class MockServer implements IMockServer {
                     // Handle player ready for minigame
                     if (message.eventID === PLAYER_READY_FOR_MINIGAME_EVENT.id) {
                         this.lobbyPhase = LobbyPhase.InMinigame;
+                        this.loadMiniGame(this.context, this.returnToColony, this.setPageContent, this.difficultyConfirmed?.minigameID!, this.difficultyConfirmed?.difficultyID!);
                         this.log.trace("Phase changed to InMinigame");
                     }
                     break;
@@ -146,6 +150,7 @@ export class MockServer implements IMockServer {
     private gameFinished() {
         this.log.trace("Game finished, reverting to colony");
         this.returnToColony()
+        this.reset();
     }
 
     /**
@@ -169,39 +174,36 @@ export class MockServer implements IMockServer {
         this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT, this.gameFinished));
     }
 
+
     /**
-     * Checks if a string is valid JSON.
-     * @param str The string to check.
-     * @returns True if the string is valid JSON, false otherwise.
+     * Load and mount a minigame.
      */
-    private isValidJSON(str: string): boolean {
-        if (typeof str !== 'string') return false;
-        try {
-            JSON.parse(str);
-            return true;
-        } catch {
-            return false;
-        }
-    }
+    private async loadMiniGame(context: ApplicationContext, returnToColony: () => void, setPageContent: ((e: JSX.Element) => void), minigameID: number, difficultyID: number): Promise<Error | undefined> {
+        this.log.trace("loading minigame id: " + minigameID);
+        if (this.difficultyConfirmed === null) return "Could not load minigame difficualty information is null.";
 
-    private async loadMiniGame(): Promise<ResErr<Minigame<any>>> {
-        this.log.trace("loading minigame id: " + this.difficultyConfirmed?.minigameID);
-        if (this.difficultyConfirmed === null) return {res: null, err: "Could not load minigame difficualty information is null."};
+        const response = await context.backend.getMinimizedMinigameInfo(minigameID, difficultyID);
 
-        const response = await this.context.backend.getMinimizedMinigameInfo(this.difficultyConfirmed.minigameID, this.difficultyConfirmed.difficultyID);
-
-        if (response.err !== null) return response;
+        if (response.err !== null) return response.err;
 
         const computedSettings = {...response.res.settings, ...response.res.overwritingSettings}
 
-        let component;
+        let component: JSX.Element | null = null;
+        let gameLoop: ((settings: AsteroidsSettingsDTO, context: ApplicationContext) => (() => void)) | null = null;
 
-        switch (this.difficultyConfirmed.minigameID) {
+        switch (minigameID) {
             case KnownMinigames.ASTEROIDS: {
-                new 
+                component = <AsteroidsMiniGame settings={computedSettings} context={context} returnToColony={returnToColony} />
+                gameLoop = createAsteroidsGameLoop;
+                break;
             }
         }
 
-        this.setPageContent(component)
+        if (component === null || gameLoop === null) {
+            return "Could not load minigame, no component or minigame found.";
+        }
+
+        setPageContent(component);
+        gameLoop(computedSettings, context)();
     }
 }

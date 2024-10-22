@@ -14,7 +14,8 @@ import {
   ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT,
   ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
   DifficultyConfirmedForMinigameMessageDTO,
-  AsteroidsAsteroidSpawnMessageDTO
+  AsteroidsAsteroidSpawnMessageDTO,
+  AsteroidsPlayerShootAtCodeMessageDTO
 } from "../../../../integrations/multiplayer_backend/EventSpecifications";
 import { CharCodeGenerator, SYMBOL_SET } from "./charCodeGenerator";
 import { uint32, PlayerID } from "../../../../integrations/main_backend/mainBackendDTOs";
@@ -24,9 +25,12 @@ import { ApplicationContext } from "../../../../meta/types";
 import { MOCK_SERVER_ID } from "../../../../ts/mockServer";
 
 class AsteroidsGameLoop {
+  public static readonly LOOP_FREQUENCY_MS = 1000 / 10; //10 updates per second
   private readonly charPool: CharCodeGenerator;
-  private readonly asteroids: Map<uint32, AsteroidsAsteroidSpawnMessageDTO> = new Map();
+  private readonly asteroids: Map<uint32, AsteroidsAsteroidSpawnMessageDTO & { spawnTimestampMS: number }> = new Map();
   private readonly events: IExpandedAccessMultiplexer;
+  private readonly subIds: number[];
+  private readonly localPlayerCode: string;
 
   private remainingHP: number;
   constructor(
@@ -35,11 +39,26 @@ class AsteroidsGameLoop {
   ){
     this.charPool = new CharCodeGenerator(SYMBOL_SET, settings.charCodeLength);
     this.remainingHP = settings.colonyHealth;
-    this.events = context.events as IExpandedAccessMultiplexer; 
+    this.events = context.events as IExpandedAccessMultiplexer;
+
+    this.localPlayerCode = this.charPool.generateCode();
+    this.events.emitRAW({
+      senderID: MOCK_SERVER_ID,
+      eventID: ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT.id,
+      id: this.context.backend.localPlayer.id,
+      x: 0.5,
+      y: 0.9,
+      type: 0,
+      code: this.localPlayerCode,
+    });
+
+    const playerShotSubID = this.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, this.onPlayerShot);
+    this.subIds = [playerShotSubID];
   }
 
-  private deltaT: number = 0;
+  private gameTimeMS: number = 0;
   private nextAsteroidID: uint32 = 0;
+  private asteroidSpawnCount: uint32 = 0;
   private loopInterval: NodeJS.Timeout | null = null;
 
   private spawnAsteroid = () => {
@@ -48,141 +67,106 @@ class AsteroidsGameLoop {
     const id = this.nextAsteroidID++;
     const charCode = this.charPool.generateCode();
     const timeTillImpact = Math.random() * (this.settings.maxTimeTillImpactS - this.settings.minTimeTillImpactS) + this.settings.minTimeTillImpactS;
-    const 
-    const data = { id, x, y,
-      health: 1,
+    const health = Math.round(this.settings.asteroidMaxHealth * Math.random());
+    const data = { id, x, y, health,
       timeUntilImpact: timeTillImpact,
       type: 0,
       charCode,
       senderID: MOCK_SERVER_ID,
       eventID: ASTEROIDS_ASTEROID_SPAWN_EVENT.id,
     };
-    this.asteroids.set(id, data);
+    this.asteroids.set(id, {...data, spawnTimestampMS: this.gameTimeMS});
     this.events.emitRAW(data);
+    this.asteroidSpawnCount++;
   }
 
+  private onPlayerShot = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
+    for (const [id, asteroid] of this.asteroids) {
+      if (asteroid.charCode === data.code) {
+        this.asteroids.delete(id);
+      }
+    }
+
+  }
+
+  public start = () => {
+    this.loopInterval = setInterval(this.update, AsteroidsGameLoop.LOOP_FREQUENCY_MS);
+  }
+
+  private update = () => {
+    if (this.remainingHP <= 0) {
+      this.onGameLost();
+      return;
+    }
+
+    if (this.gameTimeMS >= this.settings.survivalTimeS * 1000) {
+      this.onGameWon();
+      return;
+    }
+
+    this.gameTimeMS += AsteroidsGameLoop.LOOP_FREQUENCY_MS;
+    const gameAdvancementPercent = this.gameTimeMS / (this.settings.survivalTimeS * 1000);
+    const asteroidsPerSecondRightNow = (this.settings.asteroidsPerSecondAt80Percent - this.settings.asteroidsPerSecondAtStart) * gameAdvancementPercent + this.settings.asteroidsPerSecondAtStart;
+    // This math is wrong, it does take into accound that asteroidsPerSecond rising slowly during the game
+    const expectedSpawnCountRightNow = this.gameTimeMS / 1000 * asteroidsPerSecondRightNow;
+    // If the expected count is greater than the current count, spawn an asteroid
+    if (expectedSpawnCountRightNow > this.asteroidSpawnCount) {
+      this.spawnAsteroid();
+    }
+
+    this.evaluateAsteroids();
+  }
+
+  /**
+   * Run through all asteroid, and check if they've impacted yet
+   */
+  private evaluateAsteroids = () => {
+    for (const [id, asteroid] of this.asteroids) {
+      if (this.gameTimeMS >= asteroid.timeUntilImpact + asteroid.spawnTimestampMS) {
+        //Remove from map
+        this.asteroids.delete(id);
+        //Subtract health
+        this.remainingHP -= asteroid.health;
+        //Send asteroid impact event
+        ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT
+        this.events.emitRAW({
+          senderID: MOCK_SERVER_ID, eventID: ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT.id,
+          id, //asteroid id
+          colonyHPLeft: this.remainingHP,
+        });
+      }
+    }
+  }
+
+  private onGameLost = () => {
+    this.events.emitRAW({
+      senderID: MOCK_SERVER_ID,
+      eventID: ASTEROIDS_GAME_LOST_EVENT.id,
+    });
+    this.cleanup();
+  }
+
+  private onGameWon = () => {
+    this.events.emitRAW({
+      senderID: MOCK_SERVER_ID,
+      eventID: ASTEROIDS_GAME_WON_EVENT.id,
+    });
+    this.cleanup();
+  }
+
+  private cleanup = () => {
+    if (this.loopInterval) {
+      clearInterval(this.loopInterval);
+      this.loopInterval = null;
+    }
+    this.events.unsubscribe(...this.subIds);
+  }
 }
 
 export const createAsteroidsGameLoop: Minigame<AsteroidsSettingsDTO>["mockServerGameloop"] = (
-  context: ApplicationContext, 
   settings: AsteroidsSettingsDTO,
+  context: ApplicationContext, 
 ) => {
-
-
-  const spawnAsteroid = (id: uint32, x: number, y: number) => {
-    const charCode = charCodeGenerator.generateCode();
-    setState(prev => ({
-      asteroids: new Map(prev.asteroids).set(id, { id, x, y, timeUntilImpact: ASTEROID_TRAVEL_TIME, charCode }),
-      nextAsteroidId: (prev.nextAsteroidId + 1) as uint32,
-    }));
-    
-    context.events.emit(ASTEROIDS_ASTEROID_SPAWN_EVENT, {
-      id,
-      x,
-      y,
-      health: 1,
-      timeUntilImpact: ASTEROID_TRAVEL_TIME,
-      type: 0,
-      charCode,
-    });
-  };
-
-  const gameLoop = () => {
-    if (!state.isGameRunning) return;
-
-    setState('gameTime', t => t + 16); // Assume 60 FPS
-
-    if (Math.random() < (difficulty.difficultyID / (BASE_SPAWN_RATE / 16))) {
-      spawnAsteroid(state.nextAsteroidId, Math.random(), Math.random());
-    }
-
-    setState('asteroids', asteroids => {
-      const updatedAsteroids = new Map(asteroids);
-      for (const [id, asteroid] of updatedAsteroids) {
-        if (asteroid.timeUntilImpact <= 0) {
-          updatedAsteroids.delete(id);
-          setState('colonyHealth', health => {
-            const newHealth = health - 1;
-            context.events.emit(ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT, {
-              id,
-              colonyHPLeft: newHealth
-            });
-            return newHealth;
-          });
-        } else {
-          asteroid.timeUntilImpact -= 16 / 1000;
-        }
-      }
-      return updatedAsteroids;
-    });
-
-    if (state.gameTime >= GAME_DURATION) {
-      endGame(true);
-    } else if (state.colonyHealth <= 0) {
-      endGame(false);
-    }
-  };
-
-  const endGame = (won: boolean) => {
-    setState('isGameRunning', false);
-    stopGame();
-  };
-
-  const startGame = () => {
-    setState('isGameRunning', true);
-    gameLoopInterval = setInterval(gameLoop, 16); // ~60 FPS
-  };
-
-  const stopGame = () => {
-    setState('isGameRunning', false);
-    if (gameLoopInterval) {
-      clearInterval(gameLoopInterval);
-      gameLoopInterval = null;
-    }
-    context.events.emit(ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT, {});
-  };
-
-  const updateScore = (points: number) => {
-    setState('score', score => score + points);
-  };
-
-  const setupEventListeners = () => {
-    const subscriptions = [
-      context.events.subscribe(PLAYER_LEFT_EVENT, () => {
-        console.log("Player left event received");
-      }),
-      context.events.subscribe(LOBBY_CLOSING_EVENT, stopGame),
-      context.events.subscribe(MINIGAME_BEGINS_EVENT, startGame),
-      context.events.subscribe(ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, (data) => {
-        setState('playerCode', data.code);
-      }),
-      context.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, (data) => {
-        if (data.code === state.playerCode) {
-          endGame(false);
-        } else {
-          setState('asteroids', asteroids => {
-            const newAsteroids = new Map(asteroids);
-            for (const [id, asteroid] of newAsteroids) {
-              if (asteroid.charCode === data.code) {
-                newAsteroids.delete(id);
-                updateScore(1);
-                break;
-              }
-            }
-            return newAsteroids;
-          });
-        }
-      }),
-    ];
-
-    return () => context.events.unsubscribe(...subscriptions);
-  };
-
-  return {
-    state,
-    startGame,
-    stopGame,
-    setupEventListeners,
-    updateScore,
-  };
+  const loop = new AsteroidsGameLoop(context, settings);
+  return loop.start;
 }
