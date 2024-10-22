@@ -21,7 +21,7 @@ import StarryBackground from "../../../StarryBackground";
 import NTAwait from "../../../util/NoThrowAwait";
 import GraphicalAsset from "../../../GraphicalAsset";
 
-type AsteroidsSettings = {
+export type AsteroidsSettingsDTO = {
     minTimeTillImpactS: number,
     maxTimeTillImpactS: number,
     charCodeLength: uint32,
@@ -41,7 +41,6 @@ type AsteroidsSettings = {
 interface Asteroid extends AsteroidsAsteroidSpawnMessageDTO {
   speed: number,
   destroy: () => void,
-  
 }
 
 interface Player extends AsteroidsAssignPlayerDataMessageDTO {
@@ -72,7 +71,7 @@ function getRandomInRange(min: number, max: number) {
 /**
  * AsteroidsMiniGame component responsible for rendering and managing the Asteroids minigame.
  */
-const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettings>> = (props) => {
+const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props) => {
   const asteroids = createArrayStore<Asteroid>();
   const players = createArrayStore<Player>();
   const asteroidsRemoveFuncs = new Map<uint32, () => void>();

@@ -1,7 +1,7 @@
 // AsteroidsGameLoop.tsx
 
 import { createStore, SetStoreFunction } from "solid-js/store";
-import { IEventMultiplexer } from "../../../../integrations/multiplayer_backend/eventMultiplexer";
+import { IEventMultiplexer, IExpandedAccessMultiplexer } from "../../../../integrations/multiplayer_backend/eventMultiplexer";
 import {
   ASTEROIDS_ASTEROID_SPAWN_EVENT,
   ASTEROIDS_GAME_WON_EVENT,
@@ -13,53 +13,61 @@ import {
   MINIGAME_BEGINS_EVENT,
   ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT,
   ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
-  DifficultyConfirmedForMinigameMessageDTO
+  DifficultyConfirmedForMinigameMessageDTO,
+  AsteroidsAsteroidSpawnMessageDTO
 } from "../../../../integrations/multiplayer_backend/EventSpecifications";
 import { CharCodeGenerator, SYMBOL_SET } from "./charCodeGenerator";
 import { uint32, PlayerID } from "../../../../integrations/main_backend/mainBackendDTOs";
+import { Minigame } from "../miniGame";
+import { AsteroidsSettingsDTO } from "./AsteroidsMiniGame";
+import { ApplicationContext } from "../../../../meta/types";
+import { MOCK_SERVER_ID } from "../../../../ts/mockServer";
 
-const GAME_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
-const BASE_SPAWN_RATE = 1000; // 1 asteroid per second
-const ASTEROID_TRAVEL_TIME = 15; // seconds
-const BASE_CODE_LENGTH = 3;
+class AsteroidsGameLoop {
+  private readonly charPool: CharCodeGenerator;
+  private readonly asteroids: Map<uint32, AsteroidsAsteroidSpawnMessageDTO> = new Map();
+  private readonly events: IExpandedAccessMultiplexer;
 
-interface AsteroidState {
-  id: uint32;
-  x: number;
-  y: number;
-  timeUntilImpact: number;
-  charCode: string;
+  private remainingHP: number;
+  constructor(
+    private readonly context: ApplicationContext,
+    private readonly settings: AsteroidsSettingsDTO,
+  ){
+    this.charPool = new CharCodeGenerator(SYMBOL_SET, settings.charCodeLength);
+    this.remainingHP = settings.colonyHealth;
+    this.events = context.events as IExpandedAccessMultiplexer; 
+  }
+
+  private deltaT: number = 0;
+  private nextAsteroidID: uint32 = 0;
+  private loopInterval: NodeJS.Timeout | null = null;
+
+  private spawnAsteroid = () => {
+    const x = Math.random() * .9 + .1;
+    const y = Math.random() * .5;
+    const id = this.nextAsteroidID++;
+    const charCode = this.charPool.generateCode();
+    const timeTillImpact = Math.random() * (this.settings.maxTimeTillImpactS - this.settings.minTimeTillImpactS) + this.settings.minTimeTillImpactS;
+    const 
+    const data = { id, x, y,
+      health: 1,
+      timeUntilImpact: timeTillImpact,
+      type: 0,
+      charCode,
+      senderID: MOCK_SERVER_ID,
+      eventID: ASTEROIDS_ASTEROID_SPAWN_EVENT.id,
+    };
+    this.asteroids.set(id, data);
+    this.events.emitRAW(data);
+  }
+
 }
 
-interface GameState {
-  gameTime: number;
-  asteroids: Map<uint32, AsteroidState>;
-  nextAsteroidId: uint32;
-  colonyHealth: number;
-  isGameRunning: boolean;
-  playerCode: string;
-  score: number;
-}
+export const createAsteroidsGameLoop: Minigame<AsteroidsSettingsDTO>["mockServerGameloop"] = (
+  context: ApplicationContext, 
+  settings: AsteroidsSettingsDTO,
+) => {
 
-export function createAsteroidsGameLoop(
-  plexer: IEventMultiplexer,
-  difficulty: DifficultyConfirmedForMinigameMessageDTO,
-  onGameEnd: (won: boolean) => void,
-) {
-  const codeLength = BASE_CODE_LENGTH + difficulty.difficultyID - 1;
-  const charCodeGenerator = new CharCodeGenerator(SYMBOL_SET, codeLength);
-
-  const [state, setState] = createStore<GameState>({
-    gameTime: 0,
-    asteroids: new Map(),
-    nextAsteroidId: 1 as uint32,
-    colonyHealth: 3,
-    isGameRunning: false,
-    playerCode: "",
-    score: 0,
-  });
-
-  let gameLoopInterval: NodeJS.Timeout | null = null;
 
   const spawnAsteroid = (id: uint32, x: number, y: number) => {
     const charCode = charCodeGenerator.generateCode();
@@ -68,7 +76,7 @@ export function createAsteroidsGameLoop(
       nextAsteroidId: (prev.nextAsteroidId + 1) as uint32,
     }));
     
-    plexer.emit(ASTEROIDS_ASTEROID_SPAWN_EVENT, {
+    context.events.emit(ASTEROIDS_ASTEROID_SPAWN_EVENT, {
       id,
       x,
       y,
@@ -95,7 +103,7 @@ export function createAsteroidsGameLoop(
           updatedAsteroids.delete(id);
           setState('colonyHealth', health => {
             const newHealth = health - 1;
-            plexer.emit(ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT, {
+            context.events.emit(ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT, {
               id,
               colonyHPLeft: newHealth
             });
@@ -117,7 +125,6 @@ export function createAsteroidsGameLoop(
 
   const endGame = (won: boolean) => {
     setState('isGameRunning', false);
-    onGameEnd(won);
     stopGame();
   };
 
@@ -132,7 +139,7 @@ export function createAsteroidsGameLoop(
       clearInterval(gameLoopInterval);
       gameLoopInterval = null;
     }
-    plexer.emit(ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT, {});
+    context.events.emit(ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT, {});
   };
 
   const updateScore = (points: number) => {
@@ -141,15 +148,15 @@ export function createAsteroidsGameLoop(
 
   const setupEventListeners = () => {
     const subscriptions = [
-      plexer.subscribe(PLAYER_LEFT_EVENT, () => {
+      context.events.subscribe(PLAYER_LEFT_EVENT, () => {
         console.log("Player left event received");
       }),
-      plexer.subscribe(LOBBY_CLOSING_EVENT, stopGame),
-      plexer.subscribe(MINIGAME_BEGINS_EVENT, startGame),
-      plexer.subscribe(ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, (data) => {
+      context.events.subscribe(LOBBY_CLOSING_EVENT, stopGame),
+      context.events.subscribe(MINIGAME_BEGINS_EVENT, startGame),
+      context.events.subscribe(ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, (data) => {
         setState('playerCode', data.code);
       }),
-      plexer.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, (data) => {
+      context.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, (data) => {
         if (data.code === state.playerCode) {
           endGame(false);
         } else {
@@ -168,7 +175,7 @@ export function createAsteroidsGameLoop(
       }),
     ];
 
-    return () => subscriptions.forEach(sub => plexer.unsubscribe(sub));
+    return () => context.events.unsubscribe(...subscriptions);
   };
 
   return {
