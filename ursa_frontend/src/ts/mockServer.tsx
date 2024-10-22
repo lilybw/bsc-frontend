@@ -13,7 +13,7 @@ import {
     ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT,
 } from '../integrations/multiplayer_backend/EventSpecifications';
 import { ApplicationContext, Error, ResErr } from '../meta/types';
-import { KnownMinigames, Minigame } from "../components/colony/mini_games/miniGame";
+import { KnownMinigames, loadMiniGame, Minigame } from "../components/colony/mini_games/miniGame";
 import { Logger } from "../logging/filteredLogger";
 import { uint32 } from "../integrations/main_backend/mainBackendDTOs";
 import AsteroidsMiniGame, { AsteroidsSettingsDTO } from "../components/colony/mini_games/asteroids_mini_game/AsteroidsMiniGame";
@@ -104,7 +104,7 @@ export class MockServer implements IMockServer {
     /**
      * Main update loop of the MockServer. Processes queued messages and manages lobby phases.
      */
-    private update = () => {
+    private update = async () => {
         if (this.messageQueue.length === 0) return;
         let message: IMessage | undefined;
         while ((message = this.messageQueue.pop()) !== undefined) {
@@ -135,7 +135,12 @@ export class MockServer implements IMockServer {
                     // Handle player ready for minigame
                     if (message.eventID === PLAYER_READY_FOR_MINIGAME_EVENT.id) {
                         this.lobbyPhase = LobbyPhase.InMinigame;
-                        this.loadMiniGame(this.context, this.returnToColony, this.setPageContent, this.difficultyConfirmed?.minigameID!, this.difficultyConfirmed?.difficultyID!);
+                        const loadAttempt = await loadMiniGame(this.context, this.returnToColony, this.setPageContent, this.difficultyConfirmed?.minigameID!, this.difficultyConfirmed?.difficultyID!);
+                        if (loadAttempt.err !== null) {
+                            this.log.error(`Error loading minigame: ${loadAttempt.err}`);
+                            this.reset();
+                            return;
+                        }
                         this.log.trace("Phase changed to InMinigame");
                     }
                     break;
@@ -174,36 +179,4 @@ export class MockServer implements IMockServer {
         this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT, this.gameFinished));
     }
 
-
-    /**
-     * Load and mount a minigame.
-     */
-    private async loadMiniGame(context: ApplicationContext, returnToColony: () => void, setPageContent: ((e: JSX.Element) => void), minigameID: number, difficultyID: number): Promise<Error | undefined> {
-        this.log.trace("loading minigame id: " + minigameID);
-        if (this.difficultyConfirmed === null) return "Could not load minigame difficualty information is null.";
-
-        const response = await context.backend.getMinimizedMinigameInfo(minigameID, difficultyID);
-
-        if (response.err !== null) return response.err;
-
-        const computedSettings = {...response.res.settings, ...response.res.overwritingSettings}
-
-        let component: JSX.Element | null = null;
-        let gameLoop: ((settings: AsteroidsSettingsDTO, context: ApplicationContext) => (() => void)) | null = null;
-
-        switch (minigameID) {
-            case KnownMinigames.ASTEROIDS: {
-                component = <AsteroidsMiniGame settings={computedSettings} context={context} returnToColony={returnToColony} />
-                gameLoop = createAsteroidsGameLoop;
-                break;
-            }
-        }
-
-        if (component === null || gameLoop === null) {
-            return "Could not load minigame, no component or minigame found.";
-        }
-
-        setPageContent(component);
-        gameLoop(computedSettings, context)();
-    }
 }

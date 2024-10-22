@@ -103,7 +103,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
 
   const [pageContent, setPageContent] = createSignal<StrictJSX>(colonyLayout());
 
-  const mockServer = new MockServer(props.context, setPageContent, () => setPageContent(colonyLayout()))
+  const mockServer = new MockServer(props.context, setPageContent, () => setPageContent(colonyLayout()), props.context.logger);
 
   onMount(async () => {
     // Use online server for open colony state
@@ -179,6 +179,10 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
       );
     });
   });
+
+  const appendOverlay = () => {
+    
+  }
 
   return (
     <div id="colony-app">
