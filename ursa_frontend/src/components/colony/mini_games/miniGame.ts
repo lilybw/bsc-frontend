@@ -10,14 +10,15 @@ export interface MinigameProps<T extends object> {
     returnToColony: () => void;
 }
 
-// Define the main Minigame interface
 export interface Minigame<T extends object> {
-    // The mock server game loop function
-    // It takes settings and returns a function to stop the game loop
-    mockServerGameloop: (settings: T) => (() => void);
+    /** The mock server game loop function
+    *   It takes settings and returns a function to run to start the game loop
+    */
+    mockServerGameloop: (settings: T, context: ApplicationContext) => (() => void);
 
-    // The top-level component for the minigame
-    // It returns a Solid.js component that accepts MinigameProps
+    /** The top-level component for the minigame
+    *   It returns a Solid.js component that accepts MinigameProps
+    */
     topLevelComponent: () => Component<MinigameProps<T>>;
 }
 

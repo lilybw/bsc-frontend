@@ -159,6 +159,15 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         return this.configureConnection(conn, onClose);
     };
 
+    public disconnect = async () => {
+        this.log.log("disconnecting from lobby")
+        this.connection?.close();
+        this.state.set(ColonyState.CLOSED);
+        this.mode.set(MultiplayerMode.AS_GUEST);
+        this.serverAddress = null;
+        this.connectedLobbyID = null;
+    }
+
     /**
      * @param spec Needed to efficiently serialize data
      *

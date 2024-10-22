@@ -14,6 +14,8 @@ import {
 } from '../integrations/multiplayer_backend/EventSpecifications';
 import { ApplicationContext, ResErr } from '../meta/types';
 import { KnownMinigames, Minigame } from "../components/colony/mini_games/miniGame";
+import { Logger } from "../logging/filteredLogger";
+import { uint32 } from "../integrations/main_backend/mainBackendDTOs";
 
 /**
  * Interface defining the basic operations of the MockServer.
@@ -36,7 +38,7 @@ export enum LobbyPhase {
 /**
  * Constant to represent the server's ID.
  */
-export const SERVER_ID: number = Number.MAX_SAFE_INTEGER;
+export const MOCK_SERVER_ID: number = Number.MAX_SAFE_INTEGER;
 
 /**
  * MockServer class that simulates the behavior of a game server for minigames.
@@ -49,6 +51,7 @@ export class MockServer implements IMockServer {
     private readonly messageQueue: IMessage[] = [];
     private lobbyPhase: LobbyPhase = LobbyPhase.RoamingColony;
     private readonly events: IExpandedAccessMultiplexer;
+    private readonly log: Logger;
 
     /**
      * Constructs a new MockServer instance.
@@ -58,14 +61,17 @@ export class MockServer implements IMockServer {
         private context: ApplicationContext,
         private readonly setPageContent: ((content: JSX.Element) => void),
         private readonly returnToColony: (() => void),
+        log: Logger
     ) {
         this.events = context.events as IExpandedAccessMultiplexer;
+        this.log = log.copyFor("mock server")
     }
 
     /**
      * Starts the MockServer, initializing subscriptions and starting the update loop.
      */
     public start = () => {
+        this.log.log("starting");
         this.reset();
         this.setupSubscriptions();
         this.intervalId = setInterval(this.update, 100);
@@ -75,6 +81,7 @@ export class MockServer implements IMockServer {
      * Shuts down the MockServer, cleaning up subscriptions and stopping the minigame.
      */
     public shutdown = () => {
+        this.log.log("shutdown");
         if (this.intervalId !== null) {
             clearInterval(this.intervalId);
         }
@@ -85,6 +92,7 @@ export class MockServer implements IMockServer {
      * Resets the MockServer to its initial state.
      */
     private reset = () => {
+        this.log.log("resetting");
         this.difficultyConfirmed = null;
         this.messageQueue.length = 0;
         this.lobbyPhase = LobbyPhase.RoamingColony;
@@ -103,14 +111,16 @@ export class MockServer implements IMockServer {
                     if (message.eventID === DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT.id) {
                         this.difficultyConfirmed = message as DifficultyConfirmedForMinigameMessageDTO;
                         this.lobbyPhase = LobbyPhase.AwaitingParticipants;
+                        this.log.trace("Phase changed to AwaitingParticipants");
                     }
                     break;
                 }
                 case LobbyPhase.AwaitingParticipants: {
                     // Handle player joining activity
                     if (message.eventID === PLAYER_JOIN_ACTIVITY_EVENT.id) {
-                        this.events.emitRAW({senderID: SERVER_ID, eventID: PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT.id});
+                        this.events.emitRAW({senderID: MOCK_SERVER_ID, eventID: PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT.id});
                         this.lobbyPhase = LobbyPhase.DeclareIntent;
+                        this.log.trace("Phase changed to DeclareIntent");
                     }
                     // Handle player aborting minigame
                     if (message.eventID === PLAYER_ABORTING_MINIGAME_EVENT.id) {
@@ -122,6 +132,7 @@ export class MockServer implements IMockServer {
                     // Handle player ready for minigame
                     if (message.eventID === PLAYER_READY_FOR_MINIGAME_EVENT.id) {
                         this.lobbyPhase = LobbyPhase.InMinigame;
+                        this.log.trace("Phase changed to InMinigame");
                     }
                     break;
                 }
@@ -133,6 +144,7 @@ export class MockServer implements IMockServer {
     }
 
     private gameFinished() {
+        this.log.trace("Game finished, reverting to colony");
         this.returnToColony()
     }
 
@@ -140,6 +152,7 @@ export class MockServer implements IMockServer {
      * Sets up event subscriptions for the MockServer.
      */
     private setupSubscriptions() {
+        this.log.trace("setting up subscriptions");
         const pushToQueue = (e: IMessage) => {
             this.messageQueue.push(e);
         } 
@@ -172,6 +185,7 @@ export class MockServer implements IMockServer {
     }
 
     private async loadMiniGame(): Promise<ResErr<Minigame<any>>> {
+        this.log.trace("loading minigame id: " + this.difficultyConfirmed?.minigameID);
         if (this.difficultyConfirmed === null) return {res: null, err: "Could not load minigame difficualty information is null."};
 
         const response = await this.context.backend.getMinimizedMinigameInfo(this.difficultyConfirmed.minigameID, this.difficultyConfirmed.difficultyID);
@@ -182,9 +196,9 @@ export class MockServer implements IMockServer {
 
         let component;
 
-        switch (this.difficultyConfirmed.difficultyID) {
+        switch (this.difficultyConfirmed.minigameID) {
             case KnownMinigames.ASTEROIDS: {
-                
+                new 
             }
         }
 
