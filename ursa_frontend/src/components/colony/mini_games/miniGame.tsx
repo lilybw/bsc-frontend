@@ -39,6 +39,7 @@ export const loadMiniGame = async (context: ApplicationContext, returnToColony: 
     if (response.err !== null) return {res: null, err: response.err};
 
     const computedSettings = {...response.res.settings, ...response.res.overwritingSettings}
+    console.table(computedSettings);
 
     let component: JSX.Element | null = null;
     let gameLoop: ((settings: AsteroidsSettingsDTO, context: ApplicationContext) => (() => void)) | null = null;

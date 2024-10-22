@@ -151,6 +151,7 @@ export class MockServer implements IMockServer {
                             this.reset();
                             return;
                         } else {
+                            this.log.log("Starting minigame game loop");
                             this.loadedMinigameStart();
                         }
                         this.log.trace("Phase changed to InMinigame");

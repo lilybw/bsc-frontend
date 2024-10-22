@@ -25,6 +25,7 @@ import { Minigame } from "../miniGame";
 import { AsteroidsSettingsDTO } from "./AsteroidsMiniGame";
 import { ApplicationContext } from "../../../../meta/types";
 import { MOCK_SERVER_ID } from "../../../../ts/mockServer";
+import { Logger } from "../../../../logging/filteredLogger";
 
 class AsteroidsGameLoop {
   public static readonly LOOP_FREQUENCY_MS = 1000 / 10; //10 updates per second
@@ -33,6 +34,7 @@ class AsteroidsGameLoop {
   private readonly events: IExpandedAccessMultiplexer;
   private readonly subIds: number[];
   private readonly localPlayerCode: string;
+  private readonly log: Logger;
 
   private remainingHP: number;
   constructor(
@@ -42,6 +44,7 @@ class AsteroidsGameLoop {
     this.charPool = new CharCodeGenerator(SYMBOL_SET, settings.charCodeLength);
     this.remainingHP = settings.colonyHealth;
     this.events = context.events as IExpandedAccessMultiplexer;
+    this.log = context.logger.copyFor("ast game loop");
 
     this.localPlayerCode = this.charPool.generateCode();
     //Assign player data to local player
@@ -54,6 +57,7 @@ class AsteroidsGameLoop {
       type: 0,
       code: this.localPlayerCode
     });
+    this.log.trace("settings: " + JSON.stringify(settings));
 
     const playerShotSubID = this.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, this.onPlayerShot);
     this.subIds = [playerShotSubID];
@@ -82,9 +86,11 @@ class AsteroidsGameLoop {
     this.asteroids.set(id, {...data, spawnTimestampMS: this.gameTimeMS});
     this.events.emitRAW(data);
     this.asteroidSpawnCount++;
+    this.log.trace(`Spawned asteroid ${id} at ${x}, ${y} with code ${charCode}`);
   }
 
   private onPlayerShot = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
+    this.log.trace(`Player ${data.id} shot at ${data.code}`);
     let somethingWasHit = false;
     for (const [id, asteroid] of this.asteroids) {
       if (asteroid.charCode === data.code) {
@@ -118,6 +124,7 @@ class AsteroidsGameLoop {
   }
 
   public start = () => {
+    this.log.trace("Starting asteroids game loop interval");
     this.loopInterval = setInterval(this.update, AsteroidsGameLoop.LOOP_FREQUENCY_MS);
   }
 
@@ -151,6 +158,7 @@ class AsteroidsGameLoop {
   private evaluateAsteroids = () => {
     for (const [id, asteroid] of this.asteroids) {
       if (this.gameTimeMS >= asteroid.timeUntilImpact + asteroid.spawnTimestampMS) {
+        this.log.trace(`Asteroid ${id} impacted`);
         //Remove from map
         this.asteroids.delete(id);
         //Subtract health
