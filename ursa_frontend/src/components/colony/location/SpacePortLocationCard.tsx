@@ -48,6 +48,14 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         // TODO: open colony in multiplexer?
     };
 
+    const closeColony = async () => {
+        const result = await props.backend.closeColony(props.colony.id, {
+            playerId: props.backend.localPlayer.id
+        })
+        props.events.emit(LOBBY_CLOSING_EVENT, {});
+        setState('initial');
+    }
+
     const renderInitialState = () => (
         <>
             <div class={imageContainerStyle}>
@@ -91,13 +99,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
                     name={props.text.get("COLONY.UI_BUTTON.CLOSE").get()}
                     buffer={props.buffer}
                     register={props.register}
-                    onActivation={() => {
-                        
-                        props.backend.closeColony(props.colony.id)
-                        props.events.emit(LOBBY_CLOSING_EVENT, {}); // TODO: change when more is implemented related to this event.
-
-                        setState('initial');
-                    }}
+                    onActivation={() => closeColony()}
                 >
                     {props.text.get("COLONY.UI_BUTTON.CLOSE").get()}
                 </BufferBasedButton>
