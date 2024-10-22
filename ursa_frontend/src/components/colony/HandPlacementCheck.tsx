@@ -10,6 +10,8 @@ interface HandplacementCheckProps extends IBackendBased, IInternationalized, IRe
     gameToBeMounted: DifficultyConfirmedForMinigameMessageDTO;
     events: IEventMultiplexer;
     setActionContext: Setter<TypeIconTuple>;
+    goToWaitingScreen: () => void;
+    clearSelf: () => void;
 }
 
 const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
@@ -25,8 +27,18 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                         id: props.backend.localPlayer.id,
                         ign: props.backend.localPlayer.firstName,
                     });
+                    props.goToWaitingScreen();
                 }}
                 name="join"
+            />
+            <BufferBasedButton 
+                buffer={props.buffer} 
+                register={props.register} 
+                onActivation={() => {
+                    props.setActionContext(ActionContext.NAVIGATION);
+                    props.clearSelf();
+                }}
+                name="leave"
             />
         </div>
     )
@@ -37,10 +49,13 @@ const containerStyles = css`
     display: flex;
     position: fixed;
     justify-content: center;
+    z-index: 1000000;
 
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 66%;
     height: 40%;
+
+    background-color: black;
 `

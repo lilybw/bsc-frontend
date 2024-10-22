@@ -25,6 +25,7 @@ import MNTAwait from '../src/components/util/MultiNoThrowAwait';
 import BufferBasedButton from '../src/components/BufferBasedButton';
 import AsteroidsMiniGame from '../src/components/colony/mini_games/asteroids_mini_game/AsteroidsMiniGame';
 import { MockServer } from '../src/ts/mockServer';
+import HandPlacementCheck from '../src/components/colony/HandPlacementCheck';
 
 const eventFeedMessageDurationMS = 10_000;
 type StrictJSX = Node | JSX.ArrayElement | (string & {}) 
@@ -181,13 +182,29 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
   });
 
   const appendOverlay = () => {
-    
+    const confDiff = confirmedDifficulty();
+    if (confDiff === null) return null;
+
+    return (
+      <HandPlacementCheck 
+        gameToBeMounted={confDiff}
+        events={props.context.events}
+        backend={props.context.backend}
+        text={props.context.text}
+        setActionContext={actionContext.set}
+        buffer={inputBuffer.get}
+        register={bufferSubscribers.add}
+        clearSelf={() => setConfirmedDifficulty(null)}
+        goToWaitingScreen={() => console.log("on waiting screen")}
+      />
+    )
   }
 
   return (
     <div id="colony-app">
       <StarryBackground />
       {pageContent()}
+      {appendOverlay()}
       <div class={eventFeedContainerStyle} id="event-feed">
         <For each={eventFeed.get}>{event => event}</For>
       </div>

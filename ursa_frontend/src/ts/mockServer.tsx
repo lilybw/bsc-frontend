@@ -99,8 +99,9 @@ export class MockServer implements IMockServer {
         this.difficultyConfirmed = null;
         this.messageQueue.length = 0;
         this.lobbyPhase = LobbyPhase.RoamingColony;
+        this.loadedMinigameStart = null;
     }
-
+    private loadedMinigameStart: (() => void) | null = null;
     /**
      * Main update loop of the MockServer. Processes queued messages and manages lobby phases.
      */
@@ -132,14 +133,25 @@ export class MockServer implements IMockServer {
                     break;
                 }
                 case LobbyPhase.DeclareIntent: {
-                    // Handle player ready for minigame
-                    if (message.eventID === PLAYER_READY_FOR_MINIGAME_EVENT.id) {
-                        this.lobbyPhase = LobbyPhase.InMinigame;
-                        const loadAttempt = await loadMiniGame(this.context, this.returnToColony, this.setPageContent, this.difficultyConfirmed?.minigameID!, this.difficultyConfirmed?.difficultyID!);
+                    if (this.loadedMinigameStart === null) {
+                        const loadAttempt = await loadMiniGame(this.context, this.returnToColony, this.setPageContent, this.difficultyConfirmed?.minigameID!, this.difficultyConfirmed?.difficultyID!);    
                         if (loadAttempt.err !== null) {
                             this.log.error(`Error loading minigame: ${loadAttempt.err}`);
                             this.reset();
                             return;
+                        } else {
+                            this.loadedMinigameStart = loadAttempt.res;
+                        }
+                    }
+                    
+                    if (message.eventID === PLAYER_READY_FOR_MINIGAME_EVENT.id) {
+                        this.lobbyPhase = LobbyPhase.InMinigame;
+                        if (this.loadedMinigameStart === null) {
+                            this.log.error(`Loaded minigame is null, but a player ready was recieved`);
+                            this.reset();
+                            return;
+                        } else {
+                            this.loadedMinigameStart();
                         }
                         this.log.trace("Phase changed to InMinigame");
                     }

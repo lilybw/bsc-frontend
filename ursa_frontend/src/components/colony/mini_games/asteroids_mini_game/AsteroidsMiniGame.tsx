@@ -8,6 +8,7 @@ import {
   AsteroidsAssignPlayerDataMessageDTO,
   AsteroidsAsteroidSpawnMessageDTO,
   AsteroidsPlayerShootAtCodeMessageDTO,
+  PLAYER_READY_FOR_MINIGAME_EVENT,
 } from "../../../../integrations/multiplayer_backend/EventSpecifications";
 import { createArrayStore } from "../../../../ts/arrayStore";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../../../ts/actionContext";
@@ -244,6 +245,12 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     });
 
     const playerShootSubID = props.context.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, (data) => handlePlayerShootAtCodeEvent(data));
+
+    //Emit only when all assets are ready
+    props.context.events.emit(PLAYER_READY_FOR_MINIGAME_EVENT, {
+      id: props.context.backend.localPlayer.id,
+      ign: props.context.backend.localPlayer.firstName,
+    })
 
     onCleanup(() => {
       props.context.events.unsubscribe(spawnSubID, asteroidImpactSubID, loadPlayerDataSubID, playerShootSubID)
