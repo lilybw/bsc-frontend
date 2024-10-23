@@ -1,20 +1,81 @@
-import { Component, createSignal } from "solid-js";
+import { Component, createSignal, createEffect } from "solid-js";
 import { GenericLocationCardProps } from "./GenericLocationCard";
 import { css, keyframes } from "@emotion/css";
 import BufferBasedButton from "../../BufferBasedButton";
 import NTAwait from "../../util/NoThrowAwait";
 import GraphicalAsset from "../../GraphicalAsset";
 import { ColonyInfoResponseDTO, OpenColonyRequestDTO } from "../../../integrations/main_backend/mainBackendDTOs";
-import { error } from "console";
-import { LOBBY_CLOSING_EVENT, LobbyClosingMessageDTO } from "../../../integrations/multiplayer_backend/EventSpecifications";
+import { LOBBY_CLOSING_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
 
 interface SpacePortCardProps extends GenericLocationCardProps {
     colony: ColonyInfoResponseDTO;
 }
 
+const CODE_LENGTH = 6;
+
 const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     const [state, setState] = createSignal<'initial' | 'open' | 'join'>('initial');
     const [colonyCode, setColonyCode] = createSignal<number | null>(null);
+    const [codeStatus, setCodeStatus] = createSignal<'idle' | 'valid' | 'invalid'>('idle');
+    const [joinCode, setJoinCode] = createSignal(
+        Array(CODE_LENGTH).fill('').map(() => createSignal(''))
+    );
+    let validationTimeout: NodeJS.Timeout;
+    let statusTimeout: NodeJS.Timeout;
+
+    createEffect(() => {
+        console.log("Buffer value:", props.buffer());  // Call the accessor
+        if (state() === 'join') {
+            const value = props.buffer();  // Call the accessor
+            console.log("Processing buffer in join state:", value);
+    
+            // Clear code if non-numeric characters are found
+            if (!/^\d*$/.test(value)) {
+                joinCode().forEach(([_, setValue]) => setValue(''));
+                return;
+            }
+    
+            // Fill boxes with available numbers
+            const numbers = value.split('');
+            joinCode().forEach(([_, setValue], index) => {
+                setValue(numbers[index] || '');
+            });
+    
+            // If we have exactly 6 numbers, validate
+            if (value.length === CODE_LENGTH) {
+                validateCode(numbers);
+            }
+        }
+    });
+
+    const validateCode = async (code: string[]) => {
+        clearTimeout(validationTimeout);
+        clearTimeout(statusTimeout);
+
+        try {
+            const result = await props.backend.joinColony(parseInt(code.join('')));
+            if (result.err === null) {
+                setCodeStatus('valid');
+                statusTimeout = setTimeout(() => {
+                    setState('initial');
+                    joinCode().forEach(([_, setValue]) => setValue(''));
+                    setCodeStatus('idle');
+                }, 1000);
+            } else {
+                setCodeStatus('invalid');
+                statusTimeout = setTimeout(() => {
+                    setCodeStatus('idle');
+                    joinCode().forEach(([_, setValue]) => setValue(''));
+                }, 1500);
+            }
+        } catch (error) {
+            setCodeStatus('invalid');
+            statusTimeout = setTimeout(() => {
+                setCodeStatus('idle');
+                joinCode().forEach(([_, setValue]) => setValue(''));
+            }, 1500);
+        }
+    };
 
     const openColony = async () => {
         const getCurrentDateTimeLocaleString = () => {
@@ -32,7 +93,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         };
 
         const request: OpenColonyRequestDTO = {
-            validDurationMS: 3600000 * 12, // 12 hours
+            validDurationMS: 3600000 * 12,
             playerID: props.backend.localPlayer.id,
             latestVisit: getCurrentDateTimeLocaleString(),
         };
@@ -40,21 +101,19 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         const openResponse = await props.backend.openColony(props.colony.id, request);
 
         if (openResponse.err !== null) {
-            return openResponse.err
+            return openResponse.err;
         }
 
-        setColonyCode(openResponse.res.code)
-
-        // TODO: open colony in multiplexer?
+        setColonyCode(openResponse.res.code);
     };
 
     const closeColony = async () => {
         const result = await props.backend.closeColony(props.colony.id, {
             playerId: props.backend.localPlayer.id
-        })
+        });
         props.events.emit(LOBBY_CLOSING_EVENT, {});
         setState('initial');
-    }
+    };
 
     const renderInitialState = () => (
         <>
@@ -123,9 +182,31 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     );
 
     const renderJoinState = () => (
-        <div class={stateContentStyle}>
-            {props.text.SubTitle(props.text.get("SPACEPORT.JOIN_COLONY_DESCRIPTION").get())({styleOverwrite: descriptionStyleOverwrite})}
-            {/* Add your join colony logic here */}
+        <div class={joinStateContentStyle}>
+            <div class={imageContainerStyle}>
+                <NTAwait func={() => props.backend.getAssetMetadata(props.info.appearances[0].splashArt)}>
+                    {(asset) =>
+                        <GraphicalAsset styleOverwrite={joinStateImageStyle} backend={props.backend} metadata={asset} />
+                    }
+                </NTAwait>
+            </div>
+            <div class={joinInputContainerStyle}>
+                <div class={joinInputLabelStyle}>
+                    {props.text.get("SPACEPORT.INSERT_CODE").get()}
+                </div>
+                <div class={codeDisplayStyle}>
+                    {joinCode().map(([get]) => (
+                        <div
+                            class={`${codeBoxStyle} 
+                                   ${get() ? filledCodeBoxStyle : ''} 
+                                   ${codeStatus() === 'valid' ? validInputStyle : ''} 
+                                   ${codeStatus() === 'invalid' ? invalidInputStyle : ''}`}
+                        >
+                            {get() || ' '}
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 
@@ -151,14 +232,24 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
                         name={props.text.get("LOCATION.USER_ACTION.LEAVE").get()}
                         buffer={props.buffer}
                         register={props.register}
-                        onActivation={props.closeCard}
+                        onActivation={() => {
+                            clearTimeout(validationTimeout);
+                            clearTimeout(statusTimeout);
+                            props.closeCard();
+                        }}
                     />
                     {state() !== 'initial' && (
                         <BufferBasedButton 
                             name={props.text.get("SPACEPORT.BACK").get()}
                             buffer={props.buffer}
                             register={props.register}
-                            onActivation={() => setState('initial')}
+                            onActivation={() => {
+                                clearTimeout(validationTimeout);
+                                clearTimeout(statusTimeout);
+                                setState('initial');
+                                joinCode().forEach(([_, setValue]) => setValue(''));
+                                setCodeStatus('idle');
+                            }}
                         />
                     )}
                 </div>
@@ -176,6 +267,26 @@ const moveBackground = keyframes`
     100% {
         transform: translateX(-50%);
     }
+`;
+
+const glowPulse = keyframes`
+    0% { box-shadow: 0 0 5px rgba(0, 255, 255, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(0, 255, 255, 0.5); }
+`;
+
+const invalidShake = keyframes`
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-10px); }
+    80% { transform: translateX(10px); }
+`;
+
+const validPulse = keyframes`
+    0% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
 `;
 
 const cardContainerStyle = css`
@@ -273,16 +384,6 @@ const buttonContainerStyle = css`
     z-index: 1;
 `;
 
-const stateContentStyle = css`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-`;
-
 const openStateContentStyle = css`
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -330,4 +431,86 @@ const colonyCodeStyle = css`
     color: #ffffff;
     font-weight: bold;
     word-break: break-all;
+`;
+
+const joinStateContentStyle = css`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+    z-index: 1;
+`;
+
+const joinStateImageStyle = css`
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+`;
+
+const joinInputContainerStyle = css`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+`;
+
+const joinInputLabelStyle = css`
+    font-size: 1.2rem;
+    color: #00ffff;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+`;
+
+const validInputStyle = css`
+    animation: ${validPulse} 1s infinite !important;
+    border-color: #00ff00 !important;
+    color: #00ff00;
+`;
+
+const invalidInputStyle = css`
+    animation: ${invalidShake} 0.5s, ${glowPulse} 1s infinite !important;
+    border-color: #ff0000 !important;
+    color: #ff0000;
+`;
+
+const filledCodeBoxStyle = css`
+    border-color: #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    animation: ${glowPulse} 1.5s infinite;
+`;
+
+const codeDisplayStyle = css`
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin: 1rem 0;
+    `;
+
+const codeBoxStyle = css`
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.5rem;
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+`;
+
+const hiddenButtonStyle = css`
+    pointer-events: all !important;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: auto;
+    display: flex;
+    justify-content: center;
 `;
