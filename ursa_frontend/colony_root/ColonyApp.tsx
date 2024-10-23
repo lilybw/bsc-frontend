@@ -109,6 +109,7 @@
     onMount(async () => {
       // If there is a colonyCode present, that means that we're currently trying to go and join someone else's colony
       if (colonyInfo.res?.colonyCode) {
+        log.trace('Connecting to multiplayer, code: ' + colonyInfo.res.colonyCode);
         const err = await props.context.multiplayer.connect(colonyInfo.res?.colonyCode, (ev) => {
           log.info('connection closed, redirecting to menu');
           if (props.context.multiplayer.getMode() === MultiplayerMode.AS_GUEST) {

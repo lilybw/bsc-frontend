@@ -108,6 +108,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         }
 
         setColonyCode(openResponse.res.code);
+        props.multiplayer.connect(openResponse.res.code, () => {});
     };
 
     const closeColony = async () => {

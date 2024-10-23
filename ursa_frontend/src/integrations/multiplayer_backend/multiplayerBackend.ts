@@ -10,7 +10,7 @@ import {
     serializeTypeFromViewAndSpec as serializeTypeFromData,
 } from './binUtil';
 import { IExpandedAccessMultiplexer } from './eventMultiplexer';
-import { EVENT_ID_MAP, EventSpecification, IMessage, OriginType } from './EventSpecifications';
+import { EVENT_ID_MAP, EventSpecification, GoType, IMessage, OriginType } from './EventSpecifications';
 import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
 import { HealthCheckDTO, LobbyStateResponseDTO } from './multiplayerDTO';
 
@@ -118,11 +118,13 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         const lobbyID = res.lobbyId;
         const computedIGN = this.backend.localPlayer.firstName + ' ' + this.backend.localPlayer.lastName;
         const ownerOfColonyJoined = res.owner;
-
+        const localUserID = this.backend.localPlayer.id;
+        
         //protocol://host:port is provided by the main backend, as well as lobby id
         let conn;
         try {
-            conn = new WebSocket(`${address}/connect?IGN=${computedIGN}&lobbyID=${lobbyID}&clientID=${this.backend.localPlayer.id}`);
+            this.log.trace(`Connecting to lobby: ${lobbyID} at ${address}, as user id: ${localUserID}`);
+            conn = new WebSocket(`${address}/connect?IGN=${computedIGN}&lobbyID=${lobbyID}&clientID=${localUserID}`);
         } catch (e) {
             return 'Initial connection attempt to multiplayer server failed. Error: ' + JSON.stringify(e);
         }
@@ -189,11 +191,21 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
                 .arrayBuffer()
                 .then((buffer: ArrayBuffer) => {
                     const view = new DataView(buffer);
+                    if (view.byteLength < 8) {
+                        this.log.error(`Received message with less than 8 bytes: ${view.byteLength}, content as string: 
+                            ${parseGoTypeAtOffsetInView(view, 8, GoType.STRING)}
+                        `);
+                        
+                        return;
+                    }
+
                     const { sourceID, eventID } = readSourceAndEventID(view);
                     const spec = EVENT_ID_MAP[eventID];
 
                     if (!spec || spec === null) {
-                        this.log.error(`[mp int] Received event with unknown ID: ${eventID}`);
+                        this.log.error(`Received event with unknown ID: ${eventID}, source id: ${sourceID}, content as string: 
+                            ${parseGoTypeAtOffsetInView(view, 8, GoType.STRING)}
+                        `);
                         return;
                     }
 
@@ -202,7 +214,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
                     this.multiplexer.emitRAW(decoded);
                 })
                 .catch((e: Error) => {
-                    this.log.error(`[mp int] Error while processing message: ${e}`);
+                    this.log.error(`Error while processing message: ${e}`);
                 });
 
         conn.onclose = (ce: CloseEvent) => {
