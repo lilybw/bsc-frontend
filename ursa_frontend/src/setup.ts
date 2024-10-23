@@ -18,7 +18,6 @@ export const initApp = (app: BundleComponent<ApplicationProps>) => {
     // global function that Angular will call
     (window as any)[URSA_INITIALIZATION_FUNCTION_NAME] = (vitecInfo: VitecIntegrationInformation) => {
         const root = document.getElementById(SOLIDJS_MOUNT_ELEMENT_ID);
-        console.log('Vitec info: ' + JSON.stringify(vitecInfo));
         if (!root) {
             console.error('[setup] Root element not found.');
             return;
@@ -55,7 +54,7 @@ export const initApp = (app: BundleComponent<ApplicationProps>) => {
 export const initContext = async (vitecInfo: VitecIntegrationInformation): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
     const log = initializeLogger(environment);
-    log.log('[setup] Initializing application context');
+    log.info('[setup] Initializing application context');
 
     const vitecIntegrationResult = await initializeVitecIntegration(vitecInfo, environment, log);
     if (vitecIntegrationResult.err != null) {
@@ -111,7 +110,6 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
 
     await delaySetupIfDevOrTest(environment);
 
-    console.log(environment);
     const context: ApplicationContext = Object.freeze({
         //Assuring immutability
         multiplayer: multiplayerIntegrationInit.res!,
@@ -128,7 +126,6 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
 const delayTimeMS = 0;
 const delaySetupIfDevOrTest = async (environment: ENV) => {
     if (environment.runtimeMode === RuntimeMode.DEVELOPMENT || environment.runtimeMode === RuntimeMode.TEST) {
-        console.log('[setup] Delaying setup for ' + delayTimeMS + ' seconds');
         await new Promise((resolve) => setTimeout(resolve, delayTimeMS));
     }
 };

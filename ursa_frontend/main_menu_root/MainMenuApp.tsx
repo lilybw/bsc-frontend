@@ -44,7 +44,7 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign((props: App
         setCurrentPage(() => JoinColonyPage) 
         break;
       default:
-        props.context.logger.log("Invalid page requested: " + page);
+        props.context.logger.info("Invalid page requested: " + page);
     }
   }
 

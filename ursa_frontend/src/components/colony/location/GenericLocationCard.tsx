@@ -32,7 +32,7 @@ const getIdOfSplashArt = (level: number, choices: {
 
 const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
     const [difficultySelected, setDifficultySelected] = createSignal<DifficultySelectForMinigameMessageDTO | null>(null);
-
+    const log = props.backend.logger.copyFor("gen loc card");
     onMount(() => {
         const diffSelectSubID = props.events.subscribe(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, (data) => {
             if (data.minigameID === props.info.minigameID) {
@@ -46,7 +46,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
         const diff = difficultySelected();
         if (diff !== null) {
             props.events.emit(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, diff);
-            console.log("[delete me] difficulty confirmed for minigame: " + diff.minigameID + " difficulty: " + diff.difficultyID);
+            log.info("difficulty confirmed for minigame: " + diff.minigameID + " difficulty: " + diff.difficultyID);
         }
     }
 

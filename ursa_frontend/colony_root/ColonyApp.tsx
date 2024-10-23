@@ -129,7 +129,7 @@
           </div>
         ) as StrictJSX);
         setTimeout(removeFunc, eventFeedMessageDurationMS);
-        props.context.logger.log('Player left: ' + data.id);
+        props.context.logger.info('Player left: ' + data.id);
       });
 
       const playerJoinSubId = props.context.events.subscribe(PLAYER_JOINED_EVENT, (data) => {
@@ -152,7 +152,7 @@
       });
 
       const lobbyClosingSubId = props.context.events.subscribe(LOBBY_CLOSING_EVENT, (ev) => {
-        props.context.logger.log('lobby closing');
+        props.context.logger.info('lobby closing');
         const removeFunc = eventFeed.add((
           <div class={eventFeedMessageStyle}>
             <div>Lobby Closing</div>

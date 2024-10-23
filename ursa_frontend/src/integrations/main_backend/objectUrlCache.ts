@@ -30,7 +30,7 @@ const generateCombinedKey = (asset: AssetID, lodLevel: uint32): string => `${ass
 
 export const initializeObjectURLCache = (backend: BackendIntegration, logger: Logger): IObjectURLCache => {
     const log = logger.copyFor('ourl cache');
-    log.log('Initializing object URL cache');
+    log.info('Initializing object URL cache');
     const byCombinedKey = new Map<string, CacheEntry>();
     const byLODID = new Map<uint32, CacheEntry>();
 
@@ -43,9 +43,9 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
             const entry = byCombinedKey.get(key);
             if (entry) {
                 entry.retrievalCount--;
-                log.trace(`${key} released, count: ${entry.retrievalCount}`);
+                log.subtrace(`${key} released, count: ${entry.retrievalCount}`);
                 if (entry.retrievalCount <= 0) {
-                    log.trace(`${key} count reached 0, revoking URL`);
+                    log.subtrace(`${key} count reached 0, revoking URL`);
                     URL.revokeObjectURL(entry.url);
                     byCombinedKey.delete(key);
                 }
@@ -55,9 +55,9 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
             const entry = byLODID.get(lodID);
             if (entry) {
                 entry.retrievalCount--;
-                log.trace(`LOD ${lodID} released, count: ${entry.retrievalCount}`);
+                log.subtrace(`LOD ${lodID} released, count: ${entry.retrievalCount}`);
                 if (entry.retrievalCount <= 0) {
-                    log.trace(`LOD ${lodID} count reached 0, revoking URL`);
+                    log.subtrace(`LOD ${lodID} count reached 0, revoking URL`);
                     URL.revokeObjectURL(entry.url);
                     byLODID.delete(lodID);
                 }
@@ -66,7 +66,7 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
     }
 
     const fetchAndStore = async (asset: AssetID, lodLevel: uint32): Promise<ResCodeErr<CacheEntry>> => {
-        log.trace(`fetching: ${asset} at LOD ${lodLevel}`);
+        log.subtrace(`fetching: ${asset} at LOD ${lodLevel}`);
         const res = await backend.getLODByAsset(asset, lodLevel);
         if (res.err !== null) {
             log.warn(`failed to fetch: ${asset} at LOD ${lodLevel}: ${res.err}`);
@@ -84,7 +84,7 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
     }
 
     const fetchAndStoreByLODID = async (lodID: uint32): Promise<ResCodeErr<CacheEntry>> => {
-        log.trace(`fetching: LOD ${lodID}`);
+        log.subtrace(`fetching: LOD ${lodID}`);
         const res = await backend.getLOD(lodID);
         if (res.err !== null) {
             log.warn(`failed to fetch: LOD ${lodID}: ${res.err}`);
@@ -123,10 +123,10 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
         const entry = byCombinedKey.get(key);
         if (entry) {
             entry.retrievalCount++;
-            log.trace(`${key} retrieved from cache, count: ${entry.retrievalCount}`);
+            log.subtrace(`${key} retrieved from cache, count: ${entry.retrievalCount}`);
             return { res: entry.url, err: null, code: 200};
         }
-        log.trace(`cache miss: ${key}`);
+        log.subtrace(`cache miss: ${key}`);
         const fetched = await fetchAndStore(asset, lodLevel);
 
         if (fetched.err !== null) {
@@ -140,10 +140,10 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
         const entry = byLODID.get(lodID);
         if (entry) {
             entry.retrievalCount++;
-            log.trace(`LOD ${lodID} retrieved from cache, count: ${entry.retrievalCount}`);
+            log.subtrace(`LOD ${lodID} retrieved from cache, count: ${entry.retrievalCount}`);
             return { res: entry.url, err: null, code: 200 };
         }
-        log.trace(`cache miss: LOD ${lodID}`);
+        log.subtrace(`cache miss: LOD ${lodID}`);
         const fetched = await fetchAndStoreByLODID(lodID);
 
         if (fetched.err !== null) {

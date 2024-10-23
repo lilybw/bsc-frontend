@@ -30,7 +30,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
             return;
         }
 
-        const colonyInfoAttempt = await props.context.backend.getColony(joinResponse.res.ownerID, joinResponse.res.colonyID);
+        const colonyInfoAttempt = await props.context.backend.getColony(joinResponse.res.owner, joinResponse.res.colonyId);
         if (colonyInfoAttempt.err !== null) {
             setCodeError("Failed to get colony info: " + colonyInfoAttempt.err);
             return;
@@ -40,7 +40,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
         props.context.nav.goToColony(
             colonyInfoAttempt.res.id,
             colonyInfoAttempt.res.name,
-            joinResponse.res.ownerID,
+            joinResponse.res.owner,
             code
         );
     };

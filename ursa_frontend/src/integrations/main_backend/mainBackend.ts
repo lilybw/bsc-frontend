@@ -1,6 +1,6 @@
 import { Logger } from '../../logging/filteredLogger';
 import { ENV } from '../../environment/manager';
-import { ParseMethod, ResCodeErr, ResErr, RuntimeMode } from '../../meta/types';
+import { type Error, ParseMethod, ResCodeErr, ResErr, RuntimeMode } from '../../meta/types';
 import {
     AssetCollectionID,
     AssetCollectionResponseDTO,
@@ -136,7 +136,7 @@ export async function initializeBackendIntegration(
     const { mainBackendIP, mainBackendPort } = environment;
     let mainBackendRootUrl = `https://${mainBackendIP}:${mainBackendPort}`;
     if (environment.proxyMainBackendRequests) {
-        log.log('Proxying main backend requests');
+        log.info('Proxying main backend requests');
 
         if (mainBackendRootUrl === undefined || mainBackendRootUrl === null) {
             log.error('  Proxying main backend requests is enabled, but no proxy url is provided');
@@ -145,7 +145,7 @@ export async function initializeBackendIntegration(
 
         mainBackendRootUrl = environment.mainBackendURLWhenProxied!;
     }
-    log.log(`Main backend root url: ${mainBackendRootUrl}`);
+    log.info(`Main backend root url: ${mainBackendRootUrl}`);
     const placeholder = () => {
         throw new Error('backend integration not initialized');
     };
@@ -172,7 +172,7 @@ export async function initializeBackendIntegration(
     const integration = applyRouteImplementations(base, playerInfoRes.res);
     integration.objectUrlCache = initializeObjectURLCache(integration, log);
 
-    log.trace('  Backend integration initialized');
+    log.trace('Backend integration initialized');
     return { res: integration, err: null };
 }
 /**
@@ -252,11 +252,11 @@ async function handleArbitraryRequest<T>(
     headers['Content-Type'] = 'application/json';
 
     if ((!userToken || userToken === '' || userToken === null) && !suburl.includes('session')) {
-        integration.logger.log('  User is not yet authorized, yet a request for: ' + suburl + ' was made');
+        integration.logger.warn('User is not yet authorized, yet a request for: ' + suburl + ' was made');
         return { res: null, code: 400, err: USER_NOT_AUTHORIZED_ERROR };
     }
     try {
-        integration.logger.trace(`  OUT: ${method} ${integration.mainBackendRootUrl}${suburl}`);
+        integration.logger.subtrace(`OUT: ${method} ${integration.mainBackendRootUrl}${suburl}`);
         const response = await fetch(integration.mainBackendRootUrl + suburl, {
             method: method,
             body: body ? JSON.stringify(body) : undefined,
@@ -264,7 +264,7 @@ async function handleArbitraryRequest<T>(
         });
         const ddh = response.headers.get('Ursa-Ddh');
         if (ddh != null) {
-            integration.logger.warn('  DDH: ' + ddh);
+            integration.logger.info('DDH: ' + ddh);
         }
         const code = response.status;
         if (!(code >= 200 && code < 300)) {
@@ -289,8 +289,8 @@ async function handleArbitraryRequest<T>(
                 return { res: undefined as unknown as T, code: code, err: null };
         }
     } catch (error) {
-        integration.logger.error(('  Error: ' + error) as string);
-        return { res: null, code: 600, err: error as string };
+        integration.logger.error((error) as Error);
+        return { res: null, code: 600, err: error as Error };
     }
 }
 /**
@@ -304,15 +304,15 @@ async function beginSession(
 ): Promise<ResErr<SessionInitiationResponseDTO>> {
     if (enviroment.runtimeMode !== RuntimeMode.PRODUCTION) {
         if (!data.firstName || data.firstName === '') {
-            base.logger.trace('[begin session] Missing first name: ' + data.firstName);
+            base.logger.warn('[begin session] Missing first name: ' + data.firstName);
             data.firstName = 'Tav';
         }
         if (!data.lastName || data.lastName === '') {
-            base.logger.trace('[begin session] Missing last name: ' + data.lastName);
+            base.logger.warn('[begin session] Missing last name: ' + data.lastName);
             data.lastName = 'McTavsen';
         }
         if (!data.userIdentifier || data.userIdentifier === '') {
-            base.logger.trace('[begin session] Missing user identifier: ' + data.userIdentifier);
+            base.logger.warn('[begin session] Missing user identifier: ' + data.userIdentifier);
             data.userIdentifier = 'MISSING_IDENTIFIER';
         }
     }

@@ -41,7 +41,7 @@ export const initializeEventMultiplexer = (logger: Logger, localPlayer: PlayerID
     const log = logger.copyFor('events');
     const plexer = new EventMultiplexerImpl(localPlayer, log);
     const unsubscribeID = plexer.subscribe(DEBUG_INFO_EVENT, (data) => {
-        log.log(`debug event from ${data.senderID}: ${data.message}`);
+        log.info(`debug event from ${data.senderID}: ${data.message}`);
     });
     return plexer;
 };

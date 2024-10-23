@@ -117,9 +117,9 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             return 'Failed to get multiplayer server address from backend. Code: ' + code + ' Error: ' + err;
         }
         const address = res.multiplayerServerAddress;
-        const lobbyID = res.lobbyID;
+        const lobbyID = res.lobbyId;
         const computedIGN = this.backend.localPlayer.firstName + ' ' + this.backend.localPlayer.lastName;
-        const ownerOfColonyJoined = res.ownerID;
+        const ownerOfColonyJoined = res.owner;
 
         //protocol://host:port is provided by the main backend, as well as lobby id
         let conn;
@@ -160,7 +160,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
     };
 
     public disconnect = async () => {
-        this.log.log("disconnecting from lobby")
+        this.log.info("disconnecting from lobby")
         this.connection?.close();
         this.state.set(ColonyState.CLOSED);
         this.mode.set(MultiplayerMode.AS_GUEST);

@@ -5,7 +5,7 @@ import { DEBUG_INFO_EVENT, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from './E
 
 const testLogger: Logger = {
     trace: () => {},
-    log: () => {},
+    info: () => {},
     warn: () => {},
     error: () => {},
 };

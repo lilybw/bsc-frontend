@@ -2,8 +2,9 @@ import { ENV } from '../environment/manager';
 import { LogLevel } from '../meta/types';
 
 export interface Logger {
+    subtrace: (message: string) => void;
     trace: (message: string) => void;
-    log: (message: string) => void;
+    info: (message: string) => void;
     warn: (message: string) => void;
     error: (message: string) => void;
     copyFor: (name: string) => Logger;
@@ -13,30 +14,40 @@ class ErrorOnlyLogger implements Logger {
     constructor(
         readonly name: string = 'ursa',
     ){}
-    trace = (msg: string) => {};
-    log = (msg: string) => {};
-    warn = (msg: string) => {};
-    error = (msg: string) => console.error(`[${this.name}] ${msg}`);
     copyFor = (name: string) => new ErrorOnlyLogger(name);
+    subtrace = (msg: string) => {};
+    trace = (msg: string) => {};
+    info = (msg: string) => {};
+    warn = (msg: string) => {};
+    error = (msg: string) => console.error(this._formatMessage("[E] " + msg));
+
+    _formatMessage = (msg: string) => `[${this.name}] ${msg}`;
 }
 
 class WarningLogger extends ErrorOnlyLogger {
-    warn = (msg: string) => console.warn(`[${this.name}] ${msg}`);
+    warn = (msg: string) => console.warn(this._formatMessage("[W] " + msg));
     copyFor = (name: string) => new WarningLogger(name);
 }
 
 class VerboseLogger extends WarningLogger {
-    log = (msg: string) => console.log(`[${this.name}] ${msg}`);
+    info = (msg: string) => console.log(this._formatMessage("[I] " + msg));
     copyFor = (name: string) => new VerboseLogger(name);
 }
 
 class Blogger extends VerboseLogger {
-    trace = (msg: string) => console.log(`[${this.name}] ${msg}`);
+    trace = (msg: string) => console.log(this._formatMessage("[T] " + msg));
     copyFor = (name: string) => new Blogger(name);
+}
+
+class Influencer extends Blogger {
+    subtrace = (msg: string) => console.log(this._formatMessage("[S] " + msg));
+    copyFor = (name: string) => new Influencer(name);
 }
 
 export const initializeLogger = (environment: ENV): Logger => {
     switch (environment.logLevel) {
+        case LogLevel.SUBTRACE:
+            return new Influencer();
         case LogLevel.TRACE:
             return new Blogger();
         case LogLevel.INFO:

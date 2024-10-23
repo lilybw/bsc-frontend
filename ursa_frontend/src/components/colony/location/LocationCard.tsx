@@ -21,7 +21,6 @@ export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOv
 const LocationCard: Component<LocationCardProps> = (props) => {
 
     const renderCardOfType = (locationInfo: LocationInfoResponseDTO): JSX.Element => {
-        console.log("[delete me] rendering card for: " + locationInfo.name);
         switch (locationInfo.id) {
             case KnownLocations.Home:
                 return (

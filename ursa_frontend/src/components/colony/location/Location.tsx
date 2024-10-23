@@ -56,7 +56,6 @@ const Location: Component<LocationProps> = (props) => {
 
     const onButtonActivation = () => {
         if (isUserHere()) {
-            console.log("[delete me] showing location card for: " + props.location.name);
             setShowLocationCard(true);
             setPreviousActionContext(props.actionContext.get());
             props.actionContext.set(ActionContext.INTERACTION);
@@ -66,7 +65,6 @@ const Location: Component<LocationProps> = (props) => {
             return;
         }
 
-        console.log("[delete me] moving to: " + props.colonyLocation);
         props.plexer.emit(PLAYER_MOVE_EVENT, {
             playerID: props.backend.localPlayer.id,
             colonyLocationID: props.colonyLocation.id,

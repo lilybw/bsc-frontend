@@ -74,7 +74,7 @@ export class MockServer implements IMockServer {
      * Starts the MockServer, initializing subscriptions and starting the update loop.
      */
     public start = () => {
-        this.log.log("starting");
+        this.log.info("starting");
         this.reset();
         this.setupSubscriptions();
         this.intervalId = setInterval(this.update, 100);
@@ -84,7 +84,7 @@ export class MockServer implements IMockServer {
      * Shuts down the MockServer, cleaning up subscriptions and stopping the minigame.
      */
     public shutdown = () => {
-        this.log.log("shutdown");
+        this.log.info("shutdown");
         if (this.intervalId !== null) {
             clearInterval(this.intervalId);
         }
@@ -95,7 +95,7 @@ export class MockServer implements IMockServer {
      * Resets the MockServer to its initial state.
      */
     private reset = () => {
-        this.log.log("resetting");
+        this.log.info("resetting");
         this.difficultyConfirmed = null;
         this.messageQueue.length = 0;
         this.lobbyPhase = LobbyPhase.RoamingColony;
@@ -151,7 +151,7 @@ export class MockServer implements IMockServer {
                             this.reset();
                             return;
                         } else {
-                            this.log.log("Starting minigame game loop");
+                            this.log.info("Starting minigame game loop");
                             this.loadedMinigameStart();
                         }
                         this.log.trace("Phase changed to InMinigame");

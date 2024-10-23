@@ -22,9 +22,10 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     );
     let validationTimeout: NodeJS.Timeout;
     let statusTimeout: NodeJS.Timeout;
+    const log = props.backend.logger.copyFor("space port");
 
     createEffect(() => {
-        console.log("Buffer value:", props.buffer());  // Call the accessor
+        log.trace("Buffer value:" + props.buffer());  // Call the accessor
         if (state() === 'join') {
             const value = props.buffer();  // Call the accessor
             console.log("Processing buffer in join state:", value);
