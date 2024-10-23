@@ -35,6 +35,7 @@ import {
     SessionInitiationResponseDTO,
     UpdateLatestVisitRequestDTO,
     UpdateLatestVisitResponseDTO,
+    GetColonyCodeResponseDTO,
 } from './mainBackendDTOs';
 import { LanguagePreference } from '../vitec/vitecDTOs';
 import { initializeObjectURLCache, IObjectURLCache } from './objectUrlCache';
@@ -94,6 +95,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     updateLatestVisit: (dto: UpdateLatestVisitRequestDTO, colony: number) => Promise<ResCodeErr<UpdateLatestVisitResponseDTO>>;
     getColonyOverview: (player: PlayerID) => Promise<ResCodeErr<ColonyOverviewReponseDTO>>;
     openColony: (colony: number, dto: OpenColonyRequestDTO) => Promise<ResCodeErr<OpenColonyResponseDTO>>;
+    getColonyCode: (colony: number) => Promise<ResCodeErr<GetColonyCodeResponseDTO>>;
     closeColony: (colony: number, dto: CloseColonyRequestDTO) => Promise<ResCodeErr<void>>;
     joinColony: (code: ColonyCode) => Promise<ResCodeErr<JoinColonyResponseDTO>>;
     createColony: (dto: CreateColonyRequestDTO, player: PlayerID) => Promise<ResCodeErr<CreateColonyResponseDTO>>;
@@ -203,6 +205,8 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
             base.request<UpdateLatestVisitResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/update-last-visit`, ParseMethod.JSON, dto),
         getColonyOverview: (player) => base.request<ColonyOverviewReponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
         openColony: (colony, dto) => base.request<OpenColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON, dto),
+        getColonyCode: (colony) => 
+            base.request<GetColonyCodeResponseDTO>(HTTPMethod.GET, `/api/v1/colony/${colony}/code`, ParseMethod.JSON),
         closeColony: (colony, dto) => 
             base.request<void>(HTTPMethod.POST, `/api/v1/colony/${colony}/close`, ParseMethod.NONE, dto),
         joinColony: (code) => base.request<JoinColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/join/${code}`, ParseMethod.JSON),

@@ -155,6 +155,9 @@ export type OpenColonyRequestDTO = {
     playerID: PlayerID;
     latestVisit: string;
 };
+export type GetColonyCodeResponseDTO = {
+    code: ColonyCode;
+};
 export type CloseColonyRequestDTO = {
     playerId: number;
 };
