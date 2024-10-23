@@ -196,6 +196,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         >
                             {(locationInfo) => (
                                 <Location
+                                    multiplayer={props.multiplayerIntegration}
                                     colony={props.colony}
                                     colonyLocation={colonyLocation}
                                     location={locationInfo}

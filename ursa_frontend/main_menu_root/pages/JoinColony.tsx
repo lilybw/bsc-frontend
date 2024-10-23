@@ -19,7 +19,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
         if (!checkInput()) return;
         const code = Number(colonyCode());
         // Join the colony
-        const joinResponse = await props.context.backend.joinColony(Number(code));
+        const joinResponse = await props.context.backend.joinColony(code);
         
         // Handle the response as needed
         if (joinResponse.err !== null) {

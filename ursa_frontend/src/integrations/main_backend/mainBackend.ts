@@ -204,7 +204,7 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
         getColonyOverview: (player) => base.request<ColonyOverviewReponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
         openColony: (colony, dto) => base.request<OpenColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON, dto),
         closeColony: (colony, dto) => 
-            base.request<void>(HTTPMethod.POST, `/api/v1/colony/${colony}/close`, ParseMethod.JSON, dto),
+            base.request<void>(HTTPMethod.POST, `/api/v1/colony/${colony}/close`, ParseMethod.NONE, dto),
         joinColony: (code) => base.request<JoinColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/join/${code}`, ParseMethod.JSON),
         createColony: (dto, player) =>
             base.request<ColonyInfoResponseDTO>(HTTPMethod.POST, `/api/v1/player/${player}/colony/create`, ParseMethod.JSON, dto),

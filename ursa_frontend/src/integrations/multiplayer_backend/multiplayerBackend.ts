@@ -32,10 +32,8 @@ export interface IMultiplayerIntegration {
      * Closed is singleplayer.
      */
     getState: Accessor<ColonyState>;
-    /**
-     * Exceptionally allowed to THROW
-     */
     connect: (code: ColonyCode, onClose: (ev: CloseEvent) => void) => Promise<Error | undefined>;
+    disconnect: () => Promise<void>;
     getServerStatus: () => Promise<ResCodeErr<HealthCheckDTO>>;
     /**
      * Get the state for the currently connected lobby.
@@ -163,7 +161,8 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         this.log.info("disconnecting from lobby")
         this.connection?.close();
         this.state.set(ColonyState.CLOSED);
-        this.mode.set(MultiplayerMode.AS_GUEST);
+        //We do not have to overwrite mode, as it is tied to the current colony, not the lobby
+        
         this.serverAddress = null;
         this.connectedLobbyID = null;
     }
@@ -183,7 +182,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             this.connection = conn;
         };
         conn.onerror = (ev) => {
-            this.log.error(`[multiplayer] Connection error: ${ev}`);
+            this.log.error(`[multiplayer] Connection error: ${JSON.stringify(ev)}`);
         };
         conn.onmessage = (ev) =>
             ev.data

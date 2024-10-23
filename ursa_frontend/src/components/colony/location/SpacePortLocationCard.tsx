@@ -6,9 +6,11 @@ import NTAwait from "../../util/NoThrowAwait";
 import GraphicalAsset from "../../GraphicalAsset";
 import { ColonyInfoResponseDTO, OpenColonyRequestDTO } from "../../../integrations/main_backend/mainBackendDTOs";
 import { LOBBY_CLOSING_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
+import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
 
 interface SpacePortCardProps extends GenericLocationCardProps {
     colony: ColonyInfoResponseDTO;
+    multiplayer: IMultiplayerIntegration;
 }
 
 const CODE_LENGTH = 6;
@@ -109,11 +111,11 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     };
 
     const closeColony = async () => {
-        const result = await props.backend.closeColony(props.colony.id, {
+        props.backend.closeColony(props.colony.id, {
             playerId: props.backend.localPlayer.id
         });
-        props.events.emit(LOBBY_CLOSING_EVENT, {});
         setState('initial');
+        props.multiplayer.disconnect();
     };
 
     const renderInitialState = () => (

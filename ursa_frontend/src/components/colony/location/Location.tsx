@@ -10,6 +10,7 @@ import { Styles } from "../../../sharedCSS";
 import LocationCard from "./LocationCard";
 import { WrappedSignal } from "../../../ts/wrappedSignal";
 import { ActionContext, TypeIconTuple } from "../../../ts/actionContext";
+import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
 
 interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colony: ColonyInfoResponseDTO;
@@ -17,6 +18,7 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
     location: LocationInfoResponseDTO;
     plexer: IEventMultiplexer;
     actionContext: WrappedSignal<TypeIconTuple>;
+    multiplayer: IMultiplayerIntegration;
     /**
      * Graphical Asset Scalar
      */
@@ -102,6 +104,7 @@ const Location: Component<LocationProps> = (props) => {
         if (showLocationCard()) {
             return (
                 <LocationCard
+                    multiplayer={props.multiplayer}
                     colony={props.colony}
                     events={props.plexer}
                     colonyLocation={props.colonyLocation}

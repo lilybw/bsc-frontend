@@ -1,4 +1,4 @@
-  import { Bundle, BundleComponent, LogLevel, ResErr, ColonyState } from '../src/meta/types';
+  import { Bundle, BundleComponent, LogLevel, ResErr, ColonyState, MultiplayerMode } from '../src/meta/types';
   import { ApplicationProps } from '../src/ts/types';
   import SectionTitle from '../src/components/SectionTitle';
   import StarryBackground from '../src/components/StarryBackground';
@@ -44,15 +44,15 @@
     const clients = createArrayStore<ClientDTO>();
     const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
     const colonyInfo = props.context.nav.getRetainedColonyInfo();
-
+    const log = props.context.logger.copyFor('colony');
     /**
      * Handles colony info load error by logging and redirecting to the menu.
      * @param error - The error message(s) to display.
      * @returns An ErrorPage component with the error content.
      */
     const onColonyInfoLoadError = (error: string[]) => {
-      props.context.logger.error('Failed to load colony info: ' + error);
-      setTimeout(() => props.context.nav.goToMenu(), 0);
+      log.error('Failed to load colony: ' + error);
+      //setTimeout(() => props.context.nav.goToMenu(), 0);
       return (
         <ErrorPage content={error} />
       )
@@ -107,10 +107,15 @@
     const mockServer = new MockServer(props.context, setPageContent, () => setPageContent(colonyLayout()), props.context.logger);
 
     onMount(async () => {
-      // Use online server for open colony state
+      // If there is a colonyCode present, that means that we're currently trying to go and join someone else's colony
       if (colonyInfo.res?.colonyCode) {
-        const err = await props.context.multiplayer.connect(colonyInfo.res?.colonyCode, (ev) => console.log('connection closed'));
-        console.error(err);
+        const err = await props.context.multiplayer.connect(colonyInfo.res?.colonyCode, (ev) => {
+          log.info('connection closed, redirecting to menu');
+          if (props.context.multiplayer.getMode() === MultiplayerMode.AS_GUEST) {
+            props.context.nav.goToMenu();
+          }
+        });
+        setPageContent(onColonyInfoLoadError([JSON.stringify(err)]) as StrictJSX);
       }
 
       // Determine colony state

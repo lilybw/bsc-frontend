@@ -8,12 +8,14 @@ import { KnownLocations } from "../../../integrations/main_backend/constants";
 import SpacePortLocationCard from "./SpacePortLocationCard";
 import HomeLocationCard from "./HomeLocationCard";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
+import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
 
 export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colony: ColonyInfoResponseDTO;
     colonyLocation: ColonyLocationInformation;
     location: LocationInfoResponseDTO;
     events: IEventMultiplexer;
+    multiplayer: IMultiplayerIntegration;
     onClose: () => void;
 }
 
@@ -38,6 +40,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             case KnownLocations.SpacePort:
                 return (
                     <SpacePortLocationCard 
+                        multiplayer={props.multiplayer}
                         colony={props.colony}
                         events={props.events}
                         colonyLocation={props.colonyLocation}
