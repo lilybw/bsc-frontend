@@ -25,7 +25,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     const log = props.backend.logger.copyFor("space port");
 
     createEffect(() => {
-        log.trace("Buffer value:" + props.buffer());  // Call the accessor
+        log.subtrace("Buffer value:" + props.buffer());  // Call the accessor
         if (state() === 'join') {
             const value = props.buffer();  // Call the accessor
             console.log("Processing buffer in join state:", value);
