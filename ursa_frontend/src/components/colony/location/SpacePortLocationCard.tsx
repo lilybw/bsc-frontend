@@ -5,7 +5,6 @@ import BufferBasedButton from "../../BufferBasedButton";
 import NTAwait from "../../util/NoThrowAwait";
 import GraphicalAsset from "../../GraphicalAsset";
 import { ColonyInfoResponseDTO, OpenColonyRequestDTO } from "../../../integrations/main_backend/mainBackendDTOs";
-import { LOBBY_CLOSING_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
 import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
 import { ColonyState } from "../../../meta/types";
 
@@ -18,9 +17,8 @@ const CODE_LENGTH = 6;
 
 const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     const [state, setState] = createSignal<'initial' | 'open' | 'join'>(
-        props.multiplayer.getState() === ColonyState.OPEN ? 'open' : 'initial'
+        props.colonyCode() !== null ? 'open' : 'initial'
     );
-    const [colonyCode, setColonyCode] = createSignal<number | null>(null);
     const [codeStatus, setCodeStatus] = createSignal<'idle' | 'valid' | 'invalid'>('idle');
     const [joinCode, setJoinCode] = createSignal(
         Array(CODE_LENGTH).fill('').map(() => createSignal(''))
@@ -107,16 +105,16 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
             return openResponse.err;
         }
 
-        setColonyCode(openResponse.res.code);
+        props.onColonyOpen(openResponse.res.code);
         setState('open');
         props.multiplayer.connect(openResponse.res.code, () => {});
     };
 
     const closeColony = async () => {
-        props.backend.closeColony(props.colony.id, {
+        await props.backend.closeColony(props.colony.id, {
             playerId: props.backend.localPlayer.id
         });
-        setColonyCode(null);
+        props.onColonyClose();
         setState('initial');
         props.multiplayer.disconnect();
     };
@@ -154,46 +152,35 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         </>
     );
 
-    const renderOpenState = () => {
-        // If we're open but don't have the code, get it
-        if (props.multiplayer.getState() === ColonyState.OPEN && !colonyCode()) {
-            props.backend.getColonyCode(props.colony.id).then(result => {
-                if (result.err === null && result.res) {
-                    setColonyCode(result.res.code);
-                }
-            });
-        }
-
-        return (
-            <div class={openStateContentStyle}>
-                <div class={openStateLeftColumnStyle}>
-                    <BufferBasedButton
-                        name={props.text.get("COLONY.UI_BUTTON.CLOSE").get()}
-                        buffer={props.buffer}
-                        register={props.register}
-                        onActivation={() => closeColony()}
-                    >
-                        {props.text.get("COLONY.UI_BUTTON.CLOSE").get()}
-                    </BufferBasedButton>
-                    <div class={colonyCodeContainerStyle}>
-                        <div class={colonyCodeLabelStyle}>
-                            {props.text.get("SPACEPORT.COLONY_CODE_LABEL").get()}
-                        </div>
-                        <div class={colonyCodeStyle}>
-                            {colonyCode() || props.text.get("SPACEPORT.LOADING_CODE").get()}
-                        </div>
+    const renderOpenState = () => (
+        <div class={openStateContentStyle}>
+            <div class={openStateLeftColumnStyle}>
+                <BufferBasedButton
+                    name={props.text.get("COLONY.UI_BUTTON.CLOSE").get()}
+                    buffer={props.buffer}
+                    register={props.register}
+                    onActivation={() => closeColony()}
+                >
+                    {props.text.get("COLONY.UI_BUTTON.CLOSE").get()}
+                </BufferBasedButton>
+                <div class={colonyCodeContainerStyle}>
+                    <div class={colonyCodeLabelStyle}>
+                        {props.text.get("SPACEPORT.COLONY_CODE_LABEL").get()}
+                    </div>
+                    <div class={colonyCodeStyle}>
+                        {props.colonyCode() || props.text.get("SPACEPORT.LOADING_CODE").get()}
                     </div>
                 </div>
-                <div class={openStateRightColumnStyle}>
-                    <NTAwait func={() => props.backend.getAssetMetadata(props.info.appearances[0].splashArt)}>
-                        {(asset) =>
-                            <GraphicalAsset styleOverwrite={openStateImageStyle} backend={props.backend} metadata={asset} />
-                        }
-                    </NTAwait>
-                </div>
             </div>
-        );
-    };
+            <div class={openStateRightColumnStyle}>
+                <NTAwait func={() => props.backend.getAssetMetadata(props.info.appearances[0].splashArt)}>
+                    {(asset) =>
+                        <GraphicalAsset styleOverwrite={openStateImageStyle} backend={props.backend} metadata={asset} />
+                    }
+                </NTAwait>
+            </div>
+        </div>
+    );
 
     const renderJoinState = () => (
         <div class={joinStateContentStyle}>
@@ -238,14 +225,9 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
                     </NTAwait>
                 </div>
                 {props.text.Title(props.info.name)({styleOverwrite: titleStyleOverwrite})}
-                {props.multiplayer.getState() === ColonyState.OPEN 
-                    ? renderOpenState()
-                    : <>
-                        {state() === 'initial' && renderInitialState()}
-                        {state() === 'open' && renderOpenState()}
-                        {state() === 'join' && renderJoinState()}
-                      </>
-                }
+                {state() === 'initial' && renderInitialState()}
+                {state() === 'open' && renderOpenState()}
+                {state() === 'join' && renderJoinState()}
                 <div class={buttonContainerStyle}>
                     <BufferBasedButton 
                         name={props.text.get("LOCATION.USER_ACTION.LEAVE").get()}
@@ -257,7 +239,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
                             props.closeCard();
                         }}
                     />
-                    {state() !== 'initial' && props.multiplayer.getState() !== ColonyState.OPEN && (
+                    {state() !== 'initial' && (
                         <BufferBasedButton 
                             name={props.text.get("SPACEPORT.BACK").get()}
                             buffer={props.buffer}
@@ -484,18 +466,6 @@ const joinInputLabelStyle = css`
     text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
 `;
 
-const validInputStyle = css`
-    animation: ${validPulse} 1s infinite !important;
-    border-color: #00ff00 !important;
-    color: #00ff00;
-`;
-
-const invalidInputStyle = css`
-    animation: ${invalidShake} 0.5s, ${glowPulse} 1s infinite !important;
-    border-color: #ff0000 !important;
-    color: #ff0000;
-`;
-
 const filledCodeBoxStyle = css`
     border-color: #00ffff;
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
@@ -532,4 +502,27 @@ const hiddenButtonStyle = css`
     width: auto;
     display: flex;
     justify-content: center;
+`;
+
+const blinkValid = keyframes`
+    0%, 49% { background-color: transparent; }
+    50%, 100% { background-color: rgba(0, 255, 0, 0.3); }
+`;
+
+const blinkInvalid = keyframes`
+    0%, 49% { background-color: transparent; }
+    50%, 100% { background-color: rgba(255, 0, 0, 0.3); }
+`;
+
+// Then in the styles:
+const validInputStyle = css`
+    animation: ${blinkValid} 0.5s infinite;
+    border-color: #00ff00 !important;
+    color: #00ff00;
+`;
+
+const invalidInputStyle = css`
+    animation: ${blinkInvalid} 0.5s infinite;
+    border-color: #ff0000 !important;
+    color: #ff0000;
 `;
