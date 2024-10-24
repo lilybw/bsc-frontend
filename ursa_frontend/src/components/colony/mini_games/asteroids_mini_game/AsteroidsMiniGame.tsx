@@ -269,7 +269,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       </div>
       
       <Countdown duration={props.settings.survivalTimeS}/>
-      <div class={gameContainerStyle}>
+      <div>
         <For each={asteroids.get}>
           {(asteroid) => (
             <div
@@ -365,13 +365,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
 export default AsteroidsMiniGame;
 
 // Styles
-const gameContainerStyle = css`
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  background-color: black;
-  overflow: hidden;
-`;
 
 const wallStyle = css`
   position: absolute;
