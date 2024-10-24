@@ -116,7 +116,9 @@
             props.context.nav.goToMenu();
           }
         });
-        setPageContent(onColonyInfoLoadError([JSON.stringify(err)]) as StrictJSX);
+        if (err) {
+          setPageContent(onColonyInfoLoadError([JSON.stringify(err)]) as StrictJSX);
+        }
       }
 
       // Determine colony state
