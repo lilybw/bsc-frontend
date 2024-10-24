@@ -32,6 +32,10 @@ export interface IMultiplayerIntegration {
      * Closed is singleplayer.
      */
     getState: Accessor<ColonyState>;
+    /**
+     * The code of the currently connected colony.
+     */
+    getCode: Accessor<ColonyCode | null>;
     connect: (code: ColonyCode, onClose: (ev: CloseEvent) => void) => Promise<Error | undefined>;
     disconnect: () => Promise<void>;
     getServerStatus: () => Promise<ResCodeErr<HealthCheckDTO>>;
@@ -76,7 +80,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
 
     public getMode = this.mode.get; //Function ref to Accessor<MultiplayerMode>
     public getState = this.state.get; //Function ref to Accessor<ColonyState>
-    public getCode = this.code.get; //Function ref to Accessor<ColonyCode>
+    public getCode = this.code.get; //Function ref to Accessor<ColonyCode | null>
 
     public getServerStatus = async (): Promise<ResCodeErr<HealthCheckDTO>> => {
         if (this.serverAddress === null) {
@@ -158,6 +162,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
 
         return this.configureConnection(conn, onClose);
     };
+    //Extracted as own function for the generic parameter
     private establishSubscription = <T extends IMessage>(spec: EventSpecification<T>) => {
         return this.multiplexer.subscribe(spec, 
             Object.assign(
