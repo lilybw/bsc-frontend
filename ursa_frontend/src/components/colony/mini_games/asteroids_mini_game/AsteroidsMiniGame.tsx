@@ -42,6 +42,8 @@ export type AsteroidsSettingsDTO = {
 interface Asteroid extends AsteroidsAsteroidSpawnMessageDTO {
   speed: number,
   destroy: () => void,
+  endX: number,
+  endY: number
 }
 
 interface Player extends AsteroidsAssignPlayerDataMessageDTO {
@@ -187,11 +189,15 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     }, 100);
 
     const spawnSubID = props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
-      const removeFunc = asteroids.add({...data,
-        speed:(getRandomInRange(props.settings.minTimeTillImpactS, props.settings.maxTimeTillImpactS)),
+      const removeFunc = asteroids.add({
+        ...data,
+        speed: data.timeUntilImpact,
+        endX: 0.0,
+        endY: 0.5,
         destroy: () => {
-        handleAsteroidDestruction(data.id)
-      }})
+          handleAsteroidDestruction(data.id)
+        }
+      })
       asteroidsRemoveFuncs.set(data.id, removeFunc)
     })
 
@@ -278,16 +284,23 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 left: `${asteroid.x * 100}%`,
                 top: `${asteroid.y * 100}%`,
                 transform: `translate(-50%, -50%)`,
-                transition: `left ${asteroid.speed}s linear, bottom ${asteroid.speed}s linear`,
+                transition: `left ${asteroid.timeUntilImpact}s linear, top ${asteroid.timeUntilImpact}s linear`,
+              }}
+              ref={(el: HTMLDivElement) => {
+                // Force a reflow to ensure the initial position is set before starting animation
+                el.offsetHeight;
+                // Set the final position
+                el.style.left = `${asteroid.endX * 100}%`;
+                el.style.top = `${asteroid.endY * 100}%`;
               }}
             >
-              <NTAwait func={() => props.context.backend.getAssetMetadata(7001 /* Asset for asteroid | QUESTION: Load once per asteroid and use reference? */)}>
-                    {(asset) => (
-                        <GraphicalAsset metadata={asset} backend={props.context.backend}/>
-                    )}
+              <NTAwait func={() => props.context.backend.getAssetMetadata(7001)}>
+                {(asset) => (
+                  <GraphicalAsset metadata={asset} backend={props.context.backend}/>
+                )}
               </NTAwait>
               <BufferBasedButton
-                enable={disableButtons} // Disable buttons when player is stunned or disbaled
+                enable={disableButtons}
                 name={asteroid.charCode}
                 buffer={inputBuffer.get}
                 onActivation={() => localPlayerShootAtCodeHandler(asteroid.charCode)}
