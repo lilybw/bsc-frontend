@@ -12,19 +12,19 @@ suite('placeValueAtOffsetAsTypeInView', () => {
     test('should set UINT16 correctly', () => {
         const view = new DataView(new ArrayBuffer(2));
         placeValueAtOffsetAsTypeInView(view, 0, 65535, GoType.UINT16);
-        expect(view.getUint16(0, true)).toBe(65535);
+        expect(view.getUint16(0, false)).toBe(65535);
     });
 
     test('should set UINT32 correctly', () => {
         const view = new DataView(new ArrayBuffer(4));
         placeValueAtOffsetAsTypeInView(view, 0, 4294967295, GoType.UINT32);
-        expect(view.getUint32(0, true)).toBe(4294967295);
+        expect(view.getUint32(0, false)).toBe(4294967295);
     });
 
     test('should set UINT64 correctly', () => {
         const view = new DataView(new ArrayBuffer(8));
         placeValueAtOffsetAsTypeInView(view, 0, BigInt('18446744073709551615'), GoType.UINT64);
-        expect(view.getBigUint64(0, true)).toBe(BigInt('18446744073709551615'));
+        expect(view.getBigUint64(0, false)).toBe(BigInt('18446744073709551615'));
     });
 
     test('should set INT8 correctly', () => {
@@ -36,31 +36,31 @@ suite('placeValueAtOffsetAsTypeInView', () => {
     test('should set INT16 correctly', () => {
         const view = new DataView(new ArrayBuffer(2));
         placeValueAtOffsetAsTypeInView(view, 0, -32768, GoType.INT16);
-        expect(view.getInt16(0, true)).toBe(-32768);
+        expect(view.getInt16(0, false)).toBe(-32768);
     });
 
     test('should set INT32 correctly', () => {
         const view = new DataView(new ArrayBuffer(4));
         placeValueAtOffsetAsTypeInView(view, 0, -2147483648, GoType.INT32);
-        expect(view.getInt32(0, true)).toBe(-2147483648);
+        expect(view.getInt32(0, false)).toBe(-2147483648);
     });
 
     test('should set INT64 correctly', () => {
         const view = new DataView(new ArrayBuffer(8));
         placeValueAtOffsetAsTypeInView(view, 0, BigInt('-9223372036854775808'), GoType.INT64);
-        expect(view.getBigInt64(0, true)).toBe(BigInt('-9223372036854775808'));
+        expect(view.getBigInt64(0, false)).toBe(BigInt('-9223372036854775808'));
     });
 
     test('should set FLOAT32 correctly', () => {
         const view = new DataView(new ArrayBuffer(4));
         placeValueAtOffsetAsTypeInView(view, 0, 3.14, GoType.FLOAT32);
-        expect(view.getFloat32(0, true)).toBeCloseTo(3.14, 5);
+        expect(view.getFloat32(0, false)).toBeCloseTo(3.14, 5);
     });
 
     test('should set FLOAT64 correctly', () => {
         const view = new DataView(new ArrayBuffer(8));
         placeValueAtOffsetAsTypeInView(view, 0, 3.14159265359, GoType.FLOAT64);
-        expect(view.getFloat64(0, true)).toBeCloseTo(3.14159265359, 10);
+        expect(view.getFloat64(0, false)).toBeCloseTo(3.14159265359, 10);
     });
 
     test('should set BOOL correctly', () => {
@@ -155,21 +155,21 @@ suite('parseGoTypeAtOffsetInView', () => {
     test('should parse UINT16 correctly', () => {
         const buffer = new ArrayBuffer(2);
         const view = new DataView(buffer);
-        view.setUint16(0, 65535, true);
+        view.setUint16(0, 65535, false);
         expect(parseGoTypeAtOffsetInView<number>(view, 0, GoType.UINT16)).toBe(65535);
     });
 
     test('should parse UINT32 correctly', () => {
         const buffer = new ArrayBuffer(4);
         const view = new DataView(buffer);
-        view.setUint32(0, 4294967295, true);
+        view.setUint32(0, 4294967295, false);
         expect(parseGoTypeAtOffsetInView<number>(view, 0, GoType.UINT32)).toBe(4294967295);
     });
 
     test('should parse UINT64 correctly', () => {
         const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
-        view.setBigUint64(0, BigInt('18446744073709551615'), true);
+        view.setBigUint64(0, BigInt('18446744073709551615'), false);
         expect(parseGoTypeAtOffsetInView<bigint>(view, 0, GoType.UINT64)).toBe(BigInt('18446744073709551615'));
     });
 
@@ -183,35 +183,35 @@ suite('parseGoTypeAtOffsetInView', () => {
     test('should parse INT16 correctly', () => {
         const buffer = new ArrayBuffer(2);
         const view = new DataView(buffer);
-        view.setInt16(0, -32768, true);
+        view.setInt16(0, -32768, false);
         expect(parseGoTypeAtOffsetInView<number>(view, 0, GoType.INT16)).toBe(-32768);
     });
 
     test('should parse INT32 correctly', () => {
         const buffer = new ArrayBuffer(4);
         const view = new DataView(buffer);
-        view.setInt32(0, -2147483648, true);
+        view.setInt32(0, -2147483648, false);
         expect(parseGoTypeAtOffsetInView<number>(view, 0, GoType.INT32)).toBe(-2147483648);
     });
 
     test('should parse INT64 correctly', () => {
         const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
-        view.setBigInt64(0, BigInt('-9223372036854775808'), true);
+        view.setBigInt64(0, BigInt('-9223372036854775808'), false);
         expect(parseGoTypeAtOffsetInView<bigint>(view, 0, GoType.INT64)).toBe(BigInt('-9223372036854775808'));
     });
 
     test('should parse FLOAT32 correctly', () => {
         const buffer = new ArrayBuffer(4);
         const view = new DataView(buffer);
-        view.setFloat32(0, 3.14, true);
+        view.setFloat32(0, 3.14, false);
         expect(parseGoTypeAtOffsetInView<number>(view, 0, GoType.FLOAT32)).toBeCloseTo(3.14, 5);
     });
 
     test('should parse FLOAT64 correctly', () => {
         const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
-        view.setFloat64(0, 3.14159265359, true);
+        view.setFloat64(0, 3.14159265359, false);
         expect(parseGoTypeAtOffsetInView<number>(view, 0, GoType.FLOAT64)).toBeCloseTo(3.14159265359, 10);
     });
 
@@ -256,8 +256,8 @@ suite('parseGoTypeAtOffsetInView', () => {
     test('should parse at correct offset', () => {
         const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
-        view.setUint32(0, 0xaabbccdd, true);
-        view.setUint32(4, 0x11223344, true);
+        view.setUint32(0, 0xaabbccdd, false);
+        view.setUint32(4, 0x11223344, false);
         expect(parseGoTypeAtOffsetInView<number>(view, 4, GoType.UINT32)).toBe(0x11223344);
     });
 });

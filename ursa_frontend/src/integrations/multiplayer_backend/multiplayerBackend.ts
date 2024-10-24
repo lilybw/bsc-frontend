@@ -32,6 +32,10 @@ export interface IMultiplayerIntegration {
      * Closed is singleplayer.
      */
     getState: Accessor<ColonyState>;
+    /**
+     * The code of the currently connected colony.
+     */
+    getCode: Accessor<ColonyCode | null>;
     connect: (code: ColonyCode, onClose: (ev: CloseEvent) => void) => Promise<Error | undefined>;
     disconnect: () => Promise<void>;
     getServerStatus: () => Promise<ResCodeErr<HealthCheckDTO>>;
@@ -61,7 +65,9 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
     
     private readonly mode: WrappedSignal<MultiplayerMode> = createWrappedSignal<MultiplayerMode>(MultiplayerMode.AS_GUEST);
     private readonly state: WrappedSignal<ColonyState> = createWrappedSignal<ColonyState>(ColonyState.CLOSED);
+    private readonly code: WrappedSignal<ColonyCode | null> = createWrappedSignal<ColonyCode | null>(null);
     private readonly log: Logger;
+    private readonly internalOriginID: string = 'multiplayerIntegration';
     constructor(
         private readonly backend: BackendIntegration,
         log: Logger,
@@ -74,6 +80,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
 
     public getMode = this.mode.get; //Function ref to Accessor<MultiplayerMode>
     public getState = this.state.get; //Function ref to Accessor<ColonyState>
+    public getCode = this.code.get; //Function ref to Accessor<ColonyCode | null>
 
     public getServerStatus = async (): Promise<ResCodeErr<HealthCheckDTO>> => {
         if (this.serverAddress === null) {
@@ -131,6 +138,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
 
         this.mode.set(ownerOfColonyJoined === this.backend.localPlayer.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST);
         this.state.set(ColonyState.OPEN);
+        this.code.set(colonyCode);
         this.connectedLobbyID = lobbyID;
         this.serverAddress = address;
 
@@ -139,32 +147,38 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             this.multiplexer.unsubscribe(...this.subscriptions);
         }
         
+        const mode = this.mode.get();
         //Subscribe to all events coming from this frontend's user's actions
         //in order to replicate them back to the server, which will then send them to all other clients
         //However only subscribe to those which this user is allowed to send to the server in the first place
         this.subscriptions = Object.values(EVENT_ID_MAP)
             .filter((spec) => {
-                const mode = this.mode.get();
                 return (
                     (mode === MultiplayerMode.AS_OWNER && (spec.permissions.owner || spec.permissions.guest)) ||
                     (mode === MultiplayerMode.AS_GUEST && spec.permissions.guest)
                 );
             })
-            .map((spec) => {
-                return this.multiplexer.subscribe(spec, (data) => {
-                    this.send(data, spec);
-                });
-            });
+            .map(this.establishSubscription);
 
         return this.configureConnection(conn, onClose);
     };
+    //Extracted as own function for the generic parameter
+    private establishSubscription = <T extends IMessage>(spec: EventSpecification<T>) => {
+        return this.multiplexer.subscribe(spec, 
+            Object.assign(
+                (data: T) => this.send(data, spec), 
+                { internalOrigin: this.internalOriginID }
+            )
+        );
+    }
 
     public disconnect = async () => {
         this.log.info("disconnecting from lobby")
         this.connection?.close();
         this.state.set(ColonyState.CLOSED);
+        this.code.set(null);
         //We do not have to overwrite mode, as it is tied to the current colony, not the lobby
-        
+        //And if the current colony is dismounted, the app reloads anyways
         this.serverAddress = null;
         this.connectedLobbyID = null;
     }
@@ -211,7 +225,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
 
                     const decoded = serializeTypeFromData(view, sourceID, spec);
 
-                    this.multiplexer.emitRAW(decoded);
+                    this.multiplexer.emitRAW(decoded, this.internalOriginID);
                 })
                 .catch((e: Error) => {
                     this.log.error(`Error while processing message: ${e}`);
