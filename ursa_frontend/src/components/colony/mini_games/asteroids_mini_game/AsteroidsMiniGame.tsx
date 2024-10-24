@@ -27,19 +27,19 @@ import GraphicalAsset from "../../../GraphicalAsset";
  * All time values are in seconds unless specified otherwise.
  */
 export type AsteroidsSettingsDTO = {
-    minTimeTillImpactS: number,      // Minimum time for asteroid to reach impact point
-    maxTimeTillImpactS: number,      // Maximum time for asteroid to reach impact point
-    charCodeLength: uint32,          // Length of character codes for shooting
-    asteroidsPerSecondAtStart: number, // Initial spawn rate
-    asteroidsPerSecondAt80Percent: number, // Spawn rate at 80% game completion
-    colonyHealth: uint32,            // Starting health of the colony
-    asteroidMaxHealth: uint32,       // Maximum possible health of asteroids
-    stunDurationS: number,           // How long players remain stunned
-    friendlyFirePenaltyS: number,    // Base friendly fire penalty duration
-    friendlyFirePenaltyMultiplier: number, // Multiplier for consecutive friendly fire
-    timeBetweenShotsS: number,       // Cooldown between shots
-    survivalTimeS: number,           // Total game duration
-    spawnRateCoopModifier: number    // Modifier for spawn rate in cooperative mode
+  minTimeTillImpactS: number,      // Minimum time for asteroid to reach impact point
+  maxTimeTillImpactS: number,      // Maximum time for asteroid to reach impact point
+  charCodeLength: uint32,          // Length of character codes for shooting
+  asteroidsPerSecondAtStart: number, // Initial spawn rate
+  asteroidsPerSecondAt80Percent: number, // Spawn rate at 80% game completion
+  colonyHealth: uint32,            // Starting health of the colony
+  asteroidMaxHealth: uint32,       // Maximum possible health of asteroids
+  stunDurationS: number,           // How long players remain stunned
+  friendlyFirePenaltyS: number,    // Base friendly fire penalty duration
+  friendlyFirePenaltyMultiplier: number, // Multiplier for consecutive friendly fire
+  timeBetweenShotsS: number,       // Cooldown between shots
+  survivalTimeS: number,           // Total game duration
+  spawnRateCoopModifier: number    // Modifier for spawn rate in cooperative mode
 }
 
 /**
@@ -87,7 +87,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   const inputBuffer = createWrappedSignal<string>('');
   const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
   const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.ASTEROIDS);
-  
+
   // Player Status States
   const [isStunned, setIsStunned] = createSignal<boolean>(false);
   const [isDisabled, setIsDisabled] = createSignal<boolean>(false);
@@ -104,6 +104,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
    * Cleans up the asteroid and its removal function
    */
   const handleAsteroidDestruction = (asteroidID: number) => {
+    console.log('Destroying asteroid:', asteroidID);
     const removeFunc = asteroidsRemoveFuncs.get(asteroidID);
     if (removeFunc) {
       removeFunc();
@@ -139,8 +140,9 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     const shooter = players.findFirst((p) => p.id === data.id);
 
     if (shooter) {
+      // Handle player hits first
       const hitPlayers = players.findAll((p) => p.code === data.code);
-      if (!hitPlayers.length) {
+      if (hitPlayers.length) {
         hitPlayers.forEach((p) => {
           spawnLazerBeam(shooter.x, shooter.y, p.x, p.y);
           p.stun();
@@ -148,14 +150,19 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         shooter.disable();
       }
 
+      // Handle asteroid hits
       const hitAsteroids = asteroids.findAll((a) => a.charCode === data.code);
-      if (!hitAsteroids.length) {
+      console.log('Hit asteroids:', hitAsteroids);
+      if (hitAsteroids.length) {
         hitAsteroids.forEach((a) => {
+          console.log('Processing hit on asteroid:', a.id);
           spawnLazerBeam(shooter.x, shooter.y, a.x, a.y);
           a.destroy();
         });
+        return; // Exit early if we hit asteroids
       }
 
+      // If we hit nothing, show miss effect
       if (!hitPlayers.length && !hitAsteroids.length) {
         spawnLazerBeam(
           shooter.x,
@@ -205,7 +212,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         (beam) => beam.opacity > 0,
         (beam) => ({ ...beam, opacity: beam.opacity - 0.1 })
       );
-    
+
       const beamsToRemove = lazerBeams.findAll((beam) => beam.opacity <= 0);
       beamsToRemove.forEach((beam) => {
         const removeBeam = lazerBeams.add(beam);
@@ -288,11 +295,11 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   return (
     <div>
       <StarryBackground />
-      <div class={wallStyle} id="Outer-Wall"/>
+      <div class={wallStyle} id="Outer-Wall" />
       <div class={statusStyle}>
         Health: {'❤'.repeat(health())}
       </div>
-      <Countdown duration={props.settings.survivalTimeS}/>
+      <Countdown duration={props.settings.survivalTimeS} />
       <div>
         {/* Asteroid Rendering */}
         <For each={asteroids.get}>
@@ -305,7 +312,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                   el.style.transition = 'none';
                   el.style.left = `${asteroid.x * 100}%`;
                   el.style.top = `${asteroid.y * 100}%`;
-                  
+
                   // Force browser reflow for clean animation
                   void el.offsetHeight;
 
@@ -324,7 +331,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
             >
               <NTAwait func={() => props.context.backend.getAssetMetadata(7001)}>
                 {(asset) => (
-                  <GraphicalAsset metadata={asset} backend={props.context.backend}/>
+                  <GraphicalAsset metadata={asset} backend={props.context.backend} />
                 )}
               </NTAwait>
               <BufferBasedButton
