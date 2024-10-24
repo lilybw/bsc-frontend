@@ -22,62 +22,87 @@ import StarryBackground from "../../../StarryBackground";
 import NTAwait from "../../../util/NoThrowAwait";
 import GraphicalAsset from "../../../GraphicalAsset";
 
+/**
+ * Settings DTO for the Asteroids minigame.
+ * All time values are in seconds unless specified otherwise.
+ */
 export type AsteroidsSettingsDTO = {
-    minTimeTillImpactS: number,
-    maxTimeTillImpactS: number,
-    charCodeLength: uint32,
-    asteroidsPerSecondAtStart: number,
-    asteroidsPerSecondAt80Percent: number,
-    colonyHealth: uint32,
-    asteroidMaxHealth: uint32,
-    stunDurationS: number,
-    friendlyFirePenaltyS: number,
-    friendlyFirePenaltyMultiplier: number,
-    timeBetweenShotsS: number,
-    survivalTimeS: number,
-    spawnRateCoopModifier: number
+    minTimeTillImpactS: number,      // Minimum time for asteroid to reach impact point
+    maxTimeTillImpactS: number,      // Maximum time for asteroid to reach impact point
+    charCodeLength: uint32,          // Length of character codes for shooting
+    asteroidsPerSecondAtStart: number, // Initial spawn rate
+    asteroidsPerSecondAt80Percent: number, // Spawn rate at 80% game completion
+    colonyHealth: uint32,            // Starting health of the colony
+    asteroidMaxHealth: uint32,       // Maximum possible health of asteroids
+    stunDurationS: number,           // How long players remain stunned
+    friendlyFirePenaltyS: number,    // Base friendly fire penalty duration
+    friendlyFirePenaltyMultiplier: number, // Multiplier for consecutive friendly fire
+    timeBetweenShotsS: number,       // Cooldown between shots
+    survivalTimeS: number,           // Total game duration
+    spawnRateCoopModifier: number    // Modifier for spawn rate in cooperative mode
 }
 
+/**
+ * Extended asteroid data including visual and gameplay properties
+ */
 interface Asteroid extends AsteroidsAsteroidSpawnMessageDTO {
-  speed: number,
-  destroy: () => void,
-  endX: number,
-  endY: number
+  speed: number,          // Movement speed (milliseconds)
+  destroy: () => void,    // Function to handle asteroid destruction
+  endX: number,          // Final X position (0.0 for wall)
+  endY: number           // Final Y position (0.5 for center)
 }
 
+/**
+ * Extended player data including status effects and their handlers
+ */
 interface Player extends AsteroidsAssignPlayerDataMessageDTO {
-  isStunned: boolean,
-  isDisabled: boolean,
-  stun: () => void,
-  disable: () => void,
+  isStunned: boolean,    // Whether player is currently stunned
+  isDisabled: boolean,   // Whether player is currently disabled
+  stun: () => void,      // Function to apply stun effect
+  disable: () => void,   // Function to apply disable effect
 }
 
+/**
+ * Data structure for laser beam visual effects
+ */
 interface LazerBeam {
-  startX: number,
-  startY: number,
-  endX: number,
-  endY: number,
-  opacity: number,
+  startX: number,       // Beam start X coordinate
+  startY: number,       // Beam start Y coordinate
+  endX: number,        // Beam end X coordinate
+  endY: number,        // Beam end Y coordinate
+  opacity: number,     // Current opacity for fade effect
 }
 
+/**
+ * Main Asteroids minigame component
+ */
 const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props) => {
+  // State Management
   const asteroids = createArrayStore<Asteroid>();
   const players = createArrayStore<Player>();
   const asteroidsRemoveFuncs = new Map<uint32, () => void>();
   const [health, setHealth] = createSignal(props.settings.colonyHealth);
 
+  // Input and UI State
   const inputBuffer = createWrappedSignal<string>('');
   const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
   const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.ASTEROIDS);
+  
+  // Player Status States
   const [isStunned, setIsStunned] = createSignal<boolean>(false);
   const [isDisabled, setIsDisabled] = createSignal<boolean>(false);
-  const [disableButtons, setDisableButtons] = createSignal<boolean>(false);
+  const [buttonsEnabled, setButtonsEnabled] = createSignal<boolean>(true); // Changed from disableButtons
   const lazerBeams = createArrayStore<LazerBeam>();
 
+  // Timers for status effects
   let stunTimer: NodeJS.Timeout;
   let penaltyTimer: NodeJS.Timeout;
   let buttonDisableTimer: NodeJS.Timeout;
 
+  /**
+   * Handles the destruction of an asteroid by its ID
+   * Cleans up the asteroid and its removal function
+   */
   const handleAsteroidDestruction = (asteroidID: number) => {
     const removeFunc = asteroidsRemoveFuncs.get(asteroidID);
     if (removeFunc) {
@@ -86,6 +111,10 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     }
   };
 
+  /**
+   * Handles local player shooting at a specific character code
+   * Emits event and processes the shot locally
+   */
   const localPlayerShootAtCodeHandler = (charCode: string) => {
     if (charCode) {
       props.context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {
@@ -102,6 +131,10 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     }
   };
 
+  /**
+   * Processes a player's shot, handling hits on players or asteroids
+   * Creates visual effects and applies relevant status effects
+   */
   const handlePlayerShootAtCodeEvent = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
     const shooter = players.findFirst((p) => p.id === data.id);
 
@@ -134,18 +167,25 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     }
   };
 
+  /**
+   * Handles disabling buttons for a player for a specified duration
+   * Only affects the local player
+   */
   const disableButtonsHandler = (data: AsteroidsAssignPlayerDataMessageDTO, time: number) => {
     if (data.id === props.context.backend.localPlayer.id) {
       clearTimeout(buttonDisableTimer);
-      setDisableButtons(true);
+      setButtonsEnabled(false); // Changed from setDisableButtons(true)
 
       buttonDisableTimer = setTimeout(() => {
-        setDisableButtons(false);
+        setButtonsEnabled(true); // Changed from setDisableButtons(false)
         clearTimeout(buttonDisableTimer);
       }, time);
     }
   };
 
+  /**
+   * Creates a new laser beam visual effect
+   */
   const spawnLazerBeam = (shooterX: number, shootery: number, targetX: number, targetY: number) => {
     const newBeam: LazerBeam = {
       startX: shooterX,
@@ -157,7 +197,9 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     lazerBeams.add(newBeam);
   };
 
+  // Component Lifecycle and Event Subscriptions
   onMount(() => {
+    // Update laser beam fade effects
     const updateLazerBeams = setInterval(() => {
       lazerBeams.mutateByPredicate(
         (beam) => beam.opacity > 0,
@@ -171,8 +213,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       });
     }, 100);
 
+    // Event Subscriptions
     const spawnSubID = props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
-      console.log('Asteroid spawn data:', data); // Debug log
       const removeFunc = asteroids.add({
         ...data,
         speed: data.timeUntilImpact,
@@ -242,6 +284,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     });
   });
 
+  // Component Render
   return (
     <div>
       <StarryBackground />
@@ -251,25 +294,26 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       </div>
       <Countdown duration={props.settings.survivalTimeS}/>
       <div>
+        {/* Asteroid Rendering */}
         <For each={asteroids.get}>
           {(asteroid) => (
             <div
               class={asteroidStyle}
               ref={(el: HTMLDivElement) => {
                 if (el) {
-                  // Set initial position without transition
+                  // Initialize position without transition
                   el.style.transition = 'none';
                   el.style.left = `${asteroid.x * 100}%`;
                   el.style.top = `${asteroid.y * 100}%`;
                   
-                  // Force browser reflow
+                  // Force browser reflow for clean animation
                   void el.offsetHeight;
 
-                  // Start animation to end position
+                  // Start animation to impact point
                   requestAnimationFrame(() => {
                     el.style.transition = `all ${asteroid.timeUntilImpact / 1000}s linear`;
-                    el.style.left = '0%';  // Move to wall
-                    el.style.top = '50%';  // Move to center
+                    el.style.left = '0%';
+                    el.style.top = '50%';
                   });
                 }
               }}
@@ -284,7 +328,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 )}
               </NTAwait>
               <BufferBasedButton
-                enable={disableButtons}
+                enable={buttonsEnabled} // Changed from disableButtons
                 name={asteroid.charCode}
                 buffer={inputBuffer.get}
                 onActivation={() => localPlayerShootAtCodeHandler(asteroid.charCode)}
@@ -294,6 +338,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
           )}
         </For>
 
+        {/* Laser Beams Rendering */}
         <For each={lazerBeams.get}>
           {(beam) => (
             <>
@@ -319,6 +364,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
           )}
         </For>
 
+        {/* Player Rendering */}
         <For each={players.get}>
           {(player) => (
             <div
@@ -335,7 +381,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 )}
               </NTAwait>
               <BufferBasedButton
-                enable={disableButtons}
+                enable={buttonsEnabled} // Changed from disableButtons
                 name={player.code}
                 buffer={inputBuffer.get}
                 onActivation={() => localPlayerShootAtCodeHandler(player.code)}
@@ -346,6 +392,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
             </div>
           )}
         </For>
+
+        {/* Action Input */}
         <ActionInput
           subscribers={bufferSubscribers}
           text={props.context.text}
