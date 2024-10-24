@@ -9,6 +9,7 @@ import SpacePortLocationCard from "./SpacePortLocationCard";
 import HomeLocationCard from "./HomeLocationCard";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
+import { Accessor } from "solid-js";
 
 export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colony: ColonyInfoResponseDTO;
@@ -17,11 +18,12 @@ export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOv
     events: IEventMultiplexer;
     multiplayer: IMultiplayerIntegration;
     onClose: () => void;
+    colonyCode: Accessor<number | null>;
+    onColonyOpen: (code: number) => void;
+    onColonyClose: () => void;
 }
 
-
 const LocationCard: Component<LocationCardProps> = (props) => {
-
     const renderCardOfType = (locationInfo: LocationInfoResponseDTO): JSX.Element => {
         switch (locationInfo.id) {
             case KnownLocations.Home:
@@ -35,6 +37,9 @@ const LocationCard: Component<LocationCardProps> = (props) => {
                         backend={props.backend}
                         text={props.text}
                         register={props.register}
+                        colonyCode={props.colonyCode}
+                        onColonyOpen={props.onColonyOpen}
+                        onColonyClose={props.onColonyClose}
                     />
                 )
             case KnownLocations.SpacePort:
@@ -44,12 +49,15 @@ const LocationCard: Component<LocationCardProps> = (props) => {
                         colony={props.colony}
                         events={props.events}
                         colonyLocation={props.colonyLocation}
-                        closeCard={props.onClose} 
+                        closeCard={props.onClose}
                         info={locationInfo}
                         buffer={props.buffer}
                         backend={props.backend}
                         text={props.text}
                         register={props.register}
+                        colonyCode={props.colonyCode}
+                        onColonyOpen={props.onColonyOpen}
+                        onColonyClose={props.onColonyClose}
                     />
                 )
             default:
@@ -62,7 +70,10 @@ const LocationCard: Component<LocationCardProps> = (props) => {
                         buffer={props.buffer}
                         backend={props.backend}
                         text={props.text}
-                        register={props.register}  
+                        register={props.register}
+                        colonyCode={props.colonyCode}
+                        onColonyOpen={props.onColonyOpen}
+                        onColonyClose={props.onColonyClose}
                     />
                 )
         }
@@ -75,19 +86,17 @@ const LocationCard: Component<LocationCardProps> = (props) => {
         </div>
     )
 }
+
 export default LocationCard;
 
 const locationCardContainerStyle = css`
-z-index: 10000;
-position: fixed;
-display: flex;
-
-width: 50%;
-height: 66%;
-
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-
-background-color: transparent;
+    z-index: 10000;
+    position: fixed;
+    display: flex;
+    width: 50%;
+    height: 66%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: transparent;
 `
