@@ -66,8 +66,9 @@ interface Player extends AsteroidsAssignPlayerDataMessageDTO {
  * Data structure for laser beam visual effects
  */
 interface LazerBeam {
-  startX: number,       // Beam start X coordinate
-  startY: number,       // Beam start Y coordinate
+  id: number,          // Beam id
+  startX: number,      // Beam start X coordinate
+  startY: number,      // Beam start Y coordinate
   endX: number,        // Beam end X coordinate
   endY: number,        // Beam end Y coordinate
   opacity: number,     // Current opacity for fade effect
@@ -93,6 +94,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   const [isDisabled, setIsDisabled] = createSignal<boolean>(false);
   const [buttonsEnabled, setButtonsEnabled] = createSignal<boolean>(true); // Changed from disableButtons
   const lazerBeams = createArrayStore<LazerBeam>();
+  const lazerBeamRemoveFuncs = new Map<number, () => void>();  // To track removal functions
+  let lazerBeamCounter = 0;  // To generate unique IDs
 
   // Timers for status effects
   let stunTimer: NodeJS.Timeout;
@@ -119,14 +122,14 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   const localPlayerShootAtCodeHandler = (charCode: string) => {
     if (charCode) {
       props.context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {
-        id: props.context.backend.localPlayer.id,
+        id: props.context.backend.player.local.id,
         code: charCode
       });
 
       handlePlayerShootAtCodeEvent({
-        id: props.context.backend.localPlayer.id,
+        id: props.context.backend.player.local.id,
         code: charCode,
-        senderID: props.context.backend.localPlayer.id,
+        senderID: props.context.backend.player.local.id,
         eventID: ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT.id,
       });
     }
@@ -179,7 +182,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
    * Only affects the local player
    */
   const disableButtonsHandler = (data: AsteroidsAssignPlayerDataMessageDTO, time: number) => {
-    if (data.id === props.context.backend.localPlayer.id) {
+    if (data.id === props.context.backend.player.local.id) {
       clearTimeout(buttonDisableTimer);
       setButtonsEnabled(false); // Changed from setDisableButtons(true)
 
@@ -193,15 +196,30 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   /**
    * Creates a new laser beam visual effect
    */
-  const spawnLazerBeam = (shooterX: number, shootery: number, targetX: number, targetY: number) => {
+  const spawnLazerBeam = (shooterX: number, shooterY: number, targetX: number, targetY: number) => {
+    const id = lazerBeamCounter++;
     const newBeam: LazerBeam = {
+      id,  // Add ID to LazerBeam interface
       startX: shooterX,
-      startY: shootery,
+      startY: shooterY,
       endX: targetX,
       endY: targetY,
       opacity: 1,
     };
-    lazerBeams.add(newBeam);
+
+    const removeFunc = lazerBeams.add(newBeam);
+    lazerBeamRemoveFuncs.set(id, removeFunc);
+
+    // Automatically remove after animation
+    setTimeout(() => {
+      if (lazerBeamRemoveFuncs.has(id)) {
+        const remove = lazerBeamRemoveFuncs.get(id);
+        if (remove) {
+          remove();
+          lazerBeamRemoveFuncs.delete(id);
+        }
+      }
+    }, 1000);  // Adjust timing as needed
   };
 
   // Component Lifecycle and Event Subscriptions
@@ -212,13 +230,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         (beam) => beam.opacity > 0,
         (beam) => ({ ...beam, opacity: beam.opacity - 0.1 })
       );
-
-      const beamsToRemove = lazerBeams.findAll((beam) => beam.opacity <= 0);
-      beamsToRemove.forEach((beam) => {
-        const removeBeam = lazerBeams.add(beam);
-        removeBeam();
-      });
-    }, 100);
+    }, 50);
 
     // Event Subscriptions
     const spawnSubID = props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
@@ -281,13 +293,17 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     const playerShootSubID = props.context.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, handlePlayerShootAtCodeEvent);
 
     props.context.events.emit(PLAYER_READY_FOR_MINIGAME_EVENT, {
-      id: props.context.backend.localPlayer.id,
-      ign: props.context.backend.localPlayer.firstName,
+      id: props.context.backend.player.local.id,
+      ign: props.context.backend.player.local.firstName,
     });
 
     onCleanup(() => {
       props.context.events.unsubscribe(spawnSubID, asteroidImpactSubID, loadPlayerDataSubID, playerShootSubID);
       clearInterval(updateLazerBeams);
+
+      // Clean up lazers
+      lazerBeamRemoveFuncs.forEach(removeFunc => removeFunc());
+      lazerBeamRemoveFuncs.clear();
     });
   });
 
@@ -329,7 +345,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 transform: 'translate(-50%, -50%)',
               }}
             >
-              <NTAwait func={() => props.context.backend.getAssetMetadata(7001)}>
+              <NTAwait func={() => props.context.backend.assets.getMetadata(7001)}>
                 {(asset) => (
                   <GraphicalAsset metadata={asset} backend={props.context.backend} />
                 )}
@@ -382,7 +398,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 transform: `translate(-50%, -50%)`,
               }}
             >
-              <NTAwait func={() => props.context.backend.getAssetMetadata(7002)}>
+              <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
                 {(asset) => (
                   <GraphicalAsset metadata={asset} backend={props.context.backend} />
                 )}
