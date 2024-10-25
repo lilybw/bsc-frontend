@@ -70,23 +70,31 @@ class AsteroidsGameLoop {
   private selfHitCounts = 1;
 
   private spawnAsteroid = () => {
-    const x = Math.random() * .9 + .1;
-    const y = Math.random() * .5;
+    const startX = Math.random() * .9 + .1; // Start somewhere on the right side
+    const startY = Math.random() * .9 + .1; // Start somewhere random vertically
     const id = this.nextAsteroidID++;
     const charCode = this.charPool.generateCode();
-    const timeTillImpact = Math.random() * (this.settings.maxTimeTillImpactS - this.settings.minTimeTillImpactS) + this.settings.minTimeTillImpactS;
+    const timeTillImpact = (Math.random() * ((this.settings.maxTimeTillImpactS * 1000) - (this.settings.minTimeTillImpactS * 1000)) + this.settings.minTimeTillImpactS * 1000);
     const health = Math.round(this.settings.asteroidMaxHealth * Math.random());
-    const data = { id, x, y, health,
+    
+    const data = { 
+      id, 
+      x: startX,
+      y: startY,
+      endX: 0.0,    // Impact at left edge
+      endY: 0.5,    // Impact at vertical center
+      health,
       timeUntilImpact: timeTillImpact,
       type: 0,
       charCode,
       senderID: MOCK_SERVER_ID,
       eventID: ASTEROIDS_ASTEROID_SPAWN_EVENT.id,
     };
+    
     this.asteroids.set(id, {...data, spawnTimestampMS: this.gameTimeMS});
     this.events.emitRAW(data);
     this.asteroidSpawnCount++;
-    this.log.trace(`Spawned asteroid ${id} at ${x}, ${y} with code ${charCode}`);
+    this.log.trace(`Spawned asteroid ${id} at ${startX}, ${startY} with code ${charCode}`);
   }
 
   private onPlayerShot = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
