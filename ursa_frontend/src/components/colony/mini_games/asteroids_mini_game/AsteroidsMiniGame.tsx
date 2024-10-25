@@ -107,6 +107,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   const elementRefs = new Map<number, EntityRef>();
   const [windowSize, setWindowSize] = createSignal({ width: window.innerWidth, height: window.innerHeight });
   const ASTEROID_SIZE_VW = 18; // 18 rem converted to vw units approximately
+  const WALL_IMPACT_START = 0.33; // Start of middle third
+  const WALL_IMPACT_END = 0.67;   // End of middle third
 
   // Timers for status effects
   let stunTimer: NodeJS.Timeout;
@@ -127,6 +129,18 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       removeFunc();
       asteroidsRemoveFuncs.delete(asteroidID);
     }
+  };
+
+  /**
+   * Generates a random impact position within the middle third of the left wall
+   */
+  const generateImpactPosition = () => {
+    // Random Y position within the middle third
+    const impactY = WALL_IMPACT_START + (Math.random() * (WALL_IMPACT_END - WALL_IMPACT_START));
+    return {
+      x: 0, // Left wall
+      y: impactY
+    };
   };
 
   /**
@@ -462,6 +476,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     const spawnSubID = props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
       console.log('Spawning asteroid with ID:', data.id);
       const spawnPos = generateSpawnPosition();
+      const impactPos = generateImpactPosition();
 
       let elementRef: HTMLDivElement | null = null;
       const removeFunc = asteroids.add({
@@ -469,8 +484,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         x: spawnPos.x,
         y: spawnPos.y,
         speed: data.timeUntilImpact,
-        endX: 0.0,  // Target is left wall
-        endY: 0.5,  // Target is middle height
+        endX: impactPos.x,  // Target is left wall
+        endY: impactPos.y,  // Target is middle height
         element: elementRef,
         destroy: () => handleAsteroidDestruction(data.id)
       });
@@ -584,7 +599,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                   });
 
                   el.style.transition = 'none';
-                  // Position using percentage coordinates, handling off-screen positions
                   el.style.left = `${asteroid.x * 100}%`;
                   el.style.top = `${asteroid.y * 100}%`;
                   el.style.transform = 'translate(-50%, -50%)';
@@ -593,8 +607,9 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
 
                   requestAnimationFrame(() => {
                     el.style.transition = `all ${asteroid.timeUntilImpact / 1000}s linear`;
-                    el.style.left = '0%'; // Move to left wall
-                    el.style.top = '50%'; // Move to vertical center
+                    // Use the calculated impact position
+                    el.style.left = `${asteroid.endX * 100}%`;
+                    el.style.top = `${asteroid.endY * 100}%`;
                   });
                 }
               }}
