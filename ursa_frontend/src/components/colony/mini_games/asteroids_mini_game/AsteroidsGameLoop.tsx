@@ -40,7 +40,7 @@ class AsteroidsGameLoop {
   constructor(
     private readonly context: ApplicationContext,
     private readonly settings: AsteroidsSettingsDTO,
-  ){
+  ) {
     this.charPool = new CharCodeGenerator(SYMBOL_SET, settings.charCodeLength);
     this.remainingHP = settings.colonyHealth;
     this.events = context.events as IExpandedAccessMultiplexer;
@@ -76,9 +76,9 @@ class AsteroidsGameLoop {
     const charCode = this.charPool.generateCode();
     const timeTillImpact = (Math.random() * ((this.settings.maxTimeTillImpactS * 1000) - (this.settings.minTimeTillImpactS * 1000)) + this.settings.minTimeTillImpactS * 1000);
     const health = Math.round(this.settings.asteroidMaxHealth * Math.random());
-    
-    const data = { 
-      id, 
+
+    const data = {
+      id,
       x: startX,
       y: startY,
       endX: 0.0,    // Impact at left edge
@@ -90,8 +90,8 @@ class AsteroidsGameLoop {
       senderID: MOCK_SERVER_ID,
       eventID: ASTEROIDS_ASTEROID_SPAWN_EVENT.id,
     };
-    
-    this.asteroids.set(id, {...data, spawnTimestampMS: this.gameTimeMS});
+
+    this.asteroids.set(id, { ...data, spawnTimestampMS: this.gameTimeMS });
     this.events.emitRAW(data);
     this.asteroidSpawnCount++;
     this.log.trace(`Spawned asteroid ${id} at ${startX}, ${startY} with code ${charCode}`);
@@ -208,7 +208,7 @@ class AsteroidsGameLoop {
 
 export const createAsteroidsGameLoop: Minigame<AsteroidsSettingsDTO>["mockServerGameloop"] = (
   settings: AsteroidsSettingsDTO,
-  context: ApplicationContext, 
+  context: ApplicationContext,
 ) => {
   const loop = new AsteroidsGameLoop(context, settings);
   return loop.start;
