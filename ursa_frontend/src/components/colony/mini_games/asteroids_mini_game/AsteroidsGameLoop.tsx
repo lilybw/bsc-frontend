@@ -151,7 +151,7 @@ class AsteroidsGameLoop {
     const gameAdvancementPercent = this.gameTimeMS / (this.settings.survivalTimeS * 1000);
     const asteroidsPerSecondRightNow = (this.settings.asteroidsPerSecondAt80Percent - this.settings.asteroidsPerSecondAtStart) * gameAdvancementPercent + this.settings.asteroidsPerSecondAtStart;
     // This math is wrong, it does take into accound that asteroidsPerSecond rising slowly during the game
-    const expectedSpawnCountRightNow = this.gameTimeMS / 1000 * asteroidsPerSecondRightNow;
+    const expectedSpawnCountRightNow = this.gameTimeMS / 10000 * asteroidsPerSecondRightNow;
     // If the expected count is greater than the current count, spawn an asteroid
     if (expectedSpawnCountRightNow > this.asteroidSpawnCount) {
       this.spawnAsteroid();
