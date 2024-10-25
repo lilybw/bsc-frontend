@@ -90,4 +90,6 @@ left: 50%;
 transform: translate(-50%, -50%);
 
 background-color: transparent;
+border-radius: 1rem;
+box-shadow: 0 0 1rem 0.5rem rgba(0, 0, 0, 0.5);
 `

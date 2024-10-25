@@ -29,8 +29,9 @@
   import HandPlacementCheck from '../src/components/colony/HandPlacementCheck';
 import SectionSubTitle from '../src/components/SectionSubTitle';
 import Countdown from '../src/components/util/Countdown';
-import { ColonyCode } from '../src/integrations/main_backend/mainBackendDTOs';
+import { ColonyCode, ColonyInfoResponseDTO, ColonyPathGraphResponseDTO, uint32 } from '../src/integrations/main_backend/mainBackendDTOs';
 import EventFeed from '../src/components/EventFeed';
+import { KnownLocations } from '../src/integrations/main_backend/constants';
 
   export type StrictJSX = Node | JSX.ArrayElement | (string & {}) 
     | NonNullable<Exclude<Exclude<Exclude<JSX.Element, string>, number>, boolean>>
@@ -48,6 +49,7 @@ import EventFeed from '../src/components/EventFeed';
     const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
     const colonyInfo = props.context.nav.getRetainedColonyInfo();
     const log = props.context.logger.copyFor('colony');
+
     /**
      * Handles colony info load error by logging and redirecting to the menu.
      * @param error - The error message(s) to display.
@@ -61,6 +63,20 @@ import EventFeed from '../src/components/EventFeed';
           <Countdown styleOverwrite={TITLE_STYLE} duration={5} onComplete={() => props.context.nav.goToMenu()}/>
         </ErrorPage>
       )
+    }
+
+    const setUnassignedClientPositions = (ownerID: uint32, colony: ColonyInfoResponseDTO, graph: ColonyPathGraphResponseDTO) => {
+      const colLocIdOfSpacePort = colony.locations.filter(l => l.locationID === KnownLocations.SpacePort)[0].id;
+      const colLocIdOfHome = colony.locations.filter(l => l.locationID === KnownLocations.Home)[0].id;
+      
+      clients.mutateByPredicate(
+        c => c.state.lastKnownPosition <= 0, 
+        c => (
+          { ...c, 
+            state: {...c.state, lastKnownPosition: 
+              c.id === ownerID ? colLocIdOfHome : colLocIdOfSpacePort}
+          }
+      ));
     }
 
     /**
@@ -85,20 +101,24 @@ import EventFeed from '../src/components/EventFeed';
                 () => props.context.backend.colony.getPathGraph(colonyInfo.id)
             ]}>
               {(colony, graph) =>
-                <PathGraph 
-                  ownerID={colonyInfo.owner}
-                  graph={graph}
-                  bufferSubscribers={bufferSubscribers}
-                  actionContext={actionContext}
-                  existingClients={clients}
-                  colony={colony}
-                  plexer={props.context.events}
-                  text={props.context.text}
-                  backend={props.context.backend}
-                  buffer={inputBuffer}
-                  localPlayerId={playerInfo.id}
-                  multiplayerIntegration={props.context.multiplayer}
-                />
+                {
+                  setUnassignedClientPositions(colonyInfo.owner, colony, graph);
+                  return (
+                    <PathGraph 
+                      ownerID={colonyInfo.owner}
+                      graph={graph}
+                      bufferSubscribers={bufferSubscribers}
+                      actionContext={actionContext}
+                      existingClients={clients}
+                      colony={colony}
+                      plexer={props.context.events}
+                      text={props.context.text}
+                      backend={props.context.backend}
+                      buffer={inputBuffer}
+                      localPlayerId={playerInfo.id}
+                      multiplayerIntegration={props.context.multiplayer}
+                    />
+                )}
               }
             </MNTAwait>
             </>

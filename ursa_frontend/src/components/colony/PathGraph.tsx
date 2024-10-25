@@ -166,13 +166,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     ); 
 
     const computedNonLocalPlayerStyle = (client: ClientDTO) => createMemo(() => {
-        let transform;
-        if (client.state.lastKnownPosition !== -1) {
-            transform = transformMap.get(client.state.lastKnownPosition)!.get()
-        } else {
-            const id = findColonyLocationIDOf(KnownLocations.SpacePort, props.colony)
-            transform = transformMap.get(id)!.get()
-        }
+        const transform = transformMap.get(client.state.lastKnownPosition)!.get()
         return css`
             ${localPlayerStyle}
             background-color: green;

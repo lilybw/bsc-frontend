@@ -63,7 +63,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
     private serverAddress: string | null = null;
     private subscriptions: number[] = [];
     
-    private readonly mode: WrappedSignal<MultiplayerMode> = createWrappedSignal<MultiplayerMode>(MultiplayerMode.AS_GUEST);
+    private readonly mode: WrappedSignal<MultiplayerMode> = createWrappedSignal<MultiplayerMode>(MultiplayerMode.AS_OWNER);
     private readonly state: WrappedSignal<ColonyState> = createWrappedSignal<ColonyState>(ColonyState.CLOSED);
     private readonly code: WrappedSignal<ColonyCode | null> = createWrappedSignal<ColonyCode | null>(null);
     private readonly log: Logger;
