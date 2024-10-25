@@ -68,14 +68,14 @@ const Location: Component<LocationProps> = (props) => {
         }
 
         props.plexer.emit(PLAYER_MOVE_EVENT, {
-            playerID: props.backend.localPlayer.id,
+            playerID: props.backend.player.local.id,
             colonyLocationID: props.colonyLocation.id,
         });
     }
 
     onMount(() => {
         const playerMoveSubId = props.plexer.subscribe(PLAYER_MOVE_EVENT, (event) => {
-            if (event.playerID !== props.backend.localPlayer.id) return;
+            if (event.playerID !== props.backend.player.local.id) return;
 
             if (event.colonyLocationID === props.colonyLocation.id){ 
                 setUserIsHere(true);

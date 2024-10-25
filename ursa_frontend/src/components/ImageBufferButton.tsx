@@ -27,7 +27,7 @@ const ImageBufferButton: Component<ImageBufferButtonProps> = (props) => {
     return (
         <div class={computedStyles()}>
             <BufferBasedButton {...buttonProps} />
-            <NTAwait func={() => props.backend.getAssetMetadata(props.asset)}>
+            <NTAwait func={() => props.backend.assets.getMetadata(props.asset)}>
                 {(asset) => (
                     <GraphicalAsset styleOverwrite={props.imageStyleOverwrite} metadata={asset} backend={props.backend}/>
                 )}

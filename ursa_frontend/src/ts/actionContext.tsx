@@ -13,7 +13,7 @@ export enum ActionContextTypes {
 interface ActionContextIconProps extends IStyleOverwritable, IBackendBased {}
 export const ActionContextIcon = (assetId: number): Component<ActionContextIconProps> => { return (props) => {
     return (
-        <NTAwait func={() => props.backend.getAssetMetadata(assetId)}>{(asset) => 
+        <NTAwait func={() => props.backend.assets.getMetadata(assetId)}>{(asset) => 
             <GraphicalAsset styleOverwrite={imgStyleOverwrite} backend={props.backend} metadata={asset} />
         }</NTAwait>
     )

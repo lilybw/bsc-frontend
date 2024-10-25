@@ -25,7 +25,7 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
     `;
     return (
         <div class={computedContainerStyle(props.topLevelTransform?.get())} id={collectionName()}>
-            <NTAwait func={() => props.backend.getAssetCollection(props.id)}>{collection => {
+            <NTAwait func={() => props.backend.assets.getCollection(props.id)}>{collection => {
                 setCollectionName(collection.name + " - " + getRandHash());
                 return (
                     <For each={collection.entries}>{(entry) =>

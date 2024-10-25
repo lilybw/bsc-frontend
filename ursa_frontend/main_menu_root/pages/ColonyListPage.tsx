@@ -48,9 +48,9 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
         const body: UpdateLatestVisitRequestDTO = {
             latestVisit: getCurrentDateTimeLocaleString()
         }
-        props.context.backend.updateLatestVisit(body, colonyID)
+        props.context.backend.colony.updateLatestVisit(body, colonyID)
 
-        props.context.backend.getColony(props.context.backend.localPlayer.id, colonyID)
+        props.context.backend.colony.get(props.context.backend.player.local.id, colonyID)
             .then(res => {
                 if (res.err !== null) {
                     props.context.logger.error("Failed to get colony: " + res.err);
@@ -59,7 +59,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                     props.context.nav.goToColony(
                         res.res.id,
                         res.res.name,
-                        props.context.backend.localPlayer.id
+                        props.context.backend.player.local.id
                     );
                 }
             })
@@ -68,7 +68,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
     return (
         <div>
             {props.context.text.Title('MENU.PAGE_TITLE.SELECT_COLONY')({styleOverwrite: pageTitleStyle})}
-            <NTAwait func={() => props.context.backend.getColonyOverview(props.context.backend.localPlayer.id)}>{(overview) =>
+            <NTAwait func={() => props.context.backend.colony.getOverview(props.context.backend.player.local.id)}>{(overview) =>
                 <If condition={overview.colonies.length > 0}>{[
                     <>
                     <div class={colonyListBackgroundStyle}/>

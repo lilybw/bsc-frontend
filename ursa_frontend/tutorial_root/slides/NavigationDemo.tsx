@@ -70,7 +70,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                         asset={1009} 
                         backend={props.backend}
                     />
-                    <NTAwait func={() => props.backend.getAssetMetadata(4001)}>
+                    <NTAwait func={() => props.backend.assets.getMetadata(4001)}>
                         {(asset) => (
                             <GraphicalAsset 
                                 styleOverwrite={computedPlayerStyle()}

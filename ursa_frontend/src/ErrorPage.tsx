@@ -6,6 +6,7 @@ import SectionSubTitle from "./components/SectionSubTitle";
 interface ErrorPageProps {
     title?: string;
     content: any;
+    children?: JSX.Element;
 }
 
 export default function ErrorPage(props: ErrorPageProps): JSX.Element {
@@ -14,9 +15,25 @@ export default function ErrorPage(props: ErrorPageProps): JSX.Element {
             <div class={backgroundImage}/>
             <SectionTitle styleOverwrite={titleOverwrite}>{props.title ?? "Oh no!"}</SectionTitle>
             <SectionSubTitle styleOverwrite={subTitleOverwrite}>{props.content}</SectionSubTitle>
+            <div class={childrenContainer}>
+                {props.children}
+            </div>
         </div>
     )
 }
+
+const childrenContainer = css`
+position: absolute;
+left: 50%;
+top: 70%;
+width: 100%;
+transform: translate(-50%, -50%);
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+`
 
 const titleOverwrite = css`position: absolute; left: 12vw; top: 10vh;`
 

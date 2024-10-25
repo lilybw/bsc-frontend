@@ -19,7 +19,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
         if (!checkInput()) return;
         const code = Number(colonyCode());
         // Join the colony
-        const joinResponse = await props.context.backend.joinColony(code);
+        const joinResponse = await props.context.backend.colony.join(code);
         
         // Handle the response as needed
         if (joinResponse.err !== null) {
@@ -30,7 +30,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
             return;
         }
 
-        const colonyInfoAttempt = await props.context.backend.getColony(joinResponse.res.owner, joinResponse.res.colonyId);
+        const colonyInfoAttempt = await props.context.backend.colony.get(joinResponse.res.owner, joinResponse.res.colonyId);
         if (colonyInfoAttempt.err !== null) {
             setCodeError("Failed to get colony info: " + colonyInfoAttempt.err);
             return;
@@ -93,7 +93,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
         return (
             <>
             {props.context.text.SubTitle('ERRORS.CONNECTION.MULTIPLAYER_BACKEND')({})}
-            <NTAwait func={() => props.context.backend.getAssetMetadata(1023)}>{(metadata) =>
+            <NTAwait func={() => props.context.backend.assets.getMetadata(1023)}>{(metadata) =>
                 <GraphicalAsset
                     backend={props.context.backend} 
                     metadata={metadata} 

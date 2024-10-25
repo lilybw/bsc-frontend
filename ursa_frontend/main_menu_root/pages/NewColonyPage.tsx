@@ -58,7 +58,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
     const body: CreateColonyRequestDTO = {
       name: colonyName()
     }
-    const createColonyResponse = await props.context.backend.createColony(body, props.context.backend.localPlayer.id);
+    const createColonyResponse = await props.context.backend.colony.create(body, props.context.backend.player.local.id);
 
     // Handle the response as needed
     if (createColonyResponse.err !== null) {
@@ -69,7 +69,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
     props.context.nav.goToColony(
       createColonyResponse.res.id, 
       createColonyResponse.res.name,
-      props.context.backend.localPlayer.id
+      props.context.backend.player.local.id
     );
   };
 
@@ -89,7 +89,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
           />
         </div>
         {textError() && inputEngaged() && <SectionSubTitle styleOverwrite={errMsgStyle}>{textError()}</SectionSubTitle>}
-      <NTAwait func={() => props.context.backend.getAssetMetadata(3001)}>{(asset) =>
+      <NTAwait func={() => props.context.backend.assets.getMetadata(3001)}>{(asset) =>
         <Planet metadata={asset} styleOverwrite={planetStyle} backend={props.context.backend}/>
       }</NTAwait>
       <StarryBackground />

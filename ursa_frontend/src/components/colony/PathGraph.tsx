@@ -53,6 +53,13 @@ const loadPathMap = (paths: ColonyPathGraphResponseDTO["paths"]): Map<ColonyLoca
     }
     return pathMap;
 }
+const findColonyLocationIDOf = (location: KnownLocations, colony: ColonyInfoResponseDTO): ColonyLocationID => {
+    const locationInfo = colony.locations.find(loc => loc.locationID === location);
+    if (!locationInfo) {
+        return -1;
+    }
+    return locationInfo.id;
+}
 
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
@@ -65,6 +72,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
     const transformMap = new Map<ColonyLocationID, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations))
     const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>(loadPathMap(props.graph.paths))
+    const log = props.backend.logger.copyFor("path graph");
 
     createEffect(() => {
         const currentDNS = DNS()
@@ -109,11 +117,12 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     }
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
+        log.subtrace(`Handling player move: ${JSON.stringify(data)}`);
         if (data.playerID === props.localPlayerId) {
             const targetLocation = colonyLocation.findFirst(loc => loc.id === data.colonyLocationID);
 
             if (!targetLocation) {
-                console.error(`Unable to find location with ID on player move: ${data.colonyLocationID}`);
+                log.error(`Unable to find location with ID on player move: ${data.colonyLocationID}`);
                 return;
             }
 
@@ -123,6 +132,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 targetLocation.transform.yOffset
             );
         } else {
+            log.trace(`Updating location of player ${data.playerID} to ${data.colonyLocationID}`);
             props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
                 //locationID is id of Colony Location
                 return {...client, state: {...client.state, lastKnownPosition: data.colonyLocationID}};
@@ -133,11 +143,11 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     onMount(() => {
         calculateScalars();
         window.addEventListener('resize', calculateScalars);
-        const subscription = props.plexer.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
+        const playerMoveSubID = props.plexer.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
 
         onCleanup(() => {
             window.removeEventListener('resize', calculateScalars);
-            props.plexer.unsubscribe(subscription);
+            props.plexer.unsubscribe(playerMoveSubID);
         });
 
         //Set initial camera position
@@ -156,7 +166,13 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     ); 
 
     const computedNonLocalPlayerStyle = (client: ClientDTO) => createMemo(() => {
-        const transform = transformMap.get(client.state.lastKnownPosition)!.get()
+        let transform;
+        if (client.state.lastKnownPosition !== -1) {
+            transform = transformMap.get(client.state.lastKnownPosition)!.get()
+        } else {
+            const id = findColonyLocationIDOf(KnownLocations.SpacePort, props.colony)
+            transform = transformMap.get(id)!.get()
+        }
         return css`
             ${localPlayerStyle}
             background-color: green;
@@ -192,7 +208,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 <For each={colonyLocation.get}>
                     {(colonyLocation) => (
                         <NTAwait
-                            func={() => props.backend.getLocationInfo(colonyLocation.locationID)}
+                            func={() => props.backend.locations.getInfo(colonyLocation.locationID)}
                         >
                             {(locationInfo) => (
                                 <Location

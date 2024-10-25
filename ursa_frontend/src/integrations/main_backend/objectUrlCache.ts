@@ -67,7 +67,7 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
 
     const fetchAndStore = async (asset: AssetID, lodLevel: uint32): Promise<ResCodeErr<CacheEntry>> => {
         log.subtrace(`fetching: ${asset} at LOD ${lodLevel}`);
-        const res = await backend.getLODByAsset(asset, lodLevel);
+        const res = await backend.assets.getAssetLOD(asset, lodLevel);
         if (res.err !== null) {
             log.warn(`failed to fetch: ${asset} at LOD ${lodLevel}: ${res.err}`);
             return res;
@@ -85,7 +85,7 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
 
     const fetchAndStoreByLODID = async (lodID: uint32): Promise<ResCodeErr<CacheEntry>> => {
         log.subtrace(`fetching: LOD ${lodID}`);
-        const res = await backend.getLOD(lodID);
+        const res = await backend.assets.getLOD(lodID);
         if (res.err !== null) {
             log.warn(`failed to fetch: LOD ${lodID}: ${res.err}`);
             return res;

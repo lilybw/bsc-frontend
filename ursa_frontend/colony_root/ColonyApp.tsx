@@ -1,6 +1,6 @@
-  import { Bundle, BundleComponent, LogLevel, ResErr, ColonyState, MultiplayerMode } from '../src/meta/types';
+  import { Bundle, BundleComponent, LogLevel, ResErr, ColonyState, MultiplayerMode, Error } from '../src/meta/types';
   import { ApplicationProps } from '../src/ts/types';
-  import SectionTitle from '../src/components/SectionTitle';
+  import SectionTitle, { TITLE_STYLE } from '../src/components/SectionTitle';
   import StarryBackground from '../src/components/StarryBackground';
   import PathGraph from '../src/components/colony/PathGraph';
   import Unwrap from '../src/components/util/Unwrap';
@@ -10,6 +10,7 @@
     DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
     DifficultyConfirmedForMinigameMessageDTO,
     LOBBY_CLOSING_EVENT,
+    OriginType,
     PLAYER_JOINED_EVENT,
     PLAYER_LEFT_EVENT,
     PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT,
@@ -26,6 +27,9 @@
   import AsteroidsMiniGame from '../src/components/colony/mini_games/asteroids_mini_game/AsteroidsMiniGame';
   import { MockServer } from '../src/ts/mockServer';
   import HandPlacementCheck from '../src/components/colony/HandPlacementCheck';
+import SectionSubTitle from '../src/components/SectionSubTitle';
+import Countdown from '../src/components/util/Countdown';
+import { ColonyCode } from '../src/integrations/main_backend/mainBackendDTOs';
 
   const eventFeedMessageDurationMS = 10_000;
   type StrictJSX = Node | JSX.ArrayElement | (string & {}) 
@@ -52,9 +56,11 @@
      */
     const onColonyInfoLoadError = (error: string[]) => {
       log.error('Failed to load colony: ' + error);
-      //setTimeout(() => props.context.nav.goToMenu(), 0);
       return (
-        <ErrorPage content={error} />
+        <ErrorPage content={error}>
+          <SectionSubTitle>Redirecting to menu in:</SectionSubTitle>
+          <Countdown styleOverwrite={TITLE_STYLE} duration={5} onComplete={() => props.context.nav.goToMenu()}/>
+        </ErrorPage>
       )
     }
 
@@ -76,8 +82,8 @@
               styleOverwrite='position: absolute; top: 13vh; left: 2vw;'
             />
             <MNTAwait funcs={[
-                () => props.context.backend.getColony(colonyInfo.owner, colonyInfo.id),
-                () => props.context.backend.getColonyPathGraph(colonyInfo.id)
+                () => props.context.backend.colony.get(colonyInfo.owner, colonyInfo.id),
+                () => props.context.backend.colony.getPathGraph(colonyInfo.id)
             ]}>
               {(colony, graph) =>
                 <PathGraph 
@@ -106,16 +112,27 @@
 
     const mockServer = new MockServer(props.context, setPageContent, () => setPageContent(colonyLayout()), props.context.logger);
 
+    const initializeMultiplayerSession = async (code: ColonyCode): Promise<Error | undefined> => {
+      log.trace('Connecting to multiplayer, code: ' + code);
+      const err = await props.context.multiplayer.connect(code, (ev) => {
+        log.info('connection closed, redirecting to menu');
+        if (props.context.multiplayer.getMode() === MultiplayerMode.AS_GUEST) {
+          props.context.nav.goToMenu();
+        }
+      }); if (err) {
+        return err;
+      } 
+      const lobbyStateReq = await props.context.multiplayer.getLobbyState(); if (lobbyStateReq.err !== null) {
+        return lobbyStateReq.err;
+      }
+      const lobbyState = lobbyStateReq.res;
+      clients.addAll(lobbyState.clients);
+    }
+
     onMount(async () => {
       // If there is a colonyCode present, that means that we're currently trying to go and join someone else's colony
       if (colonyInfo.res?.colonyCode) {
-        log.trace('Connecting to multiplayer, code: ' + colonyInfo.res.colonyCode);
-        const err = await props.context.multiplayer.connect(colonyInfo.res?.colonyCode, (ev) => {
-          log.info('connection closed, redirecting to menu');
-          if (props.context.multiplayer.getMode() === MultiplayerMode.AS_GUEST) {
-            props.context.nav.goToMenu();
-          }
-        });
+        const err = await initializeMultiplayerSession(colonyInfo.res.colonyCode);
         if (err) {
           setPageContent(onColonyInfoLoadError([JSON.stringify(err)]) as StrictJSX);
         }
@@ -137,7 +154,8 @@
           </div>
         ) as StrictJSX);
         setTimeout(removeFunc, eventFeedMessageDurationMS);
-        props.context.logger.info('Player left: ' + data.id);
+        log.info('Player left: ' + data.id);
+        clients.removeFirst((c) => c.id === data.id);
       });
 
       const playerJoinSubId = props.context.events.subscribe(PLAYER_JOINED_EVENT, (data) => {
@@ -148,6 +166,16 @@
           </div>
         ) as StrictJSX);
         setTimeout(removeFunc, eventFeedMessageDurationMS);
+        log.info('Player joined: ' + data.id);
+        clients.add({
+          id: data.id,
+          IGN: data.ign,
+          type: OriginType.Guest,
+          state: {
+            lastKnownPosition: -1,
+            msOfLastMessage: 0
+          }
+        });
       });
 
       const serverClosingSubId = props.context.events.subscribe(SERVER_CLOSING_EVENT, (ev) => {

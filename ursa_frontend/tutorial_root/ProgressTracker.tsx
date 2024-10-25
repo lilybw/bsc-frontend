@@ -38,7 +38,7 @@ export default function ProgressTracker(props: ProgressTrackerProps): JSX.Elemen
             />
             <For each={props.slideStore}>{(elem, index) => (
                 <div class={iconContainerStyle}>
-                    <NTAwait func={() => props.backend.getAssetMetadata(elem.iconId)}>
+                    <NTAwait func={() => props.backend.assets.getMetadata(elem.iconId)}>
                         {(asset) => (
                             <GraphicalAsset 
                                 styleOverwrite={iconStyleOverwrite} 

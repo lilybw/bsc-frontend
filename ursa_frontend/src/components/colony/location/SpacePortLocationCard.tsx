@@ -56,7 +56,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         clearTimeout(statusTimeout);
 
         try {
-            const result = await props.backend.joinColony(parseInt(code.join('')));
+            const result = await props.backend.colony.join(parseInt(code.join('')));
             if (result.err === null) {
                 setCodeStatus('valid');
                 statusTimeout = setTimeout(() => {
@@ -97,11 +97,11 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
 
         const request: OpenColonyRequestDTO = {
             validDurationMS: 3600000 * 12,
-            playerID: props.backend.localPlayer.id,
+            playerID: props.backend.player.local.id,
             latestVisit: getCurrentDateTimeLocaleString(),
         };
 
-        const openResponse = await props.backend.openColony(props.colony.id, request);
+        const openResponse = await props.backend.colony.open(props.colony.id, request);
 
         if (openResponse.err !== null) {
             return openResponse.err;
@@ -113,8 +113,8 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     };
 
     const closeColony = async () => {
-        props.backend.closeColony(props.colony.id, {
-            playerId: props.backend.localPlayer.id
+        props.backend.colony.close(props.colony.id, {
+            playerId: props.backend.player.local.id
         });
         setColonyCode(null);
         setState('initial');
@@ -124,7 +124,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     const renderInitialState = () => (
         <>
             <div class={imageContainerStyle}>
-                <NTAwait func={() => props.backend.getAssetMetadata(props.info.appearances[0].splashArt)}>
+                <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
                     {(asset) =>
                         <GraphicalAsset styleOverwrite={imageStyle} backend={props.backend} metadata={asset} />
                     }
@@ -157,7 +157,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     const renderOpenState = () => {
         // If we're open but don't have the code, get it
         if (props.multiplayer.getState() === ColonyState.OPEN && !colonyCode()) {
-            props.backend.getColonyCode(props.colony.id).then(result => {
+            props.backend.colony.getCode(props.colony.id).then(result => {
                 if (result.err === null && result.res) {
                     setColonyCode(result.res.code);
                 }
@@ -185,7 +185,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
                     </div>
                 </div>
                 <div class={openStateRightColumnStyle}>
-                    <NTAwait func={() => props.backend.getAssetMetadata(props.info.appearances[0].splashArt)}>
+                    <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
                         {(asset) =>
                             <GraphicalAsset styleOverwrite={openStateImageStyle} backend={props.backend} metadata={asset} />
                         }
@@ -198,7 +198,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     const renderJoinState = () => (
         <div class={joinStateContentStyle}>
             <div class={imageContainerStyle}>
-                <NTAwait func={() => props.backend.getAssetMetadata(props.info.appearances[0].splashArt)}>
+                <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
                     {(asset) =>
                         <GraphicalAsset styleOverwrite={joinStateImageStyle} backend={props.backend} metadata={asset} />
                     }
@@ -228,7 +228,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         <div class={cardContainerStyle} id={"location-card-space-port"}>
             <div class={cardContentStyle}>
                 <div class={backgroundContainerStyle}>
-                    <NTAwait func={() => props.backend.getAssetMetadata(props.info.appearances[0].splashArt)}>
+                    <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
                         {(asset) => (
                             <>
                                 <GraphicalAsset styleOverwrite={backgroundImageStyle} backend={props.backend} metadata={asset} />

@@ -4,7 +4,8 @@ import { createStore, produce, SetStoreFunction } from 'solid-js/store';
 /**
  * Any function that adds some element to some structure, but also returns a function that removes it again.
  */
-export type AddRetainRemoveFunc<T> = (value: T) => () => void;
+export type AddRetainRemoveFunc<T> = (value: T) => VoidRemoveFunc;
+export type VoidRemoveFunc = () => void;
 
 /**
  * Wrapper for solid-js/store specifically for storing arrays of elements
@@ -20,6 +21,7 @@ export interface ArrayStore<T> {
      * @returns a function that removes the value from the store
      */
     add: AddRetainRemoveFunc<T>;
+    addAll: (values: T[]) => VoidRemoveFunc;
     /**
      * @param predicate cannot rely on object eqauivalence, unless also used with unwrap
      * @returns the first element that satisfies the predicate, or undefined if none do
@@ -54,6 +56,26 @@ export interface ArrayStore<T> {
      */
     sliceByPredicate: (predicate: (element: T) => boolean) => ArrayStore<T>;
     sort: Array<T>['sort'];
+    /**
+     * Removes all elements that satisfy the predicate.
+     * @param predicate Function that returns true for elements to remove
+     * @returns The number of elements removed
+     */
+    cullByPredicate: (predicate: (element: T) => boolean) => number;
+
+    /**
+     * Removes the element at the specified index.
+     * @param index The index of the element to remove
+     * @returns true if an element was removed, false if the index was out of bounds
+     */
+    removeAtIndex: (index: number) => boolean;
+
+    /**
+     * Removes the first element that satisfies the predicate.
+     * @param predicate Function that returns true for the element to remove
+     * @returns true if an element was removed, false if no element matched
+     */
+    removeFirst: (predicate: (element: T) => boolean) => boolean;
 }
 
 /**
@@ -70,6 +92,12 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
             setStore((prev) => [...prev, value]);
             return () => {
                 setStore((prev) => prev.filter((v) => v !== value));
+            };
+        },
+        addAll: (values: T[]) => {
+            setStore((prev) => [...prev, ...values]);
+            return () => {
+                setStore((prev) => prev.filter((v) => !values.includes(v)));
             };
         },
         mutateElement: (index: number, mutator: (element: T) => T): boolean => {
@@ -103,5 +131,31 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
             setStore(produce((s) => s.sort(func)));
             return proxy;
         },
+        cullByPredicate: (predicate: (element: T) => boolean): number => {
+            let originalLength = proxy.length;
+            setStore(produce((s) => s.filter(element => !predicate(element))));
+            return originalLength - proxy.length;
+        },
+        removeAtIndex: (index: number): boolean => {
+            if (index < 0 || index >= proxy.length) {
+                return false;
+            }
+            setStore(produce((s) => {
+                s.splice(index, 1);
+                return s;
+            }));
+            return true;
+        },
+        removeFirst: (predicate: (element: T) => boolean): boolean => {
+            const index = proxy.findIndex(predicate);
+            if (index === -1) {
+                return false;
+            }
+            setStore(produce((s) => {
+                s.splice(index, 1);
+                return s;
+            }));
+            return true;
+        }
     };
 }

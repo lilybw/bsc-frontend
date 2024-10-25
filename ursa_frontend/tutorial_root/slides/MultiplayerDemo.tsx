@@ -123,7 +123,7 @@ export default function MultiplayerDemo(props: MultiplayerDemoProps): JSX.Elemen
                         asset={1009} 
                         backend={props.backend}
                     />
-                    <NTAwait func={() => props.backend.getAssetMetadata(4001)}>
+                    <NTAwait func={() => props.backend.assets.getMetadata(4001)}>
                         {(asset) => (
                             <GraphicalAsset 
                                 styleOverwrite={computedPlayerStyle()}

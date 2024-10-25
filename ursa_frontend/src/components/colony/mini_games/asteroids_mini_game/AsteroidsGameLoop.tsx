@@ -51,7 +51,7 @@ class AsteroidsGameLoop {
     this.events.emitRAW({
       senderID: MOCK_SERVER_ID,
       eventID: ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT.id,
-      id: this.context.backend.localPlayer.id,
+      id: this.context.backend.player.local.id,
       x: 0.5,
       y: 0.9,
       type: 0,
@@ -113,7 +113,7 @@ class AsteroidsGameLoop {
       this.events.emitRAW({
         senderID: MOCK_SERVER_ID,
         eventID: ASTEROIDS_PLAYER_PENALTY_EVENT.id,
-        playerID: this.context.backend.localPlayer.id,
+        playerID: this.context.backend.player.local.id,
         timeoutDurationS: this.settings.friendlyFirePenaltyS * (this.selfHitCounts++ * this.settings.friendlyFirePenaltyMultiplier),
         type: PlayerPenaltyType.FriendlyFire,
       })
@@ -124,7 +124,7 @@ class AsteroidsGameLoop {
       this.events.emitRAW({
         senderID: MOCK_SERVER_ID,
         eventID: ASTEROIDS_PLAYER_PENALTY_EVENT.id,
-        playerID: this.context.backend.localPlayer.id,
+        playerID: this.context.backend.player.local.id,
         timeoutDurationS: 1,
         type: PlayerPenaltyType.Miss,
       })

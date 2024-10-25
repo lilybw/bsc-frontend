@@ -10,12 +10,15 @@ export type ClientDTO = {
          * ID of colony location
          */
         lastKnownPosition: uint32;
+        msOfLastMessage: uint32;
     };
 };
 
 export type LobbyStateResponseDTO = {
     colonyID: uint32;
     closing: boolean;
+	phase: uint32,
+	encoding: string, // binary | base32 | base64
     clients: ClientDTO[];
 };
 

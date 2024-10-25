@@ -22,7 +22,7 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
             <div class={planetContainerStyle} id="shadow-container">
                 <div class={solarPlanetShadowStyle} id="planet-shadow"/>
             </div>
-            <NTAwait func={() => props.backend.getAssetMetadata(3001)}>
+            <NTAwait func={() => props.backend.assets.getMetadata(3001)}>
                 {(asset) => (
                     <GraphicalAsset styleOverwrite={gasGiantStyleOverwrite} metadata={asset} backend={props.backend}/>
                 )}

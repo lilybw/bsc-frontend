@@ -34,7 +34,7 @@ export enum KnownMinigames {
 export const loadMiniGame = async (context: ApplicationContext, returnToColony: () => void, setPageContent: ((e: JSX.Element) => void), minigameID: number, difficultyID: number): Promise<ResErr<() => void>> => {
     if (minigameID === null || difficultyID === null) return {res: null, err: "Could not load minigame difficualty information is null."};
 
-    const response = await context.backend.getMinimizedMinigameInfo(minigameID, difficultyID);
+    const response = await context.backend.minigame.getMinimizedInfo(minigameID, difficultyID);
 
     if (response.err !== null) return {res: null, err: response.err};
 

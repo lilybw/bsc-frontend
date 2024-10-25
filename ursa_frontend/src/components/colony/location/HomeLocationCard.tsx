@@ -12,7 +12,7 @@ const HomeLocationCard: Component<HomeLocationCardProps> = (props) => {
         <div class={cardContainerStyle} id={"location-card-home"}>
             <div class={cardContentStyle}>
                 <div class={backgroundContainerStyle}>
-                    <NTAwait func={() => props.backend.getAssetMetadata(props.info.appearances[0].splashArt)}>
+                    <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
                         {(asset) => (
                             <>
                                 <GraphicalAsset styleOverwrite={backgroundImageStyle} backend={props.backend} metadata={asset} />
@@ -24,7 +24,7 @@ const HomeLocationCard: Component<HomeLocationCardProps> = (props) => {
                 {props.text.Title(props.info.name)({styleOverwrite: titleStyleOverwrite})}
                 <div class={contentGridStyle}>
                     <div class={imageContainerStyle}>
-                        <NTAwait func={() => props.backend.getAssetMetadata(props.info.appearances[0].splashArt)}>
+                        <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
                             {(asset) =>
                                 <GraphicalAsset styleOverwrite={imageStyle} backend={props.backend} metadata={asset} />
                             }

@@ -29,7 +29,7 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
             preference = res.res;
             props.onSlideCompleted();
             props.onLanguageSelected(preference);
-            props.backend.setPlayerPreference(PreferenceKeys.LANGUAGE, preference);
+            props.backend.player.setPreference(PreferenceKeys.LANGUAGE, preference);
         } else {
             preference = LanguagePreference.UNKNOWN;
         }
@@ -51,7 +51,7 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
                             enable={createMemo(() => language.coverage > 80)}
                         >
                             <SectionSubTitle>{language.commonName}</SectionSubTitle>
-                            <NTAwait func={() => props.backend.getAssetMetadata(language.icon)}>
+                            <NTAwait func={() => props.backend.assets.getMetadata(language.icon)}>
                                 {(metadata) => (
                                     <GraphicalAsset styleOverwrite={imageOverwrite} metadata={metadata} backend={props.backend}/>
                                 )}

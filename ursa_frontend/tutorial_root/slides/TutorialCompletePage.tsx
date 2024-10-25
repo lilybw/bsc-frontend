@@ -17,21 +17,21 @@ interface TutorialCompletePageProps extends IInternationalized, IStyleOverwritab
 
 export default function TutorialCompletePage(props: TutorialCompletePageProps): JSX.Element {
     setTimeout(() => {
-        props.backend.grantAchievement(1); 
+        props.backend.player.grantAchievement(1); 
         props.onSlideCompleted();
     }, 50);
 
     return (
         <div class="tutorial-complete-page">
             <StarryBackground />
-            <NTAwait func={() => props.backend.getAssetMetadata(1018)}>
+            <NTAwait func={() => props.backend.assets.getMetadata(1018)}>
                 {(asset) => (
                     <GraphicalAsset styleOverwrite={imageOverwrite} metadata={asset} backend={props.backend}/>
                 )}
             </NTAwait>
             {props.text.Title('TUTORIAL.COMPLETE.TITLE')({styleOverwrite: textOverwrite})}
             <BigMenuButton onClick={() => props.nav.goToMenu()} styleOverwrite={rightNavigationButtonStyle}>
-                <NTAwait func={() => props.backend.getAssetMetadata(1019)}>
+                <NTAwait func={() => props.backend.assets.getMetadata(1019)}>
                   {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.backend}/>}
                 </NTAwait>
             </BigMenuButton>

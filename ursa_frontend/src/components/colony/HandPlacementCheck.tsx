@@ -28,8 +28,8 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                             onActivation={() => {
                                 props.setActionContext(ActionContext.NAVIGATION);
                                 props.events.emit(PLAYER_JOIN_ACTIVITY_EVENT, { 
-                                    id: props.backend.localPlayer.id,
-                                    ign: props.backend.localPlayer.firstName,
+                                    id: props.backend.player.local.id,
+                                    ign: props.backend.player.local.firstName,
                                 });
                                 props.goToWaitingScreen();
                                 props.clearSelf();

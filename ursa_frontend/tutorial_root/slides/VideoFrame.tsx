@@ -15,7 +15,7 @@ const VideoFrame: Component<VideoDemoFrameStyleProps> = (props) => {
     return (
         <div>
             <div class={computedStyle()}>
-                <NTAwait func={() => props.backend.getAssetMetadata(1010)}>
+                <NTAwait func={() => props.backend.assets.getMetadata(1010)}>
                     {(asset) => (
                         <GraphicalAsset styleOverwrite={videoIconStyleOverwrite} metadata={asset} backend={props.backend}/>
                     )}

@@ -103,29 +103,32 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         if (this.connectedLobbyID === null || this.serverAddress === null) {
             return { res: null, code: 601, err: 'Not connected to a lobby' };
         }
+        const url = `${this.serverAddress}/lobby/${this.connectedLobbyID}`;
+        this.log.trace(`Requesting lobby state from ${url}`);
         let res;
+        let json;
         try {
-            res = await fetch(`${this.serverAddress}/lobby/${this.connectedLobbyID}`);
+            res = await fetch(url);
+            json = await res.json();
         } catch (e) {
             return { res: null, code: 600, err: 'Failed to send request for lobby state' };
         }
         if (!res.ok) {
             return { res: null, code: res.status, err: 'Failed to get lobby state' };
         }
-        const json = await res.json();
         return { res: json, code: res.status, err: null };
     };
 
     public connect = async (colonyCode: ColonyCode, onClose: (ev: CloseEvent) => void): Promise<Error | undefined> => {
-        const { res, code, err } = await this.backend.joinColony(colonyCode);
+        const { res, code, err } = await this.backend.colony.join(colonyCode);
         if (err != null) {
             return 'Failed to get multiplayer server address from backend. Code: ' + code + ' Error: ' + err;
         }
         const address = res.multiplayerServerAddress;
         const lobbyID = res.lobbyId;
-        const computedIGN = this.backend.localPlayer.firstName + ' ' + this.backend.localPlayer.lastName;
+        const computedIGN = this.backend.player.local.firstName + ' ' + this.backend.player.local.lastName;
         const ownerOfColonyJoined = res.owner;
-        const localUserID = this.backend.localPlayer.id;
+        const localUserID = this.backend.player.local.id;
         
         //protocol://host:port is provided by the main backend, as well as lobby id
         let conn;
@@ -136,7 +139,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             return 'Initial connection attempt to multiplayer server failed. Error: ' + JSON.stringify(e);
         }
 
-        this.mode.set(ownerOfColonyJoined === this.backend.localPlayer.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST);
+        this.mode.set(ownerOfColonyJoined === this.backend.player.local.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST);
         this.state.set(ColonyState.OPEN);
         this.code.set(colonyCode);
         this.connectedLobbyID = lobbyID;

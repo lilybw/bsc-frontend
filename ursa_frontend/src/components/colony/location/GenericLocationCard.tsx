@@ -58,7 +58,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
         <div class={cardContainerStyle} id={"location-card-" + props.info.name}>
             <div class={cardContentStyle}>
                 <div class={backgroundContainerStyle}>
-                    <NTAwait func={() => props.backend.getAssetMetadata(getIdOfSplashArt(props.colonyLocation.level, props.info.appearances))}>
+                    <NTAwait func={() => props.backend.assets.getMetadata(getIdOfSplashArt(props.colonyLocation.level, props.info.appearances))}>
                         {(asset) => (
                             <>
                                 <GraphicalAsset styleOverwrite={backgroundImageStyle} backend={props.backend} metadata={asset} />
@@ -71,7 +71,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                 <div class={contentGridStyle}>
                     <div class={difficultyListStyle}>
                         <NTAwait 
-                            func={() => props.backend.getMinigameInfo(props.info.minigameID)}
+                            func={() => props.backend.minigame.getInfo(props.info.minigameID)}
                             fallback={() => <UnderConstruction 
                                 specialText={props.text.get("LOCATION.UNDER_CONSTRUCTION").get()}
                             />}
@@ -102,7 +102,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                         </NTAwait>
                     </div>
                     <div class={imageContainerStyle}>
-                        <NTAwait func={() => props.backend.getAssetMetadata(getIdOfSplashArt(props.colonyLocation.level, props.info.appearances))}>
+                        <NTAwait func={() => props.backend.assets.getMetadata(getIdOfSplashArt(props.colonyLocation.level, props.info.appearances))}>
                             {(asset) =>
                                 <GraphicalAsset styleOverwrite={imageStyle} backend={props.backend} metadata={asset} />
                             }

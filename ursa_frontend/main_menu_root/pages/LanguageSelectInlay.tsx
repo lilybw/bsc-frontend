@@ -19,7 +19,7 @@ const LanguageSelectInlay: Component<LanguageSelectProps> = (props: LanguageSele
             props.backend.logger.error("Tried to change language, but got: " + res.err);
         } else {
             props.text.setLanguage(res.res);
-            props.backend.setPlayerPreference(PreferenceKeys.LANGUAGE, res.res);
+            props.backend.player.setPreference(PreferenceKeys.LANGUAGE, res.res);
         }
     }
 
@@ -36,7 +36,7 @@ const LanguageSelectInlay: Component<LanguageSelectProps> = (props: LanguageSele
             onMouseEnter={() => setMouseIsHere(true)}
             onMouseLeave={() => setMouseIsHere(false)}
         >
-            <NTAwait func={() => props.backend.getAssetMetadata(1022)}>
+            <NTAwait func={() => props.backend.assets.getMetadata(1022)}>
                 {(asset) => (
                     <GraphicalAsset 
                         styleOverwrite={imageStyleOverwrite}
@@ -50,7 +50,7 @@ const LanguageSelectInlay: Component<LanguageSelectProps> = (props: LanguageSele
                     <BigMenuButton styleOverwrite={computedSubButtonStyle()}
                         onClick={() => onLangSelect(lang.code)}
                     >
-                        <NTAwait func={() => props.backend.getAssetMetadata(lang.icon)}>{(asset) => 
+                        <NTAwait func={() => props.backend.assets.getMetadata(lang.icon)}>{(asset) => 
                             <GraphicalAsset 
                                 styleOverwrite={imageStyleOverwrite}
                                 metadata={asset} 
