@@ -104,6 +104,16 @@ export const Styles = {
             }
         }
     `,
+    GLASS: {
+        FAINT_BACKGROUND: css`
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(0.3rem);
+        `,
+        BACKGROUND: css`
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(0.5rem);
+        `
+    }
 };
 export const BigButtonStyle = css`
     background-color: rgba(0, 0, 0, 0.5);

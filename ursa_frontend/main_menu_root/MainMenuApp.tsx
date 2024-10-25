@@ -10,6 +10,8 @@ import NewColonyPage from './pages/NewColonyPage';
 import JoinColonyPage from './pages/JoinColony';
 import SlideIcon from '../tutorial_root/SlideIcon';
 import LanguageSelectInlay from './pages/LanguageSelectInlay';
+import SpacePortLocationCard from '../src/components/colony/location/SpacePortLocationCard';
+import { createArrayStore } from '../src/ts/arrayStore';
 
 export enum MenuPages {
   LANDING_PAGE = "landing",
