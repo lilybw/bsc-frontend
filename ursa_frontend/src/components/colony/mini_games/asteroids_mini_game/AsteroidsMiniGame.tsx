@@ -139,12 +139,34 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       return null;
     }
 
-    const computedStyle = window.getComputedStyle(entityRef.element);
+    const element = entityRef.element;
+    const computedStyle = window.getComputedStyle(element);
     const matrix = new DOMMatrix(computedStyle.transform);
-    const rect = entityRef.element.getBoundingClientRect();
+    const rect = element.getBoundingClientRect();
 
-    const x = (rect.left + matrix.m41 + rect.width / 2) / window.innerWidth;
-    const y = (rect.top + matrix.m42 + rect.height / 2) / window.innerHeight;
+    // Get the dimensions of the actual content (including the asset)
+    const contentWidth = rect.width;
+    const contentHeight = rect.height;
+
+    // Calculate the center position
+    const centerX = rect.left + (contentWidth / 2);
+    const centerY = rect.top + (contentHeight / 2);
+
+    // Apply any transform translations from animations
+    const transformedX = centerX + matrix.m41;
+    const transformedY = centerY + matrix.m42;
+
+    // Convert to viewport percentages
+    const x = transformedX / window.innerWidth;
+    const y = transformedY / window.innerHeight;
+
+    console.log('Entity', entityId, 'center position calculation:', {
+      type: entityRef.type,
+      dimensions: { width: contentWidth, height: contentHeight },
+      center: { x: centerX, y: centerY },
+      transformed: { x: transformedX, y: transformedY },
+      final: { x, y }
+    });
 
     return { x, y };
   };
@@ -183,11 +205,16 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       if (hitAsteroids.length) {
         hitSomething = true;
         hitAsteroids.forEach((a) => {
-          const targetPos = getAnimatedPosition(a.id);
+          const targetPos = getTargetCenterPosition(a.id);
 
           if (targetPos) {
-            console.log('Hit asteroid:', a.id, 'at position:', targetPos);
-            spawnLazerBeam(shooter.x, shooter.y, targetPos.x, targetPos.y);
+            console.log('Hit asteroid:', a.id, 'at center:', targetPos);
+            spawnLazerBeam(
+              shooter.x,
+              shooter.y,
+              targetPos.x,
+              targetPos.y
+            );
           }
 
           setTimeout(() => handleAsteroidDestruction(a.id), 100);
@@ -199,21 +226,23 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       if (hitPlayers.length) {
         hitSomething = true;
         hitPlayers.forEach((targetPlayer) => {
-          const targetPos = getAnimatedPosition(targetPlayer.id);
+          const targetPos = getTargetCenterPosition(targetPlayer.id);
 
           if (targetPos) {
-            console.log('Hit player:', targetPlayer.id, 'at position:', targetPos);
-            spawnLazerBeam(shooter.x, shooter.y, targetPos.x, targetPos.y);
+            console.log('Hit player:', targetPlayer.id, 'at center:', targetPos);
+            spawnLazerBeam(
+              shooter.x,
+              shooter.y,
+              targetPos.x,
+              targetPos.y
+            );
 
             // Apply friendly fire penalties
             if (targetPlayer.disable) {
               targetPlayer.disable();
-              console.log('Player disabled:', targetPlayer.id);
             }
-
             if (shooter.stun) {
               shooter.stun();
-              console.log('Shooter stunned:', shooter.id);
             }
           }
         });
@@ -257,16 +286,56 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   };
 
   /**
+   * Gets the current position of an entity's center point
+   */
+  const getTargetCenterPosition = (entityId: number) => {
+    const entityRef = elementRefs.get(entityId);
+    if (!entityRef) {
+      console.log('Entity not found for ID:', entityId);
+      return null;
+    }
+
+    const element = entityRef.element;
+    const rect = element.getBoundingClientRect();
+
+    // Calculate center point in pixels
+    const centerX = rect.left + (rect.width / 2);
+    const centerY = rect.top + (rect.height / 2);
+
+    // Convert to viewport percentages
+    const x = centerX / window.innerWidth;
+    const y = centerY / window.innerHeight;
+
+    console.log('Target center calculation:', {
+      id: entityId,
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height
+      },
+      center: { x, y }
+    });
+
+    return { x, y };
+  };
+
+  /**
    * Creates a new laser beam visual effect
    */
   const spawnLazerBeam = (fromX: number, fromY: number, toX: number, toY: number) => {
     const id = lazerBeamCounter++;
 
-    // Convert percentage positions to pixels
+    // Convert percentage positions to pixels for absolute positioning
     const start = getPixelPosition(fromX, fromY);
     const end = getPixelPosition(toX, toY);
 
-    console.log('Spawning laser:', { start, end }); // Debug log
+    console.log('Spawning laser:', {
+      from: { x: fromX, y: fromY },
+      to: { x: toX, y: toY },
+      startPx: start,
+      endPx: end
+    });
 
     const newBeam: LazerBeam = {
       id,
@@ -280,7 +349,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     const removeFunc = lazerBeams.add(newBeam);
     lazerBeamRemoveFuncs.set(id, removeFunc);
 
-    // Ensure cleanup
     setTimeout(() => {
       const remove = lazerBeamRemoveFuncs.get(id);
       if (remove) {
