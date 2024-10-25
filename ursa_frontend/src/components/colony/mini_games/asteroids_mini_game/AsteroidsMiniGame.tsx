@@ -49,7 +49,8 @@ interface Asteroid extends AsteroidsAsteroidSpawnMessageDTO {
   speed: number,          // Movement speed (milliseconds)
   destroy: () => void,    // Function to handle asteroid destruction
   endX: number,          // Final X position (0.0 for wall)
-  endY: number           // Final Y position (0.5 for center)
+  endY: number,           // Final Y position (0.5 for center)
+  element: HTMLDivElement | null, // Element in the DOM
 }
 
 /**
@@ -143,36 +144,59 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     const shooter = players.findFirst((p) => p.id === data.id);
 
     if (shooter) {
-      // Handle player hits first
-      const hitPlayers = players.findAll((p) => p.code === data.code);
-      if (hitPlayers.length) {
-        hitPlayers.forEach((p) => {
-          spawnLazerBeam(shooter.x, shooter.y, p.x, p.y);
-          p.stun();
-        });
-        shooter.disable();
-      }
+      let hitSomething = false;
 
       // Handle asteroid hits
       const hitAsteroids = asteroids.findAll((a) => a.charCode === data.code);
-      console.log('Hit asteroids:', hitAsteroids);
       if (hitAsteroids.length) {
+        hitSomething = true;
         hitAsteroids.forEach((a) => {
-          console.log('Processing hit on asteroid:', a.id);
-          spawnLazerBeam(shooter.x, shooter.y, a.x, a.y);
-          a.destroy();
+          console.log('Processing asteroid:', {
+            id: a.id,
+            hasElement: !!a.element,
+            element: a.element
+          });
+
+          if (a.element) {
+            const rect = a.element.getBoundingClientRect();
+
+            console.log('Raw rect:', rect);
+            console.log('Shooter position:', { x: shooter.x, y: shooter.y });
+
+            // Get asteroid's center position in pixels
+            const asteroidX = rect.left + (rect.width / 2);
+            const asteroidY = rect.top + (rect.height / 2);
+
+            console.log('Target center in pixels:', { x: asteroidX, y: asteroidY });
+
+            // Convert shooter's percentage position to pixels
+            const shooterX = shooter.x * window.innerWidth;
+            const shooterY = shooter.y * window.innerHeight;
+
+            console.log('Shooter in pixels:', { x: shooterX, y: shooterY });
+
+            spawnLazerBeam(
+              shooter.x,    // Keep shooter position as percentage
+              shooter.y,    // Keep shooter position as percentage
+              asteroidX / window.innerWidth,  // Convert target to percentage
+              asteroidY / window.innerHeight  // Convert target to percentage
+            );
+          } else {
+            console.log('Missing element reference for asteroid:', a.id);
+          }
+
+          setTimeout(() => a.destroy(), 100);
         });
-        return; // Exit early if we hit asteroids
       }
 
-      // If we hit nothing, show miss effect
-      if (!hitPlayers.length && !hitAsteroids.length) {
-        spawnLazerBeam(
-          shooter.x,
-          shooter.y,
-          (Math.random() + 1) * window.innerWidth,
-          (Math.random() + 1) * window.innerHeight
-        );
+      // Handle misses
+      if (!hitSomething) {
+        // Calculate miss position relative to shooter
+        const missAngle = Math.random() * Math.PI * 2;
+        const missDistance = 0.5; // Use percentage of screen size
+        const missX = shooter.x + Math.cos(missAngle) * missDistance;
+        const missY = shooter.y + Math.sin(missAngle) * missDistance;
+        spawnLazerBeam(shooter.x, shooter.y, missX, missY);
       }
     }
   };
@@ -194,32 +218,47 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   };
 
   /**
+ * Converts a percentage position to pixel coordinates
+ */
+  const getPixelPosition = (x: number, y: number) => {
+    return {
+      x: x * window.innerWidth,
+      y: y * window.innerHeight
+    };
+  };
+
+  /**
    * Creates a new laser beam visual effect
    */
-  const spawnLazerBeam = (shooterX: number, shooterY: number, targetX: number, targetY: number) => {
+  const spawnLazerBeam = (fromX: number, fromY: number, toX: number, toY: number) => {
     const id = lazerBeamCounter++;
+
+    // Convert percentage positions to pixels
+    const start = getPixelPosition(fromX, fromY);
+    const end = getPixelPosition(toX, toY);
+
+    console.log('Spawning laser:', { start, end }); // Debug log
+
     const newBeam: LazerBeam = {
-      id,  // Add ID to LazerBeam interface
-      startX: shooterX,
-      startY: shooterY,
-      endX: targetX,
-      endY: targetY,
+      id,
+      startX: start.x,
+      startY: start.y,
+      endX: end.x,
+      endY: end.y,
       opacity: 1,
     };
 
     const removeFunc = lazerBeams.add(newBeam);
     lazerBeamRemoveFuncs.set(id, removeFunc);
 
-    // Automatically remove after animation
+    // Ensure cleanup
     setTimeout(() => {
-      if (lazerBeamRemoveFuncs.has(id)) {
-        const remove = lazerBeamRemoveFuncs.get(id);
-        if (remove) {
-          remove();
-          lazerBeamRemoveFuncs.delete(id);
-        }
+      const remove = lazerBeamRemoveFuncs.get(id);
+      if (remove) {
+        remove();
+        lazerBeamRemoveFuncs.delete(id);
       }
-    }, 1000);  // Adjust timing as needed
+    }, 1000);
   };
 
   // Component Lifecycle and Event Subscriptions
@@ -234,11 +273,14 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
 
     // Event Subscriptions
     const spawnSubID = props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
+      console.log('Spawning asteroid with ID:', data.id);
+      let elementRef: HTMLDivElement | null = null;
       const removeFunc = asteroids.add({
         ...data,
         speed: data.timeUntilImpact,
         endX: 0.0,
         endY: 0.5,
+        element: elementRef,  // Initialize as null
         destroy: () => handleAsteroidDestruction(data.id)
       });
       asteroidsRemoveFuncs.set(data.id, removeFunc);
@@ -321,18 +363,18 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         <For each={asteroids.get}>
           {(asteroid) => (
             <div
+              id={`asteroid-${asteroid.id}`}
               class={asteroidStyle}
               ref={(el: HTMLDivElement) => {
                 if (el) {
-                  // Initialize position without transition
+                  console.log('Setting element ref for asteroid:', asteroid.id);
+                  asteroid.element = el;  // Store reference
                   el.style.transition = 'none';
                   el.style.left = `${asteroid.x * 100}%`;
                   el.style.top = `${asteroid.y * 100}%`;
 
-                  // Force browser reflow for clean animation
                   void el.offsetHeight;
 
-                  // Start animation to impact point
                   requestAnimationFrame(() => {
                     el.style.transition = `all ${asteroid.timeUntilImpact / 1000}s linear`;
                     el.style.left = '0%';
