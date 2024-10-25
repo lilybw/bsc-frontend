@@ -549,6 +549,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                   el.style.transition = 'none';
                   el.style.left = `${asteroid.x * 100}%`;
                   el.style.top = `${asteroid.y * 100}%`;
+                  el.style.transform = 'translate(-50%, -50%)';
 
                   void el.offsetHeight;
 
@@ -559,26 +560,28 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                   });
                 }
               }}
-              style={{
-                position: 'absolute',
-                transform: 'translate(-50%, -50%)',
-              }}
             >
-              {/* Asset wrapped for rotation */}
-              <div class={rotatingStyle(getRandomRotationSpeed())}>
-                <NTAwait func={() => props.context.backend.assets.getMetadata(7001)}>
-                  {(asset) => (
-                    <GraphicalAsset metadata={asset} backend={props.context.backend} />
-                  )}
-                </NTAwait>
+              {/* Asteroid Image Container */}
+              <div class={asteroidImageContainerStyle}>
+                <div class={rotatingStyle(getRandomRotationSpeed())}>
+                  <NTAwait func={() => props.context.backend.assets.getMetadata(7001)}>
+                    {(asset) => (
+                      <GraphicalAsset metadata={asset} backend={props.context.backend} />
+                    )}
+                  </NTAwait>
+                </div>
               </div>
-              <BufferBasedButton
-                enable={buttonsEnabled}
-                name={asteroid.charCode}
-                buffer={inputBuffer.get}
-                onActivation={() => localPlayerShootAtCodeHandler(asteroid.charCode)}
-                register={bufferSubscribers.add}
-              />
+
+              {/* Asteroid Button Container */}
+              <div class={asteroidButtonStyle}>
+                <BufferBasedButton
+                  enable={buttonsEnabled}
+                  name={asteroid.charCode}
+                  buffer={inputBuffer.get}
+                  onActivation={() => localPlayerShootAtCodeHandler(asteroid.charCode)}
+                  register={bufferSubscribers.add}
+                />
+              </div>
             </div>
           )}
         </For>
@@ -684,36 +687,56 @@ const wallStyle = css`
 `;
 
 const asteroidStyle = css`
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 20rem;
-  height: 20rem;
-`;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 10rem;
+    height: 10rem;
+  `;
+
+const asteroidImageContainerStyle = css`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  `;
+
+const asteroidButtonStyle = css`
+    position: absolute;
+    top: 100%; // Position below the asteroid
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 0.5rem; // Space between asteroid and text
+    color: white; // Make text visible
+    text-align: center;
+  `;
 
 // Function to generate rotation animation style with dynamic speed
 const rotatingStyle = (speedSeconds: number) => css`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: rotate ${speedSeconds}s linear infinite;
-
-  img {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-  }
+    animation: rotate ${speedSeconds}s linear infinite;
 
-  @keyframes rotate {
-    from {
-      transform: rotate(0deg);
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
-    to {
-      transform: rotate(360deg);
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
     }
-  }
-`;
+  `;
 
 const statusStyle = css`
   position: absolute;
