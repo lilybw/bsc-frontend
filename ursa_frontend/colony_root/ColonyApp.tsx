@@ -30,9 +30,9 @@
 import SectionSubTitle from '../src/components/SectionSubTitle';
 import Countdown from '../src/components/util/Countdown';
 import { ColonyCode } from '../src/integrations/main_backend/mainBackendDTOs';
+import EventFeed from '../src/components/EventFeed';
 
-  const eventFeedMessageDurationMS = 10_000;
-  type StrictJSX = Node | JSX.ArrayElement | (string & {}) 
+  export type StrictJSX = Node | JSX.ArrayElement | (string & {}) 
     | NonNullable<Exclude<Exclude<Exclude<JSX.Element, string>, number>, boolean>>
     | Element;
 
@@ -44,7 +44,6 @@ import { ColonyCode } from '../src/integrations/main_backend/mainBackendDTOs';
     const inputBuffer = createWrappedSignal<string>('');
     const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.NAVIGATION);
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
-    const eventFeed = createArrayStore<StrictJSX>();
     const clients = createArrayStore<ClientDTO>();
     const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
     const colonyInfo = props.context.nav.getRetainedColonyInfo();
@@ -147,25 +146,11 @@ import { ColonyCode } from '../src/integrations/main_backend/mainBackendDTOs';
 
       // Set up event subscriptions
       const playerLeaveSubId = props.context.events.subscribe(PLAYER_LEFT_EVENT, (data) => {
-        const removeFunc = eventFeed.add((
-          <div class={eventFeedMessageStyle}>
-            <div class={css`color: hsla(32, 100%, 36%, 1)`}>{data.ign}</div>
-            <div class={css`color: hsla(32, 100%, 36%, 1)`}>Left</div>
-          </div>
-        ) as StrictJSX);
-        setTimeout(removeFunc, eventFeedMessageDurationMS);
         log.info('Player left: ' + data.id);
         clients.removeFirst((c) => c.id === data.id);
       });
 
       const playerJoinSubId = props.context.events.subscribe(PLAYER_JOINED_EVENT, (data) => {
-        const removeFunc = eventFeed.add((
-          <div class={eventFeedMessageStyle}>
-            <div class={css`color: hsla(131, 100%, 27%, 1)`}>{data.ign}</div>
-            <div class={css`color: hsla(131, 100%, 27%, 1)`}>Joined</div>
-          </div>
-        ) as StrictJSX);
-        setTimeout(removeFunc, eventFeedMessageDurationMS);
         log.info('Player joined: ' + data.id);
         clients.add({
           id: data.id,
@@ -179,22 +164,12 @@ import { ColonyCode } from '../src/integrations/main_backend/mainBackendDTOs';
       });
 
       const serverClosingSubId = props.context.events.subscribe(SERVER_CLOSING_EVENT, (ev) => {
-        const removeFunc = eventFeed.add((
-          <div class={eventFeedMessageStyle}>
-            <div class={css`color: hsla(352, 100%, 29%, 1)`}>Server Closing</div>
-          </div>
-        ) as StrictJSX);
-        setTimeout(removeFunc, eventFeedMessageDurationMS);
+        //Shunt if guest
       });
 
       const lobbyClosingSubId = props.context.events.subscribe(LOBBY_CLOSING_EVENT, (ev) => {
-        props.context.logger.info('lobby closing');
-        const removeFunc = eventFeed.add((
-          <div class={eventFeedMessageStyle}>
-            <div>Lobby Closing</div>
-          </div>
-        ) as StrictJSX);
-        setTimeout(removeFunc, eventFeedMessageDurationMS);
+        log.info('lobby closing');
+        //Shunt if guest
       });
 
       const diffConfirmedSubId = props.context.events.subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, data => {
@@ -241,46 +216,16 @@ import { ColonyCode } from '../src/integrations/main_backend/mainBackendDTOs';
         <StarryBackground />
         {pageContent()}
         {appendOverlay()}
-        <div class={eventFeedContainerStyle} id="event-feed">
-          <For each={eventFeed.get}>{event => event}</For>
-        </div>
+        <EventFeed
+          events={props.context.events}
+          backend={props.context.backend}
+          text={props.context.text}
+        />
       </div>
     );
   }, {bundle: Bundle.COLONY});
 
   export default ColonyApp;
-
-  // Styles
-  const eventFeedMessageStyle = css`
-    display: flex;
-    flex-direction: column;
-    justify-content: left;
-    align-items: center;
-    width: 90%;
-    height: 5vh;
-    font-size: 1.5rem;
-    padding: 0.5rem;
-    color: white;
-    ${Styles.FANCY_BORDER}
-    background-color: rgba(0, 0, 0, 0.7);
-    border-color: rgba(255, 255, 255, 0.5);
-    ${Styles.ANIM_FADE_OUT(eventFeedMessageDurationMS / 1000)}
-  `;
-
-  const eventFeedContainerStyle = css`
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: center;
-    right: 0;
-    bottom: 0;
-    height: 50vh;
-    width: 15vw;
-    row-gap: 1vh;
-    z-index: 1000;
-    overflow: hidden;
-  `;
 
   const colonyTitleStyle = css`
     position: absolute;

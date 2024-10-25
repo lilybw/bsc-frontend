@@ -103,20 +103,8 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         if (this.connectedLobbyID === null || this.serverAddress === null) {
             return { res: null, code: 601, err: 'Not connected to a lobby' };
         }
-        const url = `${this.serverAddress}/lobby/${this.connectedLobbyID}`;
-        this.log.trace(`Requesting lobby state from ${url}`);
-        let res;
-        let json;
-        try {
-            res = await fetch(url);
-            json = await res.json();
-        } catch (e) {
-            return { res: null, code: 600, err: 'Failed to send request for lobby state' };
-        }
-        if (!res.ok) {
-            return { res: null, code: res.status, err: 'Failed to get lobby state' };
-        }
-        return { res: json, code: res.status, err: null };
+        //Proxying calls for now to avoid preflight checks
+        return this.backend.proxy.multiplayer.getLobbyState(this.connectedLobbyID);
     };
 
     public connect = async (colonyCode: ColonyCode, onClose: (ev: CloseEvent) => void): Promise<Error | undefined> => {
