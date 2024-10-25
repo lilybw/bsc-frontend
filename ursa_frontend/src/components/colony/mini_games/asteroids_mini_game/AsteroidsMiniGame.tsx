@@ -127,6 +127,35 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     }
   };
 
+  /**
+   * Calculates player positions based on total number of players
+   * @returns {Map<number, {x: number, y: number}>} Map of player IDs to their positions
+   */
+  const calculatePlayerPositions = () => {
+    const allPlayers = players.get;  // Access the getter property, don't call it
+    const totalPlayers = allPlayers.length;
+    const positions = new Map<number, { x: number, y: number }>();
+
+    // Calculate spacing between players
+    const margin = 0.1; // 10% margin from edges
+    const availableWidth = 1 - (2 * margin); // Available width after margins
+    const spacing = totalPlayers > 1 ? availableWidth / (totalPlayers - 1) : 0;
+
+    // Position players evenly along the bottom
+    allPlayers.forEach((player: Player, index: number) => {
+      const x = totalPlayers > 1
+        ? margin + (spacing * index)  // Evenly space multiple players
+        : 0.5;                        // Center single player
+
+      positions.set(player.id, {
+        x: x,
+        y: 0.9  // Position 90% down the screen
+      });
+    });
+
+    return positions;
+  };
+
   const getRandomRotationSpeed = () => {
     // Random speed between 2 and 5 seconds per rotation
     return 2 + Math.random() * 3;
@@ -422,6 +451,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         ...data,
         isStunned: false,
         isDisabled: false,
+        x: 0,  // Will be updated by positioning system
+        y: 0.9,  // Initial position at bottom
         stun: () => {
           clearTimeout(stunTimer);
           players.mutateByPredicate(
@@ -457,6 +488,19 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         },
         element: null,
       });
+
+      // Recalculate all player positions whenever a player is added
+      const newPositions = calculatePlayerPositions();
+
+      // Update each player's position individually using mutateByPredicate
+      players.mutateByPredicate(
+        (_: Player) => true, // Apply to all players
+        (player: Player) => ({
+          ...player,
+          x: newPositions.get(player.id)?.x ?? player.x,
+          y: newPositions.get(player.id)?.y ?? player.y
+        })
+      );
     });
 
     const playerShootSubID = props.context.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, handlePlayerShootAtCodeEvent);
@@ -581,24 +625,32 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
               }}
               style={{
                 left: `${player.x * 100}%`,
-                top: `${player.y * 100}%`,
-                transform: `translate(-50%, -50%)`,
+                bottom: '0',
+                transform: 'translateX(-50%)',
+                position: 'absolute'
               }}
             >
-              <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
-                {(asset) => (
-                  <GraphicalAsset metadata={asset} backend={props.context.backend} />
-                )}
-              </NTAwait>
-              <BufferBasedButton
-                enable={buttonsEnabled}
-                name={player.code}
-                buffer={inputBuffer.get}
-                onActivation={() => localPlayerShootAtCodeHandler(player.code)}
-                register={bufferSubscribers.add}
-              />
-              {player.isStunned && <div class={stunnedStyle} />}
-              {player.isDisabled && <div class={disabledStyle} />}
+              {/* Button Container */}
+              <div class={buttonContainerStyle}>
+                <BufferBasedButton
+                  enable={buttonsEnabled}
+                  name={player.code}
+                  buffer={inputBuffer.get}
+                  onActivation={() => localPlayerShootAtCodeHandler(player.code)}
+                  register={bufferSubscribers.add}
+                />
+              </div>
+
+              {/* Player Character Container */}
+              <div class={playerCharacterStyle}>
+                <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
+                  {(asset) => (
+                    <GraphicalAsset metadata={asset} backend={props.context.backend} />
+                  )}
+                </NTAwait>
+                {player.isStunned && <div class={stunnedStyle} />}
+                {player.isDisabled && <div class={disabledStyle} />}
+              </div>
             </div>
           )}
         </For>
@@ -625,7 +677,7 @@ const wallStyle = css`
   position: absolute;
   top: 0;
   left: 0;
-  width: 1vw;
+  width: 4vw;
   height: 100vh;
   background: linear-gradient(to right, #4a4a4a, #bebebe);
   overflow: hidden;
@@ -636,8 +688,8 @@ const asteroidStyle = css`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 10rem;
-  height: 10rem;
+  width: 20rem;
+  height: 20rem;
 `;
 
 // Function to generate rotation animation style with dynamic speed
@@ -689,8 +741,8 @@ const lazerBeamStyle = css`
 
 const impactCircleStyle = css`
   position: absolute;
-  width: 3rem;           /* Larger impact circle */
-  height: 3rem;
+  width: 4.5rem;           
+  height: 4.5rem;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: radial-gradient(
@@ -706,19 +758,40 @@ const impactCircleStyle = css`
 `;
 
 const playerStyle = css`
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 3rem;  /* Keep players slightly larger than asteroids */
-  height: 3rem;
+    position: absolute;
+    display: flex;
+    flex-direction: column; // Stack children vertically
+    justify-content: flex-end; // Push content to bottom
+    align-items: center; // Center horizontally
+    width: 20rem;
+    height: 20rem;
+    transform-origin: bottom center;
 
-  /* Scale the asset inside the container */
-  img {
+    /* Scale the asset inside the container */
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transform-origin: bottom center;
+    }
+  `;
+
+const playerCharacterStyle = css`
+    position: relative;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-  }
+    display: flex;
+    align-items: flex-end;
+  `;
+
+const buttonContainerStyle = css`
+  position: absolute;
+  bottom: 100%; // Position above the player
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.5rem; // Add some space between button and player
+  color: white; // Make text visible
+  text-align: center;
 `;
 
 const stunnedStyle = css`
@@ -786,3 +859,4 @@ const disabledStyle = css`
     100% { opacity: 0.8; transform: scale(1.02); }
   }
 `;
+
