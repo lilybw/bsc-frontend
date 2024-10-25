@@ -205,7 +205,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     if (shooter) {
       let hitSomething = false;
 
-      // Handle asteroid hits
+      // Handle asteroid hits with precise image targeting
       const hitAsteroids = asteroids.findAll((a) => a.charCode === data.code);
       if (hitAsteroids.length) {
         hitSomething = true;
@@ -213,7 +213,11 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
           const targetPos = getTargetCenterPosition(a.id);
 
           if (targetPos) {
-            console.log('Hit asteroid:', a.id, 'at center:', targetPos);
+            console.log('Hit asteroid image center:', {
+              id: a.id,
+              position: targetPos
+            });
+
             spawnLazerBeam(
               shooter.x,
               shooter.y,
@@ -226,7 +230,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         });
       }
 
-      // Handle player hits (friendly fire)
+      // Handle player hits with precise image targeting
       const hitPlayers = players.findAll((p) => p.code === data.code && p.id !== data.id);
       if (hitPlayers.length) {
         hitSomething = true;
@@ -234,7 +238,11 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
           const targetPos = getTargetCenterPosition(targetPlayer.id);
 
           if (targetPos) {
-            console.log('Hit player:', targetPlayer.id, 'at center:', targetPos);
+            console.log('Hit player image center:', {
+              id: targetPlayer.id,
+              position: targetPos
+            });
+
             spawnLazerBeam(
               shooter.x,
               shooter.y,
@@ -242,7 +250,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
               targetPos.y
             );
 
-            // Apply friendly fire penalties
             if (targetPlayer.disable) {
               targetPlayer.disable();
             }
@@ -253,7 +260,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         });
       }
 
-      // Handle misses
+      // Handle misses (keep existing miss logic)
       if (!hitSomething) {
         const missAngle = Math.random() * Math.PI * 2;
         const missDistance = 0.5;
@@ -301,23 +308,33 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     }
 
     const element = entityRef.element;
-    const rect = element.getBoundingClientRect();
 
-    // Calculate center point in pixels
-    const centerX = rect.left + (rect.width / 2);
-    const centerY = rect.top + (rect.height / 2);
+    // Find the actual image element within the container
+    // For asteroids, it's inside the rotating container
+    const imageElement = element.querySelector('img');
+    if (!imageElement) {
+      console.log('Image element not found for entity:', entityId);
+      return null;
+    }
+
+    const imageRect = imageElement.getBoundingClientRect();
+
+    // Calculate center point of the image in pixels
+    const centerX = imageRect.left + (imageRect.width / 2);
+    const centerY = imageRect.top + (imageRect.height / 2);
 
     // Convert to viewport percentages
     const x = centerX / window.innerWidth;
     const y = centerY / window.innerHeight;
 
-    console.log('Target center calculation:', {
+    console.log('Target image center calculation:', {
       id: entityId,
-      rect: {
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height
+      type: entityRef.type,
+      imageRect: {
+        left: imageRect.left,
+        top: imageRect.top,
+        width: imageRect.width,
+        height: imageRect.height
       },
       center: { x, y }
     });
