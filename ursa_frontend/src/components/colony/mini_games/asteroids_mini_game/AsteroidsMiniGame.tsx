@@ -127,6 +127,11 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     }
   };
 
+  const getRandomRotationSpeed = () => {
+    // Random speed between 2 and 5 seconds per rotation
+    return 2 + Math.random() * 3;
+  };
+
   /**
    * Gets the current position of an element considering any ongoing animations
    * @param elementId The ID of the element to check
@@ -498,11 +503,14 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 transform: 'translate(-50%, -50%)',
               }}
             >
-              <NTAwait func={() => props.context.backend.assets.getMetadata(7001)}>
-                {(asset) => (
-                  <GraphicalAsset metadata={asset} backend={props.context.backend} />
-                )}
-              </NTAwait>
+              {/* Asset wrapped for rotation */}
+              <div class={rotatingStyle(getRandomRotationSpeed())}>
+                <NTAwait func={() => props.context.backend.assets.getMetadata(7001)}>
+                  {(asset) => (
+                    <GraphicalAsset metadata={asset} backend={props.context.backend} />
+                  )}
+                </NTAwait>
+              </div>
               <BufferBasedButton
                 enable={buttonsEnabled}
                 name={asteroid.charCode}
@@ -611,6 +619,31 @@ const asteroidStyle = css`
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 10rem;
+  height: 10rem;
+`;
+
+// Function to generate rotation animation style with dynamic speed
+const rotatingStyle = (speedSeconds: number) => css`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: rotate ${speedSeconds}s linear infinite;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  @keyframes rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 `;
 
 const statusStyle = css`
@@ -623,20 +656,24 @@ const statusStyle = css`
 
 const lazerBeamStyle = css`
   position: absolute;
-  height: 2px;
+  height: 0.5rem; /* Thicker beam */
   transform-origin: left center;
   background: linear-gradient(
     to right,
-    rgba(255, 0, 0, 0.5),
+    rgba(255, 0, 0, 0.8),    /* More opaque red */
     rgba(255, 255, 255, 1) 50%,
-    rgba(255, 0, 0, 0.5)
+    rgba(255, 0, 0, 0.8)
   );
+  filter: blur(0.15rem);     /* Add slight blur for glow effect */
+  box-shadow: 
+    0 0 0.5rem rgba(255, 0, 0, 0.5),  /* Inner glow */
+    0 0 1rem rgba(255, 0, 0, 0.3);    /* Outer glow */
 `;
 
 const impactCircleStyle = css`
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 3rem;           /* Larger impact circle */
+  height: 3rem;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: radial-gradient(
@@ -645,6 +682,10 @@ const impactCircleStyle = css`
     rgba(255, 0, 0, 1) 50%,
     rgba(255, 0, 0, 0) 100%
   );
+  filter: blur(0.15rem);  /* Add slight blur for glow effect */
+  box-shadow: 
+    0 0 1rem rgba(255, 0, 0, 0.5),   /* Inner glow */
+    0 0 2rem rgba(255, 0, 0, 0.3);   /* Outer glow */
 `;
 
 const playerStyle = css`
@@ -652,6 +693,15 @@ const playerStyle = css`
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 3rem;  /* Keep players slightly larger than asteroids */
+  height: 3rem;
+
+  /* Scale the asset inside the container */
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 `;
 
 const stunnedStyle = css`
