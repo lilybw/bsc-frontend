@@ -105,6 +105,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     element: HTMLDivElement;
   }
   const elementRefs = new Map<number, EntityRef>();
+  const [windowSize, setWindowSize] = createSignal({ width: window.innerWidth, height: window.innerHeight });
+  const ASTEROID_SIZE_VW = 18; // 18 rem converted to vw units approximately
 
   // Timers for status effects
   let stunTimer: NodeJS.Timeout;
@@ -125,6 +127,37 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       removeFunc();
       asteroidsRemoveFuncs.delete(asteroidID);
     }
+  };
+
+  /**
+   * Calculates the minimum spawn distance needed to ensure asteroid is fully off-screen
+   */
+  const calculateMinSpawnDistance = () => {
+    const asteroidSize = (ASTEROID_SIZE_VW / 100) * windowSize().width; // Convert vw to pixels
+    // Use Pythagorean theorem to get diagonal size
+    return Math.sqrt(2 * Math.pow(asteroidSize, 2));
+  };
+
+  /**
+   * Generates a spawn position that ensures the asteroid starts off-screen in the upper right quadrant
+   */
+  const generateSpawnPosition = () => {
+    const minSpawnDistance = calculateMinSpawnDistance();
+
+    // Generate random angle in the upper right quadrant (between -45° and +45° from horizontal)
+    const angleRange = Math.PI / 2; // 90 degrees in radians
+    const baseAngle = -Math.PI / 4; // -45 degrees in radians
+    const randomAngle = baseAngle + (Math.random() * angleRange);
+
+    // Calculate distance to ensure asteroid is off-screen
+    // Add some padding to minSpawnDistance to ensure complete invisibility
+    const spawnDistance = minSpawnDistance + (Math.random() * minSpawnDistance * 0.5);
+
+    // Calculate spawn position relative to screen dimensions
+    const spawnX = 1 + (Math.cos(randomAngle) * spawnDistance / windowSize().width);
+    const spawnY = 0 + (Math.sin(randomAngle) * spawnDistance / windowSize().height);
+
+    return { x: spawnX, y: spawnY };
   };
 
   /**
@@ -411,6 +444,12 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
 
   // Component Lifecycle and Event Subscriptions
   onMount(() => {
+    // Window resize listener
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+
     // Update laser beam fade effects
     const updateLazerBeams = setInterval(() => {
       lazerBeams.mutateByPredicate(
@@ -422,13 +461,17 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     // Event Subscriptions
     const spawnSubID = props.context.events.subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, (data) => {
       console.log('Spawning asteroid with ID:', data.id);
+      const spawnPos = generateSpawnPosition();
+
       let elementRef: HTMLDivElement | null = null;
       const removeFunc = asteroids.add({
         ...data,
+        x: spawnPos.x,
+        y: spawnPos.y,
         speed: data.timeUntilImpact,
-        endX: 0.0,
-        endY: 0.5,
-        element: elementRef,  // Initialize as null
+        endX: 0.0,  // Target is left wall
+        endY: 0.5,  // Target is middle height
+        element: elementRef,
         destroy: () => handleAsteroidDestruction(data.id)
       });
       asteroidsRemoveFuncs.set(data.id, removeFunc);
@@ -438,13 +481,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       setHealth(data.colonyHPLeft);
       handleAsteroidDestruction(data.id);
     });
-
-    /**
-    * Handles cleanup of entity references
-    */
-    const cleanupEntityRef = (entityId: number) => {
-      elementRefs.delete(entityId);
-    };
 
     const loadPlayerDataSubID = props.context.events.subscribe(ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, (data) => {
       players.add({
@@ -519,6 +555,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       lazerBeamRemoveFuncs.clear();
 
       elementRefs.clear();
+      window.removeEventListener('resize', handleResize);
     });
   });
 
@@ -547,6 +584,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                   });
 
                   el.style.transition = 'none';
+                  // Position using percentage coordinates, handling off-screen positions
                   el.style.left = `${asteroid.x * 100}%`;
                   el.style.top = `${asteroid.y * 100}%`;
                   el.style.transform = 'translate(-50%, -50%)';
@@ -555,8 +593,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
 
                   requestAnimationFrame(() => {
                     el.style.transition = `all ${asteroid.timeUntilImpact / 1000}s linear`;
-                    el.style.left = '0%';
-                    el.style.top = '50%';
+                    el.style.left = '0%'; // Move to left wall
+                    el.style.top = '50%'; // Move to vertical center
                   });
                 }
               }}
