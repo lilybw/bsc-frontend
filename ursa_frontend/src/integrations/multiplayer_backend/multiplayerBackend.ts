@@ -126,8 +126,9 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         } catch (e) {
             return 'Initial connection attempt to multiplayer server failed. Error: ' + JSON.stringify(e);
         }
-
-        this.mode.set(ownerOfColonyJoined === this.backend.player.local.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST);
+        const newMode = ownerOfColonyJoined === this.backend.player.local.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST;
+        this.log.trace(`Local player joined lobby as: ${newMode}`)
+        this.mode.set(newMode);
         this.state.set(ColonyState.OPEN);
         this.code.set(colonyCode);
         this.connectedLobbyID = lobbyID;
@@ -145,8 +146,8 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         this.subscriptions = Object.values(EVENT_ID_MAP)
             .filter((spec) => {
                 return (
-                    (mode === MultiplayerMode.AS_OWNER && (spec.permissions.owner || spec.permissions.guest)) ||
-                    (mode === MultiplayerMode.AS_GUEST && spec.permissions.guest)
+                    (newMode === MultiplayerMode.AS_OWNER && (spec.permissions.owner || spec.permissions.guest)) ||
+                    (newMode === MultiplayerMode.AS_GUEST && spec.permissions.guest)
                 );
             })
             .map(this.establishSubscription);

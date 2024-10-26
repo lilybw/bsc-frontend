@@ -2,8 +2,9 @@ import { css } from "@emotion/css";
 import { JSX } from "solid-js/jsx-runtime";
 import SectionTitle from "./components/SectionTitle";
 import SectionSubTitle from "./components/SectionSubTitle";
+import { IInternationalized } from "./ts/types";
 
-interface ErrorPageProps {
+interface ErrorPageProps{
     title?: string;
     content: any;
     children?: JSX.Element;

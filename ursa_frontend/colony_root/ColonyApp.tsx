@@ -32,6 +32,7 @@ import Countdown from '../src/components/util/Countdown';
 import { ColonyCode, ColonyInfoResponseDTO, ColonyPathGraphResponseDTO, uint32 } from '../src/integrations/main_backend/mainBackendDTOs';
 import EventFeed from '../src/components/EventFeed';
 import { KnownLocations } from '../src/integrations/main_backend/constants';
+import FullScreenNotification from './FullScreenNotification';
 
   export type StrictJSX = Node | JSX.ArrayElement | (string & {}) 
     | NonNullable<Exclude<Exclude<Exclude<JSX.Element, string>, number>, boolean>>
@@ -47,7 +48,8 @@ import { KnownLocations } from '../src/integrations/main_backend/constants';
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
     const clients = createArrayStore<ClientDTO>();
     const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
-    const colonyInfo = props.context.nav.getRetainedColonyInfo();
+    const bundleSwapColonyInfo = props.context.nav.getRetainedColonyInfo();
+    const [notaficationReason, setNotificationReason] = createSignal<string | null>(null);
     const log = props.context.logger.copyFor('colony');
 
     /**
@@ -85,7 +87,7 @@ import { KnownLocations } from '../src/integrations/main_backend/constants';
      */
     const colonyLayout = () => {
       return (
-        <Unwrap data={[colonyInfo, props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
+        <Unwrap data={[bundleSwapColonyInfo, props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
           {(colonyInfo, playerInfo) =>
             <>
             <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
@@ -135,6 +137,7 @@ import { KnownLocations } from '../src/integrations/main_backend/constants';
     const initializeMultiplayerSession = async (code: ColonyCode): Promise<Error | undefined> => {
       log.trace('Connecting to multiplayer, code: ' + code);
       const err = await props.context.multiplayer.connect(code, (ev) => {
+        //On Close
         log.info('connection closed, redirecting to menu');
         if (props.context.multiplayer.getMode() === MultiplayerMode.AS_GUEST) {
           props.context.nav.goToMenu();
@@ -151,8 +154,8 @@ import { KnownLocations } from '../src/integrations/main_backend/constants';
 
     onMount(async () => {
       // If there is a colonyCode present, that means that we're currently trying to go and join someone else's colony
-      if (colonyInfo.res?.colonyCode) {
-        const err = await initializeMultiplayerSession(colonyInfo.res.colonyCode);
+      if (bundleSwapColonyInfo.res?.colonyCode) {
+        const err = await initializeMultiplayerSession(bundleSwapColonyInfo.res.colonyCode);
         if (err) {
           setPageContent(onColonyInfoLoadError([JSON.stringify(err)]) as StrictJSX);
         }
@@ -185,12 +188,15 @@ import { KnownLocations } from '../src/integrations/main_backend/constants';
       });
 
       const serverClosingSubId = props.context.events.subscribe(SERVER_CLOSING_EVENT, (ev) => {
-        //Shunt if guest
+        if (props.context.multiplayer.getMode() === MultiplayerMode.AS_OWNER) return;
+
+        setNotificationReason("NOTIFICATION.MULTIPLAYER.SERVER_CLOSING");
       });
 
       const lobbyClosingSubId = props.context.events.subscribe(LOBBY_CLOSING_EVENT, (ev) => {
-        log.info('lobby closing');
-        //Shunt if guest
+        if (props.context.multiplayer.getMode() === MultiplayerMode.AS_OWNER) return;
+        
+        setNotificationReason("NOTIFICATION.MULTIPLAYER.LOBBY_CLOSING");
       });
 
       const diffConfirmedSubId = props.context.events.subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, data => {
@@ -232,11 +238,26 @@ import { KnownLocations } from '../src/integrations/main_backend/constants';
       )
     }
 
+    const appendFullScreenNotification = () => {
+      const reason = notaficationReason();
+      if (reason === null) return null;
+
+      return (
+        <FullScreenNotification
+          text={props.context.text}
+          reason={reason}
+          durationMS={5000}
+          onClose={() => setNotificationReason(null)}
+        />
+      )
+    }
+
     return (
       <div id="colony-app">
         <StarryBackground />
         {pageContent()}
         {appendOverlay()}
+        {appendFullScreenNotification()}
         <EventFeed
           events={props.context.events}
           backend={props.context.backend}
