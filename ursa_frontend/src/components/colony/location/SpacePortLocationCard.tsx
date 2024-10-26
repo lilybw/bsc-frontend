@@ -92,7 +92,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
                     />
                     {props.multiplayer.getMode() === MultiplayerMode.AS_OWNER && 
                     <BufferBasedButton
-                        name={props.text.get("COLONY.UI_BUTTON.CLOSE").get()}
+                        name={props.text.get("LOCATION.SPACE_PORT.CLOSE_COLONY").get()}
                         buffer={props.buffer}
                         register={props.register}
                         onActivation={() => closeColony()}
