@@ -221,6 +221,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         client={client}
                         transformMap={transformMap}
                         backend={props.backend}
+                        showNamePlate={true}
                     />
                 }</For>
             </div>
@@ -245,6 +246,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 transformMap={new Map()}
                 backend={props.backend}
                 styleOverwrite={localPlayerStyle}
+                isLocalPlayer={true}
             />
         </div>
     );

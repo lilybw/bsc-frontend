@@ -95,6 +95,7 @@ import { KnownLocations } from '../src/integrations/main_backend/constants';
               onActivation={() => props.context.nav.goToMenu()}
               register={bufferSubscribers.add}
               styleOverwrite='position: absolute; top: 13vh; left: 2vw;'
+              charBaseStyleOverwrite='font-size: 1.5rem;'
             />
             <MNTAwait funcs={[
                 () => props.context.backend.colony.get(colonyInfo.owner, colonyInfo.id),
@@ -250,7 +251,7 @@ import { KnownLocations } from '../src/integrations/main_backend/constants';
   const colonyTitleStyle = css`
     position: absolute;
     z-index: 100000;
-    font-size: 5rem;
+    font-size: 3.5rem;
     top: 0;
     left: 0;
   `;

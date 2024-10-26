@@ -9,6 +9,8 @@ import { IBackendBased, IStyleOverwritable } from "../../ts/types";
 interface PlayerProps extends IStyleOverwritable, IBackendBased{
     client: ClientDTO;
     transformMap: Map<uint32, WrappedSignal<TransformDTO>>;
+    showNamePlate?: boolean;
+    isLocalPlayer?: boolean;
 }
 
 const UNIT_TRANSFORM: TransformDTO = { xOffset: 0, yOffset: 0, zIndex: 0, xScale: 0, yScale: 1 };
@@ -27,37 +29,56 @@ const Player: Component<PlayerProps> = (props) => {
 
     const computedContainerStyles = createMemo(() => css`
         ${playerContainer}
+        ${props.isLocalPlayer ? localPlayerStyleOverwrite : ''}
         ${Styles.transformToCSSVariables(currentTransform())}
         ${Styles.TRANSFORM_APPLICATOR}
         ${props.styleOverwrite}
     `);
 
+    const appendNamePlate = () => {
+        if (props.showNamePlate) {
+            return (
+                <div class={namePlateStyle}>{props.client.IGN}</div>
+            )
+        }
+    }
+
     return (
         <div class={computedContainerStyles()} id={"player-"+props.client.IGN}>
-            <div class={namePlateStyle}>{props.client.IGN}</div>
+            {appendNamePlate()}
         </div>
     )
 
 }
 export default Player;
 
+const localPlayerStyleOverwrite = css`
+    background-color: green;
+`
+
 const namePlateStyle = css`
-    z-index: 201;
     position: absolute;
+    display: flex;
+
+    z-index: 201;
     bottom: -7vh;
     left: 50%;
     height: 5vh;
+    width: fit-content;
     transform: translateX(-50%);
+    padding: .1rem;
+    
     color: white;
-    font-size: 10px;
+    font-size: 1.5rem;
     text-align: center;
     text-shadow: 0 0 5px black;
+    ${Styles.GLASS.FAINT_BACKGROUND}
 `
 
 const playerContainer = css`
     z-index: 200;
-    width: 100px;
-    height: 100px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background-color: blue;
     box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.5);

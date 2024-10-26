@@ -168,6 +168,7 @@ const namePlateStyle = css`
     position: absolute;
     left: 0;
     top: 0;
+    ${Styles.GLASS.FAINT_BACKGROUND}
 `
 const namePlateTextOverwrite = css`
     color: cyan;

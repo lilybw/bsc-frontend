@@ -1,7 +1,8 @@
-import { Accessor, Component, createMemo, For } from "solid-js";
+import { Accessor, Component, createEffect, createMemo, createSignal, For } from "solid-js";
 import { IBufferBased, IStyleOverwritable } from "../ts/types";
 import { css } from "@emotion/css";
 import SectionTitle from "./SectionTitle";
+import { Styles } from "../sharedCSS";
 
 export interface BufferHighlightedNameProps extends IStyleOverwritable, IBufferBased {
     name: Accessor<string> | string;
@@ -11,6 +12,7 @@ export interface BufferHighlightedNameProps extends IStyleOverwritable, IBufferB
 }
 
 const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => {
+    const [hasBeenMissed, setHasBeenMissed] = createSignal(false);
 
     const computedCharBaseStyle = createMemo(() => 
         css`${singleCharStyle} ${props.charBaseStyleOverwrite}`
@@ -22,7 +24,19 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
         css`${computedCharHighlightStyle()} ${nameCompleteStyle} ${props.nameCompleteOverwrite}`
     );
 
+    createEffect(() => {
+        const currentName = typeof props.name === 'function' ? props.name() : props.name;
+        if (currentName.includes(props.buffer())) {
+            setHasBeenMissed(false);
+        } else {
+            setHasBeenMissed(true);
+        }
+    })
+
     const getCharStyle = (index: Accessor<number>, charInName: string) => {
+        if (hasBeenMissed()) {
+            return computedCharBaseStyle();
+        }
         if (props.buffer() === props.name) {
             return computedNameCompleteStyle();
         }
@@ -42,13 +56,9 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
 
     return (
         <div class={css`${locationNameContainerStyle} ${props.styleOverwrite}`} id={"buffer-highlighted-name-"+props.name}>
-            <For each={splitString(props.name)}>{(char, index) => 
-                { 
-                    return (
-                        <SectionTitle styleOverwrite={getCharStyle(index, char)}>{char}</SectionTitle>
-                    )
-                }
-            }</For>
+            <For each={splitString(props.name)}>{(char, index) => (
+                <SectionTitle styleOverwrite={getCharStyle(index, char)}>{char}</SectionTitle>
+            )}</For>
         </div>
     );
 }
@@ -74,10 +84,10 @@ text-decoration: underline;
 const nameCompleteStyle = css`
 color: green;
 text-shadow: 0 0 .4rem black;
-
 `
 
 const locationNameContainerStyle = css`
 display:flex;
 flex-direction: row;
+border-radius: 10px;
 `
