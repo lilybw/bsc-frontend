@@ -3,7 +3,7 @@ import { ColonyInfoResponseDTO, ColonyLocationInformation, ColonyPathGraphRespon
 import { css } from "@emotion/css";
 import { IBackendBased, IInternationalized, IBufferBased } from "../../ts/types";
 import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventMultiplexer";
-import { PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from "../../integrations/multiplayer_backend/EventSpecifications";
+import { OriginType, PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from "../../integrations/multiplayer_backend/EventSpecifications";
 import Location from "../colony/location/Location";
 import { Camera } from "../../ts/camera";
 import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
@@ -15,7 +15,8 @@ import { BufferSubscriber, TypeIconTuple } from "../../ts/actionContext";
 import { ArrayStore, createArrayStore } from "../../ts/arrayStore";
 import ActionInput from "./MainActionInput";
 import { Styles } from "../../sharedCSS";
-import { ApplicationContext } from "../../meta/types";
+import { ApplicationContext, MultiplayerMode } from "../../meta/types";
+import Player from "./Player";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -25,8 +26,8 @@ interface PathGraphProps extends IBackendBased, IInternationalized {
     ownerID: PlayerID;
     plexer: IEventMultiplexer;
     localPlayerId: PlayerID;
-    multiplayerIntegration: IMultiplayerIntegration;
-    existingClients: ArrayStore<ClientDTO>;
+    multiplayer: IMultiplayerIntegration;
+    clients: ArrayStore<ClientDTO>;
     bufferSubscribers: ArrayStore<BufferSubscriber<string>>;
     buffer: WrappedSignal<string>;
     actionContext: WrappedSignal<TypeIconTuple>;
@@ -133,7 +134,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             );
         } else {
             log.trace(`Updating location of player ${data.playerID} to ${data.colonyLocationID}`);
-            props.existingClients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
+            props.clients.mutateByPredicate((client) => client.id === data.playerID, (client) => {
                 //locationID is id of Colony Location
                 return {...client, state: {...client.state, lastKnownPosition: data.colonyLocationID}};
             });
@@ -164,16 +165,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             left: ${cameraState.x}px;
         `}
     ); 
-
-    const computedNonLocalPlayerStyle = (client: ClientDTO) => createMemo(() => {
-        const transform = transformMap.get(client.state.lastKnownPosition)!.get()
-        return css`
-            ${localPlayerStyle}
-            background-color: green;
-            ${Styles.transformToCSSVariables(transform)}
-            ${Styles.TRANSFORM_APPLICATOR}
-        `
-    })
 
     return (
         <div class={pathGraphContainerStyle} id={props.colony.name+"-path-graph"}>
@@ -206,7 +197,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         >
                             {(locationInfo) => (
                                 <Location
-                                    multiplayer={props.multiplayerIntegration}
+                                    multiplayer={props.multiplayer}
                                     colony={props.colony}
                                     colonyLocation={colonyLocation}
                                     location={locationInfo}
@@ -225,8 +216,12 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 </For>
 
                 
-                <For each={props.existingClients.get}>{ client => 
-                    <div class={computedNonLocalPlayerStyle(client)()} />
+                <For each={props.clients.get}>{client => 
+                    <Player 
+                        client={client}
+                        transformMap={transformMap}
+                        backend={props.backend}
+                    />
                 }</For>
             </div>
 
@@ -237,21 +232,29 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 setInputBuffer={props.buffer.set}
                 inputBuffer={props.buffer.get}
             />
-            <div id="local-player" class={localPlayerStyle}/>
+            <Player 
+                client={{
+                    id: props.localPlayerId, 
+                    type: props.multiplayer.getMode() === MultiplayerMode.AS_GUEST ? OriginType.Guest : OriginType.Owner,
+                    IGN: props.backend.player.local.firstName, 
+                    state: {
+                        lastKnownPosition: currentLocationOfLocalPlayer(), 
+                        msOfLastMessage: 0
+                    }
+                }}
+                transformMap={new Map()}
+                backend={props.backend}
+                styleOverwrite={localPlayerStyle}
+            />
         </div>
     );
 };
 export default PathGraph;
 
 const localPlayerStyle = css`
-position: absolute;
 z-index: 200;
 top: 50%;
 left: 50%;
-width: 20px;
-height: 20px;
-background-color: blue;
-border-radius: 50%;
 transform: translate(-50%, -50%);
 `
 

@@ -109,14 +109,14 @@ import { KnownLocations } from '../src/integrations/main_backend/constants';
                       graph={graph}
                       bufferSubscribers={bufferSubscribers}
                       actionContext={actionContext}
-                      existingClients={clients}
+                      clients={clients}
                       colony={colony}
                       plexer={props.context.events}
                       text={props.context.text}
                       backend={props.context.backend}
                       buffer={inputBuffer}
                       localPlayerId={playerInfo.id}
-                      multiplayerIntegration={props.context.multiplayer}
+                      multiplayer={props.context.multiplayer}
                     />
                 )}
               }

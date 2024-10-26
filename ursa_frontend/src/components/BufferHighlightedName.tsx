@@ -42,9 +42,13 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
 
     return (
         <div class={css`${locationNameContainerStyle} ${props.styleOverwrite}`} id={"buffer-highlighted-name-"+props.name}>
-            <For each={splitString(props.name)}>{(char, index) => (
-                <SectionTitle styleOverwrite={getCharStyle(index, char)}>{char}</SectionTitle>
-            )}</For>
+            <For each={splitString(props.name)}>{(char, index) => 
+                { 
+                    return (
+                        <SectionTitle styleOverwrite={getCharStyle(index, char)}>{char}</SectionTitle>
+                    )
+                }
+            }</For>
         </div>
     );
 }

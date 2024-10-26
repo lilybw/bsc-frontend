@@ -123,7 +123,7 @@ const Location: Component<LocationProps> = (props) => {
     const computedButtonTransform = createMemo<TransformDTO>(() => {
         return {
             ...props.transform.get(),
-            zIndex: props.transform.get().zIndex + 10, // Keep zIndex as is for layering
+            zIndex: props.transform.get().zIndex + 10, // adjust zIndex to be on top of other graphical assets
         }
     });
     const computedNamePlateStyle = createMemo(() => {
