@@ -400,6 +400,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         <For each={players.get}>
           {(player) => (
             <div
+              id={`player-${player.id}`}
               class={playerStyle}
               ref={(el) => {
                 if (el) {
@@ -412,9 +413,9 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
               }}
               style={{
                 position: 'absolute',
-                left: '50%',  // Start at center
-                bottom: 0,    // Stick to bottom
-                transform: 'translateX(-50%)'  // Center horizontally
+                left: '50%',
+                bottom: 0,
+                transform: 'translateX(-50%)'
               }}
             >
               {/* Button Container */}
@@ -428,7 +429,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 />
               </div>
 
-              {/* Player Character Container */}
+              {/* Player Character Container - Now set to fit content */}
               <div class={playerCharacterStyle}>
                 <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
                   {(asset) => (

@@ -112,25 +112,6 @@ export const impactCircleStyle = css`
   animation: lazerFlicker 0.2s infinite alternate, lazerFade 1s forwards;
 `;
 
-export const playerStyle = css`
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  width: 20rem;
-  height: 20rem;
-  transform-origin: bottom center;
-`;
-
-export const playerCharacterStyle = css`
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
-`;
-
 export const buttonContainerStyle = css`
   position: absolute;
   bottom: 100%;
@@ -188,4 +169,43 @@ export const disabledStyle = css`
     0% { opacity: 0.5; transform: scale(0.98); }
     100% { opacity: 0.8; transform: scale(1.02); }
   }
+`;
+
+export const playerStyle = css`
+   position: absolute;
+   display: flex;
+   flex-direction: column;
+   justify-content: flex-end;
+   align-items: center;
+   /* Remove fixed width/height to allow content-based sizing */
+   width: auto;
+   min-width: fit-content;
+   transform-origin: bottom center;
+`;
+
+export const playerIdStyle = css`
+   position: absolute;
+   top: -2rem;
+   left: 50%;
+   transform: translateX(-50%);
+   color: white;
+   font-size: 1rem;
+   font-weight: bold;
+   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+   white-space: nowrap;
+`;
+
+export const playerCharacterStyle = css`
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   position: relative;
+   width: auto;
+   height: auto;
+   
+   img {
+     width: auto;
+     height: auto;
+     max-height: 10rem; /* Adjust this value based on your needs */
+   }
 `;
