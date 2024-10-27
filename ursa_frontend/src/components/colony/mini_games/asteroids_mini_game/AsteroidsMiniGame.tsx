@@ -40,6 +40,8 @@ import StarryBackground from "../../../StarryBackground";
  * Main Asteroids minigame component
  */
 const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props) => {
+  const internalOrigin = "ASTEROIDS_MINIGAME_INTERNAL_ORIGIN"
+
   // State Management
   const asteroids = createArrayStore<Asteroid>();
   const players = createArrayStore<Player>();
@@ -70,8 +72,16 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
           id: props.context.backend.player.local.id,
           code: charCode,
         },
-        "ASTEROIDS_MINIGAME_INTERNAL_ORIGIN"
+        internalOrigin
       );
+
+      // Handle the shot locally since our subscription will filter it out
+      handlePlayerShootAtCodeEvent({
+        id: props.context.backend.player.local.id,
+        code: charCode,
+        senderID: props.context.backend.player.local.id,
+        eventID: ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT.id
+      });
     }
   };
 
@@ -79,47 +89,85 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
    * Processes a player's shot
    */
   const handlePlayerShootAtCodeEvent = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
+    console.log('Shot event received:', data);
+
     const shooter = players.findFirst((p) => p.id === data.id);
-    if (!shooter) return;
+    if (!shooter) {
+      console.error('No shooter found for ID:', data.id);
+      return;
+    }
 
     let hitSomething = false;
+    const shooterPos = shooter.getPosition();
+    console.log('Shooter position:', shooterPos);
 
     // Handle asteroid hits
     const hitAsteroids = asteroids.findAll((a) => a.charCode === data.code);
+    const hitPlayers = players.findAll((p) => p.charCode === data.code);
+    console.log('Checking asteroids with code:', data.code, 'Found:', hitAsteroids.length);
+    console.log('Checking players with code:', data.code, 'Found:', hitPlayers.length);
+
     if (hitAsteroids.length) {
       hitSomething = true;
       hitAsteroids.forEach((asteroid) => {
+        console.log('Processing hit on asteroid:', asteroid.id);
         const targetPos = getTargetCenterPosition(asteroid.id, elementRefs);
+        console.log('Target position for asteroid:', targetPos);
+
         if (targetPos) {
-          createLazerBeam(shooter.getPosition(), targetPos);
-          setTimeout(() => handleAsteroidDestruction(asteroid.id, elementRefs, asteroidsRemoveFuncs), 100);
+          console.log('Creating beam for asteroid hit:', {
+            from: shooterPos,
+            to: targetPos,
+            asteroidId: asteroid.id
+          });
+
+          createLazerBeam(shooterPos, targetPos);
+
+          console.log('Destroying asteroid:', asteroid.id);
+          handleAsteroidDestruction(asteroid.id, elementRefs, asteroidsRemoveFuncs);
+        } else {
+          console.error('No target position found for asteroid:', asteroid.id);
         }
       });
     }
 
-    // Handle player hits
-    const hitPlayers = players.findAll((p) => p.code === data.code && p.id !== data.id);
     if (hitPlayers.length) {
       hitSomething = true;
-      hitPlayers.forEach((targetPlayer) => {
-        const targetPos = getTargetCenterPosition(targetPlayer.id, elementRefs);
+      hitPlayers.forEach((player) => {
+        console.log('Processing hit on player:', player.id);
+        const targetPos = getTargetCenterPosition(player.id, elementRefs);
+        console.log('Target position for player:', targetPos);
+
         if (targetPos) {
-          createLazerBeam(shooter.getPosition(), targetPos);
-          targetPlayer.disable();
-          shooter.stun();
+          console.log('Creating beam for player hit:', {
+            from: shooterPos,
+            to: targetPos,
+            asteroidId: player.id
+          });
+
+          createLazerBeam(shooterPos, targetPos);
+
+          player.stun()
+          shooter.disable()
+        } else {
+          console.error('No target position found for player:', player.id);
         }
       });
     }
 
     // Handle misses
     if (!hitSomething) {
+      console.log('Shot missed, creating miss effect');
       const missAngle = Math.random() * Math.PI * 2;
       const missDistance = 0.5;
-      const shooterPos = shooter.getPosition();
       const missPos = {
         x: shooterPos.x + Math.cos(missAngle) * missDistance,
         y: shooterPos.y + Math.sin(missAngle) * missDistance
       };
+      console.log('Miss beam coordinates:', {
+        from: shooterPos,
+        to: missPos
+      });
       createLazerBeam(shooterPos, missPos);
     }
   };
@@ -128,26 +176,39 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
    * Creates a new laser beam
    */
   const createLazerBeam = (start: Position, end: Position) => {
-    const id = lazerBeamCounter++;
-
-    const beam = new LazerBeam({
-      id,
-      startPosition: { x: start.x, y: start.y },
-      endPosition: { x: end.x, y: end.y },
-      duration: 1000,
-      fadeSpeed: 0.1
+    console.log('Creating lazer beam:', {
+      id: lazerBeamCounter,
+      start,
+      end
     });
 
-    const removeFunc = lazerBeams.add(beam);
-    lazerBeamRemoveFuncs.set(id, removeFunc);
-
-    setTimeout(() => {
-      const remove = lazerBeamRemoveFuncs.get(id);
-      if (remove) {
-        remove();
-        lazerBeamRemoveFuncs.delete(id);
+    const id = lazerBeamCounter++;
+    const beam = new LazerBeam({
+      id,
+      startPosition: start,
+      endPosition: end,
+      duration: 1000,
+      fadeSpeed: 0.1,
+      onComplete: () => {
+        console.log('Lazer beam complete:', id);
+        const remove = lazerBeamRemoveFuncs.get(id);
+        if (remove) {
+          console.log('Removing lazer beam:', id);
+          remove();
+          lazerBeamRemoveFuncs.delete(id);
+        }
       }
-    }, beam.duration);
+    });
+
+    try {
+      console.log('Initializing beam:', id);
+      beam.initialize();
+      const removeFunc = lazerBeams.add(beam);
+      lazerBeamRemoveFuncs.set(id, removeFunc);
+      console.log('Beam creation complete:', id);
+    } catch (error) {
+      console.error('Error creating beam:', error);
+    }
   };
 
   // Component Lifecycle and Event Subscriptions
@@ -193,7 +254,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
           const removeFunc = asteroids.add(asteroid);
           asteroidsRemoveFuncs.set(data.id, removeFunc);
         },
-        { internalOrigin: "ASTEROIDS_MINIGAME_INTERNAL_ORIGIN" }
+        { internalOrigin }
       )
     );
 
@@ -204,7 +265,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
           setHealth(data.colonyHPLeft);
           handleAsteroidDestruction(data.id, elementRefs, asteroidsRemoveFuncs);
         },
-        { internalOrigin: "ASTEROIDS_MINIGAME_INTERNAL_ORIGIN" }
+        { internalOrigin }
       )
     );
 
@@ -236,13 +297,13 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
             }
           );
         },
-        { internalOrigin: "ASTEROIDS_MINIGAME_INTERNAL_ORIGIN" }
+        { internalOrigin }
       )
     );
 
     const playerShootSubID = props.context.events.subscribe(
       ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
-      Object.assign(handlePlayerShootAtCodeEvent, { internalOrigin: "ASTEROIDS_MINIGAME_INTERNAL_ORIGIN" })
+      Object.assign(handlePlayerShootAtCodeEvent, { internalOrigin })
     );
 
     // Ready event
@@ -252,7 +313,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         id: props.context.backend.player.local.id,
         ign: props.context.backend.player.local.firstName,
       },
-      "ASTEROIDS_MINIGAME_INTERNAL_ORIGIN"
+      internalOrigin
     );
 
     // Cleanup

@@ -75,6 +75,7 @@ export class LazerBeam extends BaseEntity {
      * Initializes the laser beam elements
      */
     initialize(): void {
+        console.log('LazerBeam initializing:', this.id);
         // Create main beam element
         const beamElement = document.createElement('div');
         beamElement.classList.add('lazer-beam');
@@ -85,8 +86,20 @@ export class LazerBeam extends BaseEntity {
         this.impactElement.classList.add('impact-circle');
 
         // Add elements to DOM
-        document.body.appendChild(beamElement);
-        document.body.appendChild(this.impactElement);
+        const gameContainer = document.querySelector('.game-container');  // Add this
+        if (!gameContainer) {
+            console.error('Game container not found');
+            return;
+        }
+
+        // Append to game container instead of body
+        gameContainer.appendChild(beamElement);
+        gameContainer.appendChild(this.impactElement);
+
+        console.log('LazerBeam elements created:', {
+            beam: beamElement,
+            impact: this.impactElement
+        });
 
         // Start animation
         this.updateBeam();
@@ -97,11 +110,20 @@ export class LazerBeam extends BaseEntity {
      * Updates the beam's visual properties
      */
     private updateBeam(): void {
-        if (!this.element || !this.impactElement) return;
+        if (!this.element || !this.impactElement) {
+            console.error('LazerBeam elements missing:', this.id);
+            return;
+        }
 
         // Convert positions to pixel coordinates
         const startPx = this.getPixelPosition(this.startPosition);
         const endPx = this.getPixelPosition(this.endPosition);
+
+        console.log('Updating beam position:', {
+            id: this.id,
+            start: startPx,
+            end: endPx
+        });
 
         // Calculate beam length and angle
         const dx = endPx.x - startPx.x;
