@@ -14,6 +14,9 @@ import {
   calculatePlayerPositions,
   getRandomRotationSpeed,
   getTargetCenterPosition,
+  getPlayerRefKey,
+  getAsteroidRefKey,
+  getEntityRefKey
 } from "./utils/GameUtils";
 import {
   ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT,
@@ -58,7 +61,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   const lazerBeams = createArrayStore<LazerBeam>();
   const lazerBeamRemoveFuncs = new Map<number, () => void>();
   let lazerBeamCounter = 0;
-  const elementRefs = new Map<number, EntityRef>();
+  const elementRefs = new Map<string, EntityRef>();
   const [windowSize, setWindowSize] = createSignal({ width: window.innerWidth, height: window.innerHeight });
 
   /**
@@ -97,9 +100,21 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       return;
     }
 
-    let hitSomething = false;
-    const shooterPos = shooter.getPosition();
+    const playerRefKey = getPlayerRefKey(shooter.id);
+    const shooterRef = elementRefs.get(playerRefKey);
+    if (!shooterRef || shooterRef.type !== 'player') {
+      console.error('Invalid shooter reference:', shooterRef);
+      return;
+    }
+
+    const shooterPos = getTargetCenterPosition(playerRefKey, elementRefs);
+    if (!shooterPos) {
+      console.error('Could not get shooter position for ID:', shooter.id);
+      return;
+    }
     console.log('Shooter position:', shooterPos);
+
+    let hitSomething = false;
 
     // Handle asteroid hits
     const hitAsteroids = asteroids.findAll((a) => a.charCode === data.code);
@@ -111,7 +126,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       hitSomething = true;
       hitAsteroids.forEach((asteroid) => {
         console.log('Processing hit on asteroid:', asteroid.id);
-        const targetPos = getTargetCenterPosition(asteroid.id, elementRefs);
+        const asteroidRefKey = getAsteroidRefKey(asteroid.id);
+        const targetPos = getTargetCenterPosition(asteroidRefKey, elementRefs);
         console.log('Target position for asteroid:', targetPos);
 
         if (targetPos) {
@@ -135,20 +151,21 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       hitSomething = true;
       hitPlayers.forEach((player) => {
         console.log('Processing hit on player:', player.id);
-        const targetPos = getTargetCenterPosition(player.id, elementRefs);
+        const targetRefKey = getPlayerRefKey(player.id);
+        const targetPos = getTargetCenterPosition(targetRefKey, elementRefs);
         console.log('Target position for player:', targetPos);
 
         if (targetPos) {
           console.log('Creating beam for player hit:', {
             from: shooterPos,
             to: targetPos,
-            asteroidId: player.id
+            playerId: player.id
           });
 
           createLazerBeam(shooterPos, targetPos);
 
-          player.stun()
-          shooter.disable()
+          player.stun();
+          shooter.disable();
         } else {
           console.error('No target position found for player:', player.id);
         }
@@ -327,7 +344,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
               ref={(el) => {
                 if (el) {
                   console.log('Setting element ref for asteroid:', asteroid.id);
-                  elementRefs.set(asteroid.id, {
+                  elementRefs.set(getEntityRefKey.asteroid(asteroid.id), {
                     type: 'asteroid',
                     element: el
                   });
@@ -397,6 +414,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
           )}
         </For>
 
+        {/* Player Rendering */}
         <For each={players.get}>
           {(player) => (
             <div
@@ -405,7 +423,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
               ref={(el) => {
                 if (el) {
                   console.log('Setting element ref for player:', player.id);
-                  elementRefs.set(player.id, {
+                  elementRefs.set(getEntityRefKey.player(player.id), {
                     type: 'player',
                     element: el
                   });
@@ -429,7 +447,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 />
               </div>
 
-              {/* Player Character Container - Now set to fit content */}
+              {/* Player Character Container */}
               <div class={playerCharacterStyle}>
                 <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
                   {(asset) => (
@@ -455,7 +473,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       </div>
     </div>
   );
-};
+}
 
 export default AsteroidsMiniGame;
 

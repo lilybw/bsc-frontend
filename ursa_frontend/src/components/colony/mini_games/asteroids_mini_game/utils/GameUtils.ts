@@ -12,10 +12,11 @@ const WALL_IMPACT_END = 0.67;
  */
 export const handleAsteroidDestruction = (
     asteroidID: number,
-    elementRefs: Map<number, EntityRef>,
+    elementRefs: Map<string, EntityRef>,
     asteroidsRemoveFuncs: Map<number, () => void>
 ): void => {
-    elementRefs.delete(asteroidID);
+    const asteroidKey = getAsteroidRefKey(asteroidID);
+    elementRefs.delete(asteroidKey);
     const removeFunc = asteroidsRemoveFuncs.get(asteroidID);
     if (removeFunc) {
         removeFunc();
@@ -159,21 +160,61 @@ export const getAnimatedPosition = (
  * Gets the center position of an entity
  */
 export const getTargetCenterPosition = (
-    entityId: number,
-    elementRefs: Map<number, EntityRef>
+    entityKey: string,
+    elementRefs: Map<string, EntityRef>
 ): Position | null => {
-    const entityRef = elementRefs.get(entityId);
-    if (!entityRef) return null;
+    const entityRef = elementRefs.get(entityKey);
+    if (!entityRef) {
+        console.log(`No entity ref found for ID: ${entityKey}`);
+        return null;
+    }
 
     const element = entityRef.element;
-    const imageElement = element.querySelector('img');
-    if (!imageElement) return null;
+    if (!element) {
+        console.log(`No element found for entity ${entityKey}`);
+        return null;
+    }
 
-    const imageRect = imageElement.getBoundingClientRect();
-    return {
-        x: (imageRect.left + imageRect.width / 2) / window.innerWidth,
-        y: (imageRect.top + imageRect.height / 2) / window.innerHeight
-    };
+    if (entityRef.type === 'player') {
+        console.log('Player element structure:', {
+            element: element.outerHTML,
+            characterContainer: element.querySelector('[class*="playerCharacterStyle"]')?.outerHTML,
+            imageElement: element.querySelector('[class*="playerCharacterStyle"] img')?.outerHTML
+        });
+
+        // Try multiple selectors to find the image
+        const imageElement =
+            element.querySelector('[class*="playerCharacterStyle"] img') ||
+            element.querySelector('img') ||
+            element.getElementsByTagName('img')[0];
+
+        if (!imageElement) {
+            console.log(`No image found in player ${entityKey}'s DOM structure`);
+            return null;
+        }
+
+        const imageRect = imageElement.getBoundingClientRect();
+        const position = {
+            x: (imageRect.left + imageRect.width / 2) / window.innerWidth,
+            y: (imageRect.top + imageRect.height / 2) / window.innerHeight
+        };
+
+        console.log(`Found player ${entityKey} image position:`, position, 'from rect:', imageRect);
+        return position;
+    } else {
+        // For asteroids, keep existing behavior
+        const imageElement = element.querySelector('img');
+        if (!imageElement) {
+            console.log(`No image found for asteroid ${entityKey}`);
+            return null;
+        }
+
+        const imageRect = imageElement.getBoundingClientRect();
+        return {
+            x: (imageRect.left + imageRect.width / 2) / window.innerWidth,
+            y: (imageRect.top + imageRect.height / 2) / window.innerHeight
+        };
+    }
 };
 
 /**
@@ -184,6 +225,17 @@ export const getPixelPosition = (position: Position): Position => ({
     y: position.y * window.innerHeight
 });
 
+/**
+ * Helper functions for element references
+ */
+export const getPlayerRefKey = (playerId: number) => `player_${playerId}`;
+export const getAsteroidRefKey = (asteroidId: number) => `asteroid_${asteroidId}`;
+
+export const getEntityRefKey = {
+    player: (id: number) => `player_${id}`,
+    asteroid: (id: number) => `asteroid_${id}`
+};
+
 export default {
     handleAsteroidDestruction,
     generateImpactPosition,
@@ -193,5 +245,8 @@ export default {
     getRandomRotationSpeed,
     getAnimatedPosition,
     getTargetCenterPosition,
-    getPixelPosition
+    getPixelPosition,
+    getPlayerRefKey,
+    getAsteroidRefKey,
+    getEntityRefKey
 };
