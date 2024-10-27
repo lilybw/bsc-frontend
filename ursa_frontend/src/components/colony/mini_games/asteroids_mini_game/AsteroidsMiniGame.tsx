@@ -374,28 +374,39 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
 
         {/* Laser Beams Rendering */}
         <For each={lazerBeams.get}>
-          {(beam) => (
-            <>
-              <div
-                class={lazerBeamStyle}
-                style={{
-                  left: `${beam.startX}px`,
-                  top: `${beam.startY}px`,
-                  width: `${Math.hypot(beam.endX - beam.startX, beam.endY - beam.startY)}px`,
-                  transform: `rotate(${Math.atan2(beam.endY - beam.startY, beam.endX - beam.startX)}rad)`,
-                  opacity: beam.opacity,
-                }}
-              />
-              <div
-                class={impactCircleStyle}
-                style={{
-                  left: `${beam.endX}px`,
-                  top: `${beam.endY}px`,
-                  opacity: beam.opacity,
-                }}
-              />
-            </>
-          )}
+          {(beam) => {
+            const targetPosition = beam.getPixelPosition(beam.getEndPosition()); // Get target in pixel coordinates
+            const startPosition = beam.getPixelPosition(beam.getStartPosition()); // Get start position in pixel coordinates
+
+            return (
+              <>
+                <div
+                  class={lazerBeamStyle}
+                  style={{
+                    left: `${startPosition.x}px`,
+                    top: `${startPosition.y}px`,
+                    width: `${Math.hypot(
+                      targetPosition.x - startPosition.x,
+                      targetPosition.y - startPosition.y
+                    )}px`,
+                    transform: `rotate(${Math.atan2(
+                      targetPosition.y - startPosition.y,
+                      targetPosition.x - startPosition.x
+                    )}rad)`,
+                    opacity: beam.opacity,
+                  }}
+                />
+                <div
+                  class={impactCircleStyle}
+                  style={{
+                    left: `${targetPosition.x}px`,
+                    top: `${targetPosition.y}px`,
+                    opacity: beam.opacity,
+                  }}
+                />
+              </>
+            );
+          }}
         </For>
 
         {/* Player Rendering */}

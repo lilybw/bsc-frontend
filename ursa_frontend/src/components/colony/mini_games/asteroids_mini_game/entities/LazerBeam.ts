@@ -38,7 +38,15 @@ export class LazerBeam extends BaseEntity {
         setTimeout(() => this.startFadeOut(), this._duration);
     }
 
-    // Position getters
+    // Public getters for accessing startPosition and endPosition
+    public getStartPosition(): Position {
+        return this.startPosition;
+    }
+
+    public getEndPosition(): Position {
+        return this.endPosition;
+    }
+
     get startX(): number {
         return this.startPosition.x;
     }
@@ -55,7 +63,6 @@ export class LazerBeam extends BaseEntity {
         return this.endPosition.y;
     }
 
-    // Opacity getter and setter
     get opacity(): number {
         return this._opacity;
     }
@@ -87,7 +94,7 @@ export class LazerBeam extends BaseEntity {
     /**
      * Converts a percentage position to pixel coordinates
      */
-    private getPixelPosition(position: Position): Position {
+    public getPixelPosition(position: Position): { x: number; y: number } {
         return {
             x: position.x * window.innerWidth,
             y: position.y * window.innerHeight
