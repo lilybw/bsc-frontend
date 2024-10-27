@@ -176,18 +176,14 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
    * Creates a new laser beam
    */
   const createLazerBeam = (start: Position, end: Position) => {
-    console.log('Creating lazer beam:', {
-      id: lazerBeamCounter,
-      start,
-      end
-    });
+    console.log('Creating lazer beam:', { id: lazerBeamCounter, start, end });
 
     const id = lazerBeamCounter++;
     const beam = new LazerBeam({
       id,
       startPosition: start,
       endPosition: end,
-      duration: 1000,
+      duration: 1000, // Fades out over 1000 ms
       fadeSpeed: 0.1,
       onComplete: () => {
         console.log('Lazer beam complete:', id);
@@ -200,16 +196,12 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       }
     });
 
-    try {
-      console.log('Initializing beam:', id);
-      beam.initialize();
-      const removeFunc = lazerBeams.add(beam);
-      lazerBeamRemoveFuncs.set(id, removeFunc);
-      console.log('Beam creation complete:', id);
-    } catch (error) {
-      console.error('Error creating beam:', error);
-    }
+    // Directly add the beam to the ArrayStore, no need to initialize
+    const removeFunc = lazerBeams.add(beam);
+    lazerBeamRemoveFuncs.set(id, removeFunc);
+    console.log('Beam creation complete:', id);
   };
+
 
   // Component Lifecycle and Event Subscriptions
   onMount(() => {
@@ -218,17 +210,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     };
     window.addEventListener('resize', handleResize);
-
-    // Update laser beam effects
-    const updateLazerBeams = setInterval(() => {
-      lazerBeams.mutateByPredicate(
-        (beam) => beam.isActive(),
-        (beam) => {
-          beam.fade();
-          return beam;
-        }
-      );
-    }, 50);
 
     // Event Subscriptions
     const spawnSubID = props.context.events.subscribe(
@@ -319,7 +300,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     // Cleanup
     onCleanup(() => {
       props.context.events.unsubscribe(spawnSubID, asteroidImpactSubID, loadPlayerDataSubID, playerShootSubID);
-      clearInterval(updateLazerBeams);
       lazerBeamRemoveFuncs.forEach(removeFunc => removeFunc());
       lazerBeamRemoveFuncs.clear();
       elementRefs.clear();

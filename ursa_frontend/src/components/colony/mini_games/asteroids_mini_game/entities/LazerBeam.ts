@@ -23,9 +23,6 @@ export class LazerBeam extends BaseEntity {
     private _opacity: number;
     private fadeSpeed: number;
     private _duration: number;
-    private startTime: number;
-    private animationFrame: number | null;
-    private impactElement: HTMLDivElement | null;
     private onCompleteCallback?: () => void;
 
     constructor(props: LazerBeamProps) {
@@ -35,10 +32,10 @@ export class LazerBeam extends BaseEntity {
         this._opacity = 1;
         this.fadeSpeed = props.fadeSpeed || 0.1;
         this._duration = props.duration || 1000;
-        this.startTime = Date.now();
-        this.animationFrame = null;
-        this.impactElement = null;
         this.onCompleteCallback = props.onComplete;
+
+        // Start the fade-out after initialization
+        setTimeout(() => this.startFadeOut(), this._duration);
     }
 
     // Position getters
@@ -72,113 +69,19 @@ export class LazerBeam extends BaseEntity {
     }
 
     /**
-     * Initializes the laser beam elements
-     */
-    initialize(): void {
-        console.log('LazerBeam initializing:', this.id);
-        // Create main beam element
-        const beamElement = document.createElement('div');
-        beamElement.classList.add('lazer-beam');
-        this.setElement(beamElement);
-
-        // Create impact effect element
-        this.impactElement = document.createElement('div');
-        this.impactElement.classList.add('impact-circle');
-
-        // Add elements to DOM
-        const gameContainer = document.querySelector('.game-container');  // Add this
-        if (!gameContainer) {
-            console.error('Game container not found');
-            return;
-        }
-
-        // Append to game container instead of body
-        gameContainer.appendChild(beamElement);
-        gameContainer.appendChild(this.impactElement);
-
-        console.log('LazerBeam elements created:', {
-            beam: beamElement,
-            impact: this.impactElement
-        });
-
-        // Start animation
-        this.updateBeam();
-        this.startFadeOut();
-    }
-
-    /**
-     * Updates the beam's visual properties
-     */
-    private updateBeam(): void {
-        if (!this.element || !this.impactElement) {
-            console.error('LazerBeam elements missing:', this.id);
-            return;
-        }
-
-        // Convert positions to pixel coordinates
-        const startPx = this.getPixelPosition(this.startPosition);
-        const endPx = this.getPixelPosition(this.endPosition);
-
-        console.log('Updating beam position:', {
-            id: this.id,
-            start: startPx,
-            end: endPx
-        });
-
-        // Calculate beam length and angle
-        const dx = endPx.x - startPx.x;
-        const dy = endPx.y - startPx.y;
-        const length = Math.sqrt(dx * dx + dy * dy);
-        const angle = Math.atan2(dy, dx);
-
-        // Update beam element
-        this.element.style.left = `${startPx.x}px`;
-        this.element.style.top = `${startPx.y}px`;
-        this.element.style.width = `${length}px`;
-        this.element.style.transform = `rotate(${angle}rad)`;
-        this.element.style.opacity = this._opacity.toString();
-
-        // Update impact element
-        this.impactElement.style.left = `${endPx.x}px`;
-        this.impactElement.style.top = `${endPx.y}px`;
-        this.impactElement.style.opacity = this._opacity.toString();
-    }
-
-    /**
      * Starts the fade out animation
      */
     private startFadeOut(): void {
-        const animate = () => {
-            const elapsed = Date.now() - this.startTime;
-
-            if (elapsed >= this._duration) {
-                this.destroy();
-                return;
-            }
-
-            this._opacity = Math.max(0, 1 - (elapsed / this._duration));
-            this.updateBeam();
-
-            this.animationFrame = requestAnimationFrame(animate);
-        };
-
-        this.animationFrame = requestAnimationFrame(animate);
+        this._opacity = 0; // Set opacity to 0 instantly
+        this.onCompleteCallback?.();
+        this.cleanup();
     }
 
     /**
      * Checks if the beam is still active
      */
     public isActive(): boolean {
-        return this._opacity > 0 && (Date.now() - this.startTime) < this._duration;
-    }
-
-    /**
-     * Applies fade effect to the beam
-     */
-    public fade(): void {
-        const elapsed = Date.now() - this.startTime;
-        this._opacity = Math.max(0, 1 - (elapsed / this._duration));
-        this.updateBeam();
+        return this._opacity > 0;
     }
 
     /**
@@ -200,41 +103,14 @@ export class LazerBeam extends BaseEntity {
             endPosition: this.endPosition,
             opacity: this._opacity,
             duration: this._duration,
-            elapsed: Date.now() - this.startTime
+            elapsed: this._duration - (this._opacity / this.fadeSpeed) * 1000
         };
-    }
-
-    /**
-     * Updates the beam's end position (for tracking moving targets)
-     */
-    public updateEndPosition(x: number, y: number): void {
-        this.endPosition = { x, y };
-        this.updateBeam();
-    }
-
-    /**
-     * Handles window resize events
-     */
-    public handleResize(): void {
-        this.updateBeam();
     }
 
     /**
      * Destroys the laser beam
      */
     destroy(): void {
-        if (this.animationFrame !== null) {
-            cancelAnimationFrame(this.animationFrame);
-        }
-
-        if (this.element) {
-            this.element.remove();
-        }
-
-        if (this.impactElement) {
-            this.impactElement.remove();
-        }
-
         this.onCompleteCallback?.();
         this.cleanup();
     }
@@ -243,9 +119,6 @@ export class LazerBeam extends BaseEntity {
      * Cleans up resources
      */
     cleanup(): void {
-        this.element = null;
-        this.impactElement = null;
-        this.animationFrame = null;
         this.onCompleteCallback = undefined;
         super.cleanup();
     }
