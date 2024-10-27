@@ -261,7 +261,8 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
             element: null,
             stunDuration: props.settings.stunDurationS,
             friendlyFirePenalty: props.settings.friendlyFirePenaltyS,
-            penaltyMultiplier: props.settings.friendlyFirePenaltyMultiplier
+            penaltyMultiplier: props.settings.friendlyFirePenaltyMultiplier,
+            isLocal: data.id === props.context.backend.player.local.id
           });
 
           players.add(player);
@@ -396,7 +397,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
           )}
         </For>
 
-        {/* Player Rendering */}
         <For each={players.get}>
           {(player) => (
             <div
@@ -411,10 +411,10 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 }
               }}
               style={{
-                left: `${player.x * 100}%`,
-                bottom: '0',
-                transform: 'translateX(-50%)',
-                position: 'absolute'
+                position: 'absolute',
+                left: '50%',  // Start at center
+                bottom: 0,    // Stick to bottom
+                transform: 'translateX(-50%)'  // Center horizontally
               }}
             >
               {/* Button Container */}

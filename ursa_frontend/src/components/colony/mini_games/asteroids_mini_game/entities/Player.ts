@@ -13,6 +13,7 @@ export interface PlayerCreationOptions extends AsteroidsAssignPlayerDataMessageD
     stunDuration: number;
     friendlyFirePenalty: number;
     penaltyMultiplier: number;
+    isLocal?: boolean;  // Added isLocal as optional parameter
 }
 
 /**
@@ -24,6 +25,7 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
     public readonly charCode: string;
     public readonly code: string;
     public readonly firstName: string;
+    public readonly isLocal: boolean;  // Added isLocal property
 
     // Status effect properties
     private _isStunned: boolean = false;
@@ -43,15 +45,14 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         this.stunDuration = options.stunDuration;
         this.friendlyFirePenalty = options.friendlyFirePenalty;
         this.penaltyMultiplier = options.penaltyMultiplier;
+        this.isLocal = options.isLocal || false;  // Initialize isLocal with default false
 
         if (options.element) {
             this.setElement(options.element);
         }
     }
 
-    /**
-     * Gets the current player state
-     */
+    // Rest of the class remains the same
     get state(): PlayerState {
         return {
             isStunned: this._isStunned,
@@ -67,16 +68,10 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         return this._isDisabled;
     }
 
-    /**
-     * Gets the character code for targeting this player
-     */
     getCharCode(): string {
         return this.charCode;
     }
 
-    /**
-     * Applies stun effect to the player
-     */
     stun(): void {
         if (this.stunTimer) {
             clearTimeout(this.stunTimer);
@@ -92,9 +87,6 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         }, this.stunDuration);
     }
 
-    /**
-     * Removes stun effect from the player
-     */
     private removeStun(): void {
         this._isStunned = false;
         if (this.element) {
@@ -106,9 +98,6 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         }
     }
 
-    /**
-     * Applies disable effect to the player
-     */
     disable(): void {
         if (this.disableTimer) {
             clearTimeout(this.disableTimer);
@@ -125,9 +114,6 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         }, penaltyDuration);
     }
 
-    /**
-     * Removes disable effect from the player
-     */
     private removeDisable(): void {
         this._isDisabled = false;
         if (this.element) {
@@ -139,34 +125,25 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         }
     }
 
-    /**
-     * Checks if the player can shoot
-     */
     canShoot(): boolean {
         return !this._isStunned && !this._isDisabled;
     }
 
-    /**
-     * Updates player position with animation
-     */
     setPosition(x: number, y: number): void {
         if (this.element) {
-            this.element.style.transition = 'transform 0.3s ease-out';
-            this.element.style.transform = `translate(${x * 100}%, ${y * 100}%)`;
+            // Transform the element to its new position while keeping the centering transform
+            const xPercent = x * 100;
+            this.element.style.transition = 'left 0.3s ease-out';
+            this.element.style.left = `${xPercent}%`;
+            this.element.style.transform = `translateX(-50%)`;
         }
         super.setPosition(x, y);
     }
 
-    /**
-     * Destroys the player entity
-     */
     destroy(): void {
         this.cleanup();
     }
 
-    /**
-     * Cleanup method for player entity
-     */
     cleanup(): void {
         if (this.stunTimer) {
             clearTimeout(this.stunTimer);
