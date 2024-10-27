@@ -22,10 +22,10 @@ import {
 import { CharCodeGenerator, SYMBOL_SET } from "./charCodeGenerator";
 import { uint32, PlayerID } from "../../../../integrations/main_backend/mainBackendDTOs";
 import { Minigame } from "../miniGame";
-import { AsteroidsSettingsDTO } from "./AsteroidsMiniGame";
 import { ApplicationContext } from "../../../../meta/types";
 import { MOCK_SERVER_ID } from "../../../../ts/mockServer";
 import { Logger } from "../../../../logging/filteredLogger";
+import { AsteroidsSettingsDTO } from "./types/GameTypes";
 
 class AsteroidsGameLoop {
   public static readonly LOOP_FREQUENCY_MS = 1000 / 10; //10 updates per second
