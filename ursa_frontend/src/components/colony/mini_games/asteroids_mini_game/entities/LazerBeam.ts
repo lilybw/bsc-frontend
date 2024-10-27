@@ -1,9 +1,6 @@
 import BaseEntity from './BaseEntity';
 import { Position } from './BaseEntity';
 
-/**
- * Interface for laser beam creation options
- */
 export interface LazerBeamProps {
     id: number;
     startPosition: Position;
@@ -13,10 +10,6 @@ export interface LazerBeamProps {
     onComplete?: () => void;
 }
 
-/**
- * LazerBeam entity class
- * Represents a visual beam effect for shots fired in the game
- */
 export class LazerBeam extends BaseEntity {
     private startPosition: Position;
     private endPosition: Position;
@@ -38,108 +31,68 @@ export class LazerBeam extends BaseEntity {
         setTimeout(() => this.startFadeOut(), this._duration);
     }
 
-    // Public getters for accessing startPosition and endPosition
-    public getStartPosition(): Position {
-        return this.startPosition;
-    }
-
-    public getEndPosition(): Position {
-        return this.endPosition;
-    }
-
-    get startX(): number {
-        return this.startPosition.x;
-    }
-
-    get startY(): number {
-        return this.startPosition.y;
-    }
-
-    get endX(): number {
-        return this.endPosition.x;
-    }
-
-    get endY(): number {
-        return this.endPosition.y;
-    }
-
+    // Public getter for opacity
     get opacity(): number {
         return this._opacity;
     }
 
-    set opacity(value: number) {
-        this._opacity = Math.max(0, Math.min(1, value));
-    }
-
-    get duration(): number {
-        return this._duration;
-    }
-
-    /**
-     * Starts the fade out animation
-     */
+    // Starts the fade-out animation
     private startFadeOut(): void {
-        this._opacity = 0; // Set opacity to 0 instantly
-        this.onCompleteCallback?.();
-        this.cleanup();
+        const fadeInterval = setInterval(() => {
+            this._opacity -= this.fadeSpeed;
+            if (this._opacity <= 0) {
+                clearInterval(fadeInterval);
+                this.onCompleteCallback?.();
+                this.cleanup();
+            }
+        }, 100); // adjust the interval time as needed
     }
 
-    /**
-     * Checks if the beam is still active
-     */
-    public isActive(): boolean {
-        return this._opacity > 0;
+    // Method to calculate the width of the laser beam based on start and end positions
+    public getBeamWidth(): string {
+        const width = Math.hypot(
+            this.endPosition.x * window.innerWidth - this.startPosition.x * window.innerWidth,
+            this.endPosition.y * window.innerHeight - this.startPosition.y * window.innerHeight
+        );
+        return `${width}px`;
     }
 
-    /**
-     * Converts a percentage position to pixel coordinates
-     */
-    public getPixelPosition(position: Position): { x: number; y: number } {
+    // Method to calculate the rotation angle of the laser beam in radians
+    public getBeamRotation(): string {
+        const angle = Math.atan2(
+            (this.endPosition.y - this.startPosition.y) * window.innerHeight,
+            (this.endPosition.x - this.startPosition.x) * window.innerWidth
+        );
+        return `${angle}rad`;
+    }
+
+    // Method to get CSS-compatible position for the start of the laser beam
+    public getStartCSSPosition(): { left: string; top: string } {
         return {
-            x: position.x * window.innerWidth,
-            y: position.y * window.innerHeight
+            left: `${this.startPosition.x * window.innerWidth}px`,
+            top: `${this.startPosition.y * window.innerHeight}px`
         };
     }
 
-    /**
-     * Gets the current beam properties
-     */
-    public getBeamProperties(): BeamProperties {
+    // Method to get CSS-compatible position for the impact circle
+    public getEndCSSPosition(): { left: string; top: string } {
         return {
-            startPosition: this.startPosition,
-            endPosition: this.endPosition,
-            opacity: this._opacity,
-            duration: this._duration,
-            elapsed: this._duration - (this._opacity / this.fadeSpeed) * 1000
+            left: `${this.endPosition.x * window.innerWidth}px`,
+            top: `${this.endPosition.y * window.innerHeight}px`
         };
     }
 
-    /**
-     * Destroys the laser beam
-     */
+    // Destroys the laser beam, calling any onComplete callback
     destroy(): void {
         this.onCompleteCallback?.();
         this.cleanup();
     }
 
-    /**
-     * Cleans up resources
-     */
+    // Cleans up resources associated with the laser beam
     cleanup(): void {
         this.onCompleteCallback = undefined;
         super.cleanup();
     }
-}
-
-/**
- * Interface for beam properties
- */
-export interface BeamProperties {
-    startPosition: Position;
-    endPosition: Position;
-    opacity: number;
-    duration: number;
-    elapsed: number;
 }
 
 export default LazerBeam;

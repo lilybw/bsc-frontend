@@ -80,6 +80,17 @@ export const lazerBeamStyle = css`
   box-shadow: 
     0 0 0.5rem rgba(255, 0, 0, 0.5),
     0 0 1rem rgba(255, 0, 0, 0.3);
+  animation: lazerFlicker 0.2s infinite alternate, lazerFade 1s forwards;
+
+  @keyframes lazerFlicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @keyframes lazerFade {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
 `;
 
 export const impactCircleStyle = css`
@@ -98,6 +109,7 @@ export const impactCircleStyle = css`
   box-shadow: 
     0 0 1rem rgba(255, 0, 0, 0.5),
     0 0 2rem rgba(255, 0, 0, 0.3);
+  animation: lazerFlicker 0.2s infinite alternate, lazerFade 1s forwards;
 `;
 
 export const playerStyle = css`

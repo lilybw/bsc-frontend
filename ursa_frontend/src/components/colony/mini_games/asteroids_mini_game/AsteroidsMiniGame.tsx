@@ -374,39 +374,26 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
 
         {/* Laser Beams Rendering */}
         <For each={lazerBeams.get}>
-          {(beam) => {
-            const targetPosition = beam.getPixelPosition(beam.getEndPosition()); // Get target in pixel coordinates
-            const startPosition = beam.getPixelPosition(beam.getStartPosition()); // Get start position in pixel coordinates
-
-            return (
-              <>
-                <div
-                  class={lazerBeamStyle}
-                  style={{
-                    left: `${startPosition.x}px`,
-                    top: `${startPosition.y}px`,
-                    width: `${Math.hypot(
-                      targetPosition.x - startPosition.x,
-                      targetPosition.y - startPosition.y
-                    )}px`,
-                    transform: `rotate(${Math.atan2(
-                      targetPosition.y - startPosition.y,
-                      targetPosition.x - startPosition.x
-                    )}rad)`,
-                    opacity: beam.opacity,
-                  }}
-                />
-                <div
-                  class={impactCircleStyle}
-                  style={{
-                    left: `${targetPosition.x}px`,
-                    top: `${targetPosition.y}px`,
-                    opacity: beam.opacity,
-                  }}
-                />
-              </>
-            );
-          }}
+          {(beam) => (
+            <>
+              <div
+                class={`lazerBeam ${lazerBeamStyle}`}
+                style={{
+                  ...beam.getStartCSSPosition(),
+                  width: beam.getBeamWidth(),
+                  transform: `rotate(${beam.getBeamRotation()})`,
+                  opacity: beam.opacity,
+                }}
+              />
+              <div
+                class={`impactCircle ${impactCircleStyle}`}
+                style={{
+                  ...beam.getEndCSSPosition(),
+                  opacity: beam.opacity,
+                }}
+              />
+            </>
+          )}
         </For>
 
         {/* Player Rendering */}
