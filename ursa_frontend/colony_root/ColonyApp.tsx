@@ -138,7 +138,6 @@ import FullScreenNotification from './FullScreenNotification';
     const initializeMultiplayerSession = async (code: ColonyCode): Promise<Error | undefined> => {
       log.trace('Connecting to multiplayer, code: ' + code);
       const onConnClose = () => {
-        log.trace("Connection closed, localplayer is: " + props.context.multiplayer.getMode());
         if (props.context.multiplayer.getMode() !== MultiplayerMode.AS_OWNER) {
           log.info('connection closed, redirecting to menu');
           setShowNotification(true);
@@ -246,7 +245,9 @@ import FullScreenNotification from './FullScreenNotification';
         reason={notaficationReason()}
         durationMS={5000}
         onClose={() => setShowNotification(false)}
-      />)
+      >
+        <Countdown duration={5} styleOverwrite={TITLE_STYLE} />
+      </FullScreenNotification>)
     );
 
     return (

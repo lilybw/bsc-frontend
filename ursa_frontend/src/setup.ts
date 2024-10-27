@@ -96,13 +96,10 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
     }
 
     const eventMultiplexer = await initializeEventMultiplexer(log, backendIntegrationInit.res.player.local.id);
-
-    let currentMultiplayerMode = MultiplayerMode.AS_OWNER;
     const multiplayerIntegrationInit = await initializeMultiplayerIntegration(
         backendIntegrationInit.res,
         log,
-        eventMultiplexer,
-        currentMultiplayerMode,
+        eventMultiplexer
     );
     if (multiplayerIntegrationInit.err != null) {
         log.warn(multiplayerIntegrationInit.err);

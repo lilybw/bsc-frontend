@@ -36,7 +36,7 @@ ${Styles.GLASS.FAINT_BACKGROUND}
 `
 
 const titleStyle = css`
-
+font-size: 3rem;
 `
 const subTitleStyle = css`
 

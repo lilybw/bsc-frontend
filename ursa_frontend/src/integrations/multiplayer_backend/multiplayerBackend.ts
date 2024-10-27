@@ -49,10 +49,8 @@ export const initializeMultiplayerIntegration = (
     backend: BackendIntegration,
     log: Logger,
     multiplexer: IExpandedAccessMultiplexer,
-    mode: MultiplayerMode,
 ): ResErr<IMultiplayerIntegration> => {
-    const integration = new MultiplayerIntegrationImpl(backend, log, multiplexer, mode);
-
+    const integration = new MultiplayerIntegrationImpl(backend, log, multiplexer);
     return { res: integration, err: null };
 };
 
@@ -72,9 +70,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         private readonly backend: BackendIntegration,
         log: Logger,
         private readonly multiplexer: IExpandedAccessMultiplexer,
-        mode: MultiplayerMode,
     ) {
-        this.mode = createWrappedSignal(mode);
         this.log = log.copyFor('mp int');
     }
 
@@ -184,7 +180,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         this.connection?.send(createViewAndSerializeMessage(data, spec));
     };
 
-    private configureConnection = (conn: WebSocket, onClose: (ev: CloseEvent) => void): Promise<Error | undefined> => {
+    private configureConnection = async (conn: WebSocket, onClose: (ev: CloseEvent) => void): Promise<Error | undefined> => {
         conn.onopen = () => {
             this.log.trace(`[multiplayer] Connection to server established: ${conn.url}`);
             this.connection = conn;
@@ -227,6 +223,6 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             onClose(ce);
             this.multiplexer.unsubscribe(...this.subscriptions);
         };
-        return Promise.resolve(undefined);
+        return undefined;
     };
 }
