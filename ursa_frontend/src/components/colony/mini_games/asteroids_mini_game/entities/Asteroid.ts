@@ -1,4 +1,4 @@
-import BaseEntity, { Damageable, Moveable, Targetable, Position } from './BaseEntity';
+import BaseEntity, { Damageable, Targetable, Position } from './BaseEntity';
 import { AsteroidsAsteroidSpawnMessageDTO } from '../../../../../integrations/multiplayer_backend/EventSpecifications';
 
 /**
@@ -16,7 +16,7 @@ export interface AsteroidCreationOptions extends AsteroidsAsteroidSpawnMessageDT
  * Asteroid entity class
  * Represents an asteroid that moves towards the colony wall and can be destroyed
  */
-export class Asteroid extends BaseEntity implements Damageable, Moveable, Targetable {
+export class Asteroid extends BaseEntity implements Damageable, Targetable {
     // Properties from AsteroidsAsteroidSpawnMessageDTO
     charCode: string;
     health: number;
@@ -29,7 +29,6 @@ export class Asteroid extends BaseEntity implements Damageable, Moveable, Target
     endY: number;
     private destroyCallback: () => void;
     private startTime: number;
-    private startPosition: Position;
 
     constructor(options: AsteroidCreationOptions) {
         super(options.id, options.x, options.y);
@@ -46,7 +45,6 @@ export class Asteroid extends BaseEntity implements Damageable, Moveable, Target
         this.endY = options.endY;
         this.destroyCallback = options.destroy;
         this.startTime = Date.now();
-        this.startPosition = { x: options.x, y: options.y };
 
         if (options.element) {
             this.setElement(options.element);
@@ -75,26 +73,6 @@ export class Asteroid extends BaseEntity implements Damageable, Moveable, Target
      */
     isDestroyed(): boolean {
         return this.health <= 0;
-    }
-
-    /**
-     * Moves the asteroid based on elapsed time
-     * Uses linear interpolation between start and end positions
-     */
-    move(deltaTime: number): void {
-        const elapsedTime = Date.now() - this.startTime;
-        const progress = Math.min(elapsedTime / this.timeUntilImpact, 1);
-
-        // Linear interpolation between start and end positions
-        this.x = this.startPosition.x + (this.endX - this.startPosition.x) * progress;
-        this.y = this.startPosition.y + (this.endY - this.startPosition.y) * progress;
-
-        this.updateElementPosition();
-
-        // Check if asteroid has reached its target
-        if (progress >= 1) {
-            this.destroy();
-        }
     }
 
     /**

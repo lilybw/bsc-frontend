@@ -1,6 +1,5 @@
 /**
  * Base class for all game entities
- * Handles common properties and behaviors shared between Asteroids, Players, and LazerBeams
  */
 export abstract class BaseEntity {
     id: number;
@@ -44,48 +43,17 @@ export abstract class BaseEntity {
     /**
      * Gets the current position of the entity
      */
-    getPosition(): { x: number; y: number } {
+    getPosition(): Position {
         return { x: this.x, y: this.y };
     }
 
     /**
      * Abstract method for destroying the entity
-     * Must be implemented by child classes
      */
     abstract destroy(): void;
 
     /**
-     * Checks if this entity collides with another entity
-     * Basic implementation using rectangular collision
-     */
-    collidesWith(other: BaseEntity): boolean {
-        if (!this.element || !other.element) return false;
-
-        const rect1 = this.element.getBoundingClientRect();
-        const rect2 = other.element.getBoundingClientRect();
-
-        return !(rect1.right < rect2.left ||
-            rect1.left > rect2.right ||
-            rect1.bottom < rect2.top ||
-            rect1.top > rect2.bottom);
-    }
-
-    /**
-     * Gets the center position of the entity in viewport coordinates
-     */
-    getCenterPosition(): { x: number; y: number } | null {
-        if (!this.element) return null;
-
-        const rect = this.element.getBoundingClientRect();
-        return {
-            x: (rect.left + rect.right) / 2 / window.innerWidth,
-            y: (rect.top + rect.bottom) / 2 / window.innerHeight
-        };
-    }
-
-    /**
      * Optional cleanup method
-     * Override in child classes if needed
      */
     cleanup(): void {
         this.element = null;
@@ -93,7 +61,7 @@ export abstract class BaseEntity {
 }
 
 /**
- * Base interface for entities that can take damage
+ * Interfaces for entity capabilities
  */
 export interface Damageable {
     health: number;
@@ -102,17 +70,6 @@ export interface Damageable {
     isDestroyed(): boolean;
 }
 
-/**
- * Base interface for entities that can move
- */
-export interface Moveable {
-    speed: number;
-    move(deltaTime: number): void;
-}
-
-/**
- * Base interface for entities that can have status effects
- */
 export interface StatusEffectable {
     isStunned: boolean;
     isDisabled: boolean;
@@ -120,31 +77,13 @@ export interface StatusEffectable {
     disable(): void;
 }
 
-/**
- * Base interface for entities that can be targeted
- */
 export interface Targetable {
     charCode: string;
     getCharCode(): string;
 }
 
 /**
- * Utility type for entity creation options
- */
-export type EntityCreationOptions = {
-    id: number;
-    x?: number;
-    y?: number;
-    element?: HTMLDivElement;
-};
-
-/**
- * Type for entity removal callback function
- */
-export type EntityRemovalCallback = () => void;
-
-/**
- * Type for entity position
+ * Position type
  */
 export type Position = {
     x: number;
