@@ -5,7 +5,7 @@
   import PathGraph from '../src/components/colony/PathGraph';
   import Unwrap from '../src/components/util/Unwrap';
   import ErrorPage from '../src/ErrorPage';
-  import { createSignal, onMount, onCleanup, JSX, For } from 'solid-js';
+  import { createSignal, onMount, onCleanup, JSX, For, createMemo } from 'solid-js';
   import {
     DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
     DifficultyConfirmedForMinigameMessageDTO,
@@ -49,7 +49,8 @@ import FullScreenNotification from './FullScreenNotification';
     const clients = createArrayStore<ClientDTO>();
     const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
     const bundleSwapColonyInfo = props.context.nav.getRetainedColonyInfo();
-    const [notaficationReason, setNotificationReason] = createSignal<string | null>(null);
+    const [notaficationReason, setNotificationReason] = createSignal<string>("Unknown");
+    const [showNotification, setShowNotification] = createSignal<boolean>(false);
     const log = props.context.logger.copyFor('colony');
 
     /**
@@ -136,13 +137,15 @@ import FullScreenNotification from './FullScreenNotification';
 
     const initializeMultiplayerSession = async (code: ColonyCode): Promise<Error | undefined> => {
       log.trace('Connecting to multiplayer, code: ' + code);
-      const err = await props.context.multiplayer.connect(code, (ev) => {
-        //On Close
-        log.info('connection closed, redirecting to menu');
-        if (props.context.multiplayer.getMode() === MultiplayerMode.AS_GUEST) {
-          props.context.nav.goToMenu();
+      const onConnClose = () => {
+        log.trace("Connection closed, localplayer is: " + props.context.multiplayer.getMode());
+        if (props.context.multiplayer.getMode() !== MultiplayerMode.AS_OWNER) {
+          log.info('connection closed, redirecting to menu');
+          setShowNotification(true);
+          setTimeout(() => props.context.nav.goToMenu(), 5000);
         }
-      }); if (err) {
+      }
+      const err = await props.context.multiplayer.connect(code, onConnClose); if (err) {
         return err;
       } 
       const lobbyStateReq = await props.context.multiplayer.getLobbyState(); if (lobbyStateReq.err !== null) {
@@ -237,27 +240,21 @@ import FullScreenNotification from './FullScreenNotification';
         />
       )
     }
-
-    const appendFullScreenNotification = () => {
-      const reason = notaficationReason();
-      if (reason === null) return null;
-
-      return (
-        <FullScreenNotification
-          text={props.context.text}
-          reason={reason}
-          durationMS={5000}
-          onClose={() => setNotificationReason(null)}
-        />
-      )
-    }
+    const notaMemo = createMemo(() => showNotification() && (
+      <FullScreenNotification
+        text={props.context.text}
+        reason={notaficationReason()}
+        durationMS={5000}
+        onClose={() => setShowNotification(false)}
+      />)
+    );
 
     return (
       <div id="colony-app">
         <StarryBackground />
         {pageContent()}
         {appendOverlay()}
-        {appendFullScreenNotification()}
+        {notaMemo()}
         <EventFeed
           events={props.context.events}
           backend={props.context.backend}
