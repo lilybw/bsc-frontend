@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount, onCleanup, For } from "solid-js";
+import { Component, createSignal, onMount, onCleanup, For, createMemo } from "solid-js";
 import { createArrayStore } from "../../../../ts/arrayStore";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../../../ts/actionContext";
 import { createWrappedSignal } from "../../../../ts/wrappedSignal";
@@ -37,6 +37,11 @@ import BufferBasedButton from "../../../BufferBasedButton";
 import Countdown from "../../../util/Countdown";
 import StarryBackground from "../../../StarryBackground";
 
+type PlayerState = {
+  isStunned: boolean;
+  isDisabled: boolean;
+};
+
 /**
  * Main Asteroids minigame component
  */
@@ -49,6 +54,16 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
   const asteroidsRemoveFuncs = new Map<number, () => void>();
   const [health, setHealth] = createSignal(props.settings.colonyHealth);
   const [buttonsEnabled, setButtonsEnabled] = createSignal(true);
+  const [playerStates, setPlayerStates] = createSignal<Map<number, PlayerState>>(new Map());
+  const updatePlayerState = (playerId: number, state: PlayerState) => {
+    setPlayerStates(prev => {
+      const newMap = new Map(prev);
+      newMap.set(playerId, state);
+      return newMap;
+    });
+  };
+  const playerStatesMemo = createMemo(() => playerStates());
+  const getPlayerState = (playerId: number) => playerStatesMemo().get(playerId);
 
   // Input and UI State
   const inputBuffer = createWrappedSignal<string>('');
@@ -269,7 +284,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT,
       Object.assign(
         (data: AsteroidsAssignPlayerDataMessageDTO) => {
-          const isLocal = data.id === props.context.backend.player.local.id;
           const player = new Player({
             ...data,
             x: 0,
@@ -278,15 +292,20 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
             stunDuration: props.settings.stunDurationS,
             friendlyFirePenalty: props.settings.friendlyFirePenaltyS,
             penaltyMultiplier: props.settings.friendlyFirePenaltyMultiplier,
-            isLocal: data.id === props.context.backend.player.local.id
+            isLocal: data.id === props.context.backend.player.local.id,
+            onStateChange: (stunned, disabled) => {
+              console.log(`Player ${data.id} state change:`, { stunned, disabled });
+              updatePlayerState(data.id, { isStunned: stunned, isDisabled: disabled });
+            }
           });
 
-          if (isLocal) {
+          if (data.id === props.context.backend.player.local.id) {
             // Pass the setter to the player
             player.setButtonStateUpdater((disabled) => setButtonsEnabled(!disabled));
           }
 
           players.add(player);
+          updatePlayerState(player.id, { isStunned: false, isDisabled: false });
           const newPositions = calculatePlayerPositions(players.get);
 
           players.mutateByPredicate(
@@ -440,6 +459,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 transform: 'translateX(-50%)'
               }}
             >
+              {/* Button Container */}
               <div class={buttonContainerStyle}>
                 <BufferBasedButton
                   enable={() => buttonsEnabled()}
@@ -449,12 +469,58 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                   register={bufferSubscribers.add}
                 />
               </div>
+
+              {/* Player Character Container */}
               <div class={playerCharacterStyle}>
-                <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
-                  {(asset) => (
-                    <GraphicalAsset metadata={asset} backend={props.context.backend} />
-                  )}
-                </NTAwait>
+                <div style={{ position: 'relative' }}>
+                  {/* Player Image */}
+                  <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
+                    {(asset) => (
+                      <>
+                        <GraphicalAsset metadata={asset} backend={props.context.backend} />
+                        {/* Status Effects */}
+                        {(() => {
+                          const state = getPlayerState(player.id);
+                          return state && (state.isStunned || state.isDisabled) ? (
+                            <div style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '50px',
+                              height: '50px',
+                              'background-color': state.isStunned ? 'yellow' : 'red',
+                              'z-index': 1000,
+                              opacity: 0.8,
+                              border: '3px solid white'
+                            }} />
+                          ) : null;
+                        })()}
+                      </>
+                    )}
+                  </NTAwait>
+                </div>
+              </div>
+
+              {/* Debug State Display */}
+              <div style={{
+                position: 'absolute',
+                top: '-20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                color: 'white',
+                'background-color': 'rgba(0,0,0,0.5)',
+                padding: '2px 5px',
+                'border-radius': '3px',
+                'white-space': 'nowrap'
+              }}>
+                {(() => {
+                  const state = getPlayerState(player.id);
+                  return `${player.id}: ${state
+                    ? (state.isStunned ? 'STUNNED ' : '') +
+                    (state.isDisabled ? 'DISABLED' : '')
+                    : 'NORMAL'
+                    }`;
+                })()}
               </div>
             </div>
           )}

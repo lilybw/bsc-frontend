@@ -21,6 +21,7 @@ export interface PlayerCreationOptions extends AsteroidsAssignPlayerDataMessageD
     friendlyFirePenalty: number;
     penaltyMultiplier: number;
     isLocal?: boolean;
+    onStateChange?: (stunned: boolean, disabled: boolean) => void;  // Add this
 }
 
 /**
@@ -43,6 +44,7 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
     private stunTimer: NodeJS.Timeout | null = null;
     private disableTimer: NodeJS.Timeout | null = null;
     private updateButtonState?: (disabled: boolean) => void;
+    private readonly onStateChange?: (stunned: boolean, disabled: boolean) => void;
 
     /**
      * Creates a new Player instance
@@ -58,9 +60,39 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         this.friendlyFirePenalty = options.friendlyFirePenalty;
         this.penaltyMultiplier = options.penaltyMultiplier;
         this.isLocal = options.isLocal || false;
+        this.onStateChange = options.onStateChange;  // Store the callback
 
         if (options.element) {
             this.setElement(options.element);
+        }
+    }
+
+    /**
+     * Updates both button state and notifies state changes
+     * @private
+     */
+    private updateState(): void {
+        const isDisabled = this._isStunned || this._isDisabled;
+
+        // Update button state
+        if (this.updateButtonState) {
+            console.log('Updating button state:', {
+                playerId: this.id,
+                isStunned: this._isStunned,
+                isDisabled: this._isDisabled,
+                resultingState: isDisabled
+            });
+            this.updateButtonState(isDisabled);
+        }
+
+        // Notify state change
+        if (this.onStateChange) {
+            console.log('Notifying state change:', {
+                playerId: this.id,
+                isStunned: this._isStunned,
+                isDisabled: this._isDisabled
+            });
+            this.onStateChange(this._isStunned, this._isDisabled);
         }
     }
 
@@ -73,23 +105,6 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         this.updateButtonState = updater;
         // Initial state update
         this.updateButtonState(this._isStunned || this._isDisabled);
-    }
-
-    /**
-     * Updates the button state based on current stun and disable status
-     * @private
-     */
-    private updateState(): void {
-        if (this.updateButtonState) {
-            const isDisabled = this._isStunned || this._isDisabled;
-            console.log('Updating button state:', {
-                playerId: this.id,
-                isStunned: this._isStunned,
-                isDisabled: this._isDisabled,
-                resultingState: isDisabled
-            });
-            this.updateButtonState(isDisabled);
-        }
     }
 
     /**
@@ -130,19 +145,10 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         this.updateState();
         console.log(`Player ${this.id} stunned, duration: ${this.stunDuration}s`);
 
-        if (this.element) {
-            const imageContainer = this.element.querySelector('[class*="playerCharacterStyle"]');
-            if (imageContainer) {
-                const stunEffect = document.createElement('div');
-                stunEffect.className = stunnedStyle;
-                imageContainer.appendChild(stunEffect);
-            }
-        }
-
         this.stunTimer = setTimeout(() => {
             console.log(`Player ${this.id} stun timer completed`);
             this.removeStun();
-        }, this.stunDuration * 1000);  // Convert seconds to milliseconds
+        }, this.stunDuration * 1000);
     }
 
     /**
@@ -150,16 +156,8 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
      * @private
      */
     private removeStun(): void {
-        console.log(`Removing stun effect from player ${this.id}`);
         this._isStunned = false;
         this.updateState();
-
-        if (this.element) {
-            const stunEffect = this.element.querySelector(`.${stunnedStyle}`);
-            if (stunEffect) {
-                stunEffect.remove();
-            }
-        }
 
         if (this.stunTimer) {
             clearTimeout(this.stunTimer);
@@ -181,19 +179,10 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         const penaltyDuration = this.friendlyFirePenalty * this.penaltyMultiplier;
         console.log(`Player ${this.id} disabled, penalty duration: ${penaltyDuration}s`);
 
-        if (this.element) {
-            const imageContainer = this.element.querySelector('[class*="playerCharacterStyle"]');
-            if (imageContainer) {
-                const disableEffect = document.createElement('div');
-                disableEffect.className = disabledStyle;
-                imageContainer.appendChild(disableEffect);
-            }
-        }
-
         this.disableTimer = setTimeout(() => {
             console.log(`Player ${this.id} disable timer completed`);
             this.removeDisable();
-        }, penaltyDuration * 1000);  // Convert seconds to milliseconds
+        }, penaltyDuration * 1000);
     }
 
     /**
@@ -201,16 +190,8 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
      * @private
      */
     private removeDisable(): void {
-        console.log(`Removing disable effect from player ${this.id}`);
         this._isDisabled = false;
         this.updateState();
-
-        if (this.element) {
-            const disableEffect = this.element.querySelector(`.${disabledStyle}`);
-            if (disableEffect) {
-                disableEffect.remove();
-            }
-        }
 
         if (this.disableTimer) {
             clearTimeout(this.disableTimer);

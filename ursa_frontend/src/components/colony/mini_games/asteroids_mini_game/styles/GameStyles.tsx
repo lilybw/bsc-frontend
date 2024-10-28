@@ -122,55 +122,6 @@ export const buttonContainerStyle = css`
   text-align: center;
 `;
 
-export const stunnedStyle = css`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -20px;
-    left: -20px;
-    right: -20px;
-    bottom: -20px;
-    background: radial-gradient(ellipse at center, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 70%);
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0% { transform: scale(0.95); opacity: 0.7; }
-    50% { transform: scale(1.1); opacity: 0.9; }
-    100% { transform: scale(0.95); opacity: 0.7; }
-  }
-`;
-
-export const disabledStyle = css`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -15px;
-    left: -15px;
-    right: -15px;
-    bottom: -15px;
-    background: radial-gradient(ellipse at center, rgba(255,69,0,0.5) 0%, rgba(255,69,0,0) 70%);
-    border-radius: 50%;
-    animation: flicker 0.5s infinite alternate;
-  }
-
-  @keyframes flicker {
-    0% { opacity: 0.5; transform: scale(0.98); }
-    100% { opacity: 0.8; transform: scale(1.02); }
-  }
-`;
-
 export const playerStyle = css`
    position: absolute;
    display: flex;
@@ -195,6 +146,7 @@ export const playerIdStyle = css`
    white-space: nowrap;
 `;
 
+// In GameStyles.ts
 export const playerCharacterStyle = css`
    display: flex;
    justify-content: center;
@@ -204,8 +156,29 @@ export const playerCharacterStyle = css`
    height: auto;
    
    img {
+     display: block;  // Make sure image is block-level
      width: auto;
      height: auto;
-     max-height: 10rem; /* Adjust this value based on your needs */
+     max-height: 10rem;
    }
+`;
+
+export const stunnedStyle = css`
+  position: absolute;
+  inset: 0;  // Shorthand for top/right/bottom/left: 0
+  width: 100%;
+  height: 100%;
+  background: yellow;  // Very obvious for debugging
+  opacity: 0.3;
+  pointer-events: none;
+`;
+
+export const disabledStyle = css`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: red;  // Very obvious for debugging
+  opacity: 0.3;
+  pointer-events: none;
 `;
