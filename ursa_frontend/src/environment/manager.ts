@@ -1,7 +1,6 @@
 import { DEV_ENVIRONMENT } from './development';
 import { PROD_ENVIRONMENT } from './production';
 import { LogLevel, RuntimeMode } from '../meta/types';
-import { SessionInitiationRequestDTO } from '../integrations/main_backend/mainBackendDTOs';
 import { TEST_ENVIRONMENT } from './test';
 import { VitecIntegrationInformation } from '../integrations/vitec/vitecDTOs';
 

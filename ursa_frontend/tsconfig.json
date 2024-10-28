@@ -10,6 +10,8 @@
         "jsxImportSource": "solid-js",
         "types": ["vite/client", "@testing-library/jest-dom"],
         "noEmit": true,
-        "isolatedModules": true
+        "isolatedModules": true,
+        "rootDirs": ["./src", "./tutorial_root", "./main_menu_root", "./colony_root"],
+        "skipLibCheck": true
     }
 }

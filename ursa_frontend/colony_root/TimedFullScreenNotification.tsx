@@ -4,7 +4,6 @@ import { Component } from "solid-js";
 import { IInternationalized, IParenting } from "../src/ts/types";
 import Countdown from "../src/components/util/Countdown";
 import BigMenuButton from "../src/components/base/BigMenuButton";
-import { TITLE_STYLE } from "../src/components/base/SectionTitle";
 
 interface TimedFullScreenNotificationProps extends IInternationalized, IParenting {
     /** intl key */
@@ -30,7 +29,7 @@ const TimedFullScreenNotification: Component<TimedFullScreenNotificationProps> =
 export default TimedFullScreenNotification; 
 
 const countDownStyle = css`
-${TITLE_STYLE}
+${Styles.TITLE}
 font-size: 3rem;
 `
 
