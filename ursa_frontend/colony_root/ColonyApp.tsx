@@ -29,8 +29,9 @@ import TimedFullScreenNotification from './TimedFullScreenNotification';
 import BufferBasedButton from '../src/components/base/BufferBasedButton';
 import EventFeed from '../src/components/base/EventFeed';
 import SectionSubTitle from '../src/components/base/SectionSubTitle';
-import SectionTitle, { TITLE_STYLE } from '../src/components/base/SectionTitle';
+import SectionTitle from '../src/components/base/SectionTitle';
 import StarryBackground from '../src/components/base/StarryBackground';
+import { Styles } from '../src/sharedCSS';
 
 export type StrictJSX = Node | JSX.ArrayElement | (string & {}) 
   | NonNullable<Exclude<Exclude<Exclude<JSX.Element, string>, number>, boolean>>
@@ -61,7 +62,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign((props: Appli
     return (
       <ErrorPage content={error}>
         <SectionSubTitle>Redirecting to menu in:</SectionSubTitle>
-        <Countdown styleOverwrite={TITLE_STYLE} duration={5} onComplete={() => props.context.nav.goToMenu()}/>
+        <Countdown styleOverwrite={Styles.TITLE} duration={5} onComplete={() => props.context.nav.goToMenu()}/>
       </ErrorPage>
     )
   }

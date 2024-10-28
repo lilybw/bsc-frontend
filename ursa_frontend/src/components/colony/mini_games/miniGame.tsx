@@ -1,9 +1,8 @@
 import { Component, JSX } from "solid-js";
-import { ApplicationContext, Error, ResErr } from "../../../meta/types";
-import { DifficultyConfirmedForMinigameMessageDTO } from "../../../integrations/multiplayer_backend/EventSpecifications";
-import { BackendIntegration } from "../../../integrations/main_backend/mainBackend";
-import AsteroidsMiniGame, { AsteroidsSettingsDTO } from "./asteroids_mini_game/AsteroidsMiniGame";
+import { ApplicationContext, ResErr } from "../../../meta/types";
+import AsteroidsMiniGame from "./asteroids_mini_game/AsteroidsMiniGame";
 import { createAsteroidsGameLoop } from "./asteroids_mini_game/AsteroidsGameLoop";
+import { AsteroidsSettingsDTO } from "./asteroids_mini_game/types/GameTypes";
 
 // Define the props interface for minigame components
 export interface MinigameProps<T extends object> {

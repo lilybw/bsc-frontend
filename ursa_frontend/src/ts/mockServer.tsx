@@ -1,4 +1,4 @@
-import { Component, JSX } from "solid-js";
+import { JSX } from "solid-js";
 import { IExpandedAccessMultiplexer } from '../integrations/multiplayer_backend/eventMultiplexer';
 import {
     DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
@@ -12,13 +12,9 @@ import {
     IMessage,
     ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT,
 } from '../integrations/multiplayer_backend/EventSpecifications';
-import { ApplicationContext, Error, ResErr } from '../meta/types';
-import { KnownMinigames, loadMiniGame, Minigame } from "../components/colony/mini_games/miniGame";
+import { ApplicationContext } from '../meta/types';
+import {  loadMiniGame } from "../components/colony/mini_games/miniGame";
 import { Logger } from "../logging/filteredLogger";
-import { uint32 } from "../integrations/main_backend/mainBackendDTOs";
-import AsteroidsMiniGame, { AsteroidsSettingsDTO } from "../components/colony/mini_games/asteroids_mini_game/AsteroidsMiniGame";
-import { BackendIntegration } from "../integrations/main_backend/mainBackend";
-import { createAsteroidsGameLoop } from "../components/colony/mini_games/asteroids_mini_game/AsteroidsGameLoop";
 
 /**
  * Interface defining the basic operations of the MockServer.
