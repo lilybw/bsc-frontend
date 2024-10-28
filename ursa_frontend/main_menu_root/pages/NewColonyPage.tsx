@@ -1,15 +1,13 @@
 import { Component, createSignal, JSX } from "solid-js";
 import { css } from "@emotion/css";
-import SectionTitle from "../../src/components/SectionTitle";
-import StarryBackground from "../../src/components/StarryBackground";
-import { MenuPages, MenuPageProps } from "../MainMenuApp";
+import { MenuPageProps } from "../MainMenuApp";
 import NavigationFooter from "../NavigationFooter";
-import PlanetWithMoon from "../../src/components/PlanetWithMoon";
-import SectionSubTitle from "../../src/components/SectionSubTitle";
 import {CreateColonyRequestDTO} from "../../src/integrations/main_backend/mainBackendDTOs"
-import Planet from "../../src/components/Planet";
 import NTAwait from "../../src/components/util/NoThrowAwait";
 import { Styles } from "../../src/sharedCSS";
+import Planet from "../../src/components/base/Planet";
+import SectionSubTitle from "../../src/components/base/SectionSubTitle";
+import StarryBackground from "../../src/components/base/StarryBackground";
 
 const NewColonyPage: Component<MenuPageProps> = (props) => {
   const [colonyName, setColonyName] = createSignal("");

@@ -1,7 +1,7 @@
 import { css } from "@emotion/css";
-import { Accessor, Component, createEffect, createMemo, createSignal, JSX } from "solid-js";
-import { IParenting, IStyleOverwritable } from "../ts/types";
-import { BigButtonStyle, Styles } from "../sharedCSS";
+import { Accessor, Component, createEffect, createMemo, createSignal } from "solid-js";
+import { IParenting, IStyleOverwritable } from "../../ts/types";
+import { BigButtonStyle, Styles } from "../../sharedCSS";
 
 interface BigMenuButtonProps extends IStyleOverwritable, IParenting {
     onClick?: () => void;

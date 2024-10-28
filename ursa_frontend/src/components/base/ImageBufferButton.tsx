@@ -1,10 +1,8 @@
 import { Component, createMemo, mergeProps } from "solid-js";
-import BufferBasedButton, { BufferBasedButtonProps } from "./BufferBasedButton";
-import { AddRetainRemoveFunc } from "../ts/arrayStore";
-import { BufferSubscriber } from "../ts/actionContext";
-import { IBackendBased, IBufferBased, IRegistering, IStyleOverwritable } from "../ts/types";
+import BufferBasedButton from "./BufferBasedButton";
 import { css } from "@emotion/css";
-import NTAwait from "./util/NoThrowAwait";
+import { IBufferBased, IBackendBased, IStyleOverwritable, IRegistering } from "../../ts/types";
+import NTAwait from "../util/NoThrowAwait";
 import GraphicalAsset from "./GraphicalAsset";
 
 interface ImageBufferButtonProps extends IBufferBased, IBackendBased, IStyleOverwritable, IRegistering<string> {

@@ -3,11 +3,10 @@ import { Accessor, createEffect, For } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import { SetStoreFunction, Store } from "solid-js/store";
 import { SlideEntry } from "./TutorialApp";
-import SlideIcon from "./SlideIcon";
-import GraphicalAsset from '../src/components/GraphicalAsset';
 import NTAwait from '../src/components/util/NoThrowAwait';
 import { IBackendBased } from "../src/ts/types";
 import { BackendIntegration } from "../src/integrations/main_backend/mainBackend";
+import GraphicalAsset from "../src/components/base/GraphicalAsset";
 
 interface ProgressTrackerProps extends IBackendBased {
     currentSlide: Accessor<number>;

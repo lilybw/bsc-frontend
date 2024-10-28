@@ -143,7 +143,7 @@ export class Asteroid extends BaseEntity implements Damageable, Targetable {
      */
     cleanup(): void {
         super.cleanup();
-        this.destroyCallback = () => { }; // Clear the callback
+        this.destroyCallback = () => {}; // Clear the callback
     }
 
     /**

@@ -1,8 +1,8 @@
-import { Component, createResource, JSX, Show } from "solid-js";
-import Spinner from "../SimpleLoadingSpinner";
-import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
+import { createResource, JSX, Show } from "solid-js";
 import { Error, ResErr } from "../../meta/types";
 import Unwrap from "./Unwrap";
+import Spinner from "../base/SimpleLoadingSpinner";
+import SomethingWentWrongIcon from "../base/SomethingWentWrongIcon";
 
 type AsyncFunction<T> = () => Promise<ResErr<T>>;
 type FunctionArray<T extends any[]> = AsyncFunction<T[number]> | { [K in keyof T]: () => Promise<ResErr<T[K]>> };

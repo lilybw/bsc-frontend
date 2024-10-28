@@ -1,9 +1,9 @@
-import { Component, onMount, onCleanup } from "solid-js";
+import { Component } from "solid-js";
 import { GenericLocationCardProps } from "./GenericLocationCard";
 import { css, keyframes } from "@emotion/css";
-import BufferBasedButton from "../../BufferBasedButton";
 import NTAwait from "../../util/NoThrowAwait";
-import GraphicalAsset from "../../GraphicalAsset";
+import BufferBasedButton from "../../base/BufferBasedButton";
+import GraphicalAsset from "../../base/GraphicalAsset";
 
 interface HomeLocationCardProps extends GenericLocationCardProps {}
 

@@ -1,16 +1,15 @@
 import { JSX } from "solid-js/jsx-runtime";
-import StarryBackground from "../../src/components/StarryBackground";
 import { css } from "@emotion/css";
 import ActionInput from "../../src/components/colony/MainActionInput";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../src/ts/actionContext";
 import { createMemo, createSignal } from "solid-js";
 import { createArrayStore } from "../../src/ts/arrayStore";
 import VideoFrame from "./VideoFrame";
-import ImageBufferButton from "../../src/components/ImageBufferButton";
-import SectionSubTitle from "../../src/components/SectionSubTitle";
 import { IBackendBased, IInternationalized } from "../../src/ts/types";
 import NTAwait from "../../src/components/util/NoThrowAwait";
-import GraphicalAsset from "../../src/components/GraphicalAsset";
+import GraphicalAsset from "../../src/components/base/GraphicalAsset";
+import ImageBufferButton from "../../src/components/base/ImageBufferButton";
+import StarryBackground from "../../src/components/base/StarryBackground";
 
 interface NavigationDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
@@ -50,7 +49,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
             <StarryBackground />
             {props.text.SubTitle('TUTORIAL.NAVIGATION_DEMO.DESCRIPTION')({})}
             <VideoFrame styleOverwrite={videoDemoFrameStyle} backend={props.backend}> 
-                <ActionInput subscribers={bufferSubscribers.get} 
+                <ActionInput subscribers={bufferSubscribers} 
                     text={props.text}
                     backend={props.backend}
                     actionContext={actionContext} 

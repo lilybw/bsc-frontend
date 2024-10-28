@@ -2,7 +2,6 @@ import { Component, createMemo, JSX } from "solid-js";
 import { ColonyInfoResponseDTO, ColonyLocationInformation, LocationInfoResponseDTO } from "../../../integrations/main_backend/mainBackendDTOs";
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from "../../../ts/types";
 import { css } from "@emotion/css";
-import NTAwait from "../../util/NoThrowAwait";
 import GenericLocationCard from "./GenericLocationCard";
 import { KnownLocations } from "../../../integrations/main_backend/constants";
 import SpacePortLocationCard from "./SpacePortLocationCard";

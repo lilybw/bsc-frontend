@@ -3,8 +3,8 @@ import { Styles } from "../src/sharedCSS";
 import { Component } from "solid-js";
 import { IInternationalized, IParenting } from "../src/ts/types";
 import Countdown from "../src/components/util/Countdown";
-import BigMenuButton from "../src/components/BigMenuButton";
-import { TITLE_STYLE } from "../src/components/SectionTitle";
+import BigMenuButton from "../src/components/base/BigMenuButton";
+import { TITLE_STYLE } from "../src/components/base/SectionTitle";
 
 interface TimedFullScreenNotificationProps extends IInternationalized, IParenting {
     /** intl key */

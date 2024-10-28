@@ -52,7 +52,7 @@ export class LazerBeam extends BaseEntity {
     public getBeamWidth(): string {
         const width = Math.hypot(
             this.endPosition.x * window.innerWidth - this.startPosition.x * window.innerWidth,
-            this.endPosition.y * window.innerHeight - this.startPosition.y * window.innerHeight
+            this.endPosition.y * window.innerHeight - this.startPosition.y * window.innerHeight,
         );
         return `${width}px`;
     }
@@ -61,7 +61,7 @@ export class LazerBeam extends BaseEntity {
     public getBeamRotation(): string {
         const angle = Math.atan2(
             (this.endPosition.y - this.startPosition.y) * window.innerHeight,
-            (this.endPosition.x - this.startPosition.x) * window.innerWidth
+            (this.endPosition.x - this.startPosition.x) * window.innerWidth,
         );
         return `${angle}rad`;
     }
@@ -70,7 +70,7 @@ export class LazerBeam extends BaseEntity {
     public getStartCSSPosition(): { left: string; top: string } {
         return {
             left: `${this.startPosition.x * window.innerWidth}px`,
-            top: `${this.startPosition.y * window.innerHeight}px`
+            top: `${this.startPosition.y * window.innerHeight}px`,
         };
     }
 
@@ -78,7 +78,7 @@ export class LazerBeam extends BaseEntity {
     public getEndCSSPosition(): { left: string; top: string } {
         return {
             left: `${this.endPosition.x * window.innerWidth}px`,
-            top: `${this.endPosition.y * window.innerHeight}px`
+            top: `${this.endPosition.y * window.innerHeight}px`,
         };
     }
 

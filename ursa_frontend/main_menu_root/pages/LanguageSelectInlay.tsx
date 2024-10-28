@@ -2,11 +2,11 @@ import { Component, createMemo, createSignal, For, Show } from "solid-js";
 import { IBackendBased, IInternationalized } from "../../src/ts/types";
 import { css } from "@emotion/css";
 import NTAwait from "../../src/components/util/NoThrowAwait";
-import GraphicalAsset from "../../src/components/GraphicalAsset";
-import BigMenuButton from "../../src/components/BigMenuButton";
+import BigMenuButton from "../../src/components/base/BigMenuButton";
 import { Styles } from "../../src/sharedCSS";
 import { assureUniformLanguageCode } from "../../src/integrations/vitec/vitecIntegration";
 import { PreferenceKeys } from "../../src/integrations/main_backend/mainBackendDTOs";
+import GraphicalAsset from "../../src/components/base/GraphicalAsset";
 
 interface LanguageSelectProps extends IInternationalized, IBackendBased{}
 

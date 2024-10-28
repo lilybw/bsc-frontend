@@ -1,8 +1,7 @@
 import { css } from "@emotion/css";
 import { JSX } from "solid-js/jsx-runtime";
-import SectionTitle from "./components/SectionTitle";
-import SectionSubTitle from "./components/SectionSubTitle";
-import { IInternationalized } from "./ts/types";
+import SectionSubTitle from "./components/base/SectionSubTitle";
+import SectionTitle from "./components/base/SectionTitle";
 
 interface ErrorPageProps{
     title?: string;

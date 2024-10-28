@@ -1,13 +1,13 @@
-import { JSX, Component, createSignal, createMemo, onMount } from "solid-js";
+import { Component, createSignal, createMemo, onMount } from "solid-js";
 import { css } from "@emotion/css";
 import { IBackendBased, IInternationalized } from "../../../src/ts/types";
 import NTAwait from "../../../src/components/util/NoThrowAwait";
-import GraphicalAsset from "../../../src/components/GraphicalAsset";
 import ActionInput from "../../../src/components/colony/MainActionInput";
-import BufferBasedButton from "../../../src/components/BufferBasedButton";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../../src/ts/actionContext";
 import { createArrayStore } from "../../../src/ts/arrayStore";
 import { BigButtonStyle } from "../../../src/sharedCSS";
+import BufferBasedButton from "../../../src/components/base/BufferBasedButton";
+import GraphicalAsset from "../../../src/components/base/GraphicalAsset";
 
 interface SpacePortInterfaceProps extends IInternationalized, IBackendBased {
   onOpen: () => void;
@@ -70,7 +70,7 @@ const SpacePortInterface: Component<SpacePortInterfaceProps> = (props) => {
     <div class={containerStyle}>
       <h1 class={titleStyle}>{props.text.get('LOCATION.SPACE_PORT.NAME').get()}</h1>
       <ActionInput 
-        subscribers={bufferSubscribers.get}
+        subscribers={bufferSubscribers}
         text={props.text}
         backend={props.backend}
         actionContext={actionContext}

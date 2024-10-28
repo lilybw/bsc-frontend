@@ -1,7 +1,7 @@
 import { css } from "@emotion/css";
 import { Accessor, Component } from "solid-js";
 import { NamedVoidFunction } from "../src/meta/types";
-import BigMenuButton from "../src/components/BigMenuButton";
+import BigMenuButton from "../src/components/base/BigMenuButton";
 import { IInternationalized } from "../src/ts/types";
 
 interface NavigationFooterProps extends IInternationalized {

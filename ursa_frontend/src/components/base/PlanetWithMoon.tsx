@@ -1,9 +1,9 @@
 import { Component, createMemo } from "solid-js";
 import { css } from "@emotion/css";
-import { IBackendBased, IStyleOverwritable } from "../ts/types";
-import { AssetID } from "../integrations/main_backend/mainBackendDTOs";
-import NTAwait from "./util/NoThrowAwait";
 import Planet from "./Planet";
+import { AssetID } from "../../integrations/main_backend/mainBackendDTOs";
+import { IBackendBased, IStyleOverwritable } from "../../ts/types";
+import NTAwait from "../util/NoThrowAwait";
 
 interface PlanetWithMoonProps extends IBackendBased, IStyleOverwritable {
   moonAssetOverwrite?: AssetID,

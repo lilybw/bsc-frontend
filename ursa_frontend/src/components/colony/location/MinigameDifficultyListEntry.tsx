@@ -2,8 +2,8 @@ import { Accessor, Component } from "solid-js";
 import { MinigameDifficultyResponseDTO } from "../../../integrations/main_backend/mainBackendDTOs";
 import { IBackendBased, IBufferBased, IEmitter, IInternationalized, IRegistering } from "../../../ts/types";
 import { css, keyframes } from "@emotion/css";
-import BufferBasedButton from "../../BufferBasedButton";
 import { DIFFICULTY_SELECT_FOR_MINIGAME_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
+import BufferBasedButton from "../../base/BufferBasedButton";
 
 interface MinigameDifficultyListEntryProps extends IBackendBased, IBufferBased, IRegistering<string>, IEmitter, IInternationalized {
     difficulty: MinigameDifficultyResponseDTO;

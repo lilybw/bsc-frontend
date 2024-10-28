@@ -2,12 +2,12 @@ import { Component, createSignal, For } from "solid-js"
 import { MenuPageProps, MenuPages } from "../MainMenuApp"
 import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO, UpdateLatestVisitRequestDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
-import StarryBackground from "../../src/components/StarryBackground";
 import ColonyListEntry from "./ColonyListEntry";
 import NavigationFooter from "../NavigationFooter";
 import NTAwait from "../../src/components/util/NoThrowAwait";
-import BigMenuButton from "../../src/components/BigMenuButton";
+import BigMenuButton from "../../src/components/base/BigMenuButton";
 import { Styles } from "../../src/sharedCSS";
+import StarryBackground from "../../src/components/base/StarryBackground";
 
 const ColonyListPage: Component<MenuPageProps> = (props) => {
     const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);

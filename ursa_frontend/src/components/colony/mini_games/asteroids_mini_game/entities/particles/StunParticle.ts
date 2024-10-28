@@ -16,7 +16,7 @@ export class StunParticle extends BaseParticle {
         super(props);
         this.size = props.size || 2.5;
         // Calculate random position within middle third once at creation
-        this.horizontalPosition = 33 + (Math.random() * 33);
+        this.horizontalPosition = 33 + Math.random() * 33;
     }
 
     /**
@@ -40,7 +40,7 @@ export class StunParticle extends BaseParticle {
                 rgba(255, 255, 0, 0.8) 20%,
                 rgba(255, 255, 150, 0.4) 40%,
                 rgba(255, 255, 0, 0) 70%
-            )`
+            )`,
         };
     }
 
@@ -55,7 +55,7 @@ export class StunParticle extends BaseParticle {
         if (progress < 0.1) {
             return progress * 10; // Fade in
         } else if (progress > 0.8) {
-            return 1 - ((progress - 0.8) * 5); // Fade out
+            return 1 - (progress - 0.8) * 5; // Fade out
         }
         return 1;
     }

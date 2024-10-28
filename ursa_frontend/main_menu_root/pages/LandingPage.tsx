@@ -1,10 +1,10 @@
 import { Component, createMemo } from "solid-js";
 import { MenuPageProps, MenuPages } from "../MainMenuApp";
 import { css } from "@emotion/css";
-import SectionTitle from "../../src/components/SectionTitle";
-import BigMenuButton from "../../src/components/BigMenuButton";
-import StarryBackground from "../../src/components/StarryBackground";
+import BigMenuButton from "../../src/components/base/BigMenuButton";
 import { RuntimeMode } from "../../src/meta/types";
+import SectionTitle from "../../src/components/base/SectionTitle";
+import StarryBackground from "../../src/components/base/StarryBackground";
 
 const LandingPage: Component<MenuPageProps> = (props) => {
 

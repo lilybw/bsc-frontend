@@ -1,14 +1,11 @@
 import { JSX } from "solid-js/jsx-runtime";
-import StarryBackground from "../../src/components/StarryBackground";
 import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../src/ts/types";
 import { css } from "@emotion/css";
-import Await from "../../src/components/util/Await";
-import { ResCodeErr } from "../../src/meta/types";
-import { AssetResponseDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
-import GraphicalAsset from "../../src/components/GraphicalAsset";
 import NTAwait from "../../src/components/util/NoThrowAwait";
 import { URSANav } from "../../src/integrations/vitec/navigator";
-import BigMenuButton from "../../src/components/BigMenuButton";
+import BigMenuButton from "../../src/components/base/BigMenuButton";
+import GraphicalAsset from "../../src/components/base/GraphicalAsset";
+import StarryBackground from "../../src/components/base/StarryBackground";
 
 interface TutorialCompletePageProps extends IInternationalized, IStyleOverwritable, IBackendBased {
     onSlideCompleted: () => void;

@@ -1,15 +1,15 @@
 import { JSX, createSignal, createMemo, Show, onMount } from "solid-js";
 import { css } from "@emotion/css";
-import StarryBackground from "../../src/components/StarryBackground";
 import ActionInput from "../../src/components/colony/MainActionInput";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../src/ts/actionContext";
 import { createArrayStore } from "../../src/ts/arrayStore";
 import VideoFrame from "./VideoFrame";
-import ImageBufferButton from "../../src/components/ImageBufferButton";
 import NTAwait from "../../src/components/util/NoThrowAwait";
-import GraphicalAsset from "../../src/components/GraphicalAsset";
 import SpacePortInterface from "./tutorial utility components/Spaceport";
 import { IBackendBased, IInternationalized } from "../../src/ts/types";
+import GraphicalAsset from "../../src/components/base/GraphicalAsset";
+import ImageBufferButton from "../../src/components/base/ImageBufferButton";
+import StarryBackground from "../../src/components/base/StarryBackground";
 
 interface MultiplayerDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
@@ -104,7 +104,7 @@ export default function MultiplayerDemo(props: MultiplayerDemoProps): JSX.Elemen
             <Show when={currentStep() === DemoStep.ENTER_SPACE_PORT}>
                 <VideoFrame styleOverwrite={videoDemoFrameStyle} backend={props.backend}> 
                     {props.text.SubTitle('TUTORIAL.MULTPLAYER.DESCRIPTION')({})}
-                    <ActionInput subscribers={bufferSubscribers.get} 
+                    <ActionInput subscribers={bufferSubscribers} 
                         text={props.text}
                         backend={props.backend}
                         actionContext={actionContext} 

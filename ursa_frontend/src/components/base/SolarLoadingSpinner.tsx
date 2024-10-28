@@ -1,8 +1,8 @@
 import { Component, For } from 'solid-js';
 import { css, keyframes } from '@emotion/css';
-import StarryBackground from './StarryBackground';
 import SectionTitle from './SectionTitle';
-import { IStyleOverwritable } from '../ts/types';
+import { IStyleOverwritable } from '../../ts/types';
+import StarryBackground from './StarryBackground';
 
 const animOrbit = keyframes`
   from { transform: translate(-50%, -50%) rotate(var(--start-position)); }

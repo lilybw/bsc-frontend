@@ -1,7 +1,6 @@
 import { Component, createResource, JSX, Show } from "solid-js";
-import { Error, ResCodeErr } from "../../meta/types";
-import Spinner from "../SimpleLoadingSpinner";
-import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
+import Spinner from "../base/SimpleLoadingSpinner";
+import SomethingWentWrongIcon from "../base/SomethingWentWrongIcon";
 
 export interface AwaitProps<T> {
     func: () => Promise<T>;

@@ -1,6 +1,5 @@
-import { createSignal, type Component, type JSX } from 'solid-js';
+import { createSignal, type Component } from 'solid-js';
 import { Styles } from '../src/sharedCSS';
-
 import {css} from '@emotion/css'
 import { ApplicationContext, Bundle, BundleComponent } from '../src/meta/types';
 import LandingPage from './pages/LandingPage';
@@ -8,11 +7,7 @@ import { ApplicationProps } from '../src/ts/types';
 import ColonyListPage from './pages/ColonyListPage';
 import NewColonyPage from './pages/NewColonyPage';
 import JoinColonyPage from './pages/JoinColony';
-import SlideIcon from '../tutorial_root/SlideIcon';
 import LanguageSelectInlay from './pages/LanguageSelectInlay';
-import SpacePortLocationCard from '../src/components/colony/location/SpacePortLocationCard';
-import { createArrayStore } from '../src/ts/arrayStore';
-import OnScreenKeyboard from '../src/components/base/OnScreenKeyboard';
 
 export enum MenuPages {
   LANDING_PAGE = "landing",

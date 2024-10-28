@@ -1,11 +1,11 @@
 import { JSX } from "solid-js/jsx-runtime";
-import StarryBackground from "../../src/components/StarryBackground";
 import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../src/ts/types";
 import { createMemo, createSignal } from "solid-js";
 import ActionInput from "../../src/components/colony/MainActionInput";
 import { ActionContext, BufferSubscriber } from "../../src/ts/actionContext";
 import { createArrayStore } from "../../src/ts/arrayStore";
 import { css } from "@emotion/css";
+import StarryBackground from "../../src/components/base/StarryBackground";
 
 interface NavigationTrialProps extends IStyleOverwritable, IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
@@ -22,7 +22,7 @@ export default function NavigationTrial(props: NavigationTrialProps): JSX.Elemen
             {props.text.Title('TUTORIAL.TRIAL.TITLE')({styleOverwrite: trialTitleStyleOverwrite})}
             {props.text.SubTitle('TUTORIAL.NAVIGATION_TRIAL.DESCRIPTION')({styleOverwrite: subtitleStyleOverwrite})}
             <ActionInput actionContext={createMemo(() => ActionContext.NAVIGATION)}
-                subscribers={bufferSubscribers.get} 
+                subscribers={bufferSubscribers} 
                 text={props.text} 
                 backend={props.backend} 
                 setInputBuffer={setBuffer} 

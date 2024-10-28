@@ -1,15 +1,15 @@
 import { css } from "@emotion/css";
-import { Component, createResource, createSignal, ErrorBoundary, JSX, Show } from "solid-js";
-import { ApplicationContext, ResErr, RuntimeMode } from "./meta/types";
+import { Component, createSignal } from "solid-js";
+import { RuntimeMode } from "./meta/types";
 import { initContext } from "./setup";
 import ErrorPage from "./ErrorPage";
 import { Styles } from "./sharedCSS";
-import SolarLoadingSpinner from "./components/SolarLoadingSpinner";
 import { VitecIntegrationInformation } from "./integrations/vitec/vitecDTOs";
 import { ApplicationProps } from "./ts/types";
 import { BundleComponent } from "./meta/types";
 import NTAwait from "./components/util/NoThrowAwait";
 import DevOverlay from "./components/util/DevOverlay";
+import SolarLoadingSpinner from "./components/base/SolarLoadingSpinner";
 
 interface GlobalContainerProps {
     app: BundleComponent<ApplicationProps>;

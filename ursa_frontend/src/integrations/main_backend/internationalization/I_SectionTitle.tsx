@@ -1,7 +1,7 @@
 import { JSX } from "solid-js/jsx-runtime"
 import { css } from "@emotion/css"
 import { Accessor } from "solid-js";
-import { SectionTitleProps, TITLE_STYLE } from "../../../components/SectionTitle";
+import { SectionTitleProps, TITLE_STYLE } from "../../../components/base/SectionTitle";
 
 export default function I_SectionSubTitle(props: SectionTitleProps, text: Accessor<string>): JSX.Element {
     return (

@@ -2,8 +2,8 @@ import { Component } from "solid-js";
 import { ApplicationContext } from "../../meta/types";
 import { css } from "@emotion/css";
 import { Styles } from "../../sharedCSS";
-import BigMenuButton from "../BigMenuButton";
-import ExpandingHeader from "../ExpandingHeader";
+import BigMenuButton from "../base/BigMenuButton";
+import ExpandingHeader from "../base/ExpandingHeader";
 
 interface DevOverlayProps {
     context: ApplicationContext;

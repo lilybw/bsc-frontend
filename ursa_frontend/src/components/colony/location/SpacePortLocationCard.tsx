@@ -1,14 +1,14 @@
-import { Component, createSignal, createEffect, createMemo } from "solid-js";
+import { Component, createSignal, createMemo } from "solid-js";
 import { GenericLocationCardProps } from "./GenericLocationCard";
-import { css, keyframes } from "@emotion/css";
-import BufferBasedButton from "../../BufferBasedButton";
+import { css } from "@emotion/css";
 import NTAwait from "../../util/NoThrowAwait";
-import GraphicalAsset from "../../GraphicalAsset";
 import { ColonyCode, ColonyInfoResponseDTO, OpenColonyRequestDTO } from "../../../integrations/main_backend/mainBackendDTOs";
-import { LOBBY_CLOSING_EVENT, PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
+import { PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
 import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
-import { ColonyState, MultiplayerMode } from "../../../meta/types";
+import { MultiplayerMode } from "../../../meta/types";
 import { Styles } from "../../../sharedCSS";
+import BufferBasedButton from "../../base/BufferBasedButton";
+import GraphicalAsset from "../../base/GraphicalAsset";
 
 interface SpacePortCardProps extends GenericLocationCardProps {
     colony: ColonyInfoResponseDTO;

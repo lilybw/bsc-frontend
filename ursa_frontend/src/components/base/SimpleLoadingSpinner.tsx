@@ -1,6 +1,6 @@
 import { Component } from 'solid-js';
 import { css, keyframes } from '@emotion/css';
-import { IStyleOverwritable } from '../ts/types';
+import { IStyleOverwritable } from '../../ts/types';
 
 interface SpinnerProps extends IStyleOverwritable {
 }

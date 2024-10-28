@@ -1,10 +1,9 @@
 import { JSX } from "solid-js/jsx-runtime";
-import SectionTitle from "../../src/components/SectionTitle";
-import StarryBackground from "../../src/components/StarryBackground";
 import { css, keyframes } from "@emotion/css";
 import { IBackendBased, IInternationalized } from "../../src/ts/types";
 import NTAwait from "../../src/components/util/NoThrowAwait";
-import GraphicalAsset from "../../src/components/GraphicalAsset";
+import StarryBackground from "../../src/components/base/StarryBackground";
+import GraphicalAsset from "../../src/components/base/GraphicalAsset";
 
 interface WelcomePageProps extends IBackendBased, IInternationalized {
     styleOverwrite?: string;

@@ -133,17 +133,19 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
         },
         cullByPredicate: (predicate: (element: T) => boolean): number => {
             let originalLength = proxy.length;
-            setStore(produce((s) => s.filter(element => !predicate(element))));
+            setStore(produce((s) => s.filter((element) => !predicate(element))));
             return originalLength - proxy.length;
         },
         removeAtIndex: (index: number): boolean => {
             if (index < 0 || index >= proxy.length) {
                 return false;
             }
-            setStore(produce((s) => {
-                s.splice(index, 1);
-                return s;
-            }));
+            setStore(
+                produce((s) => {
+                    s.splice(index, 1);
+                    return s;
+                }),
+            );
             return true;
         },
         removeFirst: (predicate: (element: T) => boolean): boolean => {
@@ -151,11 +153,13 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
             if (index === -1) {
                 return false;
             }
-            setStore(produce((s) => {
-                s.splice(index, 1);
-                return s;
-            }));
+            setStore(
+                produce((s) => {
+                    s.splice(index, 1);
+                    return s;
+                }),
+            );
             return true;
-        }
+        },
     };
 }

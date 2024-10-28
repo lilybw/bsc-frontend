@@ -1,14 +1,13 @@
 import { Component, createMemo, createSignal, Show } from "solid-js";
-import { MenuPageProps, MenuPages } from "../MainMenuApp";
+import { MenuPageProps } from "../MainMenuApp";
 import NavigationFooter from "../NavigationFooter";
-import StarryBackground from "../../src/components/StarryBackground";
-import SectionTitle from "../../src/components/SectionTitle";
 import { css } from "@emotion/css";
-import SectionSubTitle from "../../src/components/SectionSubTitle";
 import { Styles } from "../../src/sharedCSS";
 import NTAwait from "../../src/components/util/NoThrowAwait";
-import GraphicalAsset from "../../src/components/GraphicalAsset";
 import { Error } from "../../src/meta/types";
+import StarryBackground from "../../src/components/base/StarryBackground";
+import GraphicalAsset from "../../src/components/base/GraphicalAsset";
+import SectionSubTitle from "../../src/components/base/SectionSubTitle";
 
 const JoinColonyPage: Component<MenuPageProps> = (props) => {
     const [colonyCode, setColonyCode] = createSignal("");

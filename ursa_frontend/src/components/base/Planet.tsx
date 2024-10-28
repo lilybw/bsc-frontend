@@ -1,12 +1,10 @@
 import { createSignal, createEffect, onCleanup, Component, createMemo, JSX, Show, For, createResource } from 'solid-js';
-import { AssetID, AssetResponseDTO } from '../integrations/main_backend/mainBackendDTOs';
-import { BackendIntegration } from '../integrations/main_backend/mainBackend';
-import Spinner from './SimpleLoadingSpinner';
 import { css } from '@emotion/css';
+import { AssetResponseDTO } from '../../integrations/main_backend/mainBackendDTOs';
+import { Styles } from '../../sharedCSS';
+import { IStyleOverwritable, IParenting, IBackendBased } from '../../ts/types';
+import Spinner from './SimpleLoadingSpinner';
 import SomethingWentWrongIcon from './SomethingWentWrongIcon';
-import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from '../ts/types';
-import { Styles } from '../sharedCSS';
-import { ResCodeErr } from '../meta/types';
 
 interface SpinningPlanetProps extends IStyleOverwritable, IParenting, IBackendBased {
   metadata: AssetResponseDTO;

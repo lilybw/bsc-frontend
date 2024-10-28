@@ -1,6 +1,6 @@
 import { JSX } from "solid-js/jsx-runtime";
-import StarryBackground from "../../src/components/StarryBackground";
 import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../src/ts/types";
+import StarryBackground from "../../src/components/base/StarryBackground";
 
 interface LocationDemoProps extends IStyleOverwritable, IInternationalized, IBackendBased {
     styleOverwrite?: string;

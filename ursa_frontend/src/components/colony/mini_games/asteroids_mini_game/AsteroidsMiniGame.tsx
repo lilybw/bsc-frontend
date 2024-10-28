@@ -31,11 +31,11 @@ import { AsteroidsSettingsDTO } from "./types/GameTypes";
 import { Position } from "./entities/BaseEntity";
 import ActionInput from "../../MainActionInput";
 import NTAwait from "../../../util/NoThrowAwait";
-import GraphicalAsset from "../../../GraphicalAsset";
-import { asteroidButtonStyle, asteroidImageContainerStyle, asteroidStyle, buttonContainerStyle, disabledStyle, impactCircleStyle, lazerBeamStyle, playerCharacterStyle, playerStyle, rotatingStyle, statusStyle, stunEffectStyle, stunnedStyle, stunParticleStyle, wallStyle } from "./styles/GameStyles";
-import BufferBasedButton from "../../../BufferBasedButton";
+import { asteroidButtonStyle, asteroidImageContainerStyle, asteroidStyle, buttonContainerStyle, impactCircleStyle, lazerBeamStyle, playerCharacterStyle, playerStyle, rotatingStyle, statusStyle, stunEffectStyle, stunnedStyle, stunParticleStyle, wallStyle } from "./styles/GameStyles";
 import Countdown from "../../../util/Countdown";
-import StarryBackground from "../../../StarryBackground";
+import BufferBasedButton from "../../../base/BufferBasedButton";
+import GraphicalAsset from "../../../base/GraphicalAsset";
+import StarryBackground from "../../../base/StarryBackground";
 
 type PlayerState = {
   isStunned: boolean;

@@ -1,11 +1,11 @@
 import { Component, For, onCleanup, onMount } from "solid-js";
-import { createArrayStore } from "../ts/arrayStore";
-import { StrictJSX } from "../../colony_root/ColonyApp";
-import { IEventMultiplexer } from "../integrations/multiplayer_backend/eventMultiplexer";
-import { IBackendBased, IInternationalized } from "../ts/types";
 import { css } from "@emotion/css";
-import { LOBBY_CLOSING_EVENT, OriginType, PLAYER_JOINED_EVENT, PLAYER_LEFT_EVENT, SERVER_CLOSING_EVENT } from "../integrations/multiplayer_backend/EventSpecifications";
-import { Styles } from "../sharedCSS";
+import { StrictJSX } from "../../../colony_root/ColonyApp";
+import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventMultiplexer";
+import { PLAYER_LEFT_EVENT, PLAYER_JOINED_EVENT, SERVER_CLOSING_EVENT, LOBBY_CLOSING_EVENT } from "../../integrations/multiplayer_backend/EventSpecifications";
+import { Styles } from "../../sharedCSS";
+import { createArrayStore } from "../../ts/arrayStore";
+import { IBackendBased, IInternationalized } from "../../ts/types";
 
 interface EventFeedProps extends IBackendBased, IInternationalized {
     events: IEventMultiplexer;

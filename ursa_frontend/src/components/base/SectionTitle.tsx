@@ -1,6 +1,6 @@
 import { css } from "@emotion/css";
 import { JSX } from "solid-js/jsx-runtime";
-import { IParenting, IStyleOverwritable } from "../ts/types";
+import { IParenting, IStyleOverwritable } from "../../ts/types";
 
 export interface SectionTitleProps extends IStyleOverwritable, IParenting {
 }

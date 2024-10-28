@@ -90,9 +90,12 @@ describe('Multiplexer subscribe tests', () => {
         let callCount = 0;
         const testEventSourceID = 'test';
 
-        const testHandler: OnEventCallback<any> = Object.assign((data: any) => {
-            callCount++;
-        }, { internalOrigin: testEventSourceID });
+        const testHandler: OnEventCallback<any> = Object.assign(
+            (data: any) => {
+                callCount++;
+            },
+            { internalOrigin: testEventSourceID },
+        );
 
         //Subscribing to all events
         Object.values(EVENT_ID_MAP).forEach((spec, id) => {
@@ -102,7 +105,7 @@ describe('Multiplexer subscribe tests', () => {
         await Promise.all(
             Object.values(EVENT_ID_MAP).map(async (spec, id) => {
                 await multiplexer.emit(spec, null as any, testEventSourceID);
-            })
+            }),
         );
         await multiplexer.emit(DEBUG_INFO_EVENT, { message: 'test', code: -1 }, testEventSourceID);
 
@@ -114,21 +117,24 @@ describe('Multiplexer subscribe tests', () => {
         let callCount = 0;
         const testEventSourceID = 'test';
 
-        const testHandler: OnEventCallback<any> = Object.assign((data: any) => {
-            callCount++;
-        }, { internalOrigin: testEventSourceID });
+        const testHandler: OnEventCallback<any> = Object.assign(
+            (data: any) => {
+                callCount++;
+            },
+            { internalOrigin: testEventSourceID },
+        );
 
         //Subscribing to all events
         Object.values(EVENT_ID_MAP).forEach((spec, id) => {
             multiplexer.subscribe(spec, testHandler);
         });
-        const otherEventSource = "other_test";
+        const otherEventSource = 'other_test';
         //Emitting all events
         await Promise.all(
             Object.values(EVENT_ID_MAP).map(async (spec, id) => {
                 //About half get the other event source, the other half get undefined as event source
                 await multiplexer.emit(spec, null as any, id % 2 === 0 ? otherEventSource : undefined);
-            })
+            }),
         );
 
         expect(callCount).toEqual(Object.values(EVENT_ID_MAP).length);
@@ -151,7 +157,7 @@ describe('Multiplexer subscribe tests', () => {
             Object.values(EVENT_ID_MAP).map(async (spec, id) => {
                 //About half get the other event source, the other half get undefined as event source
                 await multiplexer.emit(spec, null as any, getRandomString(10));
-            })
+            }),
         );
 
         expect(callCount).toEqual(Object.values(EVENT_ID_MAP).length);
@@ -170,9 +176,12 @@ describe('Multiplexer subscribe tests', () => {
         let sharedCallCount = 0;
         const testEventSourceID = 'test';
 
-        const testHandler: OnEventCallback<any> = Object.assign((data: any) => {
-            sharedCallCount++;
-        }, { internalOrigin: testEventSourceID });
+        const testHandler: OnEventCallback<any> = Object.assign(
+            (data: any) => {
+                sharedCallCount++;
+            },
+            { internalOrigin: testEventSourceID },
+        );
 
         const testHandler2: OnEventCallback<any> = (data: any) => {
             sharedCallCount++;
@@ -187,12 +196,12 @@ describe('Multiplexer subscribe tests', () => {
         await Promise.all(
             Object.values(EVENT_ID_MAP).map(async (spec, id) => {
                 await multiplexer.emit(spec, null as any, testEventSourceID);
-            })
+            }),
         );
 
         //The handler with matching internalOrigin should not be called
         expect(sharedCallCount).toEqual(Object.values(EVENT_ID_MAP).length);
-    })
+    });
 
     test('When unsubscribed, the handler should not be called anymore', async () => {
         const multiplexer = initializeEventMultiplexer(testLogger, 1);

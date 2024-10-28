@@ -2,13 +2,13 @@ import { Component, createSignal, For, onCleanup, onMount, Show } from "solid-js
 import { css, keyframes } from "@emotion/css";
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from "../../../ts/types";
 import { ColonyLocationInformation, LocationInfoResponseDTO, MinigameDifficultyResponseDTO, uint32 } from "../../../integrations/main_backend/mainBackendDTOs";
-import BufferBasedButton from "../../BufferBasedButton";
 import NTAwait from "../../util/NoThrowAwait";
-import GraphicalAsset from "../../GraphicalAsset";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 import MinigameDifficultyListEntry from "./MinigameDifficultyListEntry";
 import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, DifficultySelectForMinigameMessageDTO } from "../../../integrations/multiplayer_backend/EventSpecifications";
-import UnderConstruction from "../../UnderConstruction";
+import BufferBasedButton from "../../base/BufferBasedButton";
+import GraphicalAsset from "../../base/GraphicalAsset";
+import UnderConstruction from "../../base/UnderConstruction";
 
 export interface GenericLocationCardProps extends IBufferBased, IBackendBased, IInternationalized, IRegistering<string> {
     colonyLocation: ColonyLocationInformation;

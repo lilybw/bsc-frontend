@@ -89,8 +89,8 @@ export interface BackendIntegration extends BaseBackendIntegration {
         getInfo: (player: PlayerID) => Promise<ResCodeErr<PlayerInfoResponseDTO>>;
         getPreferences: (player: PlayerID) => Promise<ResCodeErr<PlayerPreferencesResponseDTO>>;
         setPreference: (key: PreferenceKeys, value: string) => Promise<ResCodeErr<void>>;
-        grantAchievement: (achievement: number) => Promise<ResCodeErr<void>>;   
-    }
+        grantAchievement: (achievement: number) => Promise<ResCodeErr<void>>;
+    };
 
     getCatalogue: (locale: LanguagePreference) => Promise<ResCodeErr<InternationalizationCatalogueResponseDTO>>;
     getAvailableLanguages: () => Promise<ResCodeErr<AvailableLanguagesResponseDTO>>;
@@ -105,12 +105,12 @@ export interface BackendIntegration extends BaseBackendIntegration {
         join: (code: ColonyCode) => Promise<ResCodeErr<JoinColonyResponseDTO>>;
         create: (dto: CreateColonyRequestDTO, player: PlayerID) => Promise<ResCodeErr<CreateColonyResponseDTO>>;
         getPathGraph: (colony: uint32) => Promise<ResCodeErr<ColonyPathGraphResponseDTO>>;
-    }
+    };
 
     locations: {
         getInfo: (location: uint32) => Promise<ResCodeErr<LocationInfoResponseDTO>>;
         getFullInfo: (location: uint32) => Promise<ResCodeErr<LocationInfoFullResponseDTO>>;
-    }
+    };
 
     assets: {
         getMetadata: (asset: AssetID) => Promise<ResCodeErr<AssetResponseDTO>>;
@@ -118,13 +118,13 @@ export interface BackendIntegration extends BaseBackendIntegration {
         getAssetLOD: (asset: AssetID, detailLevel: number) => Promise<ResCodeErr<ResponseBlob>>;
         getLOD: (lod: LODID) => Promise<ResCodeErr<ResponseBlob>>;
         getCollection: (collection: AssetCollectionID) => Promise<ResCodeErr<AssetCollectionResponseDTO>>;
-    }
+    };
     objectUrlCache: IObjectURLCache;
 
     minigame: {
         getInfo: (minigame: uint32) => Promise<ResCodeErr<MinigameInfoResponseDTO>>;
         getMinimizedInfo: (minigame: MinigameID, diffulty: MinigameDifficultyID) => Promise<ResCodeErr<MinimizedMinigameInfoResponseDTO>>;
-    }
+    };
 
     /**
      * Some calls are proxied through the main backend for a number of reasons.
@@ -133,18 +133,18 @@ export interface BackendIntegration extends BaseBackendIntegration {
     proxy: {
         multiplayer: {
             getLobbyState: (lobbyID: uint32) => Promise<ResCodeErr<LobbyStateResponseDTO>>;
-        }
-    } 
+        };
+    };
 }
 
 /**
  * In raw binary responses (blob), further information about the asset is provided in the headers.
  */
-export const URSA_HEADER_DETAIL_LEVEL = "URSA-DETAIL-LEVEL";
+export const URSA_HEADER_DETAIL_LEVEL = 'URSA-DETAIL-LEVEL';
 /**
  * In raw binary responses (blob), further information about the asset is provided in the headers.
  */
-export const URSA_HEADER_ASSET_ID = "URSA-ASSET-ID";
+export const URSA_HEADER_ASSET_ID = 'URSA-ASSET-ID';
 
 /**
  * @since 0.0.1
@@ -215,7 +215,7 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
             setPreference: (key, value) =>
                 base.request<void>(HTTPMethod.POST, `/api/v1/player/${localPlayer.id}/preferences`, ParseMethod.NONE, { key, value }),
             grantAchievement: (achievement) =>
-                base.request<void>(HTTPMethod.POST, `/api/v1/player/${localPlayer.id}/achievement/${achievement}`, ParseMethod.NONE),    
+                base.request<void>(HTTPMethod.POST, `/api/v1/player/${localPlayer.id}/achievement/${achievement}`, ParseMethod.NONE),
         },
 
         getCatalogue: (locale) =>
@@ -229,10 +229,8 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
                 base.request<UpdateLatestVisitResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/update-last-visit`, ParseMethod.JSON, dto),
             getOverview: (player) => base.request<ColonyOverviewReponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
             open: (colony, dto) => base.request<OpenColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/open`, ParseMethod.JSON, dto),
-            getCode: (colony) => 
-                base.request<GetColonyCodeResponseDTO>(HTTPMethod.GET, `/api/v1/colony/${colony}/code`, ParseMethod.JSON),
-            close: (colony, dto) => 
-                base.request<void>(HTTPMethod.POST, `/api/v1/colony/${colony}/close`, ParseMethod.NONE, dto),
+            getCode: (colony) => base.request<GetColonyCodeResponseDTO>(HTTPMethod.GET, `/api/v1/colony/${colony}/code`, ParseMethod.JSON),
+            close: (colony, dto) => base.request<void>(HTTPMethod.POST, `/api/v1/colony/${colony}/close`, ParseMethod.NONE, dto),
             join: (code) => base.request<JoinColonyResponseDTO>(HTTPMethod.POST, `/api/v1/colony/join/${code}`, ParseMethod.JSON),
             create: (dto, player) =>
                 base.request<ColonyInfoResponseDTO>(HTTPMethod.POST, `/api/v1/player/${player}/colony/create`, ParseMethod.JSON, dto),
@@ -240,13 +238,14 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
                 base.request<ColonyPathGraphResponseDTO>(HTTPMethod.GET, `/api/v1/colony/${colony}/pathgraph`, ParseMethod.JSON),
         },
         locations: {
-            getInfo: (location) => base.request<LocationInfoResponseDTO>(HTTPMethod.GET, `/api/v1/location/${location}`, ParseMethod.JSON),        
+            getInfo: (location) => base.request<LocationInfoResponseDTO>(HTTPMethod.GET, `/api/v1/location/${location}`, ParseMethod.JSON),
             getFullInfo: (location) =>
                 base.request<LocationInfoFullResponseDTO>(HTTPMethod.GET, `/api/v1/location/${location}/full`, ParseMethod.JSON),
         },
         assets: {
             getMetadata: (assetId) => base.request<AssetResponseDTO>(HTTPMethod.GET, `/api/v1/asset/${assetId}`, ParseMethod.JSON),
-            getMetadataOfMultiple: (assets) => base.request<AssetResponseDTO[]>(HTTPMethod.GET, `/api/v1/assets?ids=${assets.join(',')}`, ParseMethod.JSON),
+            getMetadataOfMultiple: (assets) =>
+                base.request<AssetResponseDTO[]>(HTTPMethod.GET, `/api/v1/assets?ids=${assets.join(',')}`, ParseMethod.JSON),
             getAssetLOD: (asset, lod) => base.request<ResponseBlob>(HTTPMethod.GET, `/api/v1/asset/${asset}/lod/${lod}`, ParseMethod.BLOB),
             getLOD: (lod: LODID) => base.request<ResponseBlob>(HTTPMethod.GET, `/api/v1/lod/${lod}`, ParseMethod.BLOB),
             getCollection: (collection) =>
@@ -267,8 +266,8 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
             multiplayer: {
                 getLobbyState: (lobbyID) =>
                     base.request<LobbyStateResponseDTO>(HTTPMethod.GET, `/proxy/v1/multiplayer/lobby/${lobbyID}`, ParseMethod.JSON),
-            }
-        }
+            },
+        },
     };
 };
 /**
@@ -328,7 +327,7 @@ async function handleArbitraryRequest<T>(
                 return { res: undefined as unknown as T, code: code, err: null };
         }
     } catch (error) {
-        integration.logger.error((error) as Error);
+        integration.logger.error(error as Error);
         return { res: null, code: 600, err: error as Error };
     }
 }

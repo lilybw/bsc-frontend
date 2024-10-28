@@ -4,8 +4,7 @@ import { BufferSubscriber, TypeIconTuple } from "../../ts/actionContext";
 import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../ts/types";
 import { ArrayStore } from "../../ts/arrayStore";
 import NTAwait from "../util/NoThrowAwait";
-import GraphicalAsset from "../GraphicalAsset";
-import { Styles } from "../../sharedCSS";
+import GraphicalAsset from "../base/GraphicalAsset";
 
 interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternationalized {
     actionContext: Accessor<TypeIconTuple>;

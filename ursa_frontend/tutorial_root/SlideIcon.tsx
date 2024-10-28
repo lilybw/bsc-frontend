@@ -1,6 +1,5 @@
 import { css } from "@emotion/css";
 import { Component } from "solid-js";
-import { JSX } from "solid-js/jsx-runtime";
 
 export interface SlideIconProps {
     styleOverwrite?: string;

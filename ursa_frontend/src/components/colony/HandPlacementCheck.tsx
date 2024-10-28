@@ -3,8 +3,8 @@ import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventM
 import { ActionContext, TypeIconTuple } from "../../ts/actionContext";
 import { css } from "@emotion/css";
 import { DifficultyConfirmedForMinigameMessageDTO, PLAYER_JOIN_ACTIVITY_EVENT } from "../../integrations/multiplayer_backend/EventSpecifications";
-import BufferBasedButton from "../BufferBasedButton";
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from "../../ts/types";
+import BufferBasedButton from "../base/BufferBasedButton";
 
 interface HandplacementCheckProps extends IBackendBased, IInternationalized, IRegistering<string>, IBufferBased {
     gameToBeMounted: DifficultyConfirmedForMinigameMessageDTO;

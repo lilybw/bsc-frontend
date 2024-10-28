@@ -4,13 +4,13 @@ import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOv
 import { css } from "@emotion/css";
 import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
 import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, ENTER_LOCATION_EVENT, PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
-import BufferBasedButton from "../../BufferBasedButton";
 import AssetCollection from "../AssetCollection";
 import { Styles } from "../../../sharedCSS";
 import LocationCard from "./LocationCard";
 import { WrappedSignal } from "../../../ts/wrappedSignal";
 import { ActionContext, TypeIconTuple } from "../../../ts/actionContext";
 import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
+import BufferBasedButton from "../../base/BufferBasedButton";
 
 interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colony: ColonyInfoResponseDTO;

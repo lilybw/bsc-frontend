@@ -13,7 +13,7 @@ const WALL_IMPACT_END = 0.67;
 export const handleAsteroidDestruction = (
     asteroidID: number,
     elementRefs: Map<string, EntityRef>,
-    asteroidsRemoveFuncs: Map<number, () => void>
+    asteroidsRemoveFuncs: Map<number, () => void>,
 ): void => {
     const asteroidKey = getAsteroidRefKey(asteroidID);
     elementRefs.delete(asteroidKey);
@@ -28,10 +28,10 @@ export const handleAsteroidDestruction = (
  * Generates a random impact position within the middle third of the left wall
  */
 export const generateImpactPosition = (): Position => {
-    const impactY = WALL_IMPACT_START + (Math.random() * (WALL_IMPACT_END - WALL_IMPACT_START));
+    const impactY = WALL_IMPACT_START + Math.random() * (WALL_IMPACT_END - WALL_IMPACT_START);
     return {
         x: 0,
-        y: impactY
+        y: impactY,
     };
 };
 
@@ -46,16 +46,16 @@ export const calculateMinSpawnDistance = (windowWidth: number): number => {
 /**
  * Generates a spawn position
  */
-export const generateSpawnPosition = (windowSize: { width: number, height: number }): Position => {
+export const generateSpawnPosition = (windowSize: { width: number; height: number }): Position => {
     const minSpawnDistance = calculateMinSpawnDistance(windowSize.width);
     const angleRange = Math.PI / 2;
     const baseAngle = -Math.PI / 4;
-    const randomAngle = baseAngle + (Math.random() * angleRange);
-    const spawnDistance = minSpawnDistance + (Math.random() * minSpawnDistance * 0.5);
+    const randomAngle = baseAngle + Math.random() * angleRange;
+    const spawnDistance = minSpawnDistance + Math.random() * minSpawnDistance * 0.5;
 
     return {
-        x: 1 + (Math.cos(randomAngle) * spawnDistance / windowSize.width),
-        y: 0 + (Math.sin(randomAngle) * spawnDistance / windowSize.height)
+        x: 1 + (Math.cos(randomAngle) * spawnDistance) / windowSize.width,
+        y: 0 + (Math.sin(randomAngle) * spawnDistance) / windowSize.height,
     };
 };
 
@@ -67,14 +67,17 @@ export const calculatePlayerPositions = (players: Player[]): Map<number, Positio
     const totalPlayers = players.length;
 
     // Debug logging
-    console.log('Calculating positions for players:', players.map(p => ({
-        id: p.id,
-        isLocal: p.isLocal,
-        firstName: p.firstName
-    })));
+    console.log(
+        'Calculating positions for players:',
+        players.map((p) => ({
+            id: p.id,
+            isLocal: p.isLocal,
+            firstName: p.firstName,
+        })),
+    );
 
     const margin = 0.1;
-    const availableWidth = 1 - (2 * margin);
+    const availableWidth = 1 - 2 * margin;
 
     // Sort players so local player is first
     const sortedPlayers = [...players].sort((a, b) => {
@@ -104,10 +107,10 @@ export const calculatePlayerPositions = (players: Player[]): Map<number, Positio
             // Distribute other players evenly, skipping the center position
             const leftHalf = index <= totalPlayers / 2;
             if (leftHalf) {
-                xPosition = margin + (spacing * index);
+                xPosition = margin + spacing * index;
             } else {
                 // Skip the center position for right half
-                xPosition = 0.5 + (spacing * (index - Math.floor(totalPlayers / 2)));
+                xPosition = 0.5 + spacing * (index - Math.floor(totalPlayers / 2));
             }
         }
 
@@ -131,10 +134,7 @@ export const getRandomRotationSpeed = (): number => {
 /**
  * Gets element position considering animations
  */
-export const getAnimatedPosition = (
-    entityId: number,
-    elementRefs: Map<number, EntityRef>
-): Position | null => {
+export const getAnimatedPosition = (entityId: number, elementRefs: Map<number, EntityRef>): Position | null => {
     const entityRef = elementRefs.get(entityId);
     if (!entityRef) return null;
 
@@ -145,24 +145,21 @@ export const getAnimatedPosition = (
 
     const contentWidth = rect.width;
     const contentHeight = rect.height;
-    const centerX = rect.left + (contentWidth / 2);
-    const centerY = rect.top + (contentHeight / 2);
+    const centerX = rect.left + contentWidth / 2;
+    const centerY = rect.top + contentHeight / 2;
     const transformedX = centerX + matrix.m41;
     const transformedY = centerY + matrix.m42;
 
     return {
         x: transformedX / window.innerWidth,
-        y: transformedY / window.innerHeight
+        y: transformedY / window.innerHeight,
     };
 };
 
 /**
  * Gets the center position of an entity
  */
-export const getTargetCenterPosition = (
-    entityKey: string,
-    elementRefs: Map<string, EntityRef>
-): Position | null => {
+export const getTargetCenterPosition = (entityKey: string, elementRefs: Map<string, EntityRef>): Position | null => {
     const entityRef = elementRefs.get(entityKey);
     if (!entityRef) {
         console.log(`No entity ref found for ID: ${entityKey}`);
@@ -179,14 +176,12 @@ export const getTargetCenterPosition = (
         console.log('Player element structure:', {
             element: element.outerHTML,
             characterContainer: element.querySelector('[class*="playerCharacterStyle"]')?.outerHTML,
-            imageElement: element.querySelector('[class*="playerCharacterStyle"] img')?.outerHTML
+            imageElement: element.querySelector('[class*="playerCharacterStyle"] img')?.outerHTML,
         });
 
         // Try multiple selectors to find the image
         const imageElement =
-            element.querySelector('[class*="playerCharacterStyle"] img') ||
-            element.querySelector('img') ||
-            element.getElementsByTagName('img')[0];
+            element.querySelector('[class*="playerCharacterStyle"] img') || element.querySelector('img') || element.getElementsByTagName('img')[0];
 
         if (!imageElement) {
             console.log(`No image found in player ${entityKey}'s DOM structure`);
@@ -196,7 +191,7 @@ export const getTargetCenterPosition = (
         const imageRect = imageElement.getBoundingClientRect();
         const position = {
             x: (imageRect.left + imageRect.width / 2) / window.innerWidth,
-            y: (imageRect.top + imageRect.height / 2) / window.innerHeight
+            y: (imageRect.top + imageRect.height / 2) / window.innerHeight,
         };
 
         console.log(`Found player ${entityKey} image position:`, position, 'from rect:', imageRect);
@@ -212,7 +207,7 @@ export const getTargetCenterPosition = (
         const imageRect = imageElement.getBoundingClientRect();
         return {
             x: (imageRect.left + imageRect.width / 2) / window.innerWidth,
-            y: (imageRect.top + imageRect.height / 2) / window.innerHeight
+            y: (imageRect.top + imageRect.height / 2) / window.innerHeight,
         };
     }
 };
@@ -222,7 +217,7 @@ export const getTargetCenterPosition = (
  */
 export const getPixelPosition = (position: Position): Position => ({
     x: position.x * window.innerWidth,
-    y: position.y * window.innerHeight
+    y: position.y * window.innerHeight,
 });
 
 /**
@@ -233,7 +228,7 @@ export const getAsteroidRefKey = (asteroidId: number) => `asteroid_${asteroidId}
 
 export const getEntityRefKey = {
     player: (id: number) => `player_${id}`,
-    asteroid: (id: number) => `asteroid_${id}`
+    asteroid: (id: number) => `asteroid_${id}`,
 };
 
 export default {
@@ -248,5 +243,5 @@ export default {
     getPixelPosition,
     getPlayerRefKey,
     getAsteroidRefKey,
-    getEntityRefKey
+    getEntityRefKey,
 };

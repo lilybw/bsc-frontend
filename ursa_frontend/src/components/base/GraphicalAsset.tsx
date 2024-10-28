@@ -1,13 +1,12 @@
-import { createSignal, createEffect, onCleanup, Component, createMemo, JSX, Show, For } from 'solid-js';
-import { AssetID, AssetResponseDTO, MinimizedAssetDTO, TransformDTO } from '../integrations/main_backend/mainBackendDTOs';
-import Spinner from './SimpleLoadingSpinner';
 import { css } from '@emotion/css';
+import { createSignal, createEffect, onCleanup, Component, createMemo, For } from 'solid-js';
+import { AssetResponseDTO, MinimizedAssetDTO, TransformDTO } from '../../integrations/main_backend/mainBackendDTOs';
+import { ObjectURL } from '../../integrations/main_backend/objectUrlCache';
+import { Styles } from '../../sharedCSS';
+import { IStyleOverwritable, IParentingImages, IBackendBased } from '../../ts/types';
+import { getRandHash } from '../../ts/ursaMath';
+import Spinner from './SimpleLoadingSpinner';
 import SomethingWentWrongIcon from './SomethingWentWrongIcon';
-import { IBackendBased, IParenting, IParentingImages, IStyleOverwritable } from '../ts/types';
-import { getRandHash } from '../ts/ursaMath';
-import { Styles } from '../sharedCSS';
-import { ObjectURL } from '../integrations/main_backend/objectUrlCache';
-import { url } from 'inspector';
 
 interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IBackendBased {
   metadata: AssetResponseDTO | MinimizedAssetDTO;

@@ -1,8 +1,7 @@
 import { Accessor, Component, createEffect, createMemo, createSignal, For } from "solid-js";
-import { IBufferBased, IStyleOverwritable } from "../ts/types";
 import { css } from "@emotion/css";
+import { IStyleOverwritable, IBufferBased } from "../../ts/types";
 import SectionTitle from "./SectionTitle";
-import { Styles } from "../sharedCSS";
 
 export interface BufferHighlightedNameProps extends IStyleOverwritable, IBufferBased {
     name: Accessor<string> | string;

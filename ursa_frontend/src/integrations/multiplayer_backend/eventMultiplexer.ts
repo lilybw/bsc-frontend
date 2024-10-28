@@ -11,21 +11,21 @@ export interface IEventMultiplexer {
      * Subscripe to an event. The callback given is queued as a micro task when an event of the specified type is emitted.
      * @returns A subscription ID that can be used to unregister the handler given in this call.
      *
-    * Usage
-    * ```ts
-    * | const subscriptionID = multiplexer.subscribe(
-    * |    DEBUG_INFO_EVENT, (data) => { ... }
-    * | );
-    * ```
-    * Or with internalOrigin to prevent echoes:
-    * ```ts
-    * | const subscriptionID = multiplexer.subscribe(
-    * |    DEBUG_INFO_EVENT, Object.assign(
-    * |      (data) => { ... }, 
-    * |      { internalOrigin: 'some identifier' }
-    * |    )
-    * | );
-    * ```
+     * Usage
+     * ```ts
+     * | const subscriptionID = multiplexer.subscribe(
+     * |    DEBUG_INFO_EVENT, (data) => { ... }
+     * | );
+     * ```
+     * Or with internalOrigin to prevent echoes:
+     * ```ts
+     * | const subscriptionID = multiplexer.subscribe(
+     * |    DEBUG_INFO_EVENT, Object.assign(
+     * |      (data) => { ... },
+     * |      { internalOrigin: 'some identifier' }
+     * |    )
+     * | );
+     * ```
      */
     subscribe: <T extends IMessage>(spec: EventSpecification<T>, callback: OnEventCallback<T>) => SubscriptionID;
     /**
@@ -35,7 +35,7 @@ export interface IEventMultiplexer {
     /**
      * Emit an event into the multiplexer. Multiplayer Integration has special access, however all other access
      * must go through this method.
-     * @param internalOrigin optionally used to exclude any handlers that is of same origin. 
+     * @param internalOrigin optionally used to exclude any handlers that is of same origin.
      * @returns amount of handlers invoked.
      */
     emit: <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>, internalOrigin?: string) => Promise<uint32>;
@@ -47,7 +47,7 @@ export interface IEventMultiplexer {
 export interface IExpandedAccessMultiplexer extends IEventMultiplexer {
     /**
      * @param data the data to send including the eventID and senderID. Use the type param to get intellisense for the type of data.
-     * @param internalOrigin optionally used to exclude any handlers that is of same origin. 
+     * @param internalOrigin optionally used to exclude any handlers that is of same origin.
      * @returns amount of handlers invoked.
      */
     emitRAW: <T extends IMessage>(data: T, internalOrigin?: string) => Promise<uint32>;
@@ -68,7 +68,7 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
     private nextSubscriptionID = 0;
     constructor(
         private readonly player: PlayerID,
-        private readonly log: Logger
+        private readonly log: Logger,
     ) {}
 
     subscribe = <T extends IMessage>(spec: EventSpecification<T>, callback: OnEventCallback<T>) => {
@@ -114,20 +114,24 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
             return 0;
         }
         let handlerInvocationCount = 0;
-        
-        await Promise.all(handlers
-            // Filter out handlers that are of same origin as the event source
-            // h.internalOrigin can be undefined, as it is not required, but if it is, the comparison will not be made.
-            // Otherwise, as eventSource also is allowed to be undefined, all handlers with no specified origin,
-            // would be excluded on any emission not specifying an eventSource.
-            .filter(h => h.internalOrigin ? h.internalOrigin !== internalOrigin : true)
-            .map(handler => new Promise<void>(resolve => {
-                queueMicrotask(() => {
-                    handler(data);
-                    handlerInvocationCount++;
-                    resolve();
-                });
-            }))
+
+        await Promise.all(
+            handlers
+                // Filter out handlers that are of same origin as the event source
+                // h.internalOrigin can be undefined, as it is not required, but if it is, the comparison will not be made.
+                // Otherwise, as eventSource also is allowed to be undefined, all handlers with no specified origin,
+                // would be excluded on any emission not specifying an eventSource.
+                .filter((h) => (h.internalOrigin ? h.internalOrigin !== internalOrigin : true))
+                .map(
+                    (handler) =>
+                        new Promise<void>((resolve) => {
+                            queueMicrotask(() => {
+                                handler(data);
+                                handlerInvocationCount++;
+                                resolve();
+                            });
+                        }),
+                ),
         );
         this.log.subtrace(`Emitted event ${data.eventID} to ${handlerInvocationCount} handlers`);
         return handlerInvocationCount;

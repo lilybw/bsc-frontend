@@ -1,6 +1,6 @@
-import { createEffect, createMemo, createSignal, Match, Switch, type Component, type JSX } from 'solid-js';
-import {injectGlobal, css} from '@emotion/css'
-import BigMenuButton from '../src/components/BigMenuButton';
+import { createEffect, createSignal, Match, Switch, type Component } from 'solid-js';
+import {css} from '@emotion/css'
+import BigMenuButton from '../src/components/base/BigMenuButton';
 import ProgressTracker from './ProgressTracker';
 import LanguagePage from './slides/LanguagePage';
 import ErrorPage from '../src/ErrorPage';
@@ -13,13 +13,12 @@ import NavigationTrial from './slides/NavigationTrial';
 import LocationDemo from './slides/LocationDemo';
 import TutorialCompletePage from './slides/TutorialCompletePage';
 import { ApplicationProps } from '../src/ts/types';
-import StarryBackground from '../src/components/StarryBackground';
 import { Bundle, BundleComponent } from '../src/meta/types';
 import { LanguagePreference } from '../src/integrations/vitec/vitecDTOs';
 import NTAwait from '../src/components/util/NoThrowAwait';
-import GraphicalAsset from '../src/components/GraphicalAsset';
 import MultiplayerDemo from './slides/MultiplayerDemo';
-import { Styles } from '../src/sharedCSS';
+import GraphicalAsset from '../src/components/base/GraphicalAsset';
+import StarryBackground from '../src/components/base/StarryBackground';
 
 export type SlideEntry = {hasCompleted: boolean, icon: Component<SlideIconProps>, iconId: number};
 const slides: SlideEntry[] = [

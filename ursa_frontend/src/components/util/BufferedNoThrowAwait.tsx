@@ -1,7 +1,7 @@
 import { Component, createResource, JSX, Show } from "solid-js";
-import Spinner from "../SimpleLoadingSpinner";
-import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
 import { Error, ResErr } from "../../meta/types";
+import Spinner from "../base/SimpleLoadingSpinner";
+import SomethingWentWrongIcon from "../base/SomethingWentWrongIcon";
 
 export interface NoThrowAwaitProps<T, R extends Component> {
     primary: () => Promise<ResErr<T>>;

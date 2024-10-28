@@ -1,6 +1,6 @@
-import { Component, JSX, Show } from "solid-js";
+import { JSX } from "solid-js";
 import { Error, ResErr } from "../../meta/types";
-import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
+import SomethingWentWrongIcon from "../base/SomethingWentWrongIcon";
 
 type UnwrapTuple<T extends any[]> = ResErr<T[number]> | { [K in keyof T]: ResErr<T[K]> };
 

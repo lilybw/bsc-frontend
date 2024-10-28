@@ -1,8 +1,8 @@
-import { Component, createResource, JSX, Show } from "solid-js";
-import Spinner from "../SimpleLoadingSpinner";
-import SomethingWentWrongIcon from "../SomethingWentWrongIcon";
+import { createResource, JSX, Show } from "solid-js";
 import { Error, ResErr } from "../../meta/types";
 import Unwrap from "./Unwrap";
+import Spinner from "../base/SimpleLoadingSpinner";
+import SomethingWentWrongIcon from "../base/SomethingWentWrongIcon";
 
 export interface NoThrowAwaitProps<T> {
     func: () => Promise<ResErr<T>>;
@@ -29,7 +29,7 @@ const NTAwait = <T, R>(props: NoThrowAwaitProps<T>) => {
                 {fallback ? fallback(resource.error) : <SomethingWentWrongIcon message={JSON.stringify(resource.error)} />}
             </Show>
             <Show when={resource.latest}>
-                <Unwrap data={resource.latest!} fallback={fallback} children={children} />
+                <Unwrap data={resource.latest!} fallback={e => fallback ? fallback(JSON.stringify(e)) : <SomethingWentWrongIcon message={JSON.stringify(e)} />} children={children} />
             </Show>
         </>
     );

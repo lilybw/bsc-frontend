@@ -1,4 +1,4 @@
-import { Accessor, Component, createEffect, createMemo, createSignal } from "solid-js";
+import { Component, createEffect, createMemo, createSignal } from "solid-js";
 import { TransformDTO, uint32 } from "../../integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
 import { Styles } from "../../sharedCSS";

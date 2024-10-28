@@ -1,8 +1,8 @@
 import { Component } from "solid-js";
 import { IBackendBased, IStyleOverwritable } from "./types";
 import NTAwait from "../components/util/NoThrowAwait";
-import GraphicalAsset from "../components/GraphicalAsset";
 import { css } from "@emotion/css";
+import GraphicalAsset from "../components/base/GraphicalAsset";
 
 export enum ActionContextTypes {
     NAVIGATION = "NAVIGATION",

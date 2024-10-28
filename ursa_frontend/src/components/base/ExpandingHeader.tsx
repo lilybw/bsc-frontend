@@ -1,8 +1,7 @@
 import { Component, createSignal } from "solid-js";
-import { IParenting } from "../ts/types";
 import { css } from "@emotion/css";
-import SectionSubTitle from "./SectionSubTitle";
 import BigMenuButton from "./BigMenuButton";
+import { IParenting } from "../../ts/types";
 
 interface ExpandingHeaderProps extends IParenting {
     name: string;

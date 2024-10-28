@@ -1,6 +1,6 @@
 import { css } from "@emotion/css";
 import { Component } from "solid-js";
-import { IStyleOverwritable } from "../ts/types";
+import { IStyleOverwritable } from "../../ts/types";
 
 interface SomethingWentWrongIconProps extends IStyleOverwritable {
     message?: (string | null) | (string | null)[];

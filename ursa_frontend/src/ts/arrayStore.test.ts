@@ -443,44 +443,44 @@ describe('ArrayStore', () => {
             store.add({ id: 2, status: 'inactive' });
             store.add({ id: 3, status: 'inactive' });
             store.add({ id: 4, status: 'active' });
-            
-            const removedCount = store.cullByPredicate(el => el.status === 'inactive');
-            
+
+            const removedCount = store.cullByPredicate((el) => el.status === 'inactive');
+
             expect(removedCount).toBe(2);
             expect(store.get).toEqual([
                 { id: 1, status: 'active' },
-                { id: 4, status: 'active' }
+                { id: 4, status: 'active' },
             ]);
         });
-    
+
         it('should return 0 if no elements match', () => {
             const store = createArrayStore<{ id: number; status: string }>();
             store.add({ id: 1, status: 'active' });
             store.add({ id: 2, status: 'active' });
-            
-            const removedCount = store.cullByPredicate(el => el.status === 'inactive');
-            
+
+            const removedCount = store.cullByPredicate((el) => el.status === 'inactive');
+
             expect(removedCount).toBe(0);
             expect(store.get).toEqual([
                 { id: 1, status: 'active' },
-                { id: 2, status: 'active' }
+                { id: 2, status: 'active' },
             ]);
         });
-    
+
         it('should return 0 if array is empty', () => {
             const store = createArrayStore<{ id: number; status: string }>();
-            const removedCount = store.cullByPredicate(el => el.status === 'inactive');
+            const removedCount = store.cullByPredicate((el) => el.status === 'inactive');
             expect(removedCount).toBe(0);
             expect(store.get).toEqual([]);
         });
-    
+
         it('should be reactive', () => {
             return testEffect((dispose) => {
                 const store = createArrayStore<{ id: number; count: number }>();
                 store.add({ id: 1, count: 0 });
                 store.add({ id: 2, count: 0 });
                 let triggerCount = 0;
-    
+
                 createEffect(() => {
                     const items = store.get;
                     if (items.length === 0) {
@@ -488,8 +488,8 @@ describe('ArrayStore', () => {
                         dispose();
                         return;
                     }
-                    
-                    store.cullByPredicate(el => el.count === 0);
+
+                    store.cullByPredicate((el) => el.count === 0);
                     triggerCount++;
                 });
             });
@@ -502,43 +502,40 @@ describe('ArrayStore', () => {
             store.add({ id: 1 });
             store.add({ id: 2 });
             store.add({ id: 3 });
-            
+
             const success = store.removeAtIndex(1);
-            
+
             expect(success).toBe(true);
-            expect(store.get).toEqual([
-                { id: 1 },
-                { id: 3 }
-            ]);
+            expect(store.get).toEqual([{ id: 1 }, { id: 3 }]);
         });
-    
+
         it('should return false for negative index', () => {
             const store = createArrayStore<{ id: number }>();
             store.add({ id: 1 });
-            
+
             const success = store.removeAtIndex(-1);
-            
+
             expect(success).toBe(false);
             expect(store.get).toEqual([{ id: 1 }]);
         });
-    
+
         it('should return false for out of bounds index', () => {
             const store = createArrayStore<{ id: number }>();
             store.add({ id: 1 });
-            
+
             const success = store.removeAtIndex(1);
-            
+
             expect(success).toBe(false);
             expect(store.get).toEqual([{ id: 1 }]);
         });
-    
+
         it('should be reactive', () => {
             return testEffect((dispose) => {
                 const store = createArrayStore<{ id: number }>();
                 store.add({ id: 1 });
                 store.add({ id: 2 });
                 let triggerCount = 0;
-    
+
                 createEffect(() => {
                     const items = store.get;
                     if (items.length === 0) {
@@ -546,7 +543,7 @@ describe('ArrayStore', () => {
                         dispose();
                         return;
                     }
-                    
+
                     store.removeAtIndex(0);
                     triggerCount++;
                 });
@@ -560,40 +557,40 @@ describe('ArrayStore', () => {
             store.add({ id: 1, status: 'active' });
             store.add({ id: 2, status: 'inactive' });
             store.add({ id: 3, status: 'inactive' });
-            
-            const success = store.removeFirst(el => el.status === 'inactive');
-            
+
+            const success = store.removeFirst((el) => el.status === 'inactive');
+
             expect(success).toBe(true);
             expect(store.get).toEqual([
                 { id: 1, status: 'active' },
-                { id: 3, status: 'inactive' }
+                { id: 3, status: 'inactive' },
             ]);
         });
-    
+
         it('should return false if no element matches', () => {
             const store = createArrayStore<{ id: number; status: string }>();
             store.add({ id: 1, status: 'active' });
-            
-            const success = store.removeFirst(el => el.status === 'inactive');
-            
+
+            const success = store.removeFirst((el) => el.status === 'inactive');
+
             expect(success).toBe(false);
             expect(store.get).toEqual([{ id: 1, status: 'active' }]);
         });
-    
+
         it('should return false if array is empty', () => {
             const store = createArrayStore<{ id: number; status: string }>();
-            const success = store.removeFirst(el => el.status === 'inactive');
+            const success = store.removeFirst((el) => el.status === 'inactive');
             expect(success).toBe(false);
             expect(store.get).toEqual([]);
         });
-    
+
         it('should be reactive', () => {
             return testEffect((dispose) => {
                 const store = createArrayStore<{ id: number; count: number }>();
                 store.add({ id: 1, count: 0 });
                 store.add({ id: 2, count: 0 });
                 let triggerCount = 0;
-    
+
                 createEffect(() => {
                     const items = store.get;
                     if (items.length === 0) {
@@ -601,8 +598,8 @@ describe('ArrayStore', () => {
                         dispose();
                         return;
                     }
-                    
-                    store.removeFirst(el => el.count === 0);
+
+                    store.removeFirst((el) => el.count === 0);
                     triggerCount++;
                 });
             });

@@ -1,12 +1,12 @@
-import { Component, createMemo, createSignal, For } from "solid-js";
+import { Component, createSignal, For } from "solid-js";
 import { AssetCollectionID, TransformDTO } from "../../integrations/main_backend/mainBackendDTOs";
 import { IBackendBased, IStyleOverwritable } from "../../ts/types";
 import { css } from "@emotion/css";
 import NTAwait from "../util/NoThrowAwait";
-import GraphicalAsset from "../GraphicalAsset";
 import { combineTransforms, getRandHash } from "../../ts/ursaMath";
 import { Styles } from "../../sharedCSS";
 import { WrappedSignal } from "../../ts/wrappedSignal";
+import GraphicalAsset from "../base/GraphicalAsset";
 
 interface AssetCollectionProps extends IBackendBased, IStyleOverwritable {
     id: AssetCollectionID;

@@ -1,18 +1,18 @@
 import { JSX } from "solid-js/jsx-runtime";
-import BigMenuButton from "../../src/components/BigMenuButton";
+import BigMenuButton from "../../src/components/base/BigMenuButton";
 import { createMemo, createResource, For, Show } from "solid-js";
-import StarryBackground from "../../src/components/StarryBackground";
 import { IBackendBased, IStyleOverwritable } from "../../src/ts/types";
 import { AvailableLanguagesResponseDTO, PreferenceKeys } from "../../src/integrations/main_backend/mainBackendDTOs";
 import { ResCodeErr } from "../../src/meta/types";
-import Spinner from "../../src/components/SimpleLoadingSpinner";
-import SomethingWentWrongIcon from "../../src/components/SomethingWentWrongIcon";
-import SectionSubTitle from "../../src/components/SectionSubTitle";
 import { css } from "@emotion/css";
 import { LanguagePreference } from "../../src/integrations/vitec/vitecDTOs";
 import NTAwait from "../../src/components/util/NoThrowAwait";
-import GraphicalAsset from "../../src/components/GraphicalAsset";
 import { assureUniformLanguageCode } from "../../src/integrations/vitec/vitecIntegration";
+import GraphicalAsset from "../../src/components/base/GraphicalAsset";
+import SectionSubTitle from "../../src/components/base/SectionSubTitle";
+import Spinner from "../../src/components/base/SimpleLoadingSpinner";
+import SomethingWentWrongIcon from "../../src/components/base/SomethingWentWrongIcon";
+import StarryBackground from "../../src/components/base/StarryBackground";
 
 interface LanguagePageProps extends IBackendBased, IStyleOverwritable {
     onSlideCompleted: () => void;

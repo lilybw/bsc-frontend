@@ -21,7 +21,7 @@ export interface PlayerCreationOptions extends AsteroidsAssignPlayerDataMessageD
     friendlyFirePenalty: number;
     penaltyMultiplier: number;
     isLocal?: boolean;
-    onStateChange?: (stunned: boolean, disabled: boolean) => void;  // Add this
+    onStateChange?: (stunned: boolean, disabled: boolean) => void; // Add this
 }
 
 /**
@@ -60,7 +60,7 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         this.friendlyFirePenalty = options.friendlyFirePenalty;
         this.penaltyMultiplier = options.penaltyMultiplier;
         this.isLocal = options.isLocal || false;
-        this.onStateChange = options.onStateChange;  // Store the callback
+        this.onStateChange = options.onStateChange; // Store the callback
 
         if (options.element) {
             this.setElement(options.element);
@@ -80,7 +80,7 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
                 playerId: this.id,
                 isStunned: this._isStunned,
                 isDisabled: this._isDisabled,
-                resultingState: isDisabled
+                resultingState: isDisabled,
             });
             this.updateButtonState(isDisabled);
         }
@@ -90,7 +90,7 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
             console.log('Notifying state change:', {
                 playerId: this.id,
                 isStunned: this._isStunned,
-                isDisabled: this._isDisabled
+                isDisabled: this._isDisabled,
             });
             this.onStateChange(this._isStunned, this._isDisabled);
         }
@@ -113,7 +113,7 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
     get state(): PlayerState {
         return {
             isStunned: this._isStunned,
-            isDisabled: this._isDisabled
+            isDisabled: this._isDisabled,
         };
     }
 

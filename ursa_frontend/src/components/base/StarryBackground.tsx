@@ -1,6 +1,6 @@
 import { css } from "@emotion/css";
 import { JSX } from "solid-js/jsx-runtime";
-import { IStyleOverwritable } from "../ts/types";
+import { IStyleOverwritable } from "../../ts/types";
 
 interface StarryBackgroundProps extends IStyleOverwritable {
     children?: JSX.Element;

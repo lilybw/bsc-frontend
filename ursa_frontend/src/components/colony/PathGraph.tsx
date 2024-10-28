@@ -1,11 +1,10 @@
-import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect, from, Accessor, AccessorArray } from "solid-js";
+import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect } from "solid-js";
 import { ColonyInfoResponseDTO, ColonyLocationInformation, ColonyPathGraphResponseDTO, PlayerID, TransformDTO, uint32 } from "../../integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
-import { IBackendBased, IInternationalized, IBufferBased } from "../../ts/types";
+import { IBackendBased, IInternationalized } from "../../ts/types";
 import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventMultiplexer";
 import { OriginType, PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from "../../integrations/multiplayer_backend/EventSpecifications";
 import Location from "../colony/location/Location";
-import { Camera } from "../../ts/camera";
 import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
 import { IMultiplayerIntegration } from "../../integrations/multiplayer_backend/multiplayerBackend";
 import { ClientDTO } from "../../integrations/multiplayer_backend/multiplayerDTO";
@@ -14,8 +13,7 @@ import { KnownLocations } from "../../integrations/main_backend/constants";
 import { BufferSubscriber, TypeIconTuple } from "../../ts/actionContext";
 import { ArrayStore, createArrayStore } from "../../ts/arrayStore";
 import ActionInput from "./MainActionInput";
-import { Styles } from "../../sharedCSS";
-import { ApplicationContext, MultiplayerMode } from "../../meta/types";
+import { MultiplayerMode } from "../../meta/types";
 import Player from "./Player";
 
 export const EXPECTED_WIDTH = 1920;
