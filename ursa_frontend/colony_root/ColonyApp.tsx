@@ -32,7 +32,7 @@ import Countdown from '../src/components/util/Countdown';
 import { ColonyCode, ColonyInfoResponseDTO, ColonyPathGraphResponseDTO, uint32 } from '../src/integrations/main_backend/mainBackendDTOs';
 import EventFeed from '../src/components/EventFeed';
 import { KnownLocations } from '../src/integrations/main_backend/constants';
-import FullScreenNotification from './FullScreenNotification';
+import TimedFullScreenNotification from './TimedFullScreenNotification';
 
   export type StrictJSX = Node | JSX.ArrayElement | (string & {}) 
     | NonNullable<Exclude<Exclude<Exclude<JSX.Element, string>, number>, boolean>>
@@ -50,7 +50,7 @@ import FullScreenNotification from './FullScreenNotification';
     const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
     const bundleSwapColonyInfo = props.context.nav.getRetainedColonyInfo();
     const [notaficationReason, setNotificationReason] = createSignal<string>("Unknown");
-    const [showNotification, setShowNotification] = createSignal<boolean>(false);
+    const [showNotification, setShowShuntNotification] = createSignal<boolean>(false);
     const log = props.context.logger.copyFor('colony');
 
     /**
@@ -140,8 +140,7 @@ import FullScreenNotification from './FullScreenNotification';
       const onConnClose = () => {
         if (props.context.multiplayer.getMode() !== MultiplayerMode.AS_OWNER) {
           log.info('connection closed, redirecting to menu');
-          setShowNotification(true);
-          setTimeout(() => props.context.nav.goToMenu(), 5000);
+          setShowShuntNotification(true);
         }
       }
       const err = await props.context.multiplayer.connect(code, onConnClose); if (err) {
@@ -239,23 +238,23 @@ import FullScreenNotification from './FullScreenNotification';
         />
       )
     }
-    const notaMemo = createMemo(() => showNotification() && (
-      <FullScreenNotification
+
+    const shuntNotaMemo = createMemo(() => showNotification() && (
+      <TimedFullScreenNotification
         text={props.context.text}
         reason={notaficationReason()}
         durationMS={5000}
-        onClose={() => setShowNotification(false)}
-      >
-        <Countdown duration={5} styleOverwrite={TITLE_STYLE} />
-      </FullScreenNotification>)
-    );
+        onClose={() => setShowShuntNotification(false)}
+        onCompletion={() => props.context.nav.goToMenu()}
+      />
+    ));
 
     return (
       <div id="colony-app">
         <StarryBackground />
         {pageContent()}
         {appendOverlay()}
-        {notaMemo()}
+        {shuntNotaMemo()}
         <EventFeed
           events={props.context.events}
           backend={props.context.backend}
