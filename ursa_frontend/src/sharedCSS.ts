@@ -103,7 +103,7 @@ export const Styles = {
         transform: scale(var(--transform-xScale), var(--transform-yScale)) translate(-50%, -50%);
     `,
     FANCY_BORDER: css`
-        border-radius: 5%;
+        border-radius: 5vh;
         border: 0.25rem solid white;
         border-left: 0px;
         border-right: 0px;

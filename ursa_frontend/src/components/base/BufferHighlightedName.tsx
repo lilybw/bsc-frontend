@@ -8,6 +8,10 @@ export interface BufferHighlightedNameProps extends IStyleOverwritable, IBufferB
     nameCompleteOverwrite?: string;
     charHighlightOverwrite?: string;
     charBaseStyleOverwrite?: string;
+    /** Akin to MouseEnter, however, called when the current buffer input is a subset of the name */
+    onHoverBegin?: () => void;
+    /** Akin to MouseLeave, however, called when the current buffer input is not a subset of the name */
+    onHoverEnd?: () => void;
 }
 
 const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => {
@@ -31,12 +35,25 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
 
     createEffect(() => {
         const currentName = typeof props.name === 'function' ? props.name() : props.name;
-        if (currentName.includes(props.buffer())) {
+        const currentBuffer = props.buffer();
+        if (currentName.includes(currentBuffer) && currentBuffer !== '') {
             setHasBeenMissed(false);
         } else {
             setHasBeenMissed(true);
         }
     });
+
+    createEffect(() => {
+        if (hasBeenMissed()) {
+            if (props.onHoverEnd) {
+                props.onHoverEnd();
+            }
+        } else {
+            if (props.onHoverBegin) {
+                props.onHoverBegin();
+            }
+        }
+    })
 
     const getCharStyle = (index: Accessor<number>, charInName: string) => {
         if (hasBeenMissed()) {
@@ -80,7 +97,7 @@ const singleCharStyle = css`
     font-size: 2rem;
     letter-spacing: 0;
     min-width: 0.5rem;
-    color: hsla(0, 0%, 100%, 0.5);
+    color: cyan;
     text-shadow: none;
     text-decoration: none;
 `;

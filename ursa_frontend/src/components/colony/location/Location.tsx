@@ -182,6 +182,5 @@ const namePlateStyle = css`
     ${Styles.GLASS.FAINT_BACKGROUND}
 `;
 const namePlateTextOverwrite = css`
-    color: cyan;
     text-shadow: 5px 5px 10px black;
 `;

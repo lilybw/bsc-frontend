@@ -84,7 +84,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
             >
                 {formatCodeForDisplay(code)}
             </div>
-            <div class={lowerThirdWBackgroundStyle}>
+            <div class={STYLE_LOC_CARD_lowerThirdWBackgroundStyle}>
                 <div
                     class={css`
                         display: flex;
@@ -115,8 +115,10 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     );
 
     const getClosedLayout = () => (
-        <div class={lowerThirdWBackgroundStyle}>
-            <div class={descriptionStyle}>{props.text.SubTitle(props.info.description)({ styleOverwrite: descriptionStyleOverwrite })}</div>
+        <div class={STYLE_LOC_CARD_lowerThirdWBackgroundStyle}>
+            <div class={STYLE_LOC_CARD_descriptionContainerStyle}>
+                {props.text.SubTitle(props.info.description)({ styleOverwrite: STYLE_LOC_CARD_descriptionStyleOverwrite })}
+            </div>
             <div
                 class={css`
                     display: flex;
@@ -154,17 +156,17 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
 
     return (
         <div class={cardContainerStyle} id={'location-card-space-port'}>
-            {props.text.Title(props.info.name)({ styleOverwrite: titleStyleOverwrite })}
-
-            {getBody()}
-
             <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
                 {(asset) => (
                     <>
-                        <GraphicalAsset styleOverwrite={backgroundImageStyle} backend={props.backend} metadata={asset} />
+                        <GraphicalAsset styleOverwrite={STYLE_LOC_CARD_backgroundImageStyle} backend={props.backend} metadata={asset} />
                     </>
                 )}
             </NTAwait>
+
+            {props.text.Title(props.info.name)({ styleOverwrite: STYLE_LOC_CARD_titleStyleOverwrite })}
+
+            {getBody()}
         </div>
     );
 };
@@ -185,7 +187,7 @@ const codeDisplayStyle = css`
     ${Styles.GLASS.BACKGROUND}
 `;
 
-const lowerThirdWBackgroundStyle = css`
+export const STYLE_LOC_CARD_lowerThirdWBackgroundStyle = css`
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -194,10 +196,8 @@ const lowerThirdWBackgroundStyle = css`
 
     z-index: 1;
     width: 100%;
-    height: fit-content;
-    padding-bottom: 1rem;
-    padding-top: 1rem;
-    row-gap: 0.5rem;
+    height: 15%;
+    row-gap: 1rem;
     bottom: 0;
     border-radius: 10px;
 
@@ -209,7 +209,7 @@ const cardContainerStyle = css`
     flex-direction: column;
 `;
 
-const backgroundImageStyle = css`
+export const STYLE_LOC_CARD_backgroundImageStyle = css`
     position: absolute;
     width: 100%;
     height: 100%;
@@ -217,7 +217,7 @@ const backgroundImageStyle = css`
     border-radius: 1rem;
 `;
 
-const titleStyleOverwrite = css`
+export const STYLE_LOC_CARD_titleStyleOverwrite = css`
     position: absolute;
     top: 2rem;
     width: 100%;
@@ -228,15 +228,17 @@ const titleStyleOverwrite = css`
     ${Styles.GLASS.FAINT_BACKGROUND}
 `;
 
-const descriptionStyle = css`
-    text-align: center;
-    filter: none;
-    font-size: 3rem;
+export const STYLE_LOC_CARD_descriptionContainerStyle = css`
+    font-size: 1.5rem;
     margin: 0;
-    adding: 0;
+    padding: 0;
 `;
 
-const descriptionStyleOverwrite = css`
-    font-size: 1.1rem;
+export const STYLE_LOC_CARD_descriptionStyleOverwrite = css`
+    font-size: 1.5rem;
     text-shadow: none;
+    text-align: center;
+    filter: none;
+    margin: 0;
+    padding: 0;
 `;

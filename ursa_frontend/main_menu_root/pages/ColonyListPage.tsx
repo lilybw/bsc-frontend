@@ -112,7 +112,7 @@ const colonyListBackgroundStyle = css`
 
     position: absolute;
     width: 66%;
-    height: 32rem;
+    height: 65vh;
     left: 50%;
     transform: translateX(-50%);
     padding: 1rem;
@@ -160,12 +160,4 @@ const colonyListStyle = css`
     &::-webkit-scrollbar-thumb:hover {
         background: rgba(255, 255, 255, 0.5);
     }
-`;
-
-const spinnerStyleOverwrite = css`
-    margin: 0 auto;
-    display: block;
-    padding: 1rem;
-    height: 3rem;
-    width: 3rem;
 `;

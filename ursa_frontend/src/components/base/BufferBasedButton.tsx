@@ -6,13 +6,20 @@ import { IParenting, IRegistering, IStyleOverwritable } from '../../ts/types';
 
 export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IParenting, IRegistering<string> {
     onActivation: () => void;
+    /** Signal-based, inverted disable. Will show a small animation after being re-enabled. */
     enable?: Accessor<boolean>;
+    /** Akin to onHover, however is active as long as the buffer input is a subset of the name and applied to the root level
+     * container of the button */
+    onHoverContainerStyle?: string;
 }
 
 const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     const [activated, setActivated] = createSignal(false);
     const [recentlyEnabled, setRecentlyEnabled] = createSignal(false);
+    const [isHovered, setIsHovered] = createSignal(false);
     const disabledBuffer = createMemo(() => '');
+    const onHoverBeginAppended = () => {setIsHovered(true); props.onHoverBegin && props.onHoverBegin()};
+    const onHoverEndAppended = () => {setIsHovered(false); props.onHoverEnd && props.onHoverEnd()};
 
     const isDisabled = createMemo(() => {
         return props.enable ? !props.enable() : false;
@@ -38,12 +45,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
 
     onMount(() => {
         const removeFunc = props.register((v) => {
-            let nameValue;
-            if (typeof props.name === 'function') {
-                nameValue = props.name();
-            } else {
-                nameValue = props.name;
-            }
+            let nameValue = typeof props.name === 'function' ? props.name() : props.name;
             if (v === nameValue && !isDisabled()) {
                 setActivated(true);
                 setTimeout(() => {
@@ -58,13 +60,20 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     });
 
     const computedContainerStyles = createMemo(
-        () => css`
-            ${baseStyle}
-            ${props.styleOverwrite} 
-        ${activated() ? onActivationShimmerAnim : ''}
-        ${isDisabled() ? Styles.CROSS_HATCH_GRADIENT : ''}
-        ${recentlyEnabled() && !isDisabled() ? onReEnabledAnim : ''}
-        `,
+        () => {
+            const disabled = isDisabled();
+            const hover = isHovered();
+            const recEnabled = recentlyEnabled();
+            const isActivated = activated();
+            return css`
+                ${baseStyle}
+                ${props.styleOverwrite}
+                ${isActivated && !disabled ? onActivationShimmerAnim : ''}
+                ${disabled ? Styles.CROSS_HATCH_GRADIENT : ''}
+                ${recEnabled && !disabled ? onReEnabledAnim : ''}
+                ${hover && !disabled ? props.onHoverContainerStyle : ''}
+            `;
+        },
     );
 
     return (
@@ -75,6 +84,8 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
                 charHighlightOverwrite={props.charHighlightOverwrite}
                 charBaseStyleOverwrite={combinedCharBaseStyle()}
                 nameCompleteOverwrite={props.nameCompleteOverwrite}
+                onHoverBegin={onHoverBeginAppended}
+                onHoverEnd={onHoverEndAppended}
             />
             {props.children}
         </button>
@@ -110,6 +121,7 @@ const baseStyle = css`
     pointer-events: none;
     background-color: transparent;
     border: none;
+    transition: all 0.3s ease;
 `;
 
 const onReEnabledAnim = css`
