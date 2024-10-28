@@ -38,9 +38,9 @@ const ColonyListEntry: Component<ColonyListEntryProps> = (props) => {
 
     return (
         <div class={`${listEntryStyles} ${props.isSelected ? selectedStyles : ''}`} onClick={props.onClick}>
-            <h3 class={subtitleModifiedStyle}>{props.colony.name}</h3>
-            <h3 class={subtitleModifiedStyle}>{getTimeAgo(props.colony.latestVisit)}</h3>
-            <h3 class={subtitleModifiedStyle}>{props.colony.accLevel}</h3>
+            <div class={subtitleModifiedStyle}>{props.colony.name}</div>
+            <div class={timeAgoStyle}>{getTimeAgo(props.colony.latestVisit)}</div>
+            <div class={accLevelStyle}>{props.colony.accLevel}</div>
         </div>
     );
 };
@@ -49,7 +49,22 @@ export default ColonyListEntry;
 
 const subtitleModifiedStyle = css`
 ${Styles.SUB_TITLE}
-font-size: 3rem;
+font-size: 1.5rem;
+color: cyan;
+`
+
+const timeAgoStyle = css`
+${subtitleModifiedStyle}
+color: white;
+text-shadow: none;
+filter: none;
+box-shadow: none;
+font-size: 1rem;
+`
+
+const accLevelStyle = css`
+${subtitleModifiedStyle}
+color: orange;
 `
 
 const listEntryStyles = css`
@@ -62,9 +77,8 @@ const listEntryStyles = css`
 
     border: 1px solid white;
     border-radius: 1rem;
-    padding: 0.3rem;
     width: 100%;
-    gap: 0.5rem;
+    height: 5vh;
 
     cursor: pointer;
     transition: all 0.3s ease;

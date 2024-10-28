@@ -13,10 +13,11 @@ export const wallStyle = css`
 
 export const statusStyle = css`
     position: absolute;
-    top: 10px;
-    left: 10px;
-    color: white;
-    font-size: 18px;
+    top: 1rem;
+    left: 1rem;
+    color: #004F00;
+    text-shadow: 0 0 0.5rem rgba(0, 255, 0, 1);
+    font-size: 5rem;
 `;
 
 export const asteroidStyle = css`

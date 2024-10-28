@@ -367,7 +367,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
         <div>
             <StarryBackground />
             <div class={wallStyle} id="Outer-Wall" />
-            <div class={statusStyle}>Health: {'❤'.repeat(health())}</div>
+            <div class={statusStyle}>{'❤'.repeat(health())}</div>
             <Countdown duration={props.settings.survivalTimeS} />
             <div>
                 {/* Asteroid Rendering */}

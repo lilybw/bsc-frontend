@@ -215,6 +215,7 @@ export const STYLE_LOC_CARD_backgroundImageStyle = css`
     height: 100%;
     object-fit: cover;
     border-radius: 1rem;
+    box-shadow: 0 0 1rem 0.5rem inset rgba(255, 255, 255, 1);
 `;
 
 export const STYLE_LOC_CARD_titleStyleOverwrite = css`
