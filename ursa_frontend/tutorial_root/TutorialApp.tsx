@@ -1,5 +1,5 @@
 import { createEffect, createSignal, Match, Switch, type Component } from 'solid-js';
-import {css} from '@emotion/css'
+import { css } from '@emotion/css'
 import BigMenuButton from '../src/components/base/BigMenuButton';
 import ProgressTracker from './ProgressTracker';
 import LanguagePage from './slides/LanguagePage';
@@ -20,7 +20,7 @@ import MultiplayerDemo from './slides/MultiplayerDemo';
 import GraphicalAsset from '../src/components/base/GraphicalAsset';
 import StarryBackground from '../src/components/base/StarryBackground';
 
-export type SlideEntry = {hasCompleted: boolean, icon: Component<SlideIconProps>, iconId: number};
+export type SlideEntry = { hasCompleted: boolean, icon: Component<SlideIconProps>, iconId: number };
 const slides: SlideEntry[] = [
   {
     hasCompleted: false,
@@ -65,7 +65,7 @@ const slides: SlideEntry[] = [
 ]
 
 const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (props: ApplicationProps) {
-  const [currentSlide, setCurrentSlide] = createSignal(7);
+  const [currentSlide, setCurrentSlide] = createSignal(0);
   const [previousSlide, setPreviousSlide] = createSignal(0);
   const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<LanguagePreference | undefined>(props.context.text.language());
   const [slideStore, setSlides] = createStore<SlideEntry[]>(slides);
@@ -98,57 +98,57 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(function (p
 
   return (
     <div class={containerStyle} id="the-tutorial-app">
-        <StarryBackground />
-        <ProgressTracker 
-        currentSlide={currentSlide} 
-        slideStore={slideStore} 
-        setSlideStore={setSlides} 
+      <StarryBackground />
+      <ProgressTracker
+        currentSlide={currentSlide}
+        slideStore={slideStore}
+        setSlideStore={setSlides}
         previousSlide={previousSlide}
         backend={props.context.backend}
-        />
-        <Switch fallback= {<ErrorPage content="OOC: Out of Cases" />}>
-          <Match when={currentSlide() === 0}>
-            <LanguagePage onLanguageSelected={onLanguageChange} onSlideCompleted={onSlideCompleted} backend={props.context.backend}/>
-          </Match>
-          <Match when={currentSlide() === 1}>
-            <WelcomePage onSlideCompleted={onSlideCompleted} backend={props.context.backend} text={props.context.text}/>
-          </Match>
-          <Match when={currentSlide() === 2}>
-            <NavigationDemo backend={props.context.backend} onSlideCompleted={onSlideCompleted} text={props.context.text}/>
-          </Match>
-          <Match when={currentSlide() === 3}>
-            <NavigationTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
-          </Match>
-          <Match when={currentSlide() === 4}>
-            <LocationDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
-          </Match>
-          <Match when={currentSlide() === 5}>
-            <LocationTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
-          </Match>
-          <Match when={currentSlide() === 6}>
-            <MultiplayerDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
-          </Match>
-          <Match when={currentSlide() === 7}>
-            <TutorialCompletePage nav={props.context.nav} onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend}/>
-          </Match>
-        </Switch>
-        <div class={navigationFooterStyle} id="tutorial-slide-navigation">
-            {currentSlide() < slideStore.length - 1 &&  
-              <BigMenuButton onClick={onAdvanceSlide} styleOverwrite={rightNavigationButtonStyle}
-                enable={currentSlideCompleted}>
-                <NTAwait func={() => props.context.backend.assets.getMetadata(1019)}>
-                  {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend}/>}
-                </NTAwait>
-              </BigMenuButton>
-            }
-            {currentSlide() >= 1 &&
-              <BigMenuButton styleOverwrite={leftNavigationButtonStyle} onClick={onBackSlide}>
-                <NTAwait func={() => props.context.backend.assets.getMetadata(1020)}>
-                  {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend}/>}
-                </NTAwait>
-              </BigMenuButton>
-            }
-        </div>
+      />
+      <Switch fallback={<ErrorPage content="OOC: Out of Cases" />}>
+        <Match when={currentSlide() === 0}>
+          <LanguagePage onLanguageSelected={onLanguageChange} onSlideCompleted={onSlideCompleted} backend={props.context.backend} />
+        </Match>
+        <Match when={currentSlide() === 1}>
+          <WelcomePage onSlideCompleted={onSlideCompleted} backend={props.context.backend} text={props.context.text} />
+        </Match>
+        <Match when={currentSlide() === 2}>
+          <NavigationDemo backend={props.context.backend} onSlideCompleted={onSlideCompleted} text={props.context.text} />
+        </Match>
+        <Match when={currentSlide() === 3}>
+          <NavigationTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />
+        </Match>
+        <Match when={currentSlide() === 4}>
+          <LocationDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />
+        </Match>
+        <Match when={currentSlide() === 5}>
+          <LocationTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />
+        </Match>
+        <Match when={currentSlide() === 6}>
+          <MultiplayerDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />
+        </Match>
+        <Match when={currentSlide() === 7}>
+          <TutorialCompletePage nav={props.context.nav} onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />
+        </Match>
+      </Switch>
+      <div class={navigationFooterStyle} id="tutorial-slide-navigation">
+        {currentSlide() < slideStore.length - 1 &&
+          <BigMenuButton onClick={onAdvanceSlide} styleOverwrite={rightNavigationButtonStyle}
+            enable={currentSlideCompleted}>
+            <NTAwait func={() => props.context.backend.assets.getMetadata(1019)}>
+              {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend} />}
+            </NTAwait>
+          </BigMenuButton>
+        }
+        {currentSlide() >= 1 &&
+          <BigMenuButton styleOverwrite={leftNavigationButtonStyle} onClick={onBackSlide}>
+            <NTAwait func={() => props.context.backend.assets.getMetadata(1020)}>
+              {(asset) => <GraphicalAsset styleOverwrite={footerImageStyleOverwrite} metadata={asset} backend={props.context.backend} />}
+            </NTAwait>
+          </BigMenuButton>
+        }
+      </div>
     </div>
   );
 }, { bundle: Bundle.TUTORIAL });
