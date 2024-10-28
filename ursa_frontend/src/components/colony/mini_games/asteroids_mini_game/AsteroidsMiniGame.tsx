@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount, onCleanup, For, createMemo } from "solid-js";
+import { Component, createSignal, onMount, onCleanup, For, createMemo, createEffect } from "solid-js";
 import { createArrayStore } from "../../../../ts/arrayStore";
 import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../../../ts/actionContext";
 import { createWrappedSignal } from "../../../../ts/wrappedSignal";
@@ -32,7 +32,7 @@ import { Position } from "./entities/BaseEntity";
 import ActionInput from "../../MainActionInput";
 import NTAwait from "../../../util/NoThrowAwait";
 import GraphicalAsset from "../../../GraphicalAsset";
-import { asteroidButtonStyle, asteroidImageContainerStyle, asteroidStyle, buttonContainerStyle, disabledStyle, impactCircleStyle, lazerBeamStyle, playerCharacterStyle, playerStyle, rotatingStyle, statusStyle, stunnedStyle, wallStyle } from "./styles/GameStyles";
+import { asteroidButtonStyle, asteroidImageContainerStyle, asteroidStyle, buttonContainerStyle, disabledStyle, impactCircleStyle, lazerBeamStyle, playerCharacterStyle, playerStyle, rotatingStyle, statusStyle, stunEffectStyle, stunnedStyle, stunParticleStyle, wallStyle } from "./styles/GameStyles";
 import BufferBasedButton from "../../../BufferBasedButton";
 import Countdown from "../../../util/Countdown";
 import StarryBackground from "../../../StarryBackground";
@@ -481,19 +481,109 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                         {/* Status Effects */}
                         {(() => {
                           const state = getPlayerState(player.id);
-                          return state && (state.isStunned || state.isDisabled) ? (
-                            <div style={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              width: '50px',
-                              height: '50px',
-                              'background-color': state.isStunned ? 'yellow' : 'red',
-                              'z-index': 1000,
-                              opacity: 0.8,
-                              border: '3px solid white'
-                            }} />
-                          ) : null;
+                          if (!state) return null;
+
+                          return (
+                            <>
+                              {/* Stun Effect */}
+                              {(() => {
+                                const [particles, setParticles] = createSignal<{ id: number; style: any }[]>([]);
+                                let particleId = 0;
+                                let spawnInterval: NodeJS.Timeout | null = null;
+                                let isSpawning = true;
+
+                                createEffect(() => {
+                                  if (state.isStunned) {
+                                    console.log('Starting particle spawning');
+                                    isSpawning = true;
+                                    spawnInterval = setInterval(() => {
+                                      if (!isSpawning) {
+                                        if (spawnInterval) {
+                                          clearInterval(spawnInterval);
+                                          spawnInterval = null;
+                                        }
+                                        return;
+                                      }
+
+                                      const newParticle = {
+                                        id: particleId++,
+                                        style: {
+                                          animation: 'stunRise 6s ease-out forwards',  // Longer duration to match height
+                                          left: `${33 + (Math.random() * 33)}%`,
+                                          width: `${2 + Math.random()}em`,
+                                          height: `${2 + Math.random()}em`,
+                                          'animation-delay': '0s',
+                                          'z-index': '1000',
+                                          position: 'absolute',
+                                          bottom: '0',
+                                          opacity: '0'
+                                        }
+                                      };
+
+                                      console.log('Creating particle:', newParticle);
+                                      setParticles(prev => [...prev, newParticle]);
+
+                                      // Remove particle only after it reaches max height and fades
+                                      setTimeout(() => {
+                                        console.log('Removing particle:', particleId - 1);
+                                        setParticles(prev => prev.filter(p => p.id !== particleId - 1));
+                                      }, 6000);  // Match animation duration
+                                    }, 100);
+
+                                    // Stop spawning after stun duration
+                                    setTimeout(() => {
+                                      console.log('Stopping particle spawning');
+                                      isSpawning = false;
+                                    }, 1000);
+                                  }
+
+                                  onCleanup(() => {
+                                    console.log('Cleaning up stun effect');
+                                    if (spawnInterval) {
+                                      clearInterval(spawnInterval);
+                                      spawnInterval = null;
+                                    }
+                                    isSpawning = false;
+                                  });
+                                });
+
+                                return (
+                                  <div
+                                    class={stunEffectStyle}
+                                    style={{
+                                      position: 'absolute',
+                                      inset: 0,
+                                      width: '100%',
+                                      height: '100%',
+                                      overflow: 'visible',
+                                      'z-index': 100
+                                    }}
+                                  >
+                                    <For each={particles()}>
+                                      {(particle) => (
+                                        <div
+                                          class={stunParticleStyle}
+                                          style={particle.style}
+                                        />
+                                      )}
+                                    </For>
+                                  </div>
+                                );
+                              })()}
+
+                              {/* Disable Effect */}
+                              {state.isDisabled && (
+                                <div style={{
+                                  position: 'absolute',
+                                  inset: 0,
+                                  'background-color': 'rgba(255, 0, 0, 0.5)',
+                                  'z-index': 1000,
+                                  opacity: 0.8,
+                                  border: '3px solid white'
+                                }} />
+                              )}
+                            </>
+                          );
                         })()}
                       </>
                     )}
