@@ -24,19 +24,19 @@ export const Styles = {
         color: white;
         margin: 2rem;
         font-size: 8rem;
-        text-shadow: .75rem .3rem .3rem rgba(255, 255, 255, .3);
-        filter: drop-shadow(-.1rem -.2rem .2rem rgba(255, 255, 255, .5));
+        text-shadow: 0.75rem 0.3rem 0.3rem rgba(255, 255, 255, 0.3);
+        filter: drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5));
     `,
     SUB_TITLE: css`
         text-align: center;
         font-family: 'Orbitron', sans-serif;
         font-weight: 700;
         letter-spacing: 0;
-        color: hsla(0,0%,100%, .7);
+        color: hsla(0, 0%, 100%, 0.7);
         margin: 2rem;
         font-size: 2rem;
-        text-shadow: .15rem .15rem .3rem rgba(255, 255, 255, .3);
-        filter: drop-shadow(-.1rem -.2rem .2rem rgba(255, 255, 255, .5));
+        text-shadow: 0.15rem 0.15rem 0.3rem rgba(255, 255, 255, 0.3);
+        filter: drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5));
     `,
     MENU_INPUT: css`
         position: relative;

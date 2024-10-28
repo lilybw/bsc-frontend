@@ -1,10 +1,10 @@
-import { Component, Setter } from "solid-js";
-import { IEventMultiplexer } from "../../integrations/multiplayer_backend/eventMultiplexer";
-import { ActionContext, TypeIconTuple } from "../../ts/actionContext";
-import { css } from "@emotion/css";
-import { DifficultyConfirmedForMinigameMessageDTO, PLAYER_JOIN_ACTIVITY_EVENT } from "../../integrations/multiplayer_backend/EventSpecifications";
-import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from "../../ts/types";
-import BufferBasedButton from "../base/BufferBasedButton";
+import { Component, Setter } from 'solid-js';
+import { IEventMultiplexer } from '../../integrations/multiplayer_backend/eventMultiplexer';
+import { ActionContext, TypeIconTuple } from '../../ts/actionContext';
+import { css } from '@emotion/css';
+import { DifficultyConfirmedForMinigameMessageDTO, PLAYER_JOIN_ACTIVITY_EVENT } from '../../integrations/multiplayer_backend/EventSpecifications';
+import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from '../../ts/types';
+import BufferBasedButton from '../base/BufferBasedButton';
 
 interface HandplacementCheckProps extends IBackendBased, IInternationalized, IRegistering<string>, IBufferBased {
     gameToBeMounted: DifficultyConfirmedForMinigameMessageDTO;
@@ -22,12 +22,12 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 <div class={contentStyle}>
                     <h2 class={titleStyle}>Ready to Join?</h2>
                     <div class={buttonContainerStyle}>
-                        <BufferBasedButton 
-                            buffer={props.buffer} 
-                            register={props.register} 
+                        <BufferBasedButton
+                            buffer={props.buffer}
+                            register={props.register}
                             onActivation={() => {
                                 props.setActionContext(ActionContext.NAVIGATION);
-                                props.events.emit(PLAYER_JOIN_ACTIVITY_EVENT, { 
+                                props.events.emit(PLAYER_JOIN_ACTIVITY_EVENT, {
                                     id: props.backend.player.local.id,
                                     ign: props.backend.player.local.firstName,
                                 });
@@ -36,9 +36,9 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                             }}
                             name="join"
                         />
-                        <BufferBasedButton 
-                            buffer={props.buffer} 
-                            register={props.register} 
+                        <BufferBasedButton
+                            buffer={props.buffer}
+                            register={props.register}
                             onActivation={() => {
                                 props.setActionContext(ActionContext.NAVIGATION);
                                 props.clearSelf();
@@ -49,8 +49,8 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 export default HandPlacementCheck;
 
 const overlayStyle = css`

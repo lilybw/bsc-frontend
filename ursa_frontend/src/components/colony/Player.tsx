@@ -1,12 +1,12 @@
-import { Component, createEffect, createMemo, createSignal } from "solid-js";
-import { TransformDTO, uint32 } from "../../integrations/main_backend/mainBackendDTOs";
-import { css } from "@emotion/css";
-import { Styles } from "../../sharedCSS";
-import { ClientDTO } from "../../integrations/multiplayer_backend/multiplayerDTO";
-import { WrappedSignal } from "../../ts/wrappedSignal";
-import { IBackendBased, IStyleOverwritable } from "../../ts/types";
+import { Component, createEffect, createMemo, createSignal } from 'solid-js';
+import { TransformDTO, uint32 } from '../../integrations/main_backend/mainBackendDTOs';
+import { css } from '@emotion/css';
+import { Styles } from '../../sharedCSS';
+import { ClientDTO } from '../../integrations/multiplayer_backend/multiplayerDTO';
+import { WrappedSignal } from '../../ts/wrappedSignal';
+import { IBackendBased, IStyleOverwritable } from '../../ts/types';
 
-interface PlayerProps extends IStyleOverwritable, IBackendBased{
+interface PlayerProps extends IStyleOverwritable, IBackendBased {
     client: ClientDTO;
     transformMap: Map<uint32, WrappedSignal<TransformDTO>>;
     showNamePlate?: boolean;
@@ -25,36 +25,35 @@ const Player: Component<PlayerProps> = (props) => {
         if (transform) {
             setCurrentTransform(transform.get());
         }
-    })
+    });
 
-    const computedContainerStyles = createMemo(() => css`
-        ${playerContainer}
-        ${props.isLocalPlayer ? localPlayerStyleOverwrite : ''}
+    const computedContainerStyles = createMemo(
+        () => css`
+            ${playerContainer}
+            ${props.isLocalPlayer ? localPlayerStyleOverwrite : ''}
         ${Styles.transformToCSSVariables(currentTransform())}
         ${Styles.TRANSFORM_APPLICATOR}
         ${props.styleOverwrite}
-    `);
+        `,
+    );
 
     const appendNamePlate = () => {
         if (props.showNamePlate) {
-            return (
-                <div class={namePlateStyle}>{props.client.IGN}</div>
-            )
+            return <div class={namePlateStyle}>{props.client.IGN}</div>;
         }
-    }
+    };
 
     return (
-        <div class={computedContainerStyles()} id={"player-"+props.client.IGN}>
+        <div class={computedContainerStyles()} id={'player-' + props.client.IGN}>
             {appendNamePlate()}
         </div>
-    )
-
-}
+    );
+};
 export default Player;
 
 const localPlayerStyleOverwrite = css`
     background-color: green;
-`
+`;
 
 const namePlateStyle = css`
     position: absolute;
@@ -66,14 +65,14 @@ const namePlateStyle = css`
     height: 5vh;
     width: fit-content;
     transform: translateX(-50%);
-    padding: .1rem;
-    
+    padding: 0.1rem;
+
     color: white;
     font-size: 1.5rem;
     text-align: center;
     text-shadow: 0 0 5px black;
     ${Styles.GLASS.FAINT_BACKGROUND}
-`
+`;
 
 const playerContainer = css`
     z-index: 200;
@@ -82,5 +81,7 @@ const playerContainer = css`
     border-radius: 50%;
     background-color: blue;
     box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.5);
-    transition: top 0.5s ease-in-out, left 0.5s ease-in-out;
-`
+    transition:
+        top 0.5s ease-in-out,
+        left 0.5s ease-in-out;
+`;

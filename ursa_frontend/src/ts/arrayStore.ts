@@ -1,5 +1,5 @@
 import { batch } from 'solid-js';
-import { createStore, produce, SetStoreFunction } from 'solid-js/store';
+import { createStore, produce } from 'solid-js/store';
 
 /**
  * Any function that adds some element to some structure, but also returns a function that removes it again.

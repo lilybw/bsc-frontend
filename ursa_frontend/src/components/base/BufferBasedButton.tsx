@@ -1,10 +1,10 @@
-import { Accessor, Component, createSignal, onCleanup, onMount, createMemo, createEffect } from "solid-js";
-import { css } from "@emotion/css";
-import BufferHighlightedName, { BufferHighlightedNameProps } from "./BufferHighlightedName";
-import { Styles } from "../../sharedCSS";
-import { IParenting, IRegistering, IStyleOverwritable } from "../../ts/types";
+import { Accessor, Component, createSignal, onCleanup, onMount, createMemo, createEffect } from 'solid-js';
+import { css } from '@emotion/css';
+import BufferHighlightedName, { BufferHighlightedNameProps } from './BufferHighlightedName';
+import { Styles } from '../../sharedCSS';
+import { IParenting, IRegistering, IStyleOverwritable } from '../../ts/types';
 
-export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IParenting, IRegistering<string>{
+export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IParenting, IRegistering<string> {
     onActivation: () => void;
     enable?: Accessor<boolean>;
 }
@@ -13,7 +13,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     const [activated, setActivated] = createSignal(false);
     const [recentlyEnabled, setRecentlyEnabled] = createSignal(false);
     const disabledBuffer = createMemo(() => '');
-   
+
     const isDisabled = createMemo(() => {
         return props.enable ? !props.enable() : false;
     });
@@ -28,7 +28,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
             setRecentlyEnabled(true);
         }
     });
-    
+
     const combinedCharBaseStyle = createMemo(() => {
         return css`
             ${props.charBaseStyleOverwrite || ''}
@@ -57,22 +57,21 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
         onCleanup(removeFunc);
     });
 
-    const computedContainerStyles = createMemo(() => css`
-        ${baseStyle} 
-        ${props.styleOverwrite} 
+    const computedContainerStyles = createMemo(
+        () => css`
+            ${baseStyle}
+            ${props.styleOverwrite} 
         ${activated() ? onActivationShimmerAnim : ''}
         ${isDisabled() ? Styles.CROSS_HATCH_GRADIENT : ''}
         ${recentlyEnabled() && !isDisabled() ? onReEnabledAnim : ''}
-    `);
+        `,
+    );
 
     return (
-        <button class={computedContainerStyles()} 
-            id={"buffer-based-button-"+props.name}
-            disabled={isDisabled()}
-        >
-            <BufferHighlightedName 
-                buffer={isDisabled() ? disabledBuffer : props.buffer} 
-                name={props.name} 
+        <button class={computedContainerStyles()} id={'buffer-based-button-' + props.name} disabled={isDisabled()}>
+            <BufferHighlightedName
+                buffer={isDisabled() ? disabledBuffer : props.buffer}
+                name={props.name}
                 charHighlightOverwrite={props.charHighlightOverwrite}
                 charBaseStyleOverwrite={combinedCharBaseStyle()}
                 nameCompleteOverwrite={props.nameCompleteOverwrite}
@@ -80,18 +79,18 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
             {props.children}
         </button>
     );
-}
+};
 
 export default BufferBasedButton;
 
-const shimmerTimeS = .5;
+const shimmerTimeS = 0.5;
 const shimmerColor = 'hsla(29, 100%, 63%, 1)';
 
 const onActivatedBaseNameStyleOverwrite = css`
-color: white;
-text-shadow: 0 0 1rem ${shimmerColor};
-text-decoration: underline;
-`
+    color: white;
+    text-shadow: 0 0 1rem ${shimmerColor};
+    text-decoration: underline;
+`;
 
 const onActivationShimmerAnim = css`
     animation: shimmer ${shimmerTimeS}s linear;
@@ -99,30 +98,29 @@ const onActivationShimmerAnim = css`
 
     @keyframes shimmer {
         0% {
-            filter: drop-shadow(0 0 .1rem var(--shimmer-color));
+            filter: drop-shadow(0 0 0.1rem var(--shimmer-color));
         }
         100% {
             filter: drop-shadow(0 0 5rem var(--shimmer-color));
         }
     }
-`
+`;
 
 const baseStyle = css`
     pointer-events: none;
     background-color: transparent;
     border: none;
-`
-
+`;
 
 const onReEnabledAnim = css`
-animation: shimmer ${shimmerTimeS}s ease-in;
---shimmer-color: ${shimmerColor};
-@keyframes shimmer {
-    0% {
-        filter: drop-shadow(0 0 .1rem var(--shimmer-color));
+    animation: shimmer ${shimmerTimeS}s ease-in;
+    --shimmer-color: ${shimmerColor};
+    @keyframes shimmer {
+        0% {
+            filter: drop-shadow(0 0 0.1rem var(--shimmer-color));
+        }
+        100% {
+            filter: drop-shadow(0 0 5rem var(--shimmer-color));
+        }
     }
-    100% {
-        filter: drop-shadow(0 0 5rem var(--shimmer-color));
-    }
-}
-`
+`;

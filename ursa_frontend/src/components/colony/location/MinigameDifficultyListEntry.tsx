@@ -1,9 +1,9 @@
-import { Accessor, Component } from "solid-js";
-import { MinigameDifficultyResponseDTO } from "../../../integrations/main_backend/mainBackendDTOs";
-import { IBackendBased, IBufferBased, IEmitter, IInternationalized, IRegistering } from "../../../ts/types";
-import { css, keyframes } from "@emotion/css";
-import { DIFFICULTY_SELECT_FOR_MINIGAME_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
-import BufferBasedButton from "../../base/BufferBasedButton";
+import { Accessor, Component } from 'solid-js';
+import { MinigameDifficultyResponseDTO } from '../../../integrations/main_backend/mainBackendDTOs';
+import { IBackendBased, IBufferBased, IEmitter, IInternationalized, IRegistering } from '../../../ts/types';
+import { css, keyframes } from '@emotion/css';
+import { DIFFICULTY_SELECT_FOR_MINIGAME_EVENT } from '../../../integrations/multiplayer_backend/EventSpecifications';
+import BufferBasedButton from '../../base/BufferBasedButton';
 
 interface MinigameDifficultyListEntryProps extends IBackendBased, IBufferBased, IRegistering<string>, IEmitter, IInternationalized {
     difficulty: MinigameDifficultyResponseDTO;
@@ -17,7 +17,7 @@ const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> =
     return (
         <div class={containerStyles(props.index, props.maxIndex)}>
             <div class={contentStyles}>
-                <BufferBasedButton 
+                <BufferBasedButton
                     name={props.text.get(props.difficulty.name).get()}
                     buffer={props.buffer}
                     register={props.register}
@@ -25,7 +25,7 @@ const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> =
                         props.emit(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, {
                             minigameID: props.minigameID,
                             difficultyID: props.difficulty.id,
-                            difficultyName: props.difficulty.name
+                            difficultyName: props.difficulty.name,
                         });
                     }}
                     enable={props.enabled}
@@ -33,8 +33,8 @@ const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> =
                 <div class={descriptionStyles}>{props.difficulty.description}</div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default MinigameDifficultyListEntry;
 
@@ -54,8 +54,8 @@ const pulse = keyframes`
 `;
 
 const containerStyles = (index: number, maxIndex: number) => {
-    const blueColor = "0, 100, 200"; // Base blue color
-    const redColor = "255, 0, 0";   // Peak red color
+    const blueColor = '0, 100, 200'; // Base blue color
+    const redColor = '255, 0, 0'; // Peak red color
 
     const peakColor = `
         ${Math.round(((maxIndex - index) / maxIndex) * parseInt(blueColor.split(',')[0]) + (index / maxIndex) * parseInt(redColor.split(',')[0]))},
@@ -85,7 +85,7 @@ const containerStyles = (index: number, maxIndex: number) => {
         backdrop-filter: blur(0.5rem);
         -webkit-backdrop-filter: blur(0.5rem); // For Safari support
 
-        box-shadow: 
+        box-shadow:
             0 0 1rem rgba(0, 0, 0, 0.5) inset,
             0 0 1rem rgba(0, 0, 0, 0.5);
 

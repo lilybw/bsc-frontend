@@ -1,15 +1,15 @@
-import { JSX } from "solid-js/jsx-runtime";
-import { css } from "@emotion/css";
-import ActionInput from "../../src/components/colony/MainActionInput";
-import { ActionContext, BufferSubscriber, TypeIconTuple } from "../../src/ts/actionContext";
-import { createMemo, createSignal } from "solid-js";
-import { createArrayStore } from "../../src/ts/arrayStore";
-import VideoFrame from "./VideoFrame";
-import { IBackendBased, IInternationalized } from "../../src/ts/types";
-import NTAwait from "../../src/components/util/NoThrowAwait";
-import GraphicalAsset from "../../src/components/base/GraphicalAsset";
-import ImageBufferButton from "../../src/components/base/ImageBufferButton";
-import StarryBackground from "../../src/components/base/StarryBackground";
+import { JSX } from 'solid-js/jsx-runtime';
+import { css } from '@emotion/css';
+import ActionInput from '../../src/components/colony/MainActionInput';
+import { ActionContext, BufferSubscriber, TypeIconTuple } from '../../src/ts/actionContext';
+import { createMemo, createSignal } from 'solid-js';
+import { createArrayStore } from '../../src/ts/arrayStore';
+import VideoFrame from './VideoFrame';
+import { IBackendBased, IInternationalized } from '../../src/ts/types';
+import NTAwait from '../../src/components/util/NoThrowAwait';
+import GraphicalAsset from '../../src/components/base/GraphicalAsset';
+import ImageBufferButton from '../../src/components/base/ImageBufferButton';
+import StarryBackground from '../../src/components/base/StarryBackground';
 
 interface NavigationDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
@@ -25,97 +25,98 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
 
     const nameOfLocation = props.text.get('LOCATION.OUTER_WALLS.NAME');
     for (let i = 0; i < nameOfLocation.get().length; i++) {
-        setTimeout(() => {
-            setInputBuffer(inputBuffer() + nameOfLocation.get()[i]);
-        }, baseDelayBeforeDemoStart + i * timeBetweenKeyStrokesMS);
+        setTimeout(
+            () => {
+                setInputBuffer(inputBuffer() + nameOfLocation.get()[i]);
+            },
+            baseDelayBeforeDemoStart + i * timeBetweenKeyStrokesMS,
+        );
     }
-    setTimeout(() => {
-        triggerEnter()();
-    }, baseDelayBeforeDemoStart * 2 + nameOfLocation.get().length * timeBetweenKeyStrokesMS);
+    setTimeout(
+        () => {
+            triggerEnter()();
+        },
+        baseDelayBeforeDemoStart * 2 + nameOfLocation.get().length * timeBetweenKeyStrokesMS,
+    );
 
     const buttonPressed = () => {
         setMovePlayerToLocation(true);
         setTimeout(() => {
-            props.onSlideCompleted()
-        }, 2000)
-    }
+            props.onSlideCompleted();
+        }, 2000);
+    };
 
     const computedPlayerStyle = createMemo(
-        () => css`${playerCharStyleOverwrite} ${movePlayerToLocation() ? playerAtLocation : ''}`
-    )
+        () => css`
+            ${playerCharStyleOverwrite} ${movePlayerToLocation() ? playerAtLocation : ''}
+        `,
+    );
 
     return (
         <div class="navigation-demo">
             <StarryBackground />
             {props.text.SubTitle('TUTORIAL.NAVIGATION_DEMO.DESCRIPTION')({})}
-            <VideoFrame styleOverwrite={videoDemoFrameStyle} backend={props.backend}> 
-                <ActionInput subscribers={bufferSubscribers} 
+            <VideoFrame styleOverwrite={videoDemoFrameStyle} backend={props.backend}>
+                <ActionInput
+                    subscribers={bufferSubscribers}
                     text={props.text}
                     backend={props.backend}
-                    actionContext={actionContext} 
+                    actionContext={actionContext}
                     setInputBuffer={setInputBuffer}
                     inputBuffer={inputBuffer}
                     triggerEnter={setTriggerEnter}
                     demoMode={true}
                 />
-                <div class={movementPathStyle}>
-                </div>
-                    <ImageBufferButton 
-                        styleOverwrite={locationPinStyleOverwrite}
-                        register={bufferSubscribers.add} 
-                        name={nameOfLocation.get()} 
-                        buffer={inputBuffer}
-                        onActivation={buttonPressed} 
-                        asset={1009} 
-                        backend={props.backend}
-                    />
-                    <NTAwait func={() => props.backend.assets.getMetadata(4001)}>
-                        {(asset) => (
-                            <GraphicalAsset 
-                                styleOverwrite={computedPlayerStyle()}
-                                metadata={asset} 
-                                backend={props.backend}
-                            />
-                        )}
-                    </NTAwait>
+                <div class={movementPathStyle}></div>
+                <ImageBufferButton
+                    styleOverwrite={locationPinStyleOverwrite}
+                    register={bufferSubscribers.add}
+                    name={nameOfLocation.get()}
+                    buffer={inputBuffer}
+                    onActivation={buttonPressed}
+                    asset={1009}
+                    backend={props.backend}
+                />
+                <NTAwait func={() => props.backend.assets.getMetadata(4001)}>
+                    {(asset) => <GraphicalAsset styleOverwrite={computedPlayerStyle()} metadata={asset} backend={props.backend} />}
+                </NTAwait>
             </VideoFrame>
-            
         </div>
-    )
+    );
 }
 
 const movementPathStyle = css`
-border-bottom: 1px dashed white;
-height: 66%;
-width: 50%;
-position: absolute;
-left: 50%;
-transform: translateX(-50%);
-`
+    border-bottom: 1px dashed white;
+    height: 66%;
+    width: 50%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+`;
 
 const shared = css`
-position: absolute;
---edge-offset: 5vw;
-bottom: 20vh;
-`
+    position: absolute;
+    --edge-offset: 5vw;
+    bottom: 20vh;
+`;
 
 const playerCharStyleOverwrite = css`
-${shared}
-left: var(--edge-offset);
---dude-size: 8vw;
-width: var(--dude-size);
-height: var(--dude-size);
-transition: left 2s;
-`
+    ${shared}
+    left: var(--edge-offset);
+    --dude-size: 8vw;
+    width: var(--dude-size);
+    height: var(--dude-size);
+    transition: left 2s;
+`;
 
 const playerAtLocation = css`
-left: 70%;
-`
+    left: 70%;
+`;
 const locationPinStyleOverwrite = css`
-${shared}
-right: var(--edge-offset);
-`
+    ${shared}
+    right: var(--edge-offset);
+`;
 
 const videoDemoFrameStyle = css`
-margin-top: 2rem;
-`
+    margin-top: 2rem;
+`;

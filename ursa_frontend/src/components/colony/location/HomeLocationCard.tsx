@@ -1,15 +1,15 @@
-import { Component } from "solid-js";
-import { GenericLocationCardProps } from "./GenericLocationCard";
-import { css, keyframes } from "@emotion/css";
-import NTAwait from "../../util/NoThrowAwait";
-import BufferBasedButton from "../../base/BufferBasedButton";
-import GraphicalAsset from "../../base/GraphicalAsset";
+import { Component } from 'solid-js';
+import { GenericLocationCardProps } from './GenericLocationCard';
+import { css, keyframes } from '@emotion/css';
+import NTAwait from '../../util/NoThrowAwait';
+import BufferBasedButton from '../../base/BufferBasedButton';
+import GraphicalAsset from '../../base/GraphicalAsset';
 
 interface HomeLocationCardProps extends GenericLocationCardProps {}
 
 const HomeLocationCard: Component<HomeLocationCardProps> = (props) => {
     return (
-        <div class={cardContainerStyle} id={"location-card-home"}>
+        <div class={cardContainerStyle} id={'location-card-home'}>
             <div class={cardContentStyle}>
                 <div class={backgroundContainerStyle}>
                     <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
@@ -21,20 +21,18 @@ const HomeLocationCard: Component<HomeLocationCardProps> = (props) => {
                         )}
                     </NTAwait>
                 </div>
-                {props.text.Title(props.info.name)({styleOverwrite: titleStyleOverwrite})}
+                {props.text.Title(props.info.name)({ styleOverwrite: titleStyleOverwrite })}
                 <div class={contentGridStyle}>
                     <div class={imageContainerStyle}>
                         <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
-                            {(asset) =>
-                                <GraphicalAsset styleOverwrite={imageStyle} backend={props.backend} metadata={asset} />
-                            }
+                            {(asset) => <GraphicalAsset styleOverwrite={imageStyle} backend={props.backend} metadata={asset} />}
                         </NTAwait>
                     </div>
-                    {props.text.SubTitle(props.info.description)({styleOverwrite: descriptionStyleOverwrite})}
+                    {props.text.SubTitle(props.info.description)({ styleOverwrite: descriptionStyleOverwrite })}
                 </div>
                 <div class={buttonContainerStyle}>
-                    <BufferBasedButton 
-                        name={props.text.get("LOCATION.USER_ACTION.LEAVE").get()}
+                    <BufferBasedButton
+                        name={props.text.get('LOCATION.USER_ACTION.LEAVE').get()}
                         buffer={props.buffer}
                         register={props.register}
                         onActivation={props.closeCard}

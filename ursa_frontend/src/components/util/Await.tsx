@@ -1,6 +1,6 @@
-import { Component, createResource, JSX, Show } from "solid-js";
-import Spinner from "../base/SimpleLoadingSpinner";
-import SomethingWentWrongIcon from "../base/SomethingWentWrongIcon";
+import { Component, createResource, JSX, Show } from 'solid-js';
+import Spinner from '../base/SimpleLoadingSpinner';
+import SomethingWentWrongIcon from '../base/SomethingWentWrongIcon';
 
 export interface AwaitProps<T> {
     func: () => Promise<T>;
@@ -10,8 +10,8 @@ export interface AwaitProps<T> {
 
 // R is needed here or else the syntax highlighting will break
 const Await = <T, R>(props: AwaitProps<T>) => {
-    const {func, fallback, children} = props;
-    const [resource, {refetch, mutate}] = createResource<T>(func);
+    const { func, fallback, children } = props;
+    const [resource, { refetch, mutate }] = createResource<T>(func);
     return (
         <>
             <Show when={resource.loading}>
@@ -20,10 +20,8 @@ const Await = <T, R>(props: AwaitProps<T>) => {
             <Show when={resource.error}>
                 {fallback ? fallback(resource.error) : <SomethingWentWrongIcon message={JSON.stringify(resource.error)} />}
             </Show>
-            <Show when={resource.latest}>
-                {children(resource.latest!)}
-            </Show>
+            <Show when={resource.latest}>{children(resource.latest!)}</Show>
         </>
     );
-}
+};
 export default Await;

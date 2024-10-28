@@ -15,7 +15,7 @@ export const TEST_ENVIRONMENT: ENV = {
         languagePreference: LanguagePreference.English,
         locationUrl: 'http://localhost:' + import.meta.env.VITE_PORT + '/' + import.meta.env.BASE_URL,
         lastName: 'Thee Who Shall Not Be Named',
-        currentSubUrl: "/", 
-        bundleRequested: Bundle.UNNKNOWN
+        currentSubUrl: '/',
+        bundleRequested: Bundle.UNNKNOWN,
     },
 };

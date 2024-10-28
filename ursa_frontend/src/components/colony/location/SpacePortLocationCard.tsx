@@ -1,14 +1,14 @@
-import { Component, createSignal, createMemo } from "solid-js";
-import { GenericLocationCardProps } from "./GenericLocationCard";
-import { css } from "@emotion/css";
-import NTAwait from "../../util/NoThrowAwait";
-import { ColonyCode, ColonyInfoResponseDTO, OpenColonyRequestDTO } from "../../../integrations/main_backend/mainBackendDTOs";
-import { PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
-import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
-import { MultiplayerMode } from "../../../meta/types";
-import { Styles } from "../../../sharedCSS";
-import BufferBasedButton from "../../base/BufferBasedButton";
-import GraphicalAsset from "../../base/GraphicalAsset";
+import { Component, createSignal, createMemo } from 'solid-js';
+import { GenericLocationCardProps } from './GenericLocationCard';
+import { css } from '@emotion/css';
+import NTAwait from '../../util/NoThrowAwait';
+import { ColonyCode, ColonyInfoResponseDTO, OpenColonyRequestDTO } from '../../../integrations/main_backend/mainBackendDTOs';
+import { PLAYER_MOVE_EVENT } from '../../../integrations/multiplayer_backend/EventSpecifications';
+import { IMultiplayerIntegration } from '../../../integrations/multiplayer_backend/multiplayerBackend';
+import { MultiplayerMode } from '../../../meta/types';
+import { Styles } from '../../../sharedCSS';
+import BufferBasedButton from '../../base/BufferBasedButton';
+import GraphicalAsset from '../../base/GraphicalAsset';
 
 interface SpacePortCardProps extends GenericLocationCardProps {
     colony: ColonyInfoResponseDTO;
@@ -17,12 +17,12 @@ interface SpacePortCardProps extends GenericLocationCardProps {
 
 const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     const [connectErr, setConnectErr] = createSignal<string | undefined>();
-    const log = props.backend.logger.copyFor("space port");
+    const log = props.backend.logger.copyFor('space port');
 
     const openColony = async () => {
         const getCurrentDateTimeLocaleString = () => {
             const now = new Date();
-            return now.toLocaleString('en-US', { 
+            return now.toLocaleString('en-US', {
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 year: 'numeric',
                 month: '2-digit',
@@ -30,7 +30,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
-                hour12: false
+                hour12: false,
             });
         };
 
@@ -53,8 +53,8 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         }
         props.events.emit(PLAYER_MOVE_EVENT, {
             playerID: props.backend.player.local.id,
-            colonyLocationID: props.colonyLocation.id
-        })
+            colonyLocationID: props.colonyLocation.id,
+        });
     };
 
     const closeColony = async () => {
@@ -63,69 +63,85 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
 
     const formatCodeForDisplay = (code: number): string => {
         const str = code.toString();
-        let formatted = "";
+        let formatted = '';
         //space after each 2 digits, but the last
         for (let i = 0; i < str.length; i++) {
-            if (i % 2 === 0 && i !== str.length -1) {
-                formatted += " " + str[i];
+            if (i % 2 === 0 && i !== str.length - 1) {
+                formatted += ' ' + str[i];
             } else {
                 formatted += str[i];
             }
         }
         return formatted;
-    }
+    };
 
     const getOpenLayout = (code: ColonyCode) => (
         <>
-            <div class={css`${Styles.MENU_INPUT} ${codeDisplayStyle}`}>
+            <div
+                class={css`
+                    ${Styles.MENU_INPUT} ${codeDisplayStyle}
+                `}
+            >
                 {formatCodeForDisplay(code)}
             </div>
             <div class={lowerThirdWBackgroundStyle}>
-                <div class={css`display: flex; flex-direction: row; width: 100%; justify-content: space-evenly;`}>
-                    <BufferBasedButton 
-                        name={props.text.get("LOCATION.USER_ACTION.LEAVE").get()}
+                <div
+                    class={css`
+                        display: flex;
+                        flex-direction: row;
+                        width: 100%;
+                        justify-content: space-evenly;
+                    `}
+                >
+                    <BufferBasedButton
+                        name={props.text.get('LOCATION.USER_ACTION.LEAVE').get()}
                         buffer={props.buffer}
                         register={props.register}
                         onActivation={() => {
                             props.closeCard();
                         }}
                     />
-                    {props.multiplayer.getMode() === MultiplayerMode.AS_OWNER && 
-                    <BufferBasedButton
-                        name={props.text.get("LOCATION.SPACE_PORT.CLOSE_COLONY").get()}
-                        buffer={props.buffer}
-                        register={props.register}
-                        onActivation={() => closeColony()}
-                    />}
+                    {props.multiplayer.getMode() === MultiplayerMode.AS_OWNER && (
+                        <BufferBasedButton
+                            name={props.text.get('LOCATION.SPACE_PORT.CLOSE_COLONY').get()}
+                            buffer={props.buffer}
+                            register={props.register}
+                            onActivation={() => closeColony()}
+                        />
+                    )}
                 </div>
             </div>
         </>
     );
-    
 
-    const getClosedLayout = () => (        
+    const getClosedLayout = () => (
         <div class={lowerThirdWBackgroundStyle}>
-            <div class={descriptionStyle}>
-                {props.text.SubTitle(props.info.description)({styleOverwrite: descriptionStyleOverwrite})}
-            </div>
-            <div class={css`display: flex; flex-direction: row; width: 100%; justify-content: space-evenly;`}>
-                <BufferBasedButton 
-                    name={props.text.get("LOCATION.USER_ACTION.LEAVE").get()}
+            <div class={descriptionStyle}>{props.text.SubTitle(props.info.description)({ styleOverwrite: descriptionStyleOverwrite })}</div>
+            <div
+                class={css`
+                    display: flex;
+                    flex-direction: row;
+                    width: 100%;
+                    justify-content: space-evenly;
+                `}
+            >
+                <BufferBasedButton
+                    name={props.text.get('LOCATION.USER_ACTION.LEAVE').get()}
                     buffer={props.buffer}
                     register={props.register}
                     onActivation={props.closeCard}
                 />
-                {props.multiplayer.getMode() === MultiplayerMode.AS_OWNER && 
-                <BufferBasedButton
-                    name={props.text.get("LOCATION.SPACE_PORT.OPEN_COLONY").get()}
-                    buffer={props.buffer}
-                    register={props.register}
-                    onActivation={openColony}
-                />}
+                {props.multiplayer.getMode() === MultiplayerMode.AS_OWNER && (
+                    <BufferBasedButton
+                        name={props.text.get('LOCATION.SPACE_PORT.OPEN_COLONY').get()}
+                        buffer={props.buffer}
+                        register={props.register}
+                        onActivation={openColony}
+                    />
+                )}
             </div>
         </div>
-    )
-    
+    );
 
     const getBody = createMemo(() => {
         const code = props.multiplayer.getCode();
@@ -134,11 +150,11 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         } else {
             return getClosedLayout();
         }
-    })
+    });
 
     return (
-        <div class={cardContainerStyle} id={"location-card-space-port"}>
-            {props.text.Title(props.info.name)({styleOverwrite: titleStyleOverwrite})}
+        <div class={cardContainerStyle} id={'location-card-space-port'}>
+            {props.text.Title(props.info.name)({ styleOverwrite: titleStyleOverwrite })}
 
             {getBody()}
 
@@ -156,7 +172,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
 export default SpacePortLocationCard;
 
 const codeDisplayStyle = css`
-    position: absolute; 
+    position: absolute;
     top: 50%;
     left: 50%;
     height: fit-content;
@@ -167,7 +183,7 @@ const codeDisplayStyle = css`
     font-size: 8rem;
     text-align: center;
     ${Styles.GLASS.BACKGROUND}
-`
+`;
 
 const lowerThirdWBackgroundStyle = css`
     display: flex;
@@ -179,14 +195,14 @@ const lowerThirdWBackgroundStyle = css`
     z-index: 1;
     width: 100%;
     height: fit-content;
-    padding-bottom: 1rem;   
-    padding-top: 1rem;    
-    row-gap: .5rem;
+    padding-bottom: 1rem;
+    padding-top: 1rem;
+    row-gap: 0.5rem;
     bottom: 0;
     border-radius: 10px;
 
     ${Styles.GLASS.BACKGROUND}
-`
+`;
 
 const cardContainerStyle = css`
     display: flex;
