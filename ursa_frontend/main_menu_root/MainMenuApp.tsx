@@ -12,6 +12,7 @@ import SlideIcon from '../tutorial_root/SlideIcon';
 import LanguageSelectInlay from './pages/LanguageSelectInlay';
 import SpacePortLocationCard from '../src/components/colony/location/SpacePortLocationCard';
 import { createArrayStore } from '../src/ts/arrayStore';
+import OnScreenKeyboard from '../src/components/base/OnScreenKeyboard';
 
 export enum MenuPages {
   LANDING_PAGE = "landing",

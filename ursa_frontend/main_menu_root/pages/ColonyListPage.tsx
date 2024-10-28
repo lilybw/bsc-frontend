@@ -1,17 +1,11 @@
-import { Component, createEffect, createResource, createSignal, For, Show } from "solid-js"
+import { Component, createSignal, For } from "solid-js"
 import { MenuPageProps, MenuPages } from "../MainMenuApp"
-import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO, UpdateLatestVisitResponseDTO, UpdateLatestVisitRequestDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
-import { ResCodeErr } from "../../src/meta/types";
-import SectionTitle from "../../src/components/SectionTitle";
-import SomethingWentWrongIcon from "../../src/components/SomethingWentWrongIcon";
-import Spinner from "../../src/components/SimpleLoadingSpinner";
+import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO, UpdateLatestVisitRequestDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
 import { css } from "@emotion/css";
 import StarryBackground from "../../src/components/StarryBackground";
 import ColonyListEntry from "./ColonyListEntry";
 import NavigationFooter from "../NavigationFooter";
 import NTAwait from "../../src/components/util/NoThrowAwait";
-import If from "../../src/components/util/If";
-import SectionSubTitle from "../../src/components/SectionSubTitle";
 import BigMenuButton from "../../src/components/BigMenuButton";
 import { Styles } from "../../src/sharedCSS";
 
@@ -65,31 +59,36 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
             })
     }
 
+    const getContent = (overview: ColonyOverviewReponseDTO) => {
+        if (overview.colonies.length > 0) {
+            return (<>
+                <div class={colonyListBackgroundStyle}/>
+                <div class={colonyListStyle}>
+                <For each={sortedColonies(overview)}>{(colony: ColonyInfoResponseDTO) =>
+                    <ColonyListEntry 
+                        colony={colony} 
+                        onClick={() => setSelectedColonyId(colony.id)} 
+                        isSelected={selectedColonyId() === colony.id}
+                        text={props.context.text}
+                    />
+                }</For>
+                </div>
+            </>)
+        } else {
+            return (<>
+                {props.context.text.SubTitle('MENU.SUB_TITLE.NO_COLONIES_YET')({})}
+                <BigMenuButton onClick={() => props.goToPage(MenuPages.NEW_COLONY)} styleOverwrite={Styles.TRANSFORM_CENTER}>
+                    {props.context.text.get('MENU.OPTION.CREATE_COLONY').get()}
+                </BigMenuButton>
+            </>)
+        }
+    }
+
     return (
         <div>
             {props.context.text.Title('MENU.PAGE_TITLE.SELECT_COLONY')({styleOverwrite: pageTitleStyle})}
-            <NTAwait func={() => props.context.backend.colony.getOverview(props.context.backend.player.local.id)}>{(overview) =>
-                <If condition={overview.colonies.length > 0}>{[
-                    <>
-                    <div class={colonyListBackgroundStyle}/>
-                    <div class={colonyListStyle}>
-                    <For each={sortedColonies(overview)}>{(colony: ColonyInfoResponseDTO) =>
-                        <ColonyListEntry 
-                            colony={colony} 
-                            onClick={() => setSelectedColonyId(colony.id)} 
-                            isSelected={selectedColonyId() === colony.id}
-                            text={props.context.text}
-                        />
-                    }</For>
-                    </div>
-                    </>,
-                    <>
-                    {props.context.text.SubTitle('MENU.SUB_TITLE.NO_COLONIES_YET')({})}
-                    <BigMenuButton onClick={() => props.goToPage(MenuPages.NEW_COLONY)} styleOverwrite={Styles.TRANSFORM_CENTER}>
-                        {props.context.text.get('MENU.OPTION.CREATE_COLONY').get()}
-                    </BigMenuButton>
-                    </>
-                ]}</If>
+            <NTAwait func={() => props.context.backend.colony.getOverview(props.context.backend.player.local.id)}>{
+                getContent
             }</NTAwait>
             <NavigationFooter 
                 text={props.context.text}
