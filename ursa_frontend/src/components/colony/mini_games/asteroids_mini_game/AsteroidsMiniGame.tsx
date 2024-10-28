@@ -14,8 +14,6 @@ import {
   calculatePlayerPositions,
   getRandomRotationSpeed,
   getTargetCenterPosition,
-  getPlayerRefKey,
-  getAsteroidRefKey,
   getEntityRefKey
 } from "./utils/GameUtils";
 import {
@@ -100,7 +98,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       return;
     }
 
-    const playerRefKey = getPlayerRefKey(shooter.id);
+    const playerRefKey = getEntityRefKey.player(shooter.id);
     const shooterRef = elementRefs.get(playerRefKey);
     if (!shooterRef || shooterRef.type !== 'player') {
       console.error('Invalid shooter reference:', shooterRef);
@@ -126,7 +124,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       hitSomething = true;
       hitAsteroids.forEach((asteroid) => {
         console.log('Processing hit on asteroid:', asteroid.id);
-        const asteroidRefKey = getAsteroidRefKey(asteroid.id);
+        const asteroidRefKey = getEntityRefKey.asteroid(asteroid.id);
         const targetPos = getTargetCenterPosition(asteroidRefKey, elementRefs);
         console.log('Target position for asteroid:', targetPos);
 
@@ -151,7 +149,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       hitSomething = true;
       hitPlayers.forEach((player) => {
         console.log('Processing hit on player:', player.id);
-        const targetRefKey = getPlayerRefKey(player.id);
+        const targetRefKey = getEntityRefKey.player(player.id);
         const targetPos = getTargetCenterPosition(targetRefKey, elementRefs);
         console.log('Target position for player:', targetPos);
 
@@ -213,7 +211,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       }
     });
 
-    // Directly add the beam to the ArrayStore, no need to initialize
+    // Add the beam to the ArrayStore
     const removeFunc = lazerBeams.add(beam);
     lazerBeamRemoveFuncs.set(id, removeFunc);
     console.log('Beam creation complete:', id);
@@ -244,9 +242,9 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
             endY: impactPos.y,
             health: props.settings.asteroidMaxHealth,
             timeUntilImpact: data.timeUntilImpact,
-            speed: data.timeUntilImpact, // Added required property
-            element: null,  // Added required property
-            destroy: () => handleAsteroidDestruction(data.id, elementRefs, asteroidsRemoveFuncs) // Added required property
+            speed: data.timeUntilImpact,
+            element: null,
+            destroy: () => handleAsteroidDestruction(data.id, elementRefs, asteroidsRemoveFuncs)
           });
 
           const removeFunc = asteroids.add(asteroid);
@@ -271,6 +269,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
       ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT,
       Object.assign(
         (data: AsteroidsAssignPlayerDataMessageDTO) => {
+          const isLocal = data.id === props.context.backend.player.local.id;
           const player = new Player({
             ...data,
             x: 0,
@@ -281,6 +280,11 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
             penaltyMultiplier: props.settings.friendlyFirePenaltyMultiplier,
             isLocal: data.id === props.context.backend.player.local.id
           });
+
+          if (isLocal) {
+            // Pass the setter to the player
+            player.setButtonStateUpdater((disabled) => setButtonsEnabled(!disabled));
+          }
 
           players.add(player);
           const newPositions = calculatePlayerPositions(players.get);
@@ -379,7 +383,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
               {/* Asteroid Button Container */}
               <div class={asteroidButtonStyle}>
                 <BufferBasedButton
-                  enable={buttonsEnabled}
+                  enable={() => buttonsEnabled()}
                   name={asteroid.charCode}
                   buffer={inputBuffer.get}
                   onActivation={() => localPlayerShootAtCodeHandler(asteroid.charCode)}
@@ -436,26 +440,21 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                 transform: 'translateX(-50%)'
               }}
             >
-              {/* Button Container */}
               <div class={buttonContainerStyle}>
                 <BufferBasedButton
-                  enable={buttonsEnabled}
+                  enable={() => buttonsEnabled()}
                   name={player.code}
                   buffer={inputBuffer.get}
                   onActivation={() => localPlayerShootAtCodeHandler(player.code)}
                   register={bufferSubscribers.add}
                 />
               </div>
-
-              {/* Player Character Container */}
               <div class={playerCharacterStyle}>
                 <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
                   {(asset) => (
                     <GraphicalAsset metadata={asset} backend={props.context.backend} />
                   )}
                 </NTAwait>
-                {player.isStunned && <div class={stunnedStyle} />}
-                {player.isDisabled && <div class={disabledStyle} />}
               </div>
             </div>
           )}
