@@ -66,6 +66,39 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
         return props.colonyLocation.level >= diff.requiredLevel;
     };
 
+    const getMinigameList = () => {
+        if (!props.info.minigameID || props.info.minigameID === null || props.info.minigameID === 0) {
+            return <UnderConstruction specialText={props.text.get('LOCATION.UNDER_CONSTRUCTION').get()} />;
+        }
+        return (
+            <NTAwait
+                func={() => props.backend.minigame.getInfo(props.info.minigameID)}
+                fallback={() => <UnderConstruction specialText={props.text.get('LOCATION.UNDER_CONSTRUCTION').get()} />}
+            >
+                {(minigame) => (
+                    <Show when={minigame.difficulties.length > 0} fallback={<UnderConstruction />}>
+                        <For each={minigame.difficulties}>
+                            {(difficulty, index) => (
+                                <MinigameDifficultyListEntry
+                                    difficulty={difficulty}
+                                    minigameID={minigame.id}
+                                    buffer={props.buffer}
+                                    register={props.register}
+                                    backend={props.backend}
+                                    emit={props.events.emit}
+                                    text={props.text}
+                                    enabled={() => isDifficultyUnlocked(difficulty)}
+                                    index={index()}
+                                    maxIndex={minigame.difficulties.length - 1}
+                                />
+                            )}
+                        </For>
+                    </Show>
+                )}
+            </NTAwait>
+        )
+    }
+
     return (
         <div class={cardContainerStyle} id={'location-card-' + props.info.name}>
             <div class={cardContentStyle}>
@@ -82,31 +115,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                 {props.text.Title(props.info.name)({ styleOverwrite: titleStyleOverwrite })}
                 <div class={contentGridStyle}>
                     <div class={difficultyListStyle}>
-                        <NTAwait
-                            func={() => props.backend.minigame.getInfo(props.info.minigameID)}
-                            fallback={() => <UnderConstruction specialText={props.text.get('LOCATION.UNDER_CONSTRUCTION').get()} />}
-                        >
-                            {(minigame) => (
-                                <Show when={minigame.difficulties.length > 0} fallback={<UnderConstruction />}>
-                                    <For each={minigame.difficulties}>
-                                        {(difficulty, index) => (
-                                            <MinigameDifficultyListEntry
-                                                difficulty={difficulty}
-                                                minigameID={minigame.id}
-                                                buffer={props.buffer}
-                                                register={props.register}
-                                                backend={props.backend}
-                                                emit={props.events.emit}
-                                                text={props.text}
-                                                enabled={() => isDifficultyUnlocked(difficulty)}
-                                                index={index()}
-                                                maxIndex={minigame.difficulties.length - 1}
-                                            />
-                                        )}
-                                    </For>
-                                </Show>
-                            )}
-                        </NTAwait>
+                        {getMinigameList()}
                     </div>
                     <div class={imageContainerStyle}>
                         <NTAwait func={() => props.backend.assets.getMetadata(getIdOfSplashArt(props.colonyLocation.level, props.info.appearances))}>
