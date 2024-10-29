@@ -10,13 +10,11 @@ export interface StunParticleProps extends ParticleProps {
  */
 export class StunParticle extends BaseParticle {
     private size: number;
-    private readonly horizontalPosition: number;
 
     constructor(props: StunParticleProps) {
         super(props);
         this.size = props.size || 2.5;
         // Calculate random position within middle third once at creation
-        this.horizontalPosition = 33 + Math.random() * 33;
     }
 
     /**
@@ -25,14 +23,27 @@ export class StunParticle extends BaseParticle {
      */
     public getStyle(): Record<string, string> {
         // Size variation to particles
-        const sizeVariation = 0.8 + Math.random() * 0.4;  // 0.8 to 1.2
+        const sizeVariation = 0.8 + Math.random() * 0.4;
+
+        console.log('[STUNPARTICLE] Getting style:', {
+            id: this.id,
+            position: { x: this.x, y: this.y },
+            calculatedStyle: {
+                position: 'absolute',
+                left: `${this.x * 100}%`,
+                top: `${this.y * 100}%`,
+                transform: 'translate(-50%, -50%)'
+            }
+        });
+
         return {
             position: 'absolute',
-            bottom: '0',
-            left: `${33 + (Math.random() * 33)}%`,  // Middle third
+            left: `${this.x * 100}%`,  // Use exact center position
+            top: `${this.y * 100}%`,
+            transform: 'translate(-50%, -50%)', // Center the particle on this point
             width: `${3 * sizeVariation}em`,
             height: `${3 * sizeVariation}em`,
-            animation: `stunRise ${4 + Math.random()}s ease-out forwards`,  // Slight duration variation
+            animation: `stunRise ${4 + Math.random()}s ease-out forwards`,
             'z-index': '1000',
             opacity: '0',
             'border-radius': '50%',

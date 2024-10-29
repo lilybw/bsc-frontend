@@ -1,43 +1,66 @@
 import BaseParticle from '../BaseParticle';
 import StunParticle from './StunParticle';
+import { EntityRef } from '../../../types/EntityTypes';
+import { getEntityRefKey, getTargetCenterPosition } from '../../../utils/GameUtils';
 
 /**
- * Manages the lifecycle and state of all particles in the game
+ * Manages the lifecycle and state of stun effect particles
  */
-export class ParticleManager {
+export class StunParticleManager {
     private particles: Map<number, BaseParticle>;
     private nextId: number;
     private updateCallback: () => void;
+    private playerId: number;
+    private elementRefs: Map<string, EntityRef>;
 
     /**
-     * Creates a new ParticleManager instance
-     * @param updateCallback Function to call when particle state changes
+     * Creates a new StunParticleManager instance
      */
-    constructor(updateCallback: () => void) {
+    constructor(
+        updateCallback: () => void,
+        playerId: number,
+        elementRefs: Map<string, EntityRef>
+    ) {
         this.particles = new Map();
         this.nextId = 0;
         this.updateCallback = updateCallback;
+        this.playerId = playerId;
+        this.elementRefs = elementRefs;
     }
 
     /**
      * Creates and starts tracking a new stun particle
-     * @returns The ID of the created particle
      */
     public createStunParticle(): number {
         const id = this.nextId++;
+
+        const playerKey = getEntityRefKey.player(this.playerId);
+        const centerPos = getTargetCenterPosition(playerKey, this.elementRefs);
+
+        console.log('[STUNPARTICLE] Creating particle:', {
+            id,
+            playerKey,
+            centerPos,
+            elementRef: this.elementRefs.get(playerKey)
+        });
+
+        if (!centerPos) {
+            console.error('[STUNPARTICLE] Could not get player center position');
+            return id;
+        }
+
         const particle = new StunParticle({
             id,
-            x: 0,
-            y: 0,
-            duration: 4000,  // 4 seconds
+            x: centerPos.x,
+            y: centerPos.y,
+            duration: 4000,
             onComplete: () => {
-                console.log(`Particle ${id} completed`);
+                console.log(`[STUNPARTICLE] Particle ${id} completed`);
                 this.removeParticle(id);
             }
         });
 
         this.addParticle(particle);
-        console.log(`Created particle ${id}, total particles:`, this.particles.size);
         return id;
     }
 
@@ -112,4 +135,4 @@ export class ParticleManager {
     }
 }
 
-export default ParticleManager;
+export default StunParticleManager;

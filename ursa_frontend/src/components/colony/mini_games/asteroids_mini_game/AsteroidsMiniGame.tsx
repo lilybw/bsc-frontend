@@ -531,8 +531,9 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                                                             <GraphicalAsset metadata={asset} backend={props.context.backend} />
                                                             <PlayerStunEffect
                                                                 playerId={player.id}
-                                                                playerState={() => getPlayerState(player.id)}  // Pass as accessor function
-                                                                stunDuration={1}
+                                                                playerState={() => getPlayerState(player.id)}
+                                                                stunDuration={props.settings.stunDurationS}
+                                                                elementRefs={elementRefs}
                                                             />
                                                         </>
                                                     )}
