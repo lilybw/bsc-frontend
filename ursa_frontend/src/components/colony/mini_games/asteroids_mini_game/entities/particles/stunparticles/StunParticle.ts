@@ -38,11 +38,11 @@ export class StunParticle extends BaseParticle {
 
         return {
             position: 'absolute',
-            left: `${this.x * 100}%`,  // Use exact center position
+            left: `${(this.x * 100) - ((this.size / 2.0) * sizeVariation)}%`,  // Use exact center position minus the particle size
             top: `${this.y * 100}%`,
             transform: 'translate(-50%, -50%)', // Center the particle on this point
-            width: `${3 * sizeVariation}em`,
-            height: `${3 * sizeVariation}em`,
+            width: `${this.size * sizeVariation}em`,
+            height: `${this.size * sizeVariation}em`,
             animation: `stunRise ${4 + Math.random()}s ease-out forwards`,
             'z-index': '1000',
             opacity: '0',
