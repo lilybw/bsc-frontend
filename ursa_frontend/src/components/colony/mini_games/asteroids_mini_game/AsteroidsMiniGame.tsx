@@ -53,6 +53,7 @@ import GraphicalAsset from '../../../base/GraphicalAsset';
 import StarryBackground from '../../../base/StarryBackground';
 import { BaseParticle, ParticleManager, StunParticle } from './entities/particles';
 import { particleContainerStyle } from './styles/ParticleStyles';
+import PlayerStunEffect from './components/PlayerStunEffect';
 
 type PlayerState = {
     isStunned: boolean;
@@ -533,69 +534,13 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                                                                 const state = getPlayerState(player.id);
                                                                 if (!state) return null;
 
-                                                                // Create a signal for this player's particles
-                                                                const [playerParticles, setPlayerParticles] = createSignal<BaseParticle[]>([]);
-
-                                                                // Create particle manager for this player
-                                                                const particleManager = new ParticleManager(() => {
-                                                                    console.log(`Updating particles for player ${player.id}`, particleManager.getParticles());
-                                                                    setPlayerParticles(particleManager.getParticles());
-                                                                });
-
-                                                                // Effect for particle creation
-                                                                createEffect(() => {
-                                                                    if (state.isStunned) {
-                                                                        console.log(`Player ${player.id} stunned - starting particle effect`);
-                                                                        let particleCount = 0;
-
-                                                                        const spawnInterval = setInterval(() => {
-                                                                            particleCount++;
-                                                                            console.log(`Creating particle ${particleCount} for player ${player.id}`);
-                                                                            particleManager.createStunParticle();
-                                                                        }, 100);
-
-                                                                        // Start regular updates
-                                                                        const updateInterval = setInterval(() => {
-                                                                            particleManager.update();
-                                                                        }, 100);
-
-                                                                        // Cleanup
-                                                                        onCleanup(() => {
-                                                                            console.log(`Cleaning up particles for player ${player.id}`);
-                                                                            clearInterval(spawnInterval);
-                                                                            clearInterval(updateInterval);
-                                                                            particleManager.clear();
-                                                                        });
-                                                                    }
-                                                                });
-
                                                                 return (
                                                                     <>
-                                                                        {/* Particle Container */}
-                                                                        <div
-                                                                            class={particleContainerStyle}
-                                                                            style={{
-                                                                                position: 'absolute',
-                                                                                inset: 0,
-                                                                                width: '100%',
-                                                                                height: '100%',
-                                                                                overflow: 'visible',
-                                                                                'z-index': 100,
-                                                                                'pointer-events': 'none'
-                                                                            }}
-                                                                        >
-                                                                            <For each={playerParticles()}>
-                                                                                {(particle) => {
-                                                                                    console.log(`Rendering particle for player ${player.id}:`, particle.getStyle());
-                                                                                    return (
-                                                                                        <div
-                                                                                            class={stunParticleStyle}
-                                                                                            style={particle.getStyle()}
-                                                                                        />
-                                                                                    );
-                                                                                }}
-                                                                            </For>
-                                                                        </div>
+                                                                        <PlayerStunEffect
+                                                                            playerId={player.id}
+                                                                            isStunned={state.isStunned}
+                                                                            stunDuration={props.settings.stunDurationS} // or get from props/settings
+                                                                        />
 
                                                                         {/* Disable Effect */}
                                                                         {state.isDisabled && (
