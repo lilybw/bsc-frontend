@@ -1,4 +1,4 @@
-import BaseParticle from './BaseParticle';
+import BaseParticle from '../BaseParticle';
 import StunParticle from './StunParticle';
 
 /**

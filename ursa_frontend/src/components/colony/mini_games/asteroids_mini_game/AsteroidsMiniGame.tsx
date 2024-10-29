@@ -529,33 +529,11 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                                                     {(asset) => (
                                                         <>
                                                             <GraphicalAsset metadata={asset} backend={props.context.backend} />
-                                                            {/* Status Effects */}
-                                                            {(() => {
-                                                                const state = getPlayerState(player.id);
-                                                                if (!state) return null;
-
-                                                                return (
-                                                                    <>
-                                                                        <PlayerStunEffect
-                                                                            playerId={player.id}
-                                                                            isStunned={state.isStunned}
-                                                                            stunDuration={props.settings.stunDurationS} // or get from props/settings
-                                                                        />
-
-                                                                        {/* Disable Effect */}
-                                                                        {state.isDisabled && (
-                                                                            <div style={{
-                                                                                position: 'absolute',
-                                                                                inset: 0,
-                                                                                'background-color': 'rgba(255, 0, 0, 0.5)',
-                                                                                'z-index': 1000,
-                                                                                opacity: 0.8,
-                                                                                border: '3px solid white'
-                                                                            }} />
-                                                                        )}
-                                                                    </>
-                                                                );
-                                                            })()}
+                                                            <PlayerStunEffect
+                                                                playerId={player.id}
+                                                                playerState={() => getPlayerState(player.id)}  // Pass as accessor function
+                                                                stunDuration={1}
+                                                            />
                                                         </>
                                                     )}
                                                 </NTAwait>

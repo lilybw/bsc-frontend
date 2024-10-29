@@ -1,85 +1,96 @@
-import { Component, createSignal, createEffect, onCleanup, For } from 'solid-js';
+import { Component, createSignal, createEffect, onCleanup, For, Show, Accessor } from 'solid-js';
 import { ParticleManager, BaseParticle } from '../entities/particles';
 import { particleContainerStyle, stunParticleStyle } from '../styles/ParticleStyles';
 
 interface PlayerStunEffectProps {
     playerId: number;
-    isStunned: boolean;
+    playerState: Accessor<{ isStunned: boolean; isDisabled: boolean; } | undefined>;
     stunDuration: number;
 }
 
-/**
- * Component that handles the stun particle effect for a player
- */
 const PlayerStunEffect: Component<PlayerStunEffectProps> = (props) => {
     const [particles, setParticles] = createSignal<BaseParticle[]>([]);
+    const [hasActiveParticles, setHasActiveParticles] = createSignal(false);
+    const [hasStunEffect, setHasStunEffect] = createSignal(false);
 
-    // Create particle manager for this player
     const particleManager = new ParticleManager(() => {
-        console.log(`Updating particles for player ${props.playerId}, count:`, particleManager.getParticleCount());
-        setParticles(particleManager.getParticles());
+        const currentParticles = particleManager.getParticles();
+        setParticles(currentParticles);
+        setHasActiveParticles(currentParticles.length > 0);
     });
 
-    // Effect for particle creation and lifecycle
+    // Track stun state and manage particles
     createEffect(() => {
-        if (props.isStunned) {
-            console.log(`Player ${props.playerId} stunned - starting particle effect`);
-            let particleCount = 0;
+        const state = props.playerState();
+        if (state?.isStunned) {
+            setHasStunEffect(true);
+            console.log(`Player ${props.playerId} stunned - starting spawn phase`);
+            setHasActiveParticles(true);
 
-            // Only spawn particles during stun duration
             const spawnInterval = setInterval(() => {
-                particleCount++;
-                console.log(`Creating particle ${particleCount} for player ${props.playerId}`);
                 particleManager.createStunParticle();
             }, 100);
 
             // Stop spawning after stun duration
             setTimeout(() => {
-                console.log(`Stopping particle spawning for player ${props.playerId}`);
+                console.log(`Stopping spawn phase for player ${props.playerId}`);
                 clearInterval(spawnInterval);
             }, props.stunDuration * 1000);
+        }
+    });
 
-            // Keep updating particles until they're all gone
+    // Particle update logic
+    createEffect(() => {
+        if (hasActiveParticles()) {
+            console.log(`Running particle updates for player ${props.playerId}`);
             const updateInterval = setInterval(() => {
                 particleManager.update();
-                if (particleManager.getParticleCount() === 0) {
-                    console.log('All particles completed, stopping updates');
-                    clearInterval(updateInterval);
-                }
             }, 100);
 
-            // Cleanup only when component unmounts
             onCleanup(() => {
-                console.log(`Cleaning up particle system for player ${props.playerId}`);
-                clearInterval(spawnInterval);
                 clearInterval(updateInterval);
-                particleManager.clear();
             });
         }
     });
 
+    // Only cleanup when truly done
+    onCleanup(() => {
+        if (!hasActiveParticles()) {
+            console.log(`Final cleanup for player ${props.playerId}`);
+            particleManager.clear();
+        }
+    });
+
+    // Only render if we have player state OR active effects
     return (
-        <div
-            class={particleContainerStyle}
-            style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                overflow: 'visible',
-                'z-index': 100,
-                'pointer-events': 'none'
-            }}
-        >
-            <For each={particles()}>
-                {(particle) => (
-                    <div
-                        class={stunParticleStyle}
-                        style={particle.getStyle()}
-                    />
-                )}
-            </For>
-        </div>
+        <Show when={props.playerState() || hasStunEffect()}>
+            <>
+                <Show when={hasActiveParticles()}>
+                    <div class={particleContainerStyle}>
+                        <For each={particles()}>
+                            {(particle) => (
+                                <div
+                                    class={stunParticleStyle}
+                                    style={particle.getStyle()}
+                                />
+                            )}
+                        </For>
+                    </div>
+                </Show>
+
+                {/* Disable Effect */}
+                <Show when={props.playerState()?.isDisabled}>
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        'background-color': 'rgba(255, 0, 0, 0.5)',
+                        'z-index': 1000,
+                        opacity: 0.8,
+                        border: '3px solid white'
+                    }} />
+                </Show>
+            </>
+        </Show>
     );
 };
 

@@ -1,4 +1,4 @@
-import BaseParticle, { ParticleProps } from './BaseParticle';
+import BaseParticle, { ParticleProps } from '../BaseParticle';
 
 export interface StunParticleProps extends ParticleProps {
     size?: number;
