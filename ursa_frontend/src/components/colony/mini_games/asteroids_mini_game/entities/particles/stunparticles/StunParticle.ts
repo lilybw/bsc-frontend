@@ -24,22 +24,31 @@ export class StunParticle extends BaseParticle {
      * Includes position, size, and animation properties
      */
     public getStyle(): Record<string, string> {
+        // Size variation to particles
+        const sizeVariation = 0.8 + Math.random() * 0.4;  // 0.8 to 1.2
         return {
             position: 'absolute',
             bottom: '0',
-            left: `${33 + (Math.random() * 33)}%`,  // Middle third of container
-            width: `${2 + Math.random()}em`,
-            height: `${2 + Math.random()}em`,
-            animation: 'stunRise 6s ease-out forwards',
+            left: `${33 + (Math.random() * 33)}%`,  // Middle third
+            width: `${3 * sizeVariation}em`,
+            height: `${3 * sizeVariation}em`,
+            animation: `stunRise ${4 + Math.random()}s ease-out forwards`,  // Slight duration variation
             'z-index': '1000',
+            opacity: '0',
             'border-radius': '50%',
             'mix-blend-mode': 'screen',
             'pointer-events': 'none',
+            filter: `blur(${0.15 * sizeVariation}em)`,
             'background-image': `radial-gradient(
-                rgba(255, 255, 0, 0.8) 20%,
-                rgba(255, 255, 150, 0.4) 40%,
-                rgba(255, 255, 0, 0) 70%
-            )`
+                rgba(255, ${200 + Math.random() * 55}, 0, 1) 10%,
+                rgba(255, ${100 + Math.random() * 55}, 0, 0.8) 30%,
+                rgba(255, ${50 + Math.random() * 30}, 0, 0.6) 50%,
+                rgba(255, 30, 0, 0) 70%
+            )`,
+            'box-shadow': `
+                0 0 1em 0.2em rgba(255, 200, 0, 0.5),
+                0 0 2em 0.5em rgba(255, 100, 0, 0.3)
+            `
         };
     }
 

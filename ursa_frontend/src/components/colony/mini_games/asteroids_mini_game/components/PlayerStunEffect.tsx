@@ -27,11 +27,14 @@ const PlayerStunEffect: Component<PlayerStunEffectProps> = (props) => {
             console.log(`Player ${props.playerId} stunned - starting spawn phase`);
             setHasActiveParticles(true);
 
+            // Spawn frequency
             const spawnInterval = setInterval(() => {
-                particleManager.createStunParticle();
-            }, 100);
+                const particleCount = 2 + Math.floor(Math.random() * 2);
+                for (let i = 0; i < particleCount; i++) {
+                    particleManager.createStunParticle();
+                }
+            }, 75);  // Interval for particles
 
-            // Stop spawning after stun duration
             setTimeout(() => {
                 console.log(`Stopping spawn phase for player ${props.playerId}`);
                 clearInterval(spawnInterval);

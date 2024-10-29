@@ -29,7 +29,7 @@ export class ParticleManager {
             id,
             x: 0,
             y: 0,
-            duration: 6000,  // 6 seconds
+            duration: 4000,  // 4 seconds
             onComplete: () => {
                 console.log(`Particle ${id} completed`);
                 this.removeParticle(id);

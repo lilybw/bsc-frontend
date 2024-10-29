@@ -11,26 +11,33 @@ export const particleContainerStyle = css`
   pointer-events: none;
   z-index: 10;
   overflow: visible;
+  filter: blur(0.1em);  // Overall blur for more cohesive effect
 `;
 
 /**
  * Base style for stun particle effect
  */
+// In ParticleStyles.ts
 export const stunParticleStyle = css`
   position: absolute;
   bottom: 0;
-  width: 2.5em;
-  height: 2.5em;
+  width: 3em;  // Base size
+  height: 3em;
   border-radius: 50%;
   mix-blend-mode: screen;
   opacity: 0;
   z-index: 101;
   pointer-events: none;
+  filter: blur(0.15em);  // Blur for softer edges
   background-image: radial-gradient(
-    rgba(255, 255, 0, 0.8) 20%,
-    rgba(255, 255, 150, 0.4) 40%,
-    rgba(255, 255, 0, 0) 70%
+    rgba(255, 200, 0, 1) 10%,    // Bright yellow core
+    rgba(255, 100, 0, 0.8) 30%,  // Orange mid
+    rgba(255, 50, 0, 0.6) 50%,   // Reddish outer
+    rgba(255, 30, 0, 0) 70%
   );
+  box-shadow: 
+    0 0 1em 0.2em rgba(255, 200, 0, 0.5),  // Inner glow
+    0 0 2em 0.5em rgba(255, 100, 0, 0.3);  // Outer glow
 
   @keyframes stunRise {
     0% {
@@ -41,16 +48,16 @@ export const stunParticleStyle = css`
       opacity: 1;
     }
     70% {
-      opacity: 0.8;
-      transform: translateY(-1000%) scale(0.8);
+      opacity: 0.9;
+      transform: translateY(-500%) scale(0.8);
     }
     90% {
-      opacity: 0.2;
-      transform: translateY(-1100%) scale(0.4);
+      opacity: 0.3;
+      transform: translateY(-500%) scale(0.4);
     }
     100% {
       opacity: 0;
-      transform: translateY(-1200%) scale(0);
+      transform: translateY(-500%) scale(0);
     }
   }
 `;
