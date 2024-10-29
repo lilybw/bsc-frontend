@@ -9,6 +9,10 @@ export class ParticleManager {
     private nextId: number;
     private updateCallback: () => void;
 
+    /**
+     * Creates a new ParticleManager instance
+     * @param updateCallback Function to call when particle state changes
+     */
     constructor(updateCallback: () => void) {
         this.particles = new Map();
         this.nextId = 0;
@@ -25,11 +29,15 @@ export class ParticleManager {
             id,
             x: 0,
             y: 0,
-            duration: 6000, // 6 seconds
-            onComplete: () => this.removeParticle(id)
+            duration: 6000,  // 6 seconds
+            onComplete: () => {
+                console.log(`Particle ${id} completed`);
+                this.removeParticle(id);
+            }
         });
 
         this.addParticle(particle);
+        console.log(`Created particle ${id}, total particles:`, this.particles.size);
         return id;
     }
 
@@ -72,21 +80,13 @@ export class ParticleManager {
      * Should be called regularly
      */
     public update(): void {
-        const expiredParticles: number[] = [];
-
-        this.particles.forEach(particle => {
-            if (particle.isExpired()) {
-                expiredParticles.push(particle.id);
-            }
-        });
+        const expiredParticles = Array.from(this.particles.values())
+            .filter(particle => particle.isExpired());
 
         if (expiredParticles.length > 0) {
-            expiredParticles.forEach(id => {
-                const particle = this.particles.get(id);
-                if (particle) {
-                    particle.destroy();
-                }
-                this.removeParticle(id);
+            expiredParticles.forEach(particle => {
+                console.log(`Removing expired particle ${particle.id}`);
+                this.removeParticle(particle.id);
             });
         }
     }
@@ -95,6 +95,7 @@ export class ParticleManager {
      * Clears all particles
      */
     public clear(): void {
+        console.log('Clearing all particles');
         this.particles.forEach(particle => particle.destroy());
         this.particles.clear();
         this.notifyUpdate();

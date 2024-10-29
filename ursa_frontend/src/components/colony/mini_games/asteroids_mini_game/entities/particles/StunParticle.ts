@@ -27,12 +27,11 @@ export class StunParticle extends BaseParticle {
         return {
             position: 'absolute',
             bottom: '0',
-            left: `${this.horizontalPosition}%`,
-            width: `${this.size + Math.random()}em`,
-            height: `${this.size + Math.random()}em`,
+            left: `${33 + (Math.random() * 33)}%`,  // Middle third of container
+            width: `${2 + Math.random()}em`,
+            height: `${2 + Math.random()}em`,
             animation: 'stunRise 6s ease-out forwards',
             'z-index': '1000',
-            opacity: '0',
             'border-radius': '50%',
             'mix-blend-mode': 'screen',
             'pointer-events': 'none',
@@ -40,7 +39,7 @@ export class StunParticle extends BaseParticle {
                 rgba(255, 255, 0, 0.8) 20%,
                 rgba(255, 255, 150, 0.4) 40%,
                 rgba(255, 255, 0, 0) 70%
-            )`,
+            )`
         };
     }
 

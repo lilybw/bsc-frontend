@@ -51,6 +51,8 @@ import Countdown from '../../../util/Countdown';
 import BufferBasedButton from '../../../base/BufferBasedButton';
 import GraphicalAsset from '../../../base/GraphicalAsset';
 import StarryBackground from '../../../base/StarryBackground';
+import { BaseParticle, ParticleManager, StunParticle } from './entities/particles';
+import { particleContainerStyle } from './styles/ParticleStyles';
 
 type PlayerState = {
     isStunned: boolean;
@@ -91,6 +93,9 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     let lazerBeamCounter = 0;
     const elementRefs = new Map<string, EntityRef>();
     const [windowSize, setWindowSize] = createSignal({ width: window.innerWidth, height: window.innerHeight });
+
+    // Particle Management
+    const playerParticleManagers = new Map<number, ParticleManager>();
 
     /**
      * Handles local player shooting at a specific character code
@@ -358,6 +363,9 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
             lazerBeamRemoveFuncs.forEach((removeFunc) => removeFunc());
             lazerBeamRemoveFuncs.clear();
             elementRefs.clear();
+            // Add particle manager cleanup here
+            playerParticleManagers.forEach(manager => manager.clear());
+            playerParticleManagers.clear();
             window.removeEventListener('resize', handleResize);
         });
     });
@@ -480,145 +488,158 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                                 />
                             </div>
 
-                            {/* Player Character Container */}
-                            <div class={playerCharacterStyle}>
-                                <div style={{ position: 'relative' }}>
-                                    {/* Player Image */}
-                                    <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
-                                        {(asset) => (
-                                            <>
-                                                <GraphicalAsset metadata={asset} backend={props.context.backend} />
-                                                {/* Status Effects */}
-                                                {(() => {
-                                                    const state = getPlayerState(player.id);
-                                                    if (!state) return null;
+                            {/* Player Rendering */}
+                            <For each={players.get}>
+                                {(player) => (
+                                    <div
+                                        id={`player-${player.id}`}
+                                        class={playerStyle}
+                                        ref={(el) => {
+                                            if (el) {
+                                                console.log('Setting element ref for player:', player.id);
+                                                elementRefs.set(getEntityRefKey.player(player.id), {
+                                                    type: 'player',
+                                                    element: el,
+                                                });
+                                            }
+                                        }}
+                                        style={{
+                                            position: 'absolute',
+                                            left: '50%',
+                                            bottom: 0,
+                                            transform: 'translateX(-50%)',
+                                        }}
+                                    >
+                                        {/* Button Container */}
+                                        <div class={buttonContainerStyle}>
+                                            <BufferBasedButton
+                                                enable={() => buttonsEnabled()}
+                                                name={player.code}
+                                                buffer={inputBuffer.get}
+                                                onActivation={() => localPlayerShootAtCodeHandler(player.code)}
+                                                register={bufferSubscribers.add}
+                                            />
+                                        </div>
 
-                                                    return (
+                                        {/* Player Character Container */}
+                                        <div class={playerCharacterStyle}>
+                                            <div style={{ position: 'relative' }}>
+                                                <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
+                                                    {(asset) => (
                                                         <>
-                                                            {/* Stun Effect */}
+                                                            <GraphicalAsset metadata={asset} backend={props.context.backend} />
+                                                            {/* Status Effects */}
                                                             {(() => {
-                                                                const [particles, setParticles] = createSignal<{ id: number; style: any }[]>([]);
-                                                                let particleId = 0;
-                                                                let spawnInterval: NodeJS.Timeout | null = null;
-                                                                let isSpawning = true;
+                                                                const state = getPlayerState(player.id);
+                                                                if (!state) return null;
 
+                                                                // Create a signal for this player's particles
+                                                                const [playerParticles, setPlayerParticles] = createSignal<BaseParticle[]>([]);
+
+                                                                // Create particle manager for this player
+                                                                const particleManager = new ParticleManager(() => {
+                                                                    console.log(`Updating particles for player ${player.id}`, particleManager.getParticles());
+                                                                    setPlayerParticles(particleManager.getParticles());
+                                                                });
+
+                                                                // Effect for particle creation
                                                                 createEffect(() => {
                                                                     if (state.isStunned) {
-                                                                        console.log('Starting particle spawning');
-                                                                        isSpawning = true;
-                                                                        spawnInterval = setInterval(() => {
-                                                                            if (!isSpawning) {
-                                                                                if (spawnInterval) {
-                                                                                    clearInterval(spawnInterval);
-                                                                                    spawnInterval = null;
-                                                                                }
-                                                                                return;
-                                                                            }
+                                                                        console.log(`Player ${player.id} stunned - starting particle effect`);
+                                                                        let particleCount = 0;
 
-                                                                            const newParticle = {
-                                                                                id: particleId++,
-                                                                                style: {
-                                                                                    animation: 'stunRise 6s ease-out forwards', // Longer duration to match height
-                                                                                    left: `${33 + Math.random() * 33}%`,
-                                                                                    width: `${2 + Math.random()}em`,
-                                                                                    height: `${2 + Math.random()}em`,
-                                                                                    'animation-delay': '0s',
-                                                                                    'z-index': '1000',
-                                                                                    position: 'absolute',
-                                                                                    bottom: '0',
-                                                                                    opacity: '0',
-                                                                                },
-                                                                            };
-
-                                                                            console.log('Creating particle:', newParticle);
-                                                                            setParticles((prev) => [...prev, newParticle]);
-
-                                                                            // Remove particle only after it reaches max height and fades
-                                                                            setTimeout(() => {
-                                                                                console.log('Removing particle:', particleId - 1);
-                                                                                setParticles((prev) => prev.filter((p) => p.id !== particleId - 1));
-                                                                            }, 6000); // Match animation duration
+                                                                        const spawnInterval = setInterval(() => {
+                                                                            particleCount++;
+                                                                            console.log(`Creating particle ${particleCount} for player ${player.id}`);
+                                                                            particleManager.createStunParticle();
                                                                         }, 100);
 
-                                                                        // Stop spawning after stun duration
-                                                                        setTimeout(() => {
-                                                                            console.log('Stopping particle spawning');
-                                                                            isSpawning = false;
-                                                                        }, 1000);
-                                                                    }
+                                                                        // Start regular updates
+                                                                        const updateInterval = setInterval(() => {
+                                                                            particleManager.update();
+                                                                        }, 100);
 
-                                                                    onCleanup(() => {
-                                                                        console.log('Cleaning up stun effect');
-                                                                        if (spawnInterval) {
+                                                                        // Cleanup
+                                                                        onCleanup(() => {
+                                                                            console.log(`Cleaning up particles for player ${player.id}`);
                                                                             clearInterval(spawnInterval);
-                                                                            spawnInterval = null;
-                                                                        }
-                                                                        isSpawning = false;
-                                                                    });
+                                                                            clearInterval(updateInterval);
+                                                                            particleManager.clear();
+                                                                        });
+                                                                    }
                                                                 });
 
                                                                 return (
-                                                                    <div
-                                                                        class={stunEffectStyle}
-                                                                        style={{
-                                                                            position: 'absolute',
-                                                                            inset: 0,
-                                                                            width: '100%',
-                                                                            height: '100%',
-                                                                            overflow: 'visible',
-                                                                            'z-index': 100,
-                                                                        }}
-                                                                    >
-                                                                        <For each={particles()}>
-                                                                            {(particle) => <div class={stunParticleStyle} style={particle.style} />}
-                                                                        </For>
-                                                                    </div>
+                                                                    <>
+                                                                        {/* Particle Container */}
+                                                                        <div
+                                                                            class={particleContainerStyle}
+                                                                            style={{
+                                                                                position: 'absolute',
+                                                                                inset: 0,
+                                                                                width: '100%',
+                                                                                height: '100%',
+                                                                                overflow: 'visible',
+                                                                                'z-index': 100,
+                                                                                'pointer-events': 'none'
+                                                                            }}
+                                                                        >
+                                                                            <For each={playerParticles()}>
+                                                                                {(particle) => {
+                                                                                    console.log(`Rendering particle for player ${player.id}:`, particle.getStyle());
+                                                                                    return (
+                                                                                        <div
+                                                                                            class={stunParticleStyle}
+                                                                                            style={particle.getStyle()}
+                                                                                        />
+                                                                                    );
+                                                                                }}
+                                                                            </For>
+                                                                        </div>
+
+                                                                        {/* Disable Effect */}
+                                                                        {state.isDisabled && (
+                                                                            <div style={{
+                                                                                position: 'absolute',
+                                                                                inset: 0,
+                                                                                'background-color': 'rgba(255, 0, 0, 0.5)',
+                                                                                'z-index': 1000,
+                                                                                opacity: 0.8,
+                                                                                border: '3px solid white'
+                                                                            }} />
+                                                                        )}
+                                                                    </>
                                                                 );
                                                             })()}
-
-                                                            {/* Disable Effect */}
-                                                            {state.isDisabled && (
-                                                                <div
-                                                                    style={{
-                                                                        position: 'absolute',
-                                                                        inset: 0,
-                                                                        'background-color': 'rgba(255, 0, 0, 0.5)',
-                                                                        'z-index': 1000,
-                                                                        opacity: 0.8,
-                                                                        border: '3px solid white',
-                                                                    }}
-                                                                />
-                                                            )}
                                                         </>
-                                                    );
-                                                })()}
-                                            </>
-                                        )}
-                                    </NTAwait>
-                                </div>
-                            </div>
+                                                    )}
+                                                </NTAwait>
+                                            </div>
+                                        </div>
 
-                            {/* Debug State Display */}
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    top: '-20px',
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                    color: 'white',
-                                    'background-color': 'rgba(0,0,0,0.5)',
-                                    padding: '2px 5px',
-                                    'border-radius': '3px',
-                                    'white-space': 'nowrap',
-                                }}
-                            >
-                                {(() => {
-                                    const state = getPlayerState(player.id);
-                                    return `${player.id}: ${
-                                        state ? (state.isStunned ? 'STUNNED ' : '') + (state.isDisabled ? 'DISABLED' : '') : 'NORMAL'
-                                    }`;
-                                })()}
-                            </div>
+                                        {/* Debug State Display */}
+                                        <div
+                                            style={{
+                                                position: 'absolute',
+                                                top: '-20px',
+                                                left: '50%',
+                                                transform: 'translateX(-50%)',
+                                                color: 'white',
+                                                'background-color': 'rgba(0,0,0,0.5)',
+                                                padding: '2px 5px',
+                                                'border-radius': '3px',
+                                                'white-space': 'nowrap',
+                                            }}
+                                        >
+                                            {(() => {
+                                                const state = getPlayerState(player.id);
+                                                return `${player.id}: ${state ? (state.isStunned ? 'STUNNED ' : '') + (state.isDisabled ? 'DISABLED' : '') : 'NORMAL'
+                                                    }`;
+                                            })()}
+                                        </div>
+                                    </div>
+                                )}
+                            </For>
                         </div>
                     )}
                 </For>
