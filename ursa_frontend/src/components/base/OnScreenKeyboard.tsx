@@ -1,7 +1,7 @@
 import { JSX } from 'solid-js/jsx-runtime';
 import { css } from '@emotion/css';
-import { KeyElement, SymbolType, DK_KEYBOARD_LAYOUT } from '../../ts/keyBoardLayouts';
-import { Component, createMemo, For, mergeProps } from 'solid-js';
+import { KeyElement, SymbolType, DK_KEYBOARD_LAYOUT, EN_GB_KEYBOARD_LAYOUT } from '../../ts/keyBoardLayouts';
+import { Accessor, Component, createMemo, For, mergeProps } from 'solid-js';
 import { IStyleOverwritable } from '../../ts/types';
 
 interface OnScreenKeyboardProps extends IStyleOverwritable {
@@ -9,162 +9,220 @@ interface OnScreenKeyboardProps extends IStyleOverwritable {
      * Keys that should be highlighted.
      * @default []
      */
-    highlighted?: string[];
+    highlighted?: Accessor<string[]> | string[];
     /**
      * Keys that should be ignored. See the shorthand properties for ignoring specific types of keys.
      * @default []
      */
-    ignored?: string[];
+    ignored?: Accessor<string[]> | string[];
     /**
      * Show hand handplacement on the keyboard.
      * @default false
      */
-    showHands?: boolean;
+    showHands?: Accessor<boolean> | boolean;
     /**
      * Show intended finger use for each key by coloring each key accordingly.
      * @default true
      */
-    showIntendedFingerUseForKey?: boolean;
+    showIntendedFingerUseForKey?: Accessor<boolean> | boolean;
     /**
      * Relates to the "showIntendedFingerUseForKey" property
      * Hard shade the key with the gradient of the finger(s) available for the key.
      * (Constant / no interpolation of colors vs. linear gradient)
      * @default true
      */
-    hardShadeMultiFingerKeyGradients?: boolean;
+    hardShadeMultiFingerKeyGradients?: Accessor<boolean> | boolean;
     /**
      * Relates to the "showIntendedFingerUseForKey" property
      * The intensity of the colorization. 0 is no colorization, 1 is full colorization.
      * @default 1
      */
-    colorizationIntensity?: number;
+    colorizationIntensity?: Accessor<number> | number;
     /**
      * Relates to the showIntendedFingerUseForKey property.
      * When set, the keyboard will highlight only the intended finger use for the given fingering scheme.
      * @default -1 (disabled)
      */
-    fingeringSchemeFocused?: number;
+    fingeringSchemeFocused?: Accessor<number> | number;
     /**
      * Keys like CMD, ALT, SHIFT, etc. that are not printable characters.
      * @default false
      */
-    ignoreSpecialKeys?: boolean;
+    ignoreSpecialKeys?: Accessor<boolean> | boolean;
     /**
      * Numeric keys 0-9 and ½.
      * @default false
      */
-    ignoreNumericKeys?: boolean;
+    ignoreNumericKeys?: Accessor<boolean> | boolean;
     /**
      * Alphabetic keys a-z and special language specific characters like: æ ø å.
      * @default false
      */
-    ignoreAlphabeticKeys?: boolean;
+    ignoreAlphabeticKeys?: Accessor<boolean> | boolean;
     /**
      * Grammatical symbols like: , . ! ?.
      * @default false
      */
-    ignoreGrammarKeys?: boolean;
+    ignoreGrammarKeys?: Accessor<boolean> | boolean;
     /**
      * Math keys like: + - * / =.
      * @default false
      */
-    ignoreMathKeys?: boolean;
+    ignoreMathKeys?: Accessor<boolean> | boolean;
     /**
      * The layout of the keyboard. Each row is an array of KeyElement objects.
      * @default DK_KEYBOARD_LAYOUT
      */
     layout?: KeyElement[][];
     keyBaseStyleOverride?: string;
+    textStyleOverride?: string;
 }
 interface NormalizedOnScreenKeyboardProps extends IStyleOverwritable {
     /**
      * Keys that should be highlighted.
      * @default []
      */
-    highlighted: string[];
+    highlighted: Accessor<string[]>;
     /**
      * Keys that should be ignored. See the shorthand properties for ignoring specific types of keys.
      * @default []
      */
-    ignored: string[];
+    ignored: Accessor<string[]>;
     /**
      * Show hand handplacement on the keyboard.
      * @default false
      */
-    showHands: boolean;
+    showHands: Accessor<boolean>;
     /**
      * Show intended finger use for each key by coloring each key accordingly.
      * @default true
      */
-    showIntendedFingerUseForKey: boolean;
+    showIntendedFingerUseForKey: Accessor<boolean>;
     /**
      * Relates to the "showIntendedFingerUseForKey" property
      * Hard shade the key with the gradient of the finger(s) available for the key.
      * (Constant / no interpolation of colors vs. linear gradient)
      * @default true
      */
-    hardShadeMultiFingerKeyGradients: boolean;
+    hardShadeMultiFingerKeyGradients: Accessor<boolean>;
     /**
      * Relates to the "showIntendedFingerUseForKey" property
      * The intensity of the colorization. 0 is no colorization, 1 is full colorization.
      * @default 1
      */
-    colorizationIntensity: number;
+    colorizationIntensity: Accessor<number>;
     /**
      * Relates to the showIntendedFingerUseForKey property.
      * When set, the keyboard will highlight only the intended finger use for the given fingering scheme.
      * @default -1 (disabled)
      */
-    fingeringSchemeFocused: number;
+    fingeringSchemeFocused: Accessor<number>;
     /**
      * Keys like CMD, ALT, SHIFT, etc. that are not printable characters.
      * @default false
      */
-    ignoreSpecialKeys: boolean;
+    ignoreSpecialKeys: Accessor<boolean>;
     /**
      * Numeric keys 0-9 and ½.
      * @default false
      */
-    ignoreNumericKeys: boolean;
+    ignoreNumericKeys: Accessor<boolean>;
     /**
      * Alphabetic keys a-z and special language specific characters like: æ ø å.
      * @default false
      */
-    ignoreAlphabeticKeys: boolean;
+    ignoreAlphabeticKeys: Accessor<boolean>;
     /**
      * Grammatical symbols like: , . ! ?.
      * @default false
      */
-    ignoreGrammarKeys: boolean;
+    ignoreGrammarKeys: Accessor<boolean>;
     /**
      * Math keys like: + - * / =.
      * @default false
      */
-    ignoreMathKeys: boolean;
+    ignoreMathKeys: Accessor<boolean>;
     /**
      * The layout of the keyboard. Each row is an array of KeyElement objects.
      * @default DK_KEYBOARD_LAYOUT
      */
     layout: KeyElement[][];
     keyBaseStyleOverride?: string;
+    textStyleOverride?: string;
 }
+const NOOP_EMP_ARR = () => [];
+const NOOP_FALSE = () => false;
+const NOOP_TRUE = () => true;
 const DEFAULTS: NormalizedOnScreenKeyboardProps = {
-    highlighted: [],
-    ignored: [],
-    showHands: false,
-    showIntendedFingerUseForKey: true,
-    hardShadeMultiFingerKeyGradients: true,
-    colorizationIntensity: 0.7,
-    fingeringSchemeFocused: -1,
-    ignoreSpecialKeys: false,
-    ignoreNumericKeys: false,
-    ignoreAlphabeticKeys: false,
-    ignoreGrammarKeys: false,
-    ignoreMathKeys: false,
-    layout: DK_KEYBOARD_LAYOUT,
+    highlighted: NOOP_EMP_ARR,
+    ignored: NOOP_EMP_ARR,
+    showHands: () => false,
+    showIntendedFingerUseForKey: NOOP_FALSE,
+    hardShadeMultiFingerKeyGradients: NOOP_TRUE,
+    colorizationIntensity: () => 0.7,
+    fingeringSchemeFocused: () => -1,
+    ignoreSpecialKeys: NOOP_FALSE,
+    ignoreNumericKeys: NOOP_FALSE,
+    ignoreAlphabeticKeys: NOOP_FALSE,
+    ignoreGrammarKeys: NOOP_FALSE,
+    ignoreMathKeys: NOOP_FALSE,
+    layout: EN_GB_KEYBOARD_LAYOUT,
 };
+
 const normalizeProps = (props: OnScreenKeyboardProps): NormalizedOnScreenKeyboardProps => {
-    return mergeProps(DEFAULTS, props);
+    const semiNormalized = { ...props };  // Create a copy to modify
+
+    if (Array.isArray(props.highlighted)) {
+      const value = props.highlighted; // Capture the array value
+      semiNormalized.highlighted = (() => value);  // Create an accessor function
+    }
+    if (Array.isArray(props.ignored)) {
+      const value = props.ignored; // Capture the array value
+      semiNormalized.ignored = (() => value);  // Create an accessor function
+    }
+    if (typeof props.showHands === "boolean") {
+      const value = props.showHands; // Capture the boolean value
+      semiNormalized.showHands = (() => value);  // Create an accessor function
+    }
+    if (typeof props.showIntendedFingerUseForKey === "boolean") {
+      const value = props.showIntendedFingerUseForKey; // Capture the boolean value
+      semiNormalized.showIntendedFingerUseForKey = (() => value);  // Create an accessor function
+    }
+    if (typeof props.hardShadeMultiFingerKeyGradients === "boolean") {
+      const value = props.hardShadeMultiFingerKeyGradients; // Capture the boolean value
+      semiNormalized.hardShadeMultiFingerKeyGradients = (() => value);  // Create an accessor function
+    }
+    if (typeof props.colorizationIntensity === "number") {
+      const value = props.colorizationIntensity; // Capture the number value
+      semiNormalized.colorizationIntensity = (() => value);  // Create an accessor function
+    }
+    if (typeof props.fingeringSchemeFocused === "number") {
+      const value = props.fingeringSchemeFocused; // Capture the number value
+      semiNormalized.fingeringSchemeFocused = (() => value);  // Create an accessor function
+    }
+    if (typeof props.ignoreSpecialKeys === "boolean") {
+      const value = props.ignoreSpecialKeys; // Capture the boolean value
+      semiNormalized.ignoreSpecialKeys = (() => value);  // Create an accessor function
+    }
+    if (typeof props.ignoreNumericKeys === "boolean") {
+      const value = props.ignoreNumericKeys; // Capture the boolean value
+      semiNormalized.ignoreNumericKeys = (() => value);  // Create an accessor function
+    }
+    if (typeof props.ignoreAlphabeticKeys === "boolean") {
+      const value = props.ignoreAlphabeticKeys; // Capture the boolean value
+      semiNormalized.ignoreAlphabeticKeys = (() => value);  // Create an accessor function
+    }
+    if (typeof props.ignoreGrammarKeys === "boolean") {
+      const value = props.ignoreGrammarKeys; // Capture the boolean value
+      semiNormalized.ignoreGrammarKeys = (() => value);  // Create an accessor function
+    }
+    if (typeof props.ignoreMathKeys === "boolean") {
+      const value = props.ignoreMathKeys; // Capture the boolean value
+      semiNormalized.ignoreMathKeys = (() => value);  // Create an accessor function
+    }
+
+    // @ts-ignore
+    return mergeProps(DEFAULTS, semiNormalized);
 };
 const keySpacing = '.25rem';
 
@@ -180,18 +238,18 @@ const OnScreenKeyboard: Component<OnScreenKeyboardProps> = (_props) => {
     };
 
     const colourizeTheButtonIfApplicable = (key: KeyElement, isIgnored: boolean, children: JSX.Element): JSX.Element => {
-        if (!normalizedProps.showIntendedFingerUseForKey || isIgnored) {
+        if (!normalizedProps.showIntendedFingerUseForKey() || isIgnored) {
             return <>{children}</>;
         }
         //In the case that a specific scheme is requested OR no alternative fingerings are available
-        if (normalizedProps.fingeringSchemeFocused > -1 || key.finger.length == 1) {
+        if (normalizedProps.fingeringSchemeFocused() > -1 || key.finger.length == 1) {
             let indexToUse = key.finger.length - 1;
-            if (normalizedProps.fingeringSchemeFocused != -1) {
-                indexToUse =
-                    normalizedProps.fingeringSchemeFocused >= key.finger.length ? key.finger.length - 1 : normalizedProps.fingeringSchemeFocused;
+            if (normalizedProps.fingeringSchemeFocused() != -1) {
+                indexToUse = normalizedProps.fingeringSchemeFocused() >= key.finger.length ? 
+                    key.finger.length - 1 : normalizedProps.fingeringSchemeFocused();
             }
             const finger = key.finger[indexToUse];
-            const constColor = `rgba(${finger.color}, ${normalizedProps.colorizationIntensity})`;
+            const constColor = `rgba(${finger.color}, ${normalizedProps.colorizationIntensity()})`;
             //This little repition is needed as linear-gradient requires 2 or more colors inputted at all times.
             const computedGradient = `linear-gradient(90deg, ${constColor}, ${constColor});`;
 
@@ -203,8 +261,8 @@ const OnScreenKeyboard: Component<OnScreenKeyboardProps> = (_props) => {
         const stepSize = 100 / key.finger.length;
         for (let i = 0; i < key.finger.length; i++) {
             const finger = key.finger[i];
-            const color = `rgba(${finger.color}, ${normalizedProps.colorizationIntensity})`;
-            if (normalizedProps.hardShadeMultiFingerKeyGradients) {
+            const color = `rgba(${finger.color}, ${normalizedProps.colorizationIntensity()})`;
+            if (normalizedProps.hardShadeMultiFingerKeyGradients()) {
                 computedGradient += `${color} ${stepSize * i}%, ${color} ${stepSize * (i + 1) - 1}%`;
             } else {
                 computedGradient += `${color}`;
@@ -220,17 +278,17 @@ const OnScreenKeyboard: Component<OnScreenKeyboardProps> = (_props) => {
     const mapCharsToKeyElements = (keys: KeyElement[]): JSX.Element[] => {
         const elements: JSX.Element[] = [];
         keys.map((key, index) => {
-            const isHighlighted = normalizedProps.highlighted.includes(key.char);
+            const isHighlighted = normalizedProps.highlighted().includes(key.char);
             const isIgnored =
-                normalizedProps.ignored.includes(key.char) ||
-                (normalizedProps.ignoreSpecialKeys && key.symbolTypes.includes(SymbolType.Special)) ||
-                (normalizedProps.ignoreNumericKeys && key.symbolTypes.includes(SymbolType.Numeric)) ||
-                (normalizedProps.ignoreAlphabeticKeys && key.symbolTypes.includes(SymbolType.Alphabetic)) ||
-                (normalizedProps.ignoreGrammarKeys && key.symbolTypes.includes(SymbolType.Grammar)) ||
-                (normalizedProps.ignoreMathKeys && key.symbolTypes.includes(SymbolType.Math));
+                normalizedProps.ignored().includes(key.char) ||
+                (normalizedProps.ignoreSpecialKeys() && key.symbolTypes.includes(SymbolType.Special)) ||
+                (normalizedProps.ignoreNumericKeys() && key.symbolTypes.includes(SymbolType.Numeric)) ||
+                (normalizedProps.ignoreAlphabeticKeys() && key.symbolTypes.includes(SymbolType.Alphabetic)) ||
+                (normalizedProps.ignoreGrammarKeys() && key.symbolTypes.includes(SymbolType.Grammar)) ||
+                (normalizedProps.ignoreMathKeys() && key.symbolTypes.includes(SymbolType.Math));
 
             let computedStyle = css`
-                ${keyBaseStyle} ${normalizedProps.keyBaseStyleOverride}
+                ${keyBaseStyle}
             `;
             if (isIgnored) {
                 computedStyle = css`
@@ -242,10 +300,11 @@ const OnScreenKeyboard: Component<OnScreenKeyboardProps> = (_props) => {
                     ${computedStyle} ${keyHighlightedStyle}
                 `;
             }
+            computedStyle = css`${computedStyle} ${normalizedProps.keyBaseStyleOverride}`;
 
             const children = (
                 <>
-                    <div class={keyboardTextStyle}>{key.char}</div>
+                    <div class={css`${keyboardTextStyle} ${normalizedProps.textStyleOverride}`}>{key.char}</div>
                     {appendDotIfForJ(key)}
                 </>
             );
@@ -276,7 +335,7 @@ const OnScreenKeyboard: Component<OnScreenKeyboardProps> = (_props) => {
     };
 
     const appendHands = () => {
-        if (normalizedProps.showHands) {
+        if (normalizedProps.showHands()) {
             return (
                 <div class={handsOverlayContainerStyle}>
                     <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
@@ -325,6 +384,7 @@ const keyboardTextStyle = css`
     text-transform: uppercase;
     font-family: monospace;
     text-shadow: 0 0 0.5rem white;
+    transition: all 0.3s ease;
 
     &:hover {
         text-shadow: 0 0 0.5rem black;
@@ -364,6 +424,7 @@ const containerStyle = css`
     padding: 0.25rem;
     padding-bottom: 0.5rem;
     border-radius: 0.5rem;
+    transition: all 0.3s ease;
 `;
 
 const keyBaseStyle = css`
@@ -374,6 +435,7 @@ const keyBaseStyle = css`
     display: grid;
     align-items: center;
     background-image: linear-gradient(#555 0%, #aaa 5%, #aaa 80%, #333 100%);
+    transition: all 0.3s ease;
     &:hover {
         color: white;
         filter: drop-shadow(0 0 1rem white);
@@ -385,13 +447,19 @@ const keyHighlightedStyle = css`
     outline: 2px solid white;
     color: white;
     filter: drop-shadow(0 0 1rem white);
+    transition: all 0.3s ease;
 `;
 
 const keyIgnoredStyle = css`
     background-image: linear-gradient(#333 0%, #555 5%, #555 80%, #333 100%);
-    color: #666;
+    color: transparent;
+    text-shadow: none;
+    filter: none;
+    transition: all 0.3s ease;
     &:hover {
         color: #666;
+        filter: none;
+        text-shadow: none;
         filter: none;
     }
 `;
@@ -405,4 +473,5 @@ const fjBumpStyle = css`
     z-index: 100;
     transform: translate(-50%, -100%);
     left: 50%;
+    transition: all 0.3s ease;
 `;
