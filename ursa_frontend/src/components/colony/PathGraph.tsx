@@ -155,13 +155,12 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
         let generalSpawnLocation;
         if (props.context.multiplayer.getState() === ColonyState.OPEN) {
-            generalSpawnLocation = colonyLocation.findFirst(colLoc => colLoc.locationID === KnownLocations.SpacePort)!;
+            generalSpawnLocation = props.colony.locations.find(colLoc => colLoc.locationID === KnownLocations.SpacePort)!;
         } else {
-            generalSpawnLocation = colonyLocation.findFirst(colLoc => colLoc.locationID === KnownLocations.Home)!;
+            generalSpawnLocation = props.colony.locations.find(colLoc => colLoc.locationID === KnownLocations.Home)!;
         }
         log.trace(`Setting initial location of local player to ${generalSpawnLocation.id}`);
 
-        /*
         props.clients.mutateByPredicate(c => !c.state.lastKnownPosition || c.state.lastKnownPosition === 0, 
             c => {
                 return {
@@ -173,7 +172,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 }
             }
         )
-        */
 
         //Set initial camera position
         //Only works because the createEffect statement is evaluated before this onMount as of right now
