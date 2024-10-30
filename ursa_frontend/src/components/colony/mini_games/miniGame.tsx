@@ -3,6 +3,7 @@ import { ApplicationContext, ResErr } from '../../../meta/types';
 import AsteroidsMiniGame from './asteroids_mini_game/AsteroidsMiniGame';
 import { createAsteroidsGameLoop } from './asteroids_mini_game/AsteroidsGameLoop';
 import { AsteroidsSettingsDTO } from './asteroids_mini_game/types/GameTypes';
+import { uint32 } from '../../../integrations/main_backend/mainBackendDTOs';
 
 // Define the props interface for minigame components
 export interface MinigameProps<T extends object> {
@@ -21,6 +22,17 @@ export interface Minigame<T extends object> {
      *   It returns a Solid.js component that accepts MinigameProps
      */
     topLevelComponent: () => Component<MinigameProps<T>>;
+}
+
+export enum PlayerParticipation {
+    OPT_IN = 'OPT_IN',
+    OPT_OUT = 'OPT_OUT',
+    UNDECIDED = 'UNDECIDED',
+}
+export type PlayerMinigameParticipationResponse = {
+    id: uint32;
+    ign: string;
+    participation: PlayerParticipation;
 }
 
 export enum KnownMinigames {

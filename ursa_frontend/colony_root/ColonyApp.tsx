@@ -7,8 +7,13 @@ import { createSignal, onMount, onCleanup, JSX, createMemo } from 'solid-js';
 import {
     DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
     DifficultyConfirmedForMinigameMessageDTO,
+    GENERIC_MINIGAME_SEQUENCE_RESET_EVENT,
+    LOAD_MINIGAME_EVENT,
     LOBBY_CLOSING_EVENT,
+    MINIGAME_BEGINS_EVENT,
     OriginType,
+    PLAYER_ABORTING_MINIGAME_EVENT,
+    PLAYER_JOIN_ACTIVITY_EVENT,
     PLAYER_JOINED_EVENT,
     PLAYER_LEFT_EVENT,
     PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT,
@@ -32,6 +37,7 @@ import SectionSubTitle from '../src/components/base/SectionSubTitle';
 import SectionTitle from '../src/components/base/SectionTitle';
 import StarryBackground from '../src/components/base/StarryBackground';
 import { Styles } from '../src/sharedCSS';
+import { PlayerMinigameParticipationResponse, PlayerParticipation } from './components/colony/mini_games/miniGame';
 
 export type StrictJSX =
     | Node
@@ -50,11 +56,13 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
         const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.NAVIGATION);
         const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
         const clients = createArrayStore<ClientDTO>();
+        const clientMinigameParticipationResponses = createArrayStore<PlayerMinigameParticipationResponse>();
         const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
-        const bundleSwapColonyInfo = props.context.nav.getRetainedColonyInfo();
-        const [notaficationReason, setNotificationReason] = createSignal<string>('Unknown');
+
+        const [shuntNotaficationReason, setShuntNotificationReason] = createSignal<string>('Unknown');
         const [showNotification, setShowShuntNotification] = createSignal<boolean>(false);
         const log = props.context.logger.copyFor('colony');
+        const bundleSwapColonyInfo = props.context.nav.getRetainedColonyInfo();
 
         /**
          * Handles colony info load error by logging and redirecting to the menu.
@@ -170,14 +178,14 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             if (state === ColonyState.CLOSED) {
                 mockServer.start();
             }
-
+            const subscribe = props.context.events.subscribe;
             // Set up event subscriptions
-            const playerLeaveSubId = props.context.events.subscribe(PLAYER_LEFT_EVENT, (data) => {
+            const playerLeaveSubId = subscribe(PLAYER_LEFT_EVENT, (data) => {
                 log.info('Player left: ' + data.id);
                 clients.removeFirst((c) => c.id === data.id);
+                clientMinigameParticipationResponses.removeFirst((c) => c.id === data.id);
             });
-
-            const playerJoinSubId = props.context.events.subscribe(PLAYER_JOINED_EVENT, (data) => {
+            const playerJoinSubId = subscribe(PLAYER_JOINED_EVENT, (data) => {
                 log.info('Player joined: ' + data.id);
                 clients.add({
                     id: data.id,
@@ -188,31 +196,68 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                         msOfLastMessage: 0,
                     },
                 });
+                clientMinigameParticipationResponses.add({
+                    id: data.id,
+                    ign: data.ign,
+                    participation: PlayerParticipation.UNDECIDED,
+                });
             });
-
-            const serverClosingSubId = props.context.events.subscribe(SERVER_CLOSING_EVENT, (ev) => {
+            const serverClosingSubId = subscribe(SERVER_CLOSING_EVENT, (ev) => {
                 if (props.context.multiplayer.getMode() === MultiplayerMode.AS_OWNER) return;
 
-                setNotificationReason('NOTIFICATION.MULTIPLAYER.SERVER_CLOSING');
+                setShuntNotificationReason('NOTIFICATION.MULTIPLAYER.SERVER_CLOSING');
             });
-
-            const lobbyClosingSubId = props.context.events.subscribe(LOBBY_CLOSING_EVENT, (ev) => {
+            const lobbyClosingSubId = subscribe(LOBBY_CLOSING_EVENT, (ev) => {
                 if (props.context.multiplayer.getMode() === MultiplayerMode.AS_OWNER) return;
 
-                setNotificationReason('NOTIFICATION.MULTIPLAYER.LOBBY_CLOSING');
+                setShuntNotificationReason('NOTIFICATION.MULTIPLAYER.LOBBY_CLOSING');
             });
-
-            const diffConfirmedSubId = props.context.events.subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (data) => {
+            const diffConfirmedSubId = subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (data) => {
                 setConfirmedDifficulty(data);
             });
 
-            const declareIntentSubId = props.context.events.subscribe(PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, (data) => {
+            const resetSequenceSubID = subscribe(GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, (data) => {
+                setConfirmedDifficulty(null);
+                clientMinigameParticipationResponses.mutateByPredicate(
+                    () => true, 
+                    c => ({...c, participation: PlayerParticipation.UNDECIDED})
+                );
+            })
+
+            const playerJoinActivitySubId = subscribe(PLAYER_JOIN_ACTIVITY_EVENT, (data) => {
+                clientMinigameParticipationResponses.mutateByPredicate(
+                    (c) => c.id === data.id,
+                    (c) => ({ ...c, participation: PlayerParticipation.OPT_IN }),
+                );
+            })
+
+            const playerAbortActivitySubId = subscribe(PLAYER_ABORTING_MINIGAME_EVENT, (data) => {
+                clientMinigameParticipationResponses.mutateByPredicate(
+                    (c) => c.id === data.id,
+                    (c) => ({ ...c, participation: PlayerParticipation.OPT_OUT }),
+                );
+            });
+
+            const declareIntentSubId = subscribe(PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, (data) => {
                 const diff = confirmedDifficulty();
                 if (diff === null) {
                     console.error('Received intent declaration before difficulty was confirmed');
                     return;
                 }
+                //When confirmedDifficulty != null, the HandPlacementCheck is shown
+                //The HandPlacementCheck emits the required Player Join Activity or Player Aborting Activity
+                //And then forwards to the waiting screen
             });
+
+            const loadMinigameSubId = subscribe(LOAD_MINIGAME_EVENT, (data) => {
+                //Load the minigame
+
+                //Respond with load complete or load failure
+            })
+
+            const minigameBeginsSubId = subscribe(MINIGAME_BEGINS_EVENT, (data) => {
+                //Start the minigame
+            })
 
             onCleanup(() => {
                 props.context.events.unsubscribe(
@@ -222,6 +267,11 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     lobbyClosingSubId,
                     diffConfirmedSubId,
                     declareIntentSubId,
+                    loadMinigameSubId,
+                    minigameBeginsSubId,
+                    resetSequenceSubID,
+                    playerJoinActivitySubId,
+                    playerAbortActivitySubId
                 );
             });
         });
@@ -249,7 +299,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 showNotification() && (
                     <TimedFullScreenNotification
                         text={props.context.text}
-                        reason={notaficationReason()}
+                        reason={shuntNotaficationReason()}
                         durationMS={5000}
                         onClose={() => setShowShuntNotification(false)}
                         onCompletion={() => props.context.nav.goToMenu()}
