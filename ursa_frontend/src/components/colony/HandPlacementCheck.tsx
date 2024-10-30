@@ -1,4 +1,4 @@
-import { Component, createSignal, Setter } from 'solid-js';
+import { Component, createEffect, createMemo, createSignal, Setter, untrack } from 'solid-js';
 import { IEventMultiplexer } from '../../integrations/multiplayer_backend/eventMultiplexer';
 import { ActionContext, BufferSubscriber, TypeIconTuple } from '../../ts/actionContext';
 import { css } from '@emotion/css';
@@ -21,20 +21,63 @@ interface HandplacementCheckProps extends IBackendBased, IInternationalized {
     clearSelf: () => void;
 }
 
+const maxTimeBetweenInputsMS = 200; //ms
 const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
     const subscribers = createArrayStore<BufferSubscriber<string>>();
     const [buffer, setBuffer] = createSignal<string>('');
-    const [currentlyHighlighted, setCurrentlyHighlighted] = createSignal<string[]>(["f", "j"]);
     const [sequenceIndex, setSequenceIndex] = createSignal(0);
+    const [manualShakeTrigger, setManualShakeTrigger] = createSignal(0);
+    const log = props.backend.logger.copyFor("hand check");
+    const leaveButtonName = props.text.get("COLONY.UI_BUTTON.LEAVE").get();
+    const sequenceLength = 3;
 
-    setInterval(() => {
-        switch(sequenceIndex() % 3) {
-            case 0: setCurrentlyHighlighted(["f", "j"]); break;
-            case 1: setCurrentlyHighlighted(["d", "k"]); break;
-            case 2: setCurrentlyHighlighted(["s", "l"]); break;
+    const currentlyHighlighted = createMemo(() => {
+        switch(sequenceIndex()) { //Reactive on sequenceIndex
+            case 0: return ["f", "j"];
+            case 1: return ["d", "k"];
+            case 2: return ["s", "l"];
+            default: return [];
         }
-        setSequenceIndex(prev => prev + 1);
-    }, 1000)
+    })
+
+    let timestampOfLastChange = -1; //Intentionally not reactive
+    createEffect(() => {
+        const currentBuffer = buffer();
+        if (currentBuffer === "") return;
+
+        log.trace("Buffer is: " + currentBuffer);
+        const now = Date.now();
+        if (timestampOfLastChange === -1) {
+            timestampOfLastChange = now;
+        }
+        //Challenge lost due to timeout
+        if (
+            now - timestampOfLastChange > maxTimeBetweenInputsMS
+            && !leaveButtonName.includes(currentBuffer) //If the user is trying to decline
+        ) {
+            setBuffer(""); //clear buffer
+            timestampOfLastChange = -1; //reset timestamp
+            setSequenceIndex(0); //reset sequence index
+            setManualShakeTrigger(prev => prev + 1); //trigger input shake
+            // pause timebar animation - if any
+            return;
+        }
+        //At this point, a change has occurred within the time limit
+
+        //If the buffer contains both expected elements of this part in the sequence
+        const highlighted = untrack(currentlyHighlighted);
+        if (
+            currentBuffer.includes(highlighted[0]) 
+            && currentBuffer.includes(highlighted[1])
+            && currentBuffer.length === 2
+        ) {
+            setBuffer(""); //Clear buffer
+            setSequenceIndex(prev => prev + 1); //Advance sequence
+            timestampOfLastChange = now;
+            //Retrigger timebar animation
+        }
+
+    })
 
     const onCheckDeclined = () => {
         props.events.emit(PLAYER_ABORTING_MINIGAME_EVENT, {
@@ -42,6 +85,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
             ign: props.backend.player.local.firstName,
         })
         props.clearSelf();
+        log.trace("Player declined participation");
     }
 
     const onCheckPassed = () => {
@@ -50,6 +94,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
             ign: props.backend.player.local.firstName,
         })
         props.goToWaitingScreen();
+        log.trace("Player accepted participation");
     }
 
     const getKeyboardLayout = (): KeyElement[][] => {
@@ -66,7 +111,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 buffer={buffer}
                 register={subscribers.add}
                 onActivation={onCheckDeclined}
-                name={props.text.get("COLONY.UI_BUTTON.LEAVE").get()}
+                name={leaveButtonName}
                 styleOverwrite={leaveButtonStyle}
                 charBaseStyleOverwrite={css`color: rgba(150, 0, 0, 1); text-shadow: 0 0 1rem rgba(255, 50, 50, 1); filter: none;`}
             />
@@ -92,6 +137,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 ignoreNumericKeys
                 highlighted={currentlyHighlighted}
             />
+            <div class={timeLimitBarStyle}></div>
             <div class={checkExplanationAcceptStyle}>{props.text.get("HANDPLACEMENT_CHECK.DESCRIPTION_ACCEPT").get()}</div>
             <div class={checkExplanationDeclineStyle}>{props.text.get("HANDPLACEMENT_CHECK.DESCRIPTION_DECLINE").get()}</div>
             <ActionInput 
@@ -101,11 +147,35 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 inputBuffer={buffer}
                 text={props.text}
                 backend={props.backend}
+                manTriggerShake={manualShakeTrigger}
             />
         </div>
     );
 };
 export default HandPlacementCheck;
+
+const timeLimitBarStyle = css`
+    position: absolute;
+    
+    left: 50%;
+    top: 71%;
+    height: 1vh;
+    transform: translateX(-50%);
+    width: 80vw;
+    border-radius: .5rem;
+
+    --base-color: hsl(180, 80%, 50%);
+    background-color: var(--base-color);
+    filter: drop-shadow(0 .3rem .5rem rgba(255, 255, 255, .5));
+`
+
+const animTimeBarShrink = css`
+    animation: timeBarShrink ${maxTimeBetweenInputsMS / 1000}s linear forwards;
+    @keyframes timeBarShrink {
+        0% { width: 100%; }
+        100% { width: 0; }
+    }
+`
 
 const checkExplanationStyle = css`
     ${Styles.SUB_TITLE}

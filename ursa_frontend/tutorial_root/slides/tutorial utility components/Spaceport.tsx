@@ -22,7 +22,7 @@ const baseDelayBeforeDemoStart = 1000;
 const SpacePortInterface: Component<SpacePortInterfaceProps> = (props) => {
     const [inputBuffer, setInputBuffer] = createSignal<string>('');
     const [actionContext, setActionContext] = createSignal<TypeIconTuple>(ActionContext.NAVIGATION);
-    const [triggerEnter, setTriggerEnter] = createSignal<() => void>(() => {});
+    const [triggerEnter, setTriggerEnter] = createSignal<number>(0);
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
 
     const openButtonText = createMemo(() => props.text.get('COLONY.UI_BUTTON.OPEN').get());
@@ -41,7 +41,7 @@ const SpacePortInterface: Component<SpacePortInterfaceProps> = (props) => {
         }
         setTimeout(
             () => {
-                triggerEnter()();
+                setTriggerEnter((prev) => prev + 1);
             },
             baseDelayBeforeDemoStart * 2 + text.length * timeBetweenKeyStrokesMS,
         );
@@ -82,7 +82,7 @@ const SpacePortInterface: Component<SpacePortInterfaceProps> = (props) => {
                 actionContext={actionContext}
                 setInputBuffer={setInputBuffer}
                 inputBuffer={inputBuffer}
-                triggerEnter={setTriggerEnter}
+                manTriggerEnter={triggerEnter}
                 demoMode={true}
             />
             <div class={imageContainerStyle}>

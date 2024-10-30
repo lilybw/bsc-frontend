@@ -232,13 +232,12 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
 
             return (
                 <HandPlacementCheck
+                    nameOfOwner={"HOOK MISSING"}
+                    nameOfMinigame={"TOBEIMPLEMENTED"}
                     gameToBeMounted={confDiff}
                     events={props.context.events}
                     backend={props.context.backend}
                     text={props.context.text}
-                    setActionContext={actionContext.set}
-                    buffer={inputBuffer.get}
-                    register={bufferSubscribers.add}
                     clearSelf={() => setConfirmedDifficulty(null)}
                     goToWaitingScreen={() => console.log('on waiting screen')}
                 />
