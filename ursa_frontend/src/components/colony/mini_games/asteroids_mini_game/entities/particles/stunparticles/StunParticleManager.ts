@@ -37,6 +37,7 @@ export class StunParticleManager {
 
         const particle = new StunParticle({
             id,
+            size: 4,
             x: centerPos.x,
             y: centerPos.y,
             duration: 4000, // Increased duration

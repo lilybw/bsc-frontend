@@ -10,7 +10,7 @@ export class StunParticle extends BaseParticle {
 
     // Compute the spread only once for the class
     private static computeDefaultSpread(): number {
-        return window.innerWidth / 10;
+        return window.innerWidth / 20;
     }
 
     private size: number;
