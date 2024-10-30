@@ -52,24 +52,10 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign(
             setCurrentPage(() => PreviousPage());
         };
 
-        const [a, setA] = createSignal(true);
         return (
             <div class={mainMenuAppStyle} id="the-main-menu-app">
                 <LanguageSelectInlay text={props.context.text} backend={props.context.backend} />
                 {CurrentPage()({ context: props.context, goToPage: goToPage, goBack: goBack })}
-                {a() && <HandPlacementCheck
-                    nameOfMinigame='GameHere'
-                    nameOfOwner='User1'
-                    gameToBeMounted={{ senderID: 1, eventID: 489, minigameID: 1,
-                        difficultyID: 1,
-                        difficultyName: "Let"}}
-                    backend={props.context.backend}
-                    events={props.context.events}
-                    text={props.context.text}
-                    clearSelf={() => setA(false)}
-                    goToWaitingScreen={() => {}}
-
-                />}
             </div>
         );
     },
