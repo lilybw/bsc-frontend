@@ -11,67 +11,66 @@ export const particleContainerStyle = css`
   pointer-events: none;
   z-index: 10;
   overflow: visible;
-  filter: blur(0.1em);  // Overall blur for more cohesive effect
+  filter: blur(0.1em);
 `;
 
 /**
  * Base style for stun particle effect
  */
-// In ParticleStyles.ts
 export const stunParticleStyle = css`
   position: absolute;
   bottom: 0;
-  width: 3em;  // Base size
-  height: 3em;
-  border-radius: 50%;
-  mix-blend-mode: screen;
-  opacity: 0;
-  z-index: 101;
-  pointer-events: none;
-  filter: blur(0.15em);  // Blur for softer edges
-  background-image: radial-gradient(
-    rgba(255, 200, 0, 1) 10%,    // Bright yellow core
-    rgba(255, 100, 0, 0.8) 30%,  // Orange mid
-    rgba(255, 50, 0, 0.6) 50%,   // Reddish outer
-    rgba(255, 30, 0, 0) 70%
-  );
-  box-shadow: 
-    0 0 1em 0.2em rgba(255, 200, 0, 0.5),  // Inner glow
-    0 0 2em 0.5em rgba(255, 100, 0, 0.3);  // Outer glow
-
-  @keyframes stunRise {
-    0% {
-      opacity: 0;
-      transform: translateY(0) scale(1);
-    }
-    5% {
-      opacity: 1;
-    }
-    70% {
-      opacity: 0.9;
-      transform: translateY(-500%) scale(0.8);
-    }
-    90% {
-      opacity: 0.3;
-      transform: translateY(-500%) scale(0.4);
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-500%) scale(0);
-    }
-  }
+  left: 50%;
+  transform: translateX(-50%);
 `;
 
 /**
  * Function to generate rotating animation style
  */
-export const rotatingStyle = (speedSeconds: number) => css`
-  animation: rotate ${speedSeconds}s linear infinite;
+export const stunParticleBaseStyle = css`
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+`;
 
-  @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
+export const stunParticleVerticalStyle = css`
+    animation: riseY 4s linear forwards;
+
+    @keyframes riseY {
+        0% { transform: translateY(0); opacity: 0; }
+        5% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-500%); opacity: 0; }
+    }
+`;
+
+export const stunParticleHorizontalStyle = css`
+    animation: spreadX 4s cubic-bezier(0, 0, 0.05, 1) forwards;
+
+    @keyframes spreadX {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(var(--spread-x)); }
+    }
+`;
+
+export const stunParticleContentStyle = css`
+    width: var(--particle-size);
+    height: var(--particle-size);
+    border-radius: 50%;
+    mix-blend-mode: screen;
+    z-index: 1000;
+    pointer-events: none;
+    filter: blur(var(--blur-amount));
+    background-image: radial-gradient(
+        var(--glow-color) 10%,
+        var(--mid-color) 30%,
+        var(--outer-color) 50%,
+        rgba(255, 30, 0, 0) 70%
+    );
+    box-shadow: 
+        0 0 1em 0.2em rgba(255, 200, 0, 0.5),
+        0 0 2em 0.5em rgba(255, 100, 0, 0.3);
 `;
 
 /**

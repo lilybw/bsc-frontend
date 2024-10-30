@@ -540,27 +540,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                                                 </NTAwait>
                                             </div>
                                         </div>
-
-                                        {/* Debug State Display */}
-                                        <div
-                                            style={{
-                                                position: 'absolute',
-                                                top: '-20px',
-                                                left: '50%',
-                                                transform: 'translateX(-50%)',
-                                                color: 'white',
-                                                'background-color': 'rgba(0,0,0,0.5)',
-                                                padding: '2px 5px',
-                                                'border-radius': '3px',
-                                                'white-space': 'nowrap',
-                                            }}
-                                        >
-                                            {(() => {
-                                                const state = getPlayerState(player.id);
-                                                return `${player.id}: ${state ? (state.isStunned ? 'STUNNED ' : '') + (state.isDisabled ? 'DISABLED' : '') : 'NORMAL'
-                                                    }`;
-                                            })()}
-                                        </div>
                                     </div>
                                 )}
                             </For>

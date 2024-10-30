@@ -1,6 +1,6 @@
 import { Component, createSignal, createEffect, onCleanup, For, Show, Accessor } from 'solid-js';
 import { BaseParticle } from '../entities/particles';
-import { particleContainerStyle, stunParticleStyle } from '../styles/ParticleStyles';
+import { particleContainerStyle, stunParticleBaseStyle, stunParticleContentStyle, stunParticleHorizontalStyle, stunParticleStyle, stunParticleVerticalStyle } from '../styles/ParticleStyles';
 import StunParticleManager from '../entities/particles/stunparticles/StunParticleManager';
 import { EntityRef } from '../types/EntityTypes';
 
@@ -69,35 +69,28 @@ const PlayerStunEffect: Component<PlayerStunEffectProps> = (props) => {
     });
 
     return (
-        <Show when={props.playerState() || hasStunEffect()}>
-            <>
-                <Show when={hasActiveParticles()}>
-                    <div class={particleContainerStyle}>
-                        <For each={particles()}>
-                            {(particle) => (
-                                <div
-                                    class={stunParticleStyle}
-                                    style={particle.getStyle()}
-                                />
-                            )}
-                        </For>
-                    </div>
-                </Show>
-
-                {/* Disable Effect */}
-                <Show when={props.playerState()?.isDisabled}>
-                    <div style={{
-                        position: 'absolute',
-                        inset: 0,
-                        'background-color': 'rgba(255, 0, 0, 0.5)',
-                        'z-index': 1000,
-                        opacity: 0.8,
-                        border: '3px solid white'
-                    }} />
-                </Show>
-            </>
+        <Show when={props.playerState()?.isStunned || hasStunEffect()}>
+            <Show when={hasActiveParticles()}>
+                <div class={particleContainerStyle}>
+                    <For each={particles()}>
+                        {(particle) => (
+                            // Base container
+                            <div class={stunParticleBaseStyle} style={particle.getStyle()}>
+                                {/* Vertical rise container */}
+                                <div class={stunParticleVerticalStyle}>
+                                    {/* Horizontal spread container */}
+                                    <div class={stunParticleHorizontalStyle}>
+                                        {/* Particle content */}
+                                        <div class={stunParticleContentStyle} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </For>
+                </div>
+            </Show>
         </Show>
-    );
+    )
 };
 
 export default PlayerStunEffect;
