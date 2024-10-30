@@ -175,6 +175,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
         //Set initial camera position
         //Only works because the createEffect statement is evaluated before this onMount as of right now
+        setCurrentLocationOfLocalPlayer(generalSpawnLocation.id);
         centerCameraOnPoint(generalSpawnLocation.transform.xOffset, generalSpawnLocation.transform.yOffset);
     });
 

@@ -93,7 +93,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     ]}
                 >
                     {(colony, graph) => 
-                        <PathGraph
+                        (<PathGraph
                             ownerID={colonyInfo.owner}
                             graph={graph}
                             colony={colony}
@@ -102,7 +102,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                             clients={clientTracker.getAsClients()}
                             context={props.context}
                             buffer={inputBuffer}
-                        />
+                        />)
                     }
                 </MNTAwait>
                 </>
