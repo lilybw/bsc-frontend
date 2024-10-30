@@ -22,6 +22,7 @@ interface HandplacementCheckProps extends IBackendBased, IInternationalized {
 }
 
 const maxTimeBetweenInputsMS = 200; //ms
+const successAnimationTimeMS = 1000; //ms
 const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
     const subscribers = createArrayStore<BufferSubscriber<string>>();
     const [buffer, setBuffer] = createSignal<string>('');
@@ -46,7 +47,6 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
         const currentBuffer = buffer();
         if (currentBuffer === "") return;
 
-        log.trace("Buffer is: " + currentBuffer);
         const now = Date.now();
         if (timestampOfLastChange === -1) {
             timestampOfLastChange = now;
@@ -63,6 +63,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
 
         //If the buffer contains both expected elements of this part in the sequence
         const highlighted = untrack(currentlyHighlighted);
+        let currentSequenceIndex = -1;
         if (
             currentBuffer.includes(highlighted[0]) 
             && currentBuffer.includes(highlighted[1])
@@ -70,16 +71,35 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
         ) {
             setBuffer(""); //Clear buffer
             setSequenceIndex(prev => prev + 1); //Advance sequence
-            setManualEnterAnimTrigger(prev => prev + 1); //Trigger enter animation
+            setManualEnterAnimTrigger(prev => {
+                currentSequenceIndex = prev + 1
+                log.trace("sequence index" + currentSequenceIndex);
+                return currentSequenceIndex;
+            }); //Trigger enter animation
             timestampOfLastChange = now;
             retriggerTimeBarAnimation(); //Restart timebar animation
+            startOrRestartTimedInvalidationCheck();
+        }
+
+        if (currentSequenceIndex === sequenceLength - 1) { //If the sequence has been completed
+            onCheckPassed();
         }
     })
+
+    let invalidationTimeout: NodeJS.Timeout | undefined;
+    const startOrRestartTimedInvalidationCheck = () => {
+        if (invalidationTimeout) clearTimeout(invalidationTimeout);
+        invalidationTimeout = setTimeout(() => {
+            resetCheck();
+        }, maxTimeBetweenInputsMS);
+    }
     const resetCheck = () => {
+        log.trace("resetting check");
         timestampOfLastChange = -1; //reset timestamp
         setSequenceIndex(0); //reset sequence index
         setManualShakeTrigger(prev => prev + 1); //trigger input shake
         cancelTimeBarAnimation();
+        setBuffer(""); //clear buffer
     }
 
     const onCheckDeclined = () => {
@@ -91,13 +111,18 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
         log.trace("Player declined participation");
     }
 
+    const [successAnimation, setSuccessAnimation] = createSignal(false);
     const onCheckPassed = () => {
-        props.events.emit(PLAYER_JOIN_ACTIVITY_EVENT, {
-            id: props.backend.player.local.id,
-            ign: props.backend.player.local.firstName,
-        })
-        props.goToWaitingScreen();
         log.trace("Player accepted participation");
+        setSuccessAnimation(true);
+        setTimeout(() => {
+            setSuccessAnimation(false);
+            props.events.emit(PLAYER_JOIN_ACTIVITY_EVENT, {
+                id: props.backend.player.local.id,
+                ign: props.backend.player.local.firstName,
+            })
+            props.goToWaitingScreen();
+        }, successAnimationTimeMS);
     }
 
     const getKeyboardLayout = (): KeyElement[][] => {
@@ -118,6 +143,11 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
     const cancelTimeBarAnimation = () => {
         setTimeBarStyle(timeLimitBarStyle);
     }
+
+    const computedKeyboardStyle = createMemo(() => css`
+        ${keyboardStyle}
+        ${successAnimation() ? keyboardShimmerAnim : ''}
+    `)
 
     return (
         <div class={overlayStyle}>
@@ -144,7 +174,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 layout={getKeyboardLayout()}
                 showIntendedFingerUseForKey
                 fingeringSchemeFocused={0} 
-                styleOverwrite={keyboardStyle}
+                styleOverwrite={computedKeyboardStyle()}
                 ignoreMathKeys
                 ignoreGrammarKeys
                 ignoreSpecialKeys
@@ -177,6 +207,7 @@ const timeLimitBarStyle = css`
     height: 1vh;
     transform: translateX(-50%);
     --base-width: 80vw;
+    --min-anim-width: 5vw;
     width: var(--base-width);
     border-radius: .5rem;
 
@@ -189,7 +220,15 @@ const animTimeBarShrink = css`
     animation: timeBarShrink ${maxTimeBetweenInputsMS / 1000}s linear forwards;
     @keyframes timeBarShrink {
         0% { width: var(--base-width); }
-        100% { width: 5vw; }
+        100% { width: var(--min-anim-width); }
+    }
+`
+
+const keyboardShimmerAnim = css`
+    animation: keyboardShimmer ${successAnimationTimeMS / 1000}s linear;
+    @keyframes keyboardShimmer {
+        0% { filter: drop-shadow(0 0 0.5rem rgba(0,255,0,.5)); }
+        100% { filter: drop-shadow(0 0 5rem rgba(0,255,0,1)); }
     }
 `
 
