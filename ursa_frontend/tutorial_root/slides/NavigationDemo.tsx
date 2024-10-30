@@ -19,7 +19,7 @@ const baseDelayBeforeDemoStart = 1000;
 export default function NavigationDemo(props: NavigationDemoProps): JSX.Element {
     const [inputBuffer, setInputBuffer] = createSignal<string>('');
     const [actionContext, setActionContext] = createSignal<TypeIconTuple>(ActionContext.NAVIGATION);
-    const [triggerEnter, setTriggerEnter] = createSignal<() => void>(() => {});
+    const [triggerEnter, setTriggerEnter] = createSignal<number>(0);
     const [movePlayerToLocation, setMovePlayerToLocation] = createSignal<boolean>(false);
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
 
@@ -34,7 +34,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
     }
     setTimeout(
         () => {
-            triggerEnter()();
+            setTriggerEnter(prev => prev + 1);
         },
         baseDelayBeforeDemoStart * 2 + nameOfLocation.get().length * timeBetweenKeyStrokesMS,
     );
@@ -64,7 +64,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                     actionContext={actionContext}
                     setInputBuffer={setInputBuffer}
                     inputBuffer={inputBuffer}
-                    triggerEnter={setTriggerEnter}
+                    manTriggerEnter={triggerEnter}
                     demoMode={true}
                 />
                 <div class={movementPathStyle}></div>

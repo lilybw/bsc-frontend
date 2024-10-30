@@ -8,6 +8,7 @@ import ColonyListPage from './pages/ColonyListPage';
 import NewColonyPage from './pages/NewColonyPage';
 import JoinColonyPage from './pages/JoinColony';
 import LanguageSelectInlay from './pages/LanguageSelectInlay';
+import HandPlacementCheck from '../src/components/colony/HandPlacementCheck';
 
 export enum MenuPages {
     LANDING_PAGE = 'landing',
@@ -55,6 +56,19 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign(
             <div class={mainMenuAppStyle} id="the-main-menu-app">
                 <LanguageSelectInlay text={props.context.text} backend={props.context.backend} />
                 {CurrentPage()({ context: props.context, goToPage: goToPage, goBack: goBack })}
+                <HandPlacementCheck
+                    nameOfMinigame='GameHere'
+                    nameOfOwner='User1'
+                    gameToBeMounted={{ senderID: 1, eventID: 489, minigameID: 1,
+                        difficultyID: 1,
+                        difficultyName: "Let"}}
+                    backend={props.context.backend}
+                    events={props.context.events}
+                    text={props.context.text}
+                    clearSelf={() => {}}
+                    goToWaitingScreen={() => {}}
+
+                />
             </div>
         );
     },

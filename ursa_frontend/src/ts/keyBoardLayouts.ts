@@ -51,8 +51,8 @@ const kbFirstRowDK: KeyElement[] = [
 ];
 const kbSecondRowDK: KeyElement[] = [
     { char: 'Tab', width: 1.5 / 16, symbolTypes: [SymbolType.Special], finger: [Fingers.L_PINKY] },
-    { char: 'q', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_PINKY, Fingers.L_RING] },
-    { char: 'w', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_RING, Fingers.L_MIDDLE] },
+    { char: 'q', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_RING, Fingers.L_PINKY] },
+    { char: 'w', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_MIDDLE, Fingers.L_RING] },
     { char: 'e', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_MIDDLE] },
     { char: 'r', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_INDEX] },
     { char: 't', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_INDEX] },
@@ -85,7 +85,7 @@ const kbFourthRowDK: KeyElement[] = [
     { char: 'Shift', width: 1.25 / 16, symbolTypes: [SymbolType.Special], finger: [Fingers.L_PINKY] },
     { char: '>', width: 1 / 16, symbolTypes: [SymbolType.Grammar], finger: [Fingers.L_PINKY] },
     { char: 'z', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_RING] },
-    { char: 'x', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_RING, Fingers.L_MIDDLE] },
+    { char: 'x', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_MIDDLE, Fingers.L_RING] },
     { char: 'c', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_MIDDLE] },
     { char: 'v', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_INDEX] },
     { char: 'b', width: 1 / 16, symbolTypes: [SymbolType.Alphabetic], finger: [Fingers.L_INDEX] },

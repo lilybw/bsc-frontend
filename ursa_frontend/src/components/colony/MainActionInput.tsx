@@ -20,7 +20,8 @@ interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternati
      * Also, on 'Enter' a giant floating Enter is shown.
      */
     demoMode?: boolean;
-    triggerEnter?: Setter<() => void>;
+    manTriggerEnter?: Accessor<number>;
+    manTriggerShake?: Accessor<number>;
 }
 
 const ActionInput: Component<ActionInputProps> = (props) => {
@@ -35,6 +36,20 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             inputRef?.focus();
         }
     });
+
+    if (props.manTriggerShake) {
+        createEffect(() => {
+            const ignored = props.manTriggerShake!();
+            triggerShake();
+        })
+    }
+
+    if (props.manTriggerEnter) {
+        createEffect(() => {
+            const ignored = props.manTriggerEnter!();
+            handleEnter();
+        })
+    }
 
     onMount(() => {
         if (props.demoMode) return;
@@ -53,6 +68,11 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             handleEnter();
         }
     };
+
+    const triggerShake = () => {
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), shakeTimeS * 1000);
+    }
 
     const handleEnter = async () => {
         let consumed = false;
@@ -74,15 +94,9 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             setEnterSuccessfullyPressed(true);
             setTimeout(() => setEnterSuccessfullyPressed(false), confirmTimeS * 1000);
         } else {
-            setIsShaking(true);
-            setTimeout(() => setIsShaking(false), shakeTimeS * 1000);
+            triggerShake();
         }
     };
-
-    // Expose the triggerEnter function to the parent component
-    if (props.triggerEnter) {
-        props.triggerEnter((prev) => () => handleEnter());
-    }
 
     return (
         <div
