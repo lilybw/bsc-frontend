@@ -66,7 +66,7 @@ const slides: SlideEntry[] = [
 
 const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(
     function (props: ApplicationProps) {
-        const [currentSlide, setCurrentSlide] = createSignal(0);
+        const [currentSlide, setCurrentSlide] = createSignal(3);
         const [previousSlide, setPreviousSlide] = createSignal(0);
         const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<LanguagePreference | undefined>(props.context.text.language());
         const [slideStore, setSlides] = createStore<SlideEntry[]>(slides);
@@ -118,7 +118,7 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(
                         <NavigationDemo backend={props.context.backend} onSlideCompleted={onSlideCompleted} text={props.context.text} />
                     </Match>
                     <Match when={currentSlide() === 3}>
-                        <NavigationTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />
+                        <NavigationTrial onSlideCompleted={onSlideCompleted} context={props.context} backend={props.context.backend} text={props.context.text} />
                     </Match>
                     <Match when={currentSlide() === 4}>
                         <LocationDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />
