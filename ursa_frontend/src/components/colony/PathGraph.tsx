@@ -20,7 +20,7 @@ import { KnownLocations } from '../../integrations/main_backend/constants';
 import { BufferSubscriber, TypeIconTuple } from '../../ts/actionContext';
 import { ArrayStore, createArrayStore } from '../../ts/arrayStore';
 import ActionInput from './MainActionInput';
-import { ApplicationContext, MultiplayerMode } from '../../meta/types';
+import { ApplicationContext, ColonyState, MultiplayerMode } from '../../meta/types';
 import Player from './Player';
 import { BackendIntegration as IBackendIntegration } from '../../integrations/main_backend/mainBackend';
 import { InternationalizationService } from '../../integrations/main_backend/internationalization/internationalization';
@@ -73,6 +73,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const transformMap = new Map<ColonyLocationID, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations));
     const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>(loadPathMap(props.graph.paths));
     const log = props.context.logger.copyFor('path graph');
+    log.trace('initialized');
 
     createEffect(() => {
         const currentDNS = DNS();
@@ -152,8 +153,15 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             props.context.events.unsubscribe(playerMoveSubID);
         });
 
-        let generalSpawnLocation = colonyLocation.findFirst(colLoc => colLoc.locationID === KnownLocations.SpacePort)!;
+        let generalSpawnLocation;
+        if (props.context.multiplayer.getState() === ColonyState.OPEN) {
+            generalSpawnLocation = colonyLocation.findFirst(colLoc => colLoc.locationID === KnownLocations.SpacePort)!;
+        } else {
+            generalSpawnLocation = colonyLocation.findFirst(colLoc => colLoc.locationID === KnownLocations.Home)!;
+        }
+        log.trace(`Setting initial location of local player to ${generalSpawnLocation.id}`);
 
+        /*
         props.clients.mutateByPredicate(c => !c.state.lastKnownPosition || c.state.lastKnownPosition === 0, 
             c => {
                 return {
@@ -165,6 +173,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 }
             }
         )
+        */
 
         //Set initial camera position
         //Only works because the createEffect statement is evaluated before this onMount as of right now

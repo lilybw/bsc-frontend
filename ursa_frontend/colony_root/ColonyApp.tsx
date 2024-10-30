@@ -83,7 +83,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     buffer={inputBuffer.get}
                     onActivation={() => props.context.nav.goToMenu()}
                     register={bufferSubscribers.add}
-                    styleOverwrite="position: absolute; top: 13vh; left: 2vw;"
+                    styleOverwrite="position: absolute; top: 8vh; left: 1vh;"
                     charBaseStyleOverwrite="font-size: 1.5rem;"
                 />
                 <MNTAwait
@@ -110,9 +110,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             </Unwrap>
         ) as StrictJSX;
         
-
         const [pageContent, setPageContent] = createSignal<StrictJSX>(colonyLayout());
-
 
         const clientTracker = new ClientTracker(props.context.events, props.context.logger);
         const mockServer = new MockServer(props.context, setPageContent, () => setPageContent(colonyLayout()), props.context.logger);
@@ -257,5 +255,5 @@ const colonyTitleStyle = css`
     z-index: 100000;
     font-size: 3.5rem;
     top: 0;
-    left: 0;
+    left: 1vh;
 `;

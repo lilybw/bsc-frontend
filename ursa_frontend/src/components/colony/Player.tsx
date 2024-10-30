@@ -31,9 +31,9 @@ const Player: Component<PlayerProps> = (props) => {
         () => css`
             ${playerContainer}
             ${props.isLocalPlayer ? localPlayerStyleOverwrite : ''}
-        ${Styles.transformToCSSVariables(currentTransform())}
-        ${Styles.TRANSFORM_APPLICATOR}
-        ${props.styleOverwrite}
+            ${Styles.transformToCSSVariables(currentTransform())}
+            ${Styles.TRANSFORM_APPLICATOR}
+            ${props.styleOverwrite}
         `,
     );
 
