@@ -4,7 +4,7 @@ import { KeyElement, SymbolType, DK_KEYBOARD_LAYOUT, EN_GB_KEYBOARD_LAYOUT } fro
 import { Accessor, Component, createMemo, For, mergeProps } from 'solid-js';
 import { IStyleOverwritable } from '../../ts/types';
 
-interface OnScreenKeyboardProps extends IStyleOverwritable {
+interface OnScreenKeyboardProps {
     /**
      * Keys that should be highlighted.
      * @default []
@@ -74,10 +74,11 @@ interface OnScreenKeyboardProps extends IStyleOverwritable {
      * @default DK_KEYBOARD_LAYOUT
      */
     layout?: KeyElement[][];
-    keyBaseStyleOverride?: string;
-    textStyleOverride?: string;
+    keyBaseStyleOverride?: Accessor<string> | string;
+    textStyleOverride?: Accessor<string> | string;
+    styleOverwrite?: Accessor<string> | string;
 }
-interface NormalizedOnScreenKeyboardProps extends IStyleOverwritable {
+interface NormalizedOnScreenKeyboardProps {
     /**
      * Keys that should be highlighted.
      * @default []
@@ -147,12 +148,14 @@ interface NormalizedOnScreenKeyboardProps extends IStyleOverwritable {
      * @default DK_KEYBOARD_LAYOUT
      */
     layout: KeyElement[][];
-    keyBaseStyleOverride?: string;
-    textStyleOverride?: string;
+    keyBaseStyleOverride: Accessor<string>;
+    textStyleOverride: Accessor<string>;
+    styleOverwrite: Accessor<string>;
 }
 const NOOP_EMP_ARR = () => [];
 const NOOP_FALSE = () => false;
 const NOOP_TRUE = () => true;
+const NOOP_EMP_STR = () => '';
 const DEFAULTS: NormalizedOnScreenKeyboardProps = {
     highlighted: NOOP_EMP_ARR,
     ignored: NOOP_EMP_ARR,
@@ -167,6 +170,9 @@ const DEFAULTS: NormalizedOnScreenKeyboardProps = {
     ignoreGrammarKeys: NOOP_FALSE,
     ignoreMathKeys: NOOP_FALSE,
     layout: EN_GB_KEYBOARD_LAYOUT,
+    keyBaseStyleOverride: NOOP_EMP_STR,
+    textStyleOverride: NOOP_EMP_STR,
+    styleOverwrite: NOOP_EMP_STR
 };
 
 const normalizeProps = (props: OnScreenKeyboardProps): NormalizedOnScreenKeyboardProps => {
@@ -220,7 +226,18 @@ const normalizeProps = (props: OnScreenKeyboardProps): NormalizedOnScreenKeyboar
       const value = props.ignoreMathKeys; // Capture the boolean value
       semiNormalized.ignoreMathKeys = (() => value);  // Create an accessor function
     }
-
+    if (typeof props.keyBaseStyleOverride === "string") {
+        const value = props.keyBaseStyleOverride; // Capture the string value
+        semiNormalized.keyBaseStyleOverride = (() => value);  // Create an accessor function
+    }
+    if (typeof props.textStyleOverride === "string") {
+        const value = props.textStyleOverride; // Capture the string value
+        semiNormalized.textStyleOverride = (() => value);  // Create an accessor function
+    }
+    if (typeof props.styleOverwrite === "string") {
+        const value = props.styleOverwrite; // Capture the string value
+        semiNormalized.styleOverwrite = (() => value);  // Create an accessor function
+    }
     // @ts-ignore
     return mergeProps(DEFAULTS, semiNormalized);
 };
@@ -300,11 +317,11 @@ const OnScreenKeyboard: Component<OnScreenKeyboardProps> = (_props) => {
                     ${computedStyle} ${keyHighlightedStyle}
                 `;
             }
-            computedStyle = css`${computedStyle} ${normalizedProps.keyBaseStyleOverride}`;
+            computedStyle = css`${computedStyle} ${normalizedProps.keyBaseStyleOverride()}`;
 
             const children = (
                 <>
-                    <div class={css`${keyboardTextStyle} ${normalizedProps.textStyleOverride}`}>{key.char}</div>
+                    <div class={css`${keyboardTextStyle} ${normalizedProps.textStyleOverride()}`}>{key.char}</div>
                     {appendDotIfForJ(key)}
                 </>
             );
@@ -352,7 +369,7 @@ const OnScreenKeyboard: Component<OnScreenKeyboardProps> = (_props) => {
 
     const computedContainerStyle = createMemo(
         () => css`
-            ${containerStyle} ${normalizedProps.styleOverwrite}
+            ${containerStyle} ${normalizedProps.styleOverwrite()}
         `,
     );
 

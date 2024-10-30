@@ -21,7 +21,7 @@ interface HandplacementCheckProps extends IBackendBased, IInternationalized {
     clearSelf: () => void;
 }
 
-const maxTimeBetweenInputsMS = 200; //ms
+const maxTimeBetweenInputsMS = 1000; //ms
 const successAnimationTimeMS = 1000; //ms
 const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
     const subscribers = createArrayStore<BufferSubscriber<string>>();
@@ -70,18 +70,18 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
             && currentBuffer.length === 2
         ) {
             setBuffer(""); //Clear buffer
-            setSequenceIndex(prev => prev + 1); //Advance sequence
-            setManualEnterAnimTrigger(prev => {
+            setSequenceIndex(prev => {
                 currentSequenceIndex = prev + 1
                 log.trace("sequence index" + currentSequenceIndex);
                 return currentSequenceIndex;
-            }); //Trigger enter animation
+            }); //Advance sequence
+            setManualEnterAnimTrigger(prev => prev + 1); //Trigger enter animation
             timestampOfLastChange = now;
             retriggerTimeBarAnimation(); //Restart timebar animation
             startOrRestartTimedInvalidationCheck();
         }
 
-        if (currentSequenceIndex === sequenceLength - 1) { //If the sequence has been completed
+        if (currentSequenceIndex >= sequenceLength) { //If the sequence has been completed
             onCheckPassed();
         }
     })
@@ -111,12 +111,14 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
         log.trace("Player declined participation");
     }
 
-    const [successAnimation, setSuccessAnimation] = createSignal(false);
     const onCheckPassed = () => {
         log.trace("Player accepted participation");
-        setSuccessAnimation(true);
+        setComputedKeyboardStyle(css`${keyboardStyle} ${keyboardShimmerAnim}`);
+        cancelTimeBarAnimation();
+        clearTimeout(invalidationTimeout);
         setTimeout(() => {
-            setSuccessAnimation(false);
+            log.trace("Animation complete, proceeding")
+            setComputedKeyboardStyle(keyboardStyle);
             props.events.emit(PLAYER_JOIN_ACTIVITY_EVENT, {
                 id: props.backend.player.local.id,
                 ign: props.backend.player.local.firstName,
@@ -144,10 +146,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
         setTimeBarStyle(timeLimitBarStyle);
     }
 
-    const computedKeyboardStyle = createMemo(() => css`
-        ${keyboardStyle}
-        ${successAnimation() ? keyboardShimmerAnim : ''}
-    `)
+    const [computedKeyboardStyle, setComputedKeyboardStyle ]= createSignal<string>(keyboardStyle)
 
     return (
         <div class={overlayStyle}>
@@ -174,7 +173,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 layout={getKeyboardLayout()}
                 showIntendedFingerUseForKey
                 fingeringSchemeFocused={0} 
-                styleOverwrite={computedKeyboardStyle()}
+                styleOverwrite={computedKeyboardStyle}
                 ignoreMathKeys
                 ignoreGrammarKeys
                 ignoreSpecialKeys
@@ -227,8 +226,12 @@ const animTimeBarShrink = css`
 const keyboardShimmerAnim = css`
     animation: keyboardShimmer ${successAnimationTimeMS / 1000}s linear;
     @keyframes keyboardShimmer {
-        0% { filter: drop-shadow(0 0 0.5rem rgba(0,255,0,.5)); }
-        100% { filter: drop-shadow(0 0 5rem rgba(0,255,0,1)); }
+        0% { 
+            filter: drop-shadow(0 0 0.5rem white); 
+        }
+        100% { 
+            filter: drop-shadow(0 0 5rem white); 
+        }
     }
 `
 
