@@ -58,7 +58,6 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
     const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal(1);
-    const camera = createWrappedSignal({ x: 0, y: 0 });
     const [viewportDimensions, setViewportDimensions] = createSignal({
         width: window.innerWidth,
         height: window.innerHeight
@@ -66,47 +65,44 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     const [buffer, setBuffer] = createSignal('');
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
     const locationStore = createArrayStore(MOCK_LOCATIONS);
-    const transformMap = new Map(MOCK_LOCATIONS.map(loc =>
-        [loc.id, createWrappedSignal(loc.transform)]
-    ));
     const pathMap = new Map<number, number[]>(loadPathMap(MOCK_PATHS));
     const log = props.backend.logger.copyFor('navigation trial');
 
     setTimeout(() => props.onSlideCompleted(), 50);
 
+    // Create reactive scaled positions
+    const getScaledPositions = createMemo(() => {
+        const currentDNS = DNS();
+        return MOCK_LOCATIONS.map(location => ({
+            ...location,
+            scaledPosition: {
+                x: location.transform.xOffset * currentDNS.x,
+                y: location.transform.yOffset * currentDNS.y
+            }
+        }));
+    });
+
     const getLocationPosition = (locationId: number) => {
-        const location = MOCK_LOCATIONS.find(l => l.id === locationId);
+        const scaledLocations = getScaledPositions();
+        const location = scaledLocations.find(l => l.id === locationId);
         if (!location) return null;
 
-        const currentDNS = DNS();
-        return {
-            x: location.transform.xOffset * currentDNS.x,
-            y: location.transform.yOffset * currentDNS.y
-        };
+        return location.scaledPosition;
     };
 
-    const calculateDisplacementVector = (fromLocationId: number, toLocationId: number) => {
-        const fromPos = getLocationPosition(fromLocationId);
-        const toPos = getLocationPosition(toLocationId);
+    const moveToLocation = (fromLocationId: number, toLocationId: number) => {
+        const scaledLocations = getScaledPositions();
+        const toLocation = scaledLocations.find(l => l.id === toLocationId);
+        if (!toLocation) return;
 
-        if (!fromPos || !toPos) return null;
+        const viewport = viewportDimensions();
 
-        return {
-            x: toPos.x - fromPos.x,
-            y: toPos.y - fromPos.y
+        const newOffset = {
+            x: viewport.width / 2 - toLocation.scaledPosition.x,
+            y: viewport.height / 2 - toLocation.scaledPosition.y
         };
-    };
 
-    const moveCamera = (fromLocationId: number, toLocationId: number) => {
-        const displacement = calculateDisplacementVector(fromLocationId, toLocationId);
-        if (!displacement) return;
-
-        // Move world opposite to player movement
-        const currentCamera = camera.get();
-        camera.set({
-            x: currentCamera.x - displacement.x,
-            y: currentCamera.y - displacement.y
-        });
+        worldOffset.set(newOffset);
     };
 
     const calculateScalars = () => {
@@ -142,33 +138,12 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         setCurrentLocationOfLocalPlayer(data.colonyLocationID);
     };
 
-    const handleBufferUpdate: (value: string | ((prev: string) => string)) => void = (value) => {
+    const handleBufferUpdate = (value: string | ((prev: string) => string)) => {
         if (typeof value === "function") {
             setBuffer(prev => value(prev));
         } else {
             setBuffer(value);
         }
-    };
-
-    const moveToLocation = (fromLocationId: number, toLocationId: number) => {
-        const fromPos = getLocationPosition(fromLocationId);
-        const toPos = getLocationPosition(toLocationId);
-
-        if (!fromPos || !toPos) return;
-
-        // Calculate displacement vector
-        const displacement = {
-            x: toPos.x - fromPos.x,
-            y: toPos.y - fromPos.y
-        };
-
-        // Move world in opposite direction
-        const currentOffset = worldOffset.get();
-        const newOffset = {
-            x: currentOffset.x - displacement.x,
-            y: currentOffset.y - displacement.y
-        };
-        worldOffset.set(newOffset);
     };
 
     onMount(() => {
@@ -177,12 +152,13 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
 
         const moveHandlerId = props.context.events.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
 
-        // Initialize world position to center HOME
+        // Initialize world position to center HOME using scaled position
         const homePos = getLocationPosition(1);
         if (homePos) {
+            const viewport = viewportDimensions();
             const initialOffset = {
-                x: viewportDimensions().width / 2 - homePos.x,
-                y: viewportDimensions().height / 2 - homePos.y
+                x: viewport.width / 2 - homePos.x,
+                y: viewport.height / 2 - homePos.y
             };
             worldOffset.set(initialOffset);
         }
@@ -223,18 +199,17 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                 <svg class={svgContainerStyle}>
                     <For each={MOCK_PATHS}>
                         {(path) => {
-                            const fromLocation = MOCK_LOCATIONS.find(l => l.id === path.from);
-                            const toLocation = MOCK_LOCATIONS.find(l => l.id === path.to);
+                            const scaledLocations = getScaledPositions();
+                            const fromLocation = scaledLocations.find(l => l.id === path.from);
+                            const toLocation = scaledLocations.find(l => l.id === path.to);
                             if (!fromLocation || !toLocation) return null;
-
-                            const currentDNS = DNS();
 
                             return (
                                 <line
-                                    x1={fromLocation.transform.xOffset * currentDNS.x}
-                                    y1={fromLocation.transform.yOffset * currentDNS.y}
-                                    x2={toLocation.transform.xOffset * currentDNS.x}
-                                    y2={toLocation.transform.yOffset * currentDNS.y}
+                                    x1={fromLocation.scaledPosition.x}
+                                    y1={fromLocation.scaledPosition.y}
+                                    x2={toLocation.scaledPosition.x}
+                                    y2={toLocation.scaledPosition.y}
                                     stroke="white"
                                     stroke-width={10}
                                 />
@@ -243,18 +218,35 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                     </For>
                 </svg>
 
-                <For each={locationStore.get}>
+                <For each={getScaledPositions()}>
                     {(location) => {
-                        const currentDNS = DNS();
                         const isCurrentLocation = location.id === currentLocationOfLocalPlayer();
                         const canMoveTo = pathMap.get(currentLocationOfLocalPlayer())?.includes(location.id) || false;
 
                         const buttonStyle = css`
                             position: absolute;
-                            left: ${location.transform.xOffset * currentDNS.x}px;
-                            top: ${(location.transform.yOffset * currentDNS.y) - 50}px;
+                            left: ${location.scaledPosition.x}px;
+                            top: ${location.scaledPosition.y - 50}px;
                             transform: translate(-50%, -50%);
                             z-index: ${location.transform.zIndex + 1};
+                        `;
+
+                        const locationStyle = css`
+                            position: absolute;
+                            width: 64px;
+                            height: 64px;
+                            transform: translate(-50%, -50%);
+                            left: ${location.scaledPosition.x}px;
+                            top: ${location.scaledPosition.y}px;
+                            z-index: ${location.transform.zIndex};
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            overflow: hidden;
+                            border-radius: 50%;
+                            background-color: black;
+                            ${isCurrentLocation ? 'border: 3px solid #3b82f6;' : ''}
+                            ${canMoveTo ? 'border: 2px solid rgba(59, 130, 246, 0.5);' : ''}
                         `;
 
                         return (
@@ -267,23 +259,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                                     register={bufferSubscribers.add}
                                     charBaseStyleOverwrite={namePlateTextStyle}
                                 />
-                                <div class={css`
-                                    position: absolute;
-                                    width: 64px;
-                                    height: 64px;
-                                    transform: translate(-50%, -50%);
-                                    left: ${location.transform.xOffset * currentDNS.x}px;
-                                    top: ${location.transform.yOffset * currentDNS.y}px;
-                                    z-index: ${location.transform.zIndex};
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    overflow: hidden;
-                                    border-radius: 50%;
-                                    background-color: black;
-                                    ${isCurrentLocation ? 'border: 3px solid #3b82f6;' : ''}
-                                    ${canMoveTo ? 'border: 2px solid rgba(59, 130, 246, 0.5);' : ''}
-                                `}>
+                                <div class={locationStyle}>
                                     <NTAwait func={() => props.backend.assets.getMetadata(1009)}>
                                         {(asset) => (
                                             <GraphicalAsset
@@ -304,7 +280,6 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                 </For>
             </div>
 
-            {/* Fixed player in center */}
             <div class={localPlayerStyle} />
 
             <ActionInput
