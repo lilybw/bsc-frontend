@@ -104,6 +104,7 @@ export default ColonyListPage;
 
 const pageTitleStyle = css`
     font-size: 5rem;
+    left: 1vh;
 `;
 
 const colonyListBackgroundStyle = css`
@@ -114,6 +115,7 @@ const colonyListBackgroundStyle = css`
     width: 66%;
     height: 65vh;
     left: 50%;
+    top: 10vh;
     transform: translateX(-50%);
     padding: 1rem;
     gap: 1rem;

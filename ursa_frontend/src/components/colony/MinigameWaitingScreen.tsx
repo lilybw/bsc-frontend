@@ -2,7 +2,7 @@ import { Component } from "solid-js";
 import { Styles } from "../../sharedCSS";
 import { css } from "@emotion/css";
 import { ArrayStore } from "../../ts/arrayStore";
-import { PlayerMinigameParticipationResponse } from "./mini_games/miniGame";
+import { PlayerMinigameParticipationResponse } from "./mini_games/ClientTracker";
 
 interface MinigameWaitingScreenProps {
     clientResponses: ArrayStore<PlayerMinigameParticipationResponse>;

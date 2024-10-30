@@ -24,17 +24,6 @@ export interface Minigame<T extends object> {
     topLevelComponent: () => Component<MinigameProps<T>>;
 }
 
-export enum PlayerParticipation {
-    OPT_IN = 'OPT_IN',
-    OPT_OUT = 'OPT_OUT',
-    UNDECIDED = 'UNDECIDED',
-}
-export type PlayerMinigameParticipationResponse = {
-    id: uint32;
-    ign: string;
-    participation: PlayerParticipation;
-}
-
 export enum KnownMinigames {
     ASTEROIDS = 1,
 }

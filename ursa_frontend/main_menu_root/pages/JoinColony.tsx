@@ -165,6 +165,7 @@ const errMsgStyle = css`
 const pageTitleStyle = css`
     font-size: 5rem;
     width: 50%;
+    left: 1vh;
 `;
 
 const inputStyleOverwrite = css`

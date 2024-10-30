@@ -11,11 +11,6 @@ import {
     LOAD_MINIGAME_EVENT,
     LOBBY_CLOSING_EVENT,
     MINIGAME_BEGINS_EVENT,
-    OriginType,
-    PLAYER_ABORTING_MINIGAME_EVENT,
-    PLAYER_JOIN_ACTIVITY_EVENT,
-    PLAYER_JOINED_EVENT,
-    PLAYER_LEFT_EVENT,
     PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT,
     SERVER_CLOSING_EVENT,
 } from '../src/integrations/multiplayer_backend/EventSpecifications';
@@ -23,13 +18,11 @@ import { css } from '@emotion/css';
 import { createArrayStore } from '../src/ts/arrayStore';
 import { ActionContext, BufferSubscriber, TypeIconTuple } from '../src/ts/actionContext';
 import { createWrappedSignal } from '../src/ts/wrappedSignal';
-import { ClientDTO } from '../src/integrations/multiplayer_backend/multiplayerDTO';
 import MNTAwait from '../src/components/util/MultiNoThrowAwait';
 import { MockServer } from '../src/ts/mockServer';
 import HandPlacementCheck from '../src/components/colony/HandPlacementCheck';
 import Countdown from '../src/components/util/Countdown';
-import { ColonyCode, ColonyInfoResponseDTO, ColonyPathGraphResponseDTO, uint32 } from '../src/integrations/main_backend/mainBackendDTOs';
-import { KnownLocations } from '../src/integrations/main_backend/constants';
+import { ColonyCode } from '../src/integrations/main_backend/mainBackendDTOs';
 import TimedFullScreenNotification from './TimedFullScreenNotification';
 import BufferBasedButton from '../src/components/base/BufferBasedButton';
 import EventFeed from '../src/components/base/EventFeed';
@@ -37,7 +30,7 @@ import SectionSubTitle from '../src/components/base/SectionSubTitle';
 import SectionTitle from '../src/components/base/SectionTitle';
 import StarryBackground from '../src/components/base/StarryBackground';
 import { Styles } from '../src/sharedCSS';
-import { PlayerMinigameParticipationResponse, PlayerParticipation } from './components/colony/mini_games/miniGame';
+import ClientTracker from '../src/components/colony/mini_games/ClientTracker';
 
 export type StrictJSX =
     | Node
@@ -55,10 +48,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
         const inputBuffer = createWrappedSignal<string>('');
         const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.NAVIGATION);
         const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
-        const clients = createArrayStore<ClientDTO>();
-        const clientMinigameParticipationResponses = createArrayStore<PlayerMinigameParticipationResponse>();
         const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
-
         const [shuntNotaficationReason, setShuntNotificationReason] = createSignal<string>('Unknown');
         const [showNotification, setShowShuntNotification] = createSignal<boolean>(false);
         const log = props.context.logger.copyFor('colony');
@@ -79,68 +69,52 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             );
         };
 
-        const setUnassignedClientPositions = (ownerID: uint32, colony: ColonyInfoResponseDTO, graph: ColonyPathGraphResponseDTO) => {
-            const colLocIdOfSpacePort = colony.locations.filter((l) => l.locationID === KnownLocations.SpacePort)[0].id;
-            const colLocIdOfHome = colony.locations.filter((l) => l.locationID === KnownLocations.Home)[0].id;
-
-            clients.mutateByPredicate(
-                (c) => c.state.lastKnownPosition <= 0,
-                (c) => ({ ...c, state: { ...c.state, lastKnownPosition: c.id === ownerID ? colLocIdOfHome : colLocIdOfSpacePort } }),
-            );
-        };
-
         /**
          * Renders the main colony layout.
          * @returns The colony layout as a StrictJSX element.
          */
-        const colonyLayout = () => {
-            return (
-                <Unwrap data={[bundleSwapColonyInfo, props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
-                    {(colonyInfo, playerInfo) => (
-                        <>
-                            <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
-                            <BufferBasedButton
-                                name={props.context.text.get('COLONY.UI.LEAVE').get}
-                                buffer={inputBuffer.get}
-                                onActivation={() => props.context.nav.goToMenu()}
-                                register={bufferSubscribers.add}
-                                styleOverwrite="position: absolute; top: 13vh; left: 2vw;"
-                                charBaseStyleOverwrite="font-size: 1.5rem;"
-                            />
-                            <MNTAwait
-                                funcs={[
-                                    () => props.context.backend.colony.get(colonyInfo.owner, colonyInfo.id),
-                                    () => props.context.backend.colony.getPathGraph(colonyInfo.id),
-                                ]}
-                            >
-                                {(colony, graph) => {
-                                    setUnassignedClientPositions(colonyInfo.owner, colony, graph);
-                                    return (
-                                        <PathGraph
-                                            ownerID={colonyInfo.owner}
-                                            graph={graph}
-                                            bufferSubscribers={bufferSubscribers}
-                                            actionContext={actionContext}
-                                            clients={clients}
-                                            colony={colony}
-                                            plexer={props.context.events}
-                                            text={props.context.text}
-                                            backend={props.context.backend}
-                                            buffer={inputBuffer}
-                                            localPlayerId={playerInfo.id}
-                                            multiplayer={props.context.multiplayer}
-                                        />
-                                    );
-                                }}
-                            </MNTAwait>
-                        </>
-                    )}
-                </Unwrap>
-            ) as StrictJSX;
-        };
+        const colonyLayout = () => (
+            <Unwrap data={[bundleSwapColonyInfo, props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
+                {(colonyInfo, playerInfo) => (
+                <>
+                <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
+                <BufferBasedButton
+                    name={props.context.text.get('COLONY.UI.LEAVE').get}
+                    buffer={inputBuffer.get}
+                    onActivation={() => props.context.nav.goToMenu()}
+                    register={bufferSubscribers.add}
+                    styleOverwrite="position: absolute; top: 13vh; left: 2vw;"
+                    charBaseStyleOverwrite="font-size: 1.5rem;"
+                />
+                <MNTAwait
+                    funcs={[
+                        () => props.context.backend.colony.get(colonyInfo.owner, colonyInfo.id),
+                        () => props.context.backend.colony.getPathGraph(colonyInfo.id),
+                    ]}
+                >
+                    {(colony, graph) => 
+                        <PathGraph
+                            ownerID={colonyInfo.owner}
+                            graph={graph}
+                            colony={colony}
+                            bufferSubscribers={bufferSubscribers}
+                            actionContext={actionContext}
+                            clients={clientTracker.getAsClients()}
+                            context={props.context}
+                            buffer={inputBuffer}
+                        />
+                    }
+                </MNTAwait>
+                </>
+                )}
+            </Unwrap>
+        ) as StrictJSX;
+        
 
         const [pageContent, setPageContent] = createSignal<StrictJSX>(colonyLayout());
 
+
+        const clientTracker = new ClientTracker(props.context.events, props.context.logger);
         const mockServer = new MockServer(props.context, setPageContent, () => setPageContent(colonyLayout()), props.context.logger);
 
         const initializeMultiplayerSession = async (code: ColonyCode): Promise<Error | undefined> => {
@@ -160,7 +134,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 return lobbyStateReq.err;
             }
             const lobbyState = lobbyStateReq.res;
-            clients.addAll(lobbyState.clients);
+            clientTracker.addClients(...lobbyState.clients);
         };
 
         onMount(async () => {
@@ -175,33 +149,12 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             // Determine colony state
             const state = props.context.multiplayer.getState();
 
+            clientTracker.mount();
             if (state === ColonyState.CLOSED) {
                 mockServer.start();
             }
             const subscribe = props.context.events.subscribe;
-            // Set up event subscriptions
-            const playerLeaveSubId = subscribe(PLAYER_LEFT_EVENT, (data) => {
-                log.info('Player left: ' + data.id);
-                clients.removeFirst((c) => c.id === data.id);
-                clientMinigameParticipationResponses.removeFirst((c) => c.id === data.id);
-            });
-            const playerJoinSubId = subscribe(PLAYER_JOINED_EVENT, (data) => {
-                log.info('Player joined: ' + data.id);
-                clients.add({
-                    id: data.id,
-                    IGN: data.ign,
-                    type: OriginType.Guest,
-                    state: {
-                        lastKnownPosition: -1,
-                        msOfLastMessage: 0,
-                    },
-                });
-                clientMinigameParticipationResponses.add({
-                    id: data.id,
-                    ign: data.ign,
-                    participation: PlayerParticipation.UNDECIDED,
-                });
-            });
+
             const serverClosingSubId = subscribe(SERVER_CLOSING_EVENT, (ev) => {
                 if (props.context.multiplayer.getMode() === MultiplayerMode.AS_OWNER) return;
 
@@ -214,55 +167,34 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             });
             const diffConfirmedSubId = subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (data) => {
                 setConfirmedDifficulty(data);
+                //When confirmedDifficulty != null, the HandPlacementCheck is shown
+                //The HandPlacementCheck emits the required Player Join Activity or Player Aborting Activity
+                //And then forwards to the waiting screen
             });
-
             const resetSequenceSubID = subscribe(GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, (data) => {
                 setConfirmedDifficulty(null);
-                clientMinigameParticipationResponses.mutateByPredicate(
-                    () => true, 
-                    c => ({...c, participation: PlayerParticipation.UNDECIDED})
-                );
-            })
-
-            const playerJoinActivitySubId = subscribe(PLAYER_JOIN_ACTIVITY_EVENT, (data) => {
-                clientMinigameParticipationResponses.mutateByPredicate(
-                    (c) => c.id === data.id,
-                    (c) => ({ ...c, participation: PlayerParticipation.OPT_IN }),
-                );
-            })
-
-            const playerAbortActivitySubId = subscribe(PLAYER_ABORTING_MINIGAME_EVENT, (data) => {
-                clientMinigameParticipationResponses.mutateByPredicate(
-                    (c) => c.id === data.id,
-                    (c) => ({ ...c, participation: PlayerParticipation.OPT_OUT }),
-                );
             });
-
             const declareIntentSubId = subscribe(PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, (data) => {
                 const diff = confirmedDifficulty();
                 if (diff === null) {
                     console.error('Received intent declaration before difficulty was confirmed');
                     return;
                 }
-                //When confirmedDifficulty != null, the HandPlacementCheck is shown
-                //The HandPlacementCheck emits the required Player Join Activity or Player Aborting Activity
-                //And then forwards to the waiting screen
+                //Needs to be handled.
+                //Here is to be emitted Player Ready Event
             });
-
             const loadMinigameSubId = subscribe(LOAD_MINIGAME_EVENT, (data) => {
                 //Load the minigame
 
                 //Respond with load complete or load failure
-            })
-
+            });
             const minigameBeginsSubId = subscribe(MINIGAME_BEGINS_EVENT, (data) => {
                 //Start the minigame
-            })
+            });
 
             onCleanup(() => {
+                clientTracker.unmount();
                 props.context.events.unsubscribe(
-                    playerLeaveSubId,
-                    playerJoinSubId,
                     serverClosingSubId,
                     lobbyClosingSubId,
                     diffConfirmedSubId,
@@ -270,8 +202,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     loadMinigameSubId,
                     minigameBeginsSubId,
                     resetSequenceSubID,
-                    playerJoinActivitySubId,
-                    playerAbortActivitySubId
                 );
             });
         });

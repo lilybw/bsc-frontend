@@ -1,5 +1,5 @@
 /**
- * IDs of most locations.
+ * Location IDs of most locations. (Not colony location)
  *
  * bsc-deployment/otte_docker_deployment/db_creation_scripts/db_data_colony_asset.sql
  * is the single source of truth.

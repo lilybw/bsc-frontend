@@ -13,7 +13,7 @@ const LandingPage: Component<MenuPageProps> = (props) => {
 
     return (
         <>
-            <SectionTitle>U.R.S.A.</SectionTitle>
+            <SectionTitle styleOverwrite={css`left: 1vh;`}>U.R.S.A.</SectionTitle>
             <div class={menuOptionsListStyle}>
                 <BigMenuButton enable={tutorialOnly} onClick={() => props.goToPage(MenuPages.NEW_COLONY)}>
                     {props.context.text.get('MENU.OPTION.NEW_COLONY').get()}
