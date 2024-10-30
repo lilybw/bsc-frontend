@@ -12,65 +12,60 @@ export const particleContainerStyle = css`
   z-index: 10;
   overflow: visible;
   filter: blur(0.1em);
-`;
-
-/**
- * Base style for stun particle effect
- */
-export const stunParticleStyle = css`
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  /* Add flexbox centering */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 
 /**
  * Function to generate rotating animation style
  */
 export const stunParticleBaseStyle = css`
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
+  position: absolute;
+  /* Center the base particle */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 `;
 
 export const stunParticleVerticalStyle = css`
-    animation: riseY 4s linear forwards;
-
-    @keyframes riseY {
-        0% { transform: translateY(0); opacity: 0; }
-        5% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { transform: translateY(-500%); opacity: 0; }
-    }
+  animation: riseY 4s linear forwards;
+  
+  @keyframes riseY {
+    0% { transform: translateY(0); opacity: 0; }
+    5% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-500%); opacity: 0; }
+  }
 `;
 
 export const stunParticleHorizontalStyle = css`
-    animation: spreadX 4s cubic-bezier(0, 0, 0.05, 1) forwards;
-
-    @keyframes spreadX {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(var(--spread-x)); }
-    }
+  animation: spreadX 4s cubic-bezier(0, 0, 0.05, 1) forwards;
+  
+  @keyframes spreadX {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(var(--spread-x)); }
+  }
 `;
 
 export const stunParticleContentStyle = css`
-    width: var(--particle-size);
-    height: var(--particle-size);
-    border-radius: 50%;
-    mix-blend-mode: screen;
-    z-index: 1000;
-    pointer-events: none;
-    filter: blur(var(--blur-amount));
-    background-image: radial-gradient(
-        var(--glow-color) 10%,
-        var(--mid-color) 30%,
-        var(--outer-color) 50%,
-        rgba(255, 30, 0, 0) 70%
-    );
-    box-shadow: 
-        0 0 1em 0.2em rgba(255, 200, 0, 0.5),
-        0 0 2em 0.5em rgba(255, 100, 0, 0.3);
+  width: var(--particle-size);
+  height: var(--particle-size);
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  z-index: 1000;
+  pointer-events: none;
+  filter: blur(var(--blur-amount));
+  background-image: radial-gradient(
+    var(--glow-color) 10%,
+    var(--mid-color) 30%,
+    var(--outer-color) 50%,
+    rgba(255, 30, 0, 0) 70%
+  );
+  box-shadow: 
+    0 0 1em 0.2em rgba(255, 200, 0, 0.5),
+    0 0 2em 0.5em rgba(255, 100, 0, 0.3);
 `;
 
 /**

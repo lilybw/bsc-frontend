@@ -1,6 +1,6 @@
 import { Component, createSignal, createEffect, onCleanup, For, Show, Accessor } from 'solid-js';
 import { BaseParticle } from '../entities/particles';
-import { particleContainerStyle, stunParticleBaseStyle, stunParticleContentStyle, stunParticleHorizontalStyle, stunParticleStyle, stunParticleVerticalStyle } from '../styles/ParticleStyles';
+import { particleContainerStyle, stunParticleBaseStyle, stunParticleContentStyle, stunParticleHorizontalStyle, stunParticleVerticalStyle } from '../styles/ParticleStyles';
 import StunParticleManager from '../entities/particles/stunparticles/StunParticleManager';
 import { EntityRef } from '../types/EntityTypes';
 
@@ -45,7 +45,7 @@ const PlayerStunEffect: Component<PlayerStunEffectProps> = (props) => {
             // Start regular updates
             const updateInterval = setInterval(() => {
                 particleManager.update();
-            }, 100);
+            }, 50);
 
             // Stop spawning after stun duration
             setTimeout(() => {
