@@ -21,6 +21,7 @@ interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternati
      */
     demoMode?: boolean;
     manTriggerEnter?: Accessor<number>;
+    manTriggerEnterAnimation?: Accessor<number>;
     manTriggerShake?: Accessor<number>;
 }
 
@@ -39,15 +40,22 @@ const ActionInput: Component<ActionInputProps> = (props) => {
 
     if (props.manTriggerShake) {
         createEffect(() => {
-            const ignored = props.manTriggerShake!();
+            if(props.manTriggerShake!() === 0 ) return;
             triggerShake();
         })
     }
 
     if (props.manTriggerEnter) {
         createEffect(() => {
-            const ignored = props.manTriggerEnter!();
+            if( props.manTriggerEnter!() === 0 ) return;
             handleEnter();
+        })
+    }
+
+    if (props.manTriggerEnterAnimation) {
+        createEffect(() => {
+            if( props.manTriggerEnterAnimation!() === 0 ) return;
+            triggerEnterAnimation();
         })
     }
 
@@ -91,12 +99,16 @@ const ActionInput: Component<ActionInputProps> = (props) => {
         if (consumed) {
             if (inputRef) inputRef.value = '';
             props.setInputBuffer('');
-            setEnterSuccessfullyPressed(true);
-            setTimeout(() => setEnterSuccessfullyPressed(false), confirmTimeS * 1000);
+            triggerEnterAnimation();
         } else {
             triggerShake();
         }
     };
+
+    const triggerEnterAnimation = () => {
+        setEnterSuccessfullyPressed(true);
+        setTimeout(() => setEnterSuccessfullyPressed(false), confirmTimeS * 1000);
+    }
 
     return (
         <div

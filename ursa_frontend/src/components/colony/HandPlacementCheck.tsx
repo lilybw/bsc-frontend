@@ -27,6 +27,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
     const [buffer, setBuffer] = createSignal<string>('');
     const [sequenceIndex, setSequenceIndex] = createSignal(0);
     const [manualShakeTrigger, setManualShakeTrigger] = createSignal(0);
+    const [manualEnterAnimTrigger, setManualEnterAnimTrigger] = createSignal(0);
     const log = props.backend.logger.copyFor("hand check");
     const leaveButtonName = props.text.get("COLONY.UI_BUTTON.LEAVE").get();
     const sequenceLength = 3;
@@ -55,11 +56,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
             now - timestampOfLastChange > maxTimeBetweenInputsMS
             && !leaveButtonName.includes(currentBuffer) //If the user is trying to decline
         ) {
-            setBuffer(""); //clear buffer
-            timestampOfLastChange = -1; //reset timestamp
-            setSequenceIndex(0); //reset sequence index
-            setManualShakeTrigger(prev => prev + 1); //trigger input shake
-            // pause timebar animation - if any
+            resetCheck();
             return;
         }
         //At this point, a change has occurred within the time limit
@@ -73,11 +70,17 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
         ) {
             setBuffer(""); //Clear buffer
             setSequenceIndex(prev => prev + 1); //Advance sequence
+            setManualEnterAnimTrigger(prev => prev + 1); //Trigger enter animation
             timestampOfLastChange = now;
-            //Retrigger timebar animation
+            retriggerTimeBarAnimation(); //Restart timebar animation
         }
-
     })
+    const resetCheck = () => {
+        timestampOfLastChange = -1; //reset timestamp
+        setSequenceIndex(0); //reset sequence index
+        setManualShakeTrigger(prev => prev + 1); //trigger input shake
+        cancelTimeBarAnimation();
+    }
 
     const onCheckDeclined = () => {
         props.events.emit(PLAYER_ABORTING_MINIGAME_EVENT, {
@@ -103,6 +106,17 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
             case LanguagePreference.English: return EN_GB_KEYBOARD_LAYOUT;
             default: return EN_GB_KEYBOARD_LAYOUT;    
         }
+    }
+
+    const [timeBarStyle, setTimeBarStyle] = createSignal(timeLimitBarStyle);
+    const retriggerTimeBarAnimation = () => {
+        setTimeBarStyle(timeLimitBarStyle);
+        setTimeout(() => {
+            setTimeBarStyle(css`${timeLimitBarStyle} ${animTimeBarShrink}`);
+        }, 0);
+    }
+    const cancelTimeBarAnimation = () => {
+        setTimeBarStyle(timeLimitBarStyle);
     }
 
     return (
@@ -137,7 +151,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 ignoreNumericKeys
                 highlighted={currentlyHighlighted}
             />
-            <div class={timeLimitBarStyle}></div>
+            <div class={timeBarStyle()}></div>
             <div class={checkExplanationAcceptStyle}>{props.text.get("HANDPLACEMENT_CHECK.DESCRIPTION_ACCEPT").get()}</div>
             <div class={checkExplanationDeclineStyle}>{props.text.get("HANDPLACEMENT_CHECK.DESCRIPTION_DECLINE").get()}</div>
             <ActionInput 
@@ -148,6 +162,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 text={props.text}
                 backend={props.backend}
                 manTriggerShake={manualShakeTrigger}
+                manTriggerEnterAnimation={manualEnterAnimTrigger}
             />
         </div>
     );
@@ -161,7 +176,8 @@ const timeLimitBarStyle = css`
     top: 71%;
     height: 1vh;
     transform: translateX(-50%);
-    width: 80vw;
+    --base-width: 80vw;
+    width: var(--base-width);
     border-radius: .5rem;
 
     --base-color: hsl(180, 80%, 50%);
@@ -172,8 +188,8 @@ const timeLimitBarStyle = css`
 const animTimeBarShrink = css`
     animation: timeBarShrink ${maxTimeBetweenInputsMS / 1000}s linear forwards;
     @keyframes timeBarShrink {
-        0% { width: 100%; }
-        100% { width: 0; }
+        0% { width: var(--base-width); }
+        100% { width: 5vw; }
     }
 `
 
