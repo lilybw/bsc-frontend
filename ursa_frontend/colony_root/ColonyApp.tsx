@@ -8,9 +8,13 @@ import {
     DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
     DifficultyConfirmedForMinigameMessageDTO,
     GENERIC_MINIGAME_SEQUENCE_RESET_EVENT,
+    GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT,
     LOAD_MINIGAME_EVENT,
     LOBBY_CLOSING_EVENT,
     MINIGAME_BEGINS_EVENT,
+    PLAYER_LOAD_COMPLETE_EVENT,
+    PLAYER_LOAD_FAILURE_EVENT,
+    PLAYER_READY_FOR_MINIGAME_EVENT,
     PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT,
     SERVER_CLOSING_EVENT,
 } from '../src/integrations/multiplayer_backend/EventSpecifications';
@@ -31,7 +35,8 @@ import SectionTitle from '../src/components/base/SectionTitle';
 import StarryBackground from '../src/components/base/StarryBackground';
 import { Styles } from '../src/sharedCSS';
 import ClientTracker from '../src/components/colony/mini_games/ClientTracker';
-import { getMinigameName } from '../src/components/colony/mini_games/miniGame';
+import { getMinigameComponentInitFunction, getMinigameName } from '../src/components/colony/mini_games/miniGame';
+import SolarLoadingSpinner from './components/base/SolarLoadingSpinner';
 
 export type StrictJSX =
     | Node
@@ -174,26 +179,60 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 //The HandPlacementCheck emits the required Player Join Activity or Player Aborting Activity
                 //And then forwards to the waiting screen
             });
-            const resetSequenceSubID = subscribe(GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, (data) => {
-                setConfirmedDifficulty(null);
-            });
+
             const declareIntentSubId = subscribe(PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, (data) => {
                 const diff = confirmedDifficulty();
                 if (diff === null) {
-                    console.error('Received intent declaration before difficulty was confirmed');
+                    log.error('Received intent declaration before difficulty was confirmed');
                     return;
                 }
                 //Needs to be handled.
                 //Here is to be emitted Player Ready Event
+                props.context.events.emit(PLAYER_READY_FOR_MINIGAME_EVENT, {
+                    id: props.context.backend.player.local.id,
+                    ign: props.context.backend.player.local.firstName, 
+                })
             });
-            const loadMinigameSubId = subscribe(LOAD_MINIGAME_EVENT, (data) => {
-                //Load the minigame
 
-                //Respond with load complete or load failure
+            let minigameComponent: JSX.Element | null = null;
+            const loadMinigameSubId = subscribe(LOAD_MINIGAME_EVENT, async (data) => {
+                //Load the minigame
+                const diff = confirmedDifficulty();
+                if (diff === null) {
+                    log.error('Received load minigame while confirmed difficulty was null');
+                    return;
+                }
+                setPageContent(<SolarLoadingSpinner text={"Loading " + diff.minigameName} /> as StrictJSX);
+                const initFunc = getMinigameComponentInitFunction(diff.minigameID);
+                if (initFunc.err !== null) {
+                    log.error('Could not load minigame component init function: ' + initFunc.err);
+                    props.context.events.emit(PLAYER_LOAD_FAILURE_EVENT, { reason: initFunc.err });
+                    return;
+                }
+                const res = await initFunc.res(props.context, diff.difficultyID);
+                if (res.err !== null) {
+                    log.error('Could not load minigame component: ' + res.err);
+                    props.context.events.emit(PLAYER_LOAD_FAILURE_EVENT, { reason: res.err });
+                    return;
+                }
+                setPageContent(res.res as StrictJSX);
+                props.context.events.emit(PLAYER_LOAD_COMPLETE_EVENT, {});
             });
+
             const minigameBeginsSubId = subscribe(MINIGAME_BEGINS_EVENT, (data) => {
                 //Start the minigame
+                //nothing to do here right now
             });
+
+            const resetSequenceSubID = subscribe(GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, (data) => {
+                setConfirmedDifficulty(null);
+            });
+            const genericAbortSubId = subscribe(GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT, (data) => {
+                //TODO: Show some notification
+                log.error('Received generic abort event concerning: ' + data.id + " with reason: " + data.reason);
+                setConfirmedDifficulty(null);
+                setPageContent(colonyLayout());
+            })
 
             onCleanup(() => {
                 clientTracker.unmount();
@@ -205,11 +244,13 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     loadMinigameSubId,
                     minigameBeginsSubId,
                     resetSequenceSubID,
+                    genericAbortSubId
                 );
             });
         });
 
-        const appendOverlay = () => {
+        const [currentSequenceOverlay, setCurrentSequenceOverlay] = createSignal<StrictJSX | null>(null);
+        const appendSequenceOverlay = () => {
             const confDiff = confirmedDifficulty();
             if (confDiff === null) return null;
 
@@ -246,7 +287,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             <div id="colony-app">
                 <StarryBackground />
                 {pageContent()}
-                {appendOverlay()}
+                {appendSequenceOverlay()}
                 {shuntNotaMemo()}
                 <EventFeed events={props.context.events} backend={props.context.backend} text={props.context.text} />
             </div>

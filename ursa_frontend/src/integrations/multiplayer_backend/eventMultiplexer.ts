@@ -6,6 +6,7 @@ export type OnEventCallback<T> = ((data: T) => void | Promise<void>) & { interna
 export type SubscriptionID = number;
 export type EventID = number;
 
+/** Internal Event Broker decoupling WebSocket connection */
 export interface IEventMultiplexer {
     /**
      * Subscripe to an event. The callback given is queued as a micro task when an event of the specified type is emitted.
