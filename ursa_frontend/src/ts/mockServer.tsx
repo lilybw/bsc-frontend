@@ -213,12 +213,17 @@ export class MockServer implements IMockServer {
             this.messageQueue.push(e);
         };
 
-        // Subscribe to various events
-        this.subscriptionIDs.push(this.context.events.subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, pushToQueue));
-        this.subscriptionIDs.push(this.context.events.subscribe(PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, pushToQueue));
-        this.subscriptionIDs.push(this.context.events.subscribe(PLAYER_READY_FOR_MINIGAME_EVENT, pushToQueue));
-        this.subscriptionIDs.push(this.context.events.subscribe(PLAYER_ABORTING_MINIGAME_EVENT, pushToQueue));
-        this.subscriptionIDs.push(this.context.events.subscribe(PLAYER_JOIN_ACTIVITY_EVENT, pushToQueue));
+        for (const event of [
+                DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, 
+                PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, 
+                PLAYER_READY_FOR_MINIGAME_EVENT, 
+                PLAYER_ABORTING_MINIGAME_EVENT, 
+                PLAYER_JOIN_ACTIVITY_EVENT,
+                PLAYER_LOAD_COMPLETE_EVENT,
+                PLAYER_LOAD_FAILURE_EVENT,
+            ]) {
+            this.subscriptionIDs.push(this.context.events.subscribe(event, pushToQueue));
+        }
 
         this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_WON_EVENT, this.gameFinished));
         this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_LOST_EVENT, this.gameFinished));

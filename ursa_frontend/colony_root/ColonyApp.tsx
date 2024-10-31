@@ -233,7 +233,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             const minigameBeginsSubId = subscribe(MINIGAME_BEGINS_EVENT, (data) => {
                 //Start the minigame
                 //nothing to do here right now
-                setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
+                setLocalSequencePhase(LocalSequencePhase.IN_MINIGAME);
             });
 
             const resetSequenceSubID = subscribe(GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, (data) => {
