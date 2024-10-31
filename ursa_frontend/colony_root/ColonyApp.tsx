@@ -37,6 +37,7 @@ import { Styles } from '../src/sharedCSS';
 import ClientTracker from '../src/components/colony/mini_games/ClientTracker';
 import { getMinigameComponentInitFunction, getMinigameName } from '../src/components/colony/mini_games/miniGame';
 import SolarLoadingSpinner from '../src/components/base/SolarLoadingSpinner';
+import { L } from 'vitest/dist/chunks/reporters.DAfKSDh5';
 
 export type StrictJSX =
     | Node
@@ -47,6 +48,14 @@ export type StrictJSX =
 
 interface DiffConfWExtraInfo extends DifficultyConfirmedForMinigameMessageDTO {
     minigameName: string;
+}
+
+enum LocalSequencePhase {
+    ROAMING_COLONY = 0,
+    HAND_PLACEMENT_CHECK = 1,
+    WAITING_SCREEN = 2,
+    LOADING_MINIGAME = 3,
+    IN_MINIGAME = 4,
 }
 
 /**
@@ -176,6 +185,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             });
             const diffConfirmedSubId = subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (data) => {
                 setConfirmedDifficulty({ ...data, minigameName: getMinigameName(data.minigameID) });
+                setLocalSequencePhase(LocalSequencePhase.HAND_PLACEMENT_CHECK);
                 //When confirmedDifficulty != null, the HandPlacementCheck is shown
                 //The HandPlacementCheck emits the required Player Join Activity or Player Aborting Activity
                 //And then forwards to the waiting screen
@@ -197,6 +207,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
 
             const loadMinigameSubId = subscribe(LOAD_MINIGAME_EVENT, async (data) => {
                 //Load the minigame
+                setLocalSequencePhase(LocalSequencePhase.LOADING_MINIGAME);
                 const diff = confirmedDifficulty();
                 if (diff === null) {
                     log.error('Received load minigame while confirmed difficulty was null');
@@ -216,23 +227,25 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     return;
                 }
                 setPageContent(res.res as StrictJSX);
-                log.trace("Emitting 'player load complete' event");
                 props.context.events.emit(PLAYER_LOAD_COMPLETE_EVENT, {});
             });
 
             const minigameBeginsSubId = subscribe(MINIGAME_BEGINS_EVENT, (data) => {
                 //Start the minigame
                 //nothing to do here right now
+                setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
             });
 
             const resetSequenceSubID = subscribe(GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, (data) => {
                 setConfirmedDifficulty(null);
+                setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
             });
             const genericAbortSubId = subscribe(GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT, (data) => {
                 //TODO: Show some notification
                 log.error('Received generic abort event concerning: ' + data.id + ' with reason: ' + data.reason);
                 setConfirmedDifficulty(null);
                 setPageContent(colonyLayout());
+                setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
             });
 
             onCleanup(() => {
@@ -250,23 +263,29 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             });
         });
 
-        const [currentSequenceOverlay, setCurrentSequenceOverlay] = createSignal<StrictJSX | null>(
-            <HandPlacementCheck
-                nameOfOwner={clientTracker.getByID(bundleSwapColonyInfo.res?.owner!)?.IGN || props.context.backend.player.local.firstName}
-                nameOfMinigame={confirmedDifficulty()?.minigameName!}
-                gameToBeMounted={confirmedDifficulty()!}
-                events={props.context.events}
-                backend={props.context.backend}
-                text={props.context.text}
-                clearSelf={() => setConfirmedDifficulty(null)}
-                goToWaitingScreen={() => setCurrentSequenceOverlay(clientTracker.getComponent() as StrictJSX)}
-            /> as StrictJSX
-        );
-        const appendSequenceOverlay = () => {
-            const confDiff = confirmedDifficulty();
-            if (confDiff === null) return null;
-            return currentSequenceOverlay();
-        };
+        const [localSequencePhase, setLocalSequencePhase] = createSignal<LocalSequencePhase>(LocalSequencePhase.ROAMING_COLONY);
+        const appendSequenceOverlay = createMemo(() => {
+            switch (localSequencePhase()) {
+                case LocalSequencePhase.WAITING_SCREEN:
+                    return clientTracker.getComponent();
+                case LocalSequencePhase.HAND_PLACEMENT_CHECK:
+                    return (
+                        <HandPlacementCheck
+                            nameOfOwner={clientTracker.getByID(bundleSwapColonyInfo.res?.owner!)?.IGN || props.context.backend.player.local.firstName}
+                            nameOfMinigame={confirmedDifficulty()?.minigameName!}
+                            gameToBeMounted={confirmedDifficulty()!}
+                            events={props.context.events}
+                            backend={props.context.backend}
+                            text={props.context.text}
+                            clearSelf={() => setConfirmedDifficulty(null)}
+                            goToWaitingScreen={() => setLocalSequencePhase(LocalSequencePhase.WAITING_SCREEN)}
+                        />) as StrictJSX;
+                case LocalSequencePhase.LOADING_MINIGAME:
+                case LocalSequencePhase.IN_MINIGAME:
+                case LocalSequencePhase.ROAMING_COLONY:
+                default: return <></>;
+            }
+        });
 
         const shuntNotaMemo = createMemo(
             () =>
