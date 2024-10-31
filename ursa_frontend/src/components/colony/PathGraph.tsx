@@ -24,6 +24,7 @@ import { ApplicationContext, ColonyState, MultiplayerMode } from '../../meta/typ
 import Player from './Player';
 import { BackendIntegration as IBackendIntegration } from '../../integrations/main_backend/mainBackend';
 import { InternationalizationService } from '../../integrations/main_backend/internationalization/internationalization';
+import { c } from 'vite/dist/node/types.d-aGj9QkWt';
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -41,7 +42,7 @@ interface PathGraphProps {
     graph: ColonyPathGraphResponseDTO;
 }
 
-function arrayToMap(array: ColonyLocationInformation[]) {
+function arrayToMap(array: ColonyLocationInformation[]): Map<ColonyLocationID, WrappedSignal<TransformDTO>> {
     const map = new Map();
 
     for (const element of array) {
@@ -62,6 +63,21 @@ const loadPathMap = (paths: ColonyPathGraphResponseDTO['paths']): Map<ColonyLoca
     return pathMap;
 };
 
+type Line = { from: ColonyLocationID; to: ColonyLocationID; 
+    x1: number; y1: number; x2: number; y2: number };
+
+const loadPathsFromInitial = (paths: ColonyPathGraphResponseDTO['paths']): Line[] => {
+    return paths.map((path) => ({
+            from: path.from,
+            to: path.to,
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 0,
+        })
+    );
+}
+
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
@@ -70,6 +86,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [viewportDimensions, setViewportDimensions] = createSignal({ width: window.innerWidth, height: window.innerHeight });
     const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal(0);
 
+    const computedPaths = createArrayStore<Line>(loadPathsFromInitial(props.graph.paths));
     const transformMap = new Map<ColonyLocationID, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations));
     const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>(loadPathMap(props.graph.paths));
     const log = props.context.logger.copyFor('path graph');
@@ -97,10 +114,26 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         ...element, transform: computedTransform
                     }),
                 );
+
+                computedPaths.mutateByPredicate(
+                    l => l.from === colonyLocationInfo.id,
+                    l => ({
+                        ...l,
+                        x1: colonyLocationInfo.transform.xOffset,
+                        y1: colonyLocationInfo.transform.yOffset,
+                    })
+                )
+                computedPaths.mutateByPredicate(
+                    l => l.to === colonyLocationInfo.id,
+                    l => ({
+                        ...l,
+                        x2: colonyLocationInfo.transform.xOffset,
+                        y2: colonyLocationInfo.transform.yOffset,
+                    })
+                )
             }
         })
     });
-
 
 
     const centerCameraOnPoint = (x: number, y: number) => {
@@ -145,11 +178,14 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             const newWidth = window.innerWidth;
             const newHeight = window.innerHeight;
             setViewportDimensions({ width: newWidth, height: newHeight });
-            setDNS({
+            const dns = {
                 x: newWidth / EXPECTED_WIDTH,
                 y: newHeight / EXPECTED_HEIGHT,
-            });
-            setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)));
+            }
+            setDNS(dns);
+            setGAS(Math.sqrt(
+                Math.min(dns.x, dns.y)
+            ));
         }, 500);
     };
 
@@ -202,25 +238,17 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         <div class={pathGraphContainerStyle} id={props.colony.name + '-path-graph'}>
             <div class={computedCameraContainerStyles()} id="camera-container">
                 <svg id="paths" class={svgContainerStyle}>
-                    <For each={props.graph.paths}>
-                        {(path) => {
-                            let fromLocation = transformMap.get(path.from);
-                            let toLocation = transformMap.get(path.to);
-                            if (!fromLocation || !toLocation) return null;
-
-                            const transformA = fromLocation.get();
-                            const transformB = toLocation.get();
-                            return (
-                                <line
-                                    x1={transformA.xOffset}
-                                    y1={transformA.yOffset}
-                                    x2={transformB.xOffset}
-                                    y2={transformB.yOffset}
-                                    stroke="white"
-                                    stroke-width={10}
-                                />
-                            );
-                        }}
+                    <For each={computedPaths.get}>
+                        {(line) => 
+                            <line
+                                x1={line.x1}
+                                y1={line.y1}
+                                x2={line.x2}
+                                y2={line.y2}
+                                stroke="white"
+                                stroke-width={10}
+                            />
+                        }
                     </For>
                 </svg>
 
