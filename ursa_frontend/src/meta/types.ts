@@ -63,7 +63,7 @@ export enum LogLevel {
     WARN = 'warn',
     INFO = 'info',
     TRACE = 'trace',
-    SUBTRACE = 'subtrace'
+    SUBTRACE = 'subtrace',
 }
 
 export enum ParseMethod {

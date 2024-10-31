@@ -1,5 +1,5 @@
 import { ENV } from './manager';
-import { LogLevel, RuntimeMode } from '../meta/types';
+import { Bundle, LogLevel, RuntimeMode } from '../meta/types';
 import { LanguagePreference } from '../integrations/vitec/vitecDTOs';
 
 export const TEST_ENVIRONMENT: ENV = {
@@ -14,5 +14,8 @@ export const TEST_ENVIRONMENT: ENV = {
         firstName: 'Thee Who Shall Not Be Named',
         languagePreference: LanguagePreference.English,
         locationUrl: 'http://localhost:' + import.meta.env.VITE_PORT + '/' + import.meta.env.BASE_URL,
+        lastName: 'Thee Who Shall Not Be Named',
+        currentSubUrl: '/',
+        bundleRequested: Bundle.UNNKNOWN,
     },
 };

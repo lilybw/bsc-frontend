@@ -1,14 +1,14 @@
-import { Accessor, Component, createEffect, createSignal, Setter } from 'solid-js';
+import { Accessor, Component } from 'solid-js';
 import { BackendIntegration } from '../mainBackend';
 import { Logger } from '../../../logging/filteredLogger';
-import { LanguagePreference, LanguagePreferenceAliases, VitecIntegrationInformation } from '../../vitec/vitecDTOs';
-import SectionTitle, { SectionTitleProps } from '../../../components/SectionTitle';
+import { LanguagePreference } from '../../vitec/vitecDTOs';
 import { Error, ResErr } from '../../../meta/types';
 import { VitecIntegration } from '../../vitec/vitecIntegration';
 import { createWrappedSignal, WrappedSignal } from '../../../ts/wrappedSignal';
 import I_SectionTitle from './I_SectionTitle';
 import I_SectionSubTitle from './I_SectionSubTitle';
-import { SubSectionTitleProps } from '../../../components/SectionSubTitle';
+import { SubSectionTitleProps } from '../../../components/base/SectionSubTitle';
+import { SectionTitleProps } from '../../../components/base/SectionTitle';
 
 export interface InternationalizationService {
     Title: (key: string, fallback?: string) => Component<SectionTitleProps>;

@@ -1,30 +1,30 @@
-import { Logger } from "../../logging/filteredLogger";
-import { ResCodeErr } from "../../meta/types";
-import { BackendIntegration, BaseBackendIntegration, URSA_HEADER_ASSET_ID, URSA_HEADER_DETAIL_LEVEL } from "./mainBackend";
-import { AssetID, uint32 } from "./mainBackendDTOs"
+import { Logger } from '../../logging/filteredLogger';
+import { ResCodeErr } from '../../meta/types';
+import { BackendIntegration, BaseBackendIntegration, URSA_HEADER_ASSET_ID, URSA_HEADER_DETAIL_LEVEL } from './mainBackend';
+import { AssetID, uint32 } from './mainBackendDTOs';
 
 export type ObjectURL = string & { release: () => void };
 
 /**
  * Cache for object URLs. Counts how many times an object URL is taken and manages destruction internally.
- * 
+ *
  * REMEMBER TO RELEASE OBJECT URLS WHEN THEY ARE NO LONGER IN USE
  * Else we're going to get a memory leak.
- * 
+ *
  * @since 0.0.1
  * @author GustavBW
  */
 export interface IObjectURLCache {
     get: (asset: AssetID, lodLevel: uint32) => Promise<ResCodeErr<ObjectURL>>;
     getByLODID: (lodID: uint32) => Promise<ResCodeErr<ObjectURL>>;
-} 
+}
 
 type CacheEntry = {
     url: ObjectURL;
     retrievalCount: uint32;
     assetID: AssetID;
     lodLevel: uint32;
-}
+};
 
 const generateCombinedKey = (asset: AssetID, lodLevel: uint32): string => `${asset}_${lodLevel}`;
 
@@ -63,11 +63,11 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
                 }
             }
         }
-    }
+    };
 
     const fetchAndStore = async (asset: AssetID, lodLevel: uint32): Promise<ResCodeErr<CacheEntry>> => {
         log.subtrace(`fetching: ${asset} at LOD ${lodLevel}`);
-        const res = await backend.getLODByAsset(asset, lodLevel);
+        const res = await backend.assets.getAssetLOD(asset, lodLevel);
         if (res.err !== null) {
             log.warn(`failed to fetch: ${asset} at LOD ${lodLevel}: ${res.err}`);
             return res;
@@ -78,14 +78,14 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
         const key = generateCombinedKey(asset, lodLevel);
         const objectUrl = URL.createObjectURL(blob);
         const amalgamation = Object.assign(objectUrl, { release: () => onUrlRelease(key) });
-        const cacheEntry = { url: amalgamation, retrievalCount: 0, assetID: asset, lodLevel};
+        const cacheEntry = { url: amalgamation, retrievalCount: 0, assetID: asset, lodLevel };
         byCombinedKey.set(key, cacheEntry);
         return { res: cacheEntry, err: null, code: 200 };
-    }
+    };
 
     const fetchAndStoreByLODID = async (lodID: uint32): Promise<ResCodeErr<CacheEntry>> => {
         log.subtrace(`fetching: LOD ${lodID}`);
-        const res = await backend.getLOD(lodID);
+        const res = await backend.assets.getLOD(lodID);
         if (res.err !== null) {
             log.warn(`failed to fetch: LOD ${lodID}: ${res.err}`);
             return res;
@@ -116,7 +116,7 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
         }
         byLODID.set(lodID, cacheEntry);
         return { res: cacheEntry, err: null, code: 200 };
-    }
+    };
 
     const getByAsset = async (asset: AssetID, lodLevel: uint32): Promise<ResCodeErr<ObjectURL>> => {
         const key = generateCombinedKey(asset, lodLevel);
@@ -124,7 +124,7 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
         if (entry) {
             entry.retrievalCount++;
             log.subtrace(`${key} retrieved from cache, count: ${entry.retrievalCount}`);
-            return { res: entry.url, err: null, code: 200};
+            return { res: entry.url, err: null, code: 200 };
         }
         log.subtrace(`cache miss: ${key}`);
         const fetched = await fetchAndStore(asset, lodLevel);
@@ -134,7 +134,7 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
         }
         fetched.res.retrievalCount++;
         return { res: fetched.res.url, err: null, code: 200 };
-    }
+    };
 
     const getByLODID = async (lodID: uint32): Promise<ResCodeErr<ObjectURL>> => {
         const entry = byLODID.get(lodID);
@@ -151,7 +151,7 @@ export const initializeObjectURLCache = (backend: BackendIntegration, logger: Lo
         }
         fetched.res.retrievalCount++;
         return { res: fetched.res.url, err: null, code: 200 };
-    }
+    };
 
     return { get: getByAsset, getByLODID };
-}
+};

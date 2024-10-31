@@ -1,8 +1,8 @@
-import { css } from "@emotion/css";
-import { Accessor, Component } from "solid-js";
-import { NamedVoidFunction } from "../src/meta/types";
-import BigMenuButton from "../src/components/BigMenuButton";
-import { IInternationalized } from "../src/ts/types";
+import { css } from '@emotion/css';
+import { Accessor, Component } from 'solid-js';
+import { NamedVoidFunction } from '../src/meta/types';
+import BigMenuButton from '../src/components/base/BigMenuButton';
+import { IInternationalized } from '../src/ts/types';
 
 interface NavigationFooterProps extends IInternationalized {
     goNext?: NamedVoidFunction;
@@ -14,33 +14,28 @@ interface NavigationFooterProps extends IInternationalized {
 }
 
 const NavigationFooter: Component<NavigationFooterProps> = (props) => {
-
     return (
         <div class={footerStyles}>
-        {props.goBack && (<BigMenuButton 
-            onClick={props.goBack?.func} 
-            
-            enable={props.goBackEnabled}
-        >
-            {props.text.get(props.goBack?.name || "MENU.NAVIGATION.BACK").get()}
-        </BigMenuButton>)}
+            {props.goBack && (
+                <BigMenuButton onClick={props.goBack?.func} enable={props.goBackEnabled}>
+                    {props.text.get(props.goBack?.name || 'MENU.NAVIGATION.BACK').get()}
+                </BigMenuButton>
+            )}
 
-        {props.cancelAll && (<BigMenuButton 
-            onClick={props.cancelAll?.func} 
-            enable={props.cancelAllEnabled}
-        >
-            {props.text.get(props.cancelAll?.name || "MENU.NAVIGATION.CANCEL").get()}
-        </BigMenuButton>)}
+            {props.cancelAll && (
+                <BigMenuButton onClick={props.cancelAll?.func} enable={props.cancelAllEnabled}>
+                    {props.text.get(props.cancelAll?.name || 'MENU.NAVIGATION.CANCEL').get()}
+                </BigMenuButton>
+            )}
 
-        {props.goNext && (<BigMenuButton 
-            onClick={props.goNext?.func} 
-            enable={props.goNextEnabled}
-        >
-            {props.text.get(props.goNext?.name || "MENU.NAVIGATION.NEXT").get()}
-        </BigMenuButton>)}
+            {props.goNext && (
+                <BigMenuButton onClick={props.goNext?.func} enable={props.goNextEnabled}>
+                    {props.text.get(props.goNext?.name || 'MENU.NAVIGATION.NEXT').get()}
+                </BigMenuButton>
+            )}
         </div>
-    )
-}
+    );
+};
 export default NavigationFooter;
 
 const footerStyles = css`
@@ -51,4 +46,4 @@ const footerStyles = css`
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-`
+`;

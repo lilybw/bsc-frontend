@@ -53,14 +53,14 @@ export const initApp = (app: BundleComponent<ApplicationProps>) => {
 
 export const initContext = async (vitecInfo: VitecIntegrationInformation): Promise<ResErr<ApplicationContext>> => {
     const environment = initializeEnvironment();
-    const log = initializeLogger(environment);
+    const log = initializeLogger(environment).copyFor('setup');
     log.info('[setup] Initializing application context');
 
     const vitecIntegrationResult = await initializeVitecIntegration(vitecInfo, environment, log);
     if (vitecIntegrationResult.err != null) {
         return { res: null, err: vitecIntegrationResult.err };
     }
-    log.trace('Recieved vitec information: ' + JSON.stringify(vitecIntegrationResult.res.info));
+    log.subtrace('Recieved vitec information: ' + JSON.stringify(vitecIntegrationResult.res.info));
 
     const sessionInitInfo: SessionInitiationRequestDTO = {
         userIdentifier: vitecInfo.userIdentifier,
@@ -74,10 +74,10 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         return { res: null, err: backendIntegrationInit.err };
     }
 
-    const playerPreferencesAttempt = await backendIntegrationInit.res.getPlayerPreferences(backendIntegrationInit.res.localPlayer.id);
+    const playerPreferencesAttempt = await backendIntegrationInit.res.player.getPreferences(backendIntegrationInit.res.player.local.id);
     const preferences = playerPreferencesAttempt.res;
     if (preferences == null) {
-        console.error('[setup] Failed to load preferences: ' + playerPreferencesAttempt.err);
+        log.warn('[setup] Failed to load preferences: ' + playerPreferencesAttempt.err);
     } else {
         const langVal = preferences.preferences.find((p) => p.key === PreferenceKeys.LANGUAGE)?.chosenValue;
         if (langVal && langVal != null) {
@@ -85,7 +85,7 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         }
     }
 
-    const navigatorInit = await initNavigator(vitecIntegrationResult.res, log, environment, backendIntegrationInit.res.localPlayer);
+    const navigatorInit = await initNavigator(vitecIntegrationResult.res, log, environment, backendIntegrationInit.res.player.local);
     if (navigatorInit.err != null) {
         return { res: null, err: navigatorInit.err };
     }
@@ -95,15 +95,8 @@ export const initContext = async (vitecInfo: VitecIntegrationInformation): Promi
         return { res: null, err: internationalizationServiceRes.err };
     }
 
-    const eventMultiplexer = await initializeEventMultiplexer(log, backendIntegrationInit.res.localPlayer.id);
-
-    let currentMultiplayerMode = MultiplayerMode.AS_OWNER;
-    const multiplayerIntegrationInit = await initializeMultiplayerIntegration(
-        backendIntegrationInit.res,
-        log,
-        eventMultiplexer,
-        currentMultiplayerMode,
-    );
+    const eventMultiplexer = await initializeEventMultiplexer(log, backendIntegrationInit.res.player.local.id);
+    const multiplayerIntegrationInit = await initializeMultiplayerIntegration(backendIntegrationInit.res, log, eventMultiplexer);
     if (multiplayerIntegrationInit.err != null) {
         log.warn(multiplayerIntegrationInit.err);
     }

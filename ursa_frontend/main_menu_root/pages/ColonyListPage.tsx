@@ -1,19 +1,13 @@
-import { Component, createEffect, createResource, createSignal, For, Show } from "solid-js"
-import { MenuPageProps, MenuPages } from "../MainMenuApp"
-import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO, UpdateLatestVisitResponseDTO, UpdateLatestVisitRequestDTO } from "../../src/integrations/main_backend/mainBackendDTOs";
-import { ResCodeErr } from "../../src/meta/types";
-import SectionTitle from "../../src/components/SectionTitle";
-import SomethingWentWrongIcon from "../../src/components/SomethingWentWrongIcon";
-import Spinner from "../../src/components/SimpleLoadingSpinner";
-import { css } from "@emotion/css";
-import StarryBackground from "../../src/components/StarryBackground";
-import ColonyListEntry from "./ColonyListEntry";
-import NavigationFooter from "../NavigationFooter";
-import NTAwait from "../../src/components/util/NoThrowAwait";
-import If from "../../src/components/util/If";
-import SectionSubTitle from "../../src/components/SectionSubTitle";
-import BigMenuButton from "../../src/components/BigMenuButton";
-import { Styles } from "../../src/sharedCSS";
+import { Component, createSignal, For } from 'solid-js';
+import { MenuPageProps, MenuPages } from '../MainMenuApp';
+import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO, UpdateLatestVisitRequestDTO } from '../../src/integrations/main_backend/mainBackendDTOs';
+import { css } from '@emotion/css';
+import ColonyListEntry from './ColonyListEntry';
+import NavigationFooter from '../NavigationFooter';
+import NTAwait from '../../src/components/util/NoThrowAwait';
+import BigMenuButton from '../../src/components/base/BigMenuButton';
+import { Styles } from '../../src/sharedCSS';
+import StarryBackground from '../../src/components/base/StarryBackground';
 
 const ColonyListPage: Component<MenuPageProps> = (props) => {
     const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);
@@ -34,7 +28,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
 
         const getCurrentDateTimeLocaleString = () => {
             const now = new Date();
-            return now.toLocaleString('en-US', { 
+            return now.toLocaleString('en-US', {
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 year: 'numeric',
                 month: '2-digit',
@@ -42,71 +36,90 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
-                hour12: false
+                hour12: false,
             });
         };
         const body: UpdateLatestVisitRequestDTO = {
-            latestVisit: getCurrentDateTimeLocaleString()
-        }
-        props.context.backend.updateLatestVisit(body, colonyID)
+            latestVisit: getCurrentDateTimeLocaleString(),
+        };
+        props.context.backend.colony.updateLatestVisit(body, colonyID);
 
-        props.context.backend.getColony(props.context.backend.localPlayer.id, colonyID)
-            .then(res => {
-                if (res.err !== null) {
-                    props.context.logger.error("Failed to get colony: " + res.err);
-                    return;
-                } else {
-                    props.context.nav.goToColony(
-                        res.res.id,
-                        res.res.name,
-                        props.context.backend.localPlayer.id
-                    );
-                }
-            })
+        props.context.backend.colony.get(props.context.backend.player.local.id, colonyID).then((res) => {
+            if (res.err !== null) {
+                props.context.logger.error('Failed to get colony: ' + res.err);
+                return;
+            } else {
+                props.context.nav.goToColony(res.res.id, res.res.name, props.context.backend.player.local.id);
+            }
+        });
     }
+
+    const getContent = (overview: ColonyOverviewReponseDTO) => {
+        if (overview.colonies.length > 0) {
+            return (
+                <>
+                    <div class={colonyListBackgroundStyle} />
+                    <div class={colonyListStyle}>
+                        <For each={sortedColonies(overview)}>
+                            {(colony: ColonyInfoResponseDTO) => (
+                                <ColonyListEntry
+                                    colony={colony}
+                                    onClick={() => setSelectedColonyId(colony.id)}
+                                    isSelected={selectedColonyId() === colony.id}
+                                    text={props.context.text}
+                                />
+                            )}
+                        </For>
+                    </div>
+                </>
+            );
+        } else {
+            return (
+                <div class={noColoniesYetStyle}>
+                    {props.context.text.SubTitle('MENU.SUB_TITLE.NO_COLONIES_YET')({})}
+                    <BigMenuButton onClick={() => props.goToPage(MenuPages.NEW_COLONY)} styleOverwrite={css`width: fit-content;`}>
+                        {props.context.text.get('MENU.OPTION.CREATE_COLONY').get()}
+                    </BigMenuButton>
+                </div>
+            );
+        }
+    };
 
     return (
         <div>
-            {props.context.text.Title('MENU.PAGE_TITLE.SELECT_COLONY')({styleOverwrite: pageTitleStyle})}
-            <NTAwait func={() => props.context.backend.getColonyOverview(props.context.backend.localPlayer.id)}>{(overview) =>
-                <If condition={overview.colonies.length > 0}>{[
-                    <>
-                    <div class={colonyListBackgroundStyle}/>
-                    <div class={colonyListStyle}>
-                    <For each={sortedColonies(overview)}>{(colony: ColonyInfoResponseDTO) =>
-                        <ColonyListEntry 
-                            colony={colony} 
-                            onClick={() => setSelectedColonyId(colony.id)} 
-                            isSelected={selectedColonyId() === colony.id}
-                            text={props.context.text}
-                        />
-                    }</For>
-                    </div>
-                    </>,
-                    <>
-                    {props.context.text.SubTitle('MENU.SUB_TITLE.NO_COLONIES_YET')({})}
-                    <BigMenuButton onClick={() => props.goToPage(MenuPages.NEW_COLONY)} styleOverwrite={Styles.TRANSFORM_CENTER}>
-                        {props.context.text.get('MENU.OPTION.CREATE_COLONY').get()}
-                    </BigMenuButton>
-                    </>
-                ]}</If>
-            }</NTAwait>
-            <NavigationFooter 
+            {props.context.text.Title('MENU.PAGE_TITLE.SELECT_COLONY')({ styleOverwrite: pageTitleStyle })}
+            <NTAwait func={() => props.context.backend.colony.getOverview(props.context.backend.player.local.id)}>{getContent}</NTAwait>
+            <NavigationFooter
                 text={props.context.text}
-                goBack={{name: "MENU.NAVIGATION.BACK", func: () => props.goToPage(MenuPages.LANDING_PAGE)}} 
-                goNext={{name: "MENU.NAVIGATION.CONFIRM", func: handleGoToColony}} 
+                goBack={{ name: 'MENU.NAVIGATION.BACK', func: () => props.goToPage(MenuPages.LANDING_PAGE) }}
+                goNext={{ name: 'MENU.NAVIGATION.CONFIRM', func: handleGoToColony }}
                 goNextEnabled={() => selectedColonyId() !== null}
             />
             <StarryBackground />
         </div>
-    )
-}
+    );
+};
 
 export default ColonyListPage;
 
+const noColoniesYetStyle = css`
+position: absolute;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+
+top: 20vh;
+left: 50%;
+width: 50%;
+transform: translateX(-50%);
+`
+
 const pageTitleStyle = css`
     font-size: 5rem;
-`
+    left: 1vh;
+    position: absolute;
+`;
 
 const colonyListBackgroundStyle = css`
     display: flex;
@@ -114,14 +127,15 @@ const colonyListBackgroundStyle = css`
 
     position: absolute;
     width: 66%;
-    height: 32rem;
+    height: 65vh;
     left: 50%;
+    top: 10vh;
     transform: translateX(-50%);
     padding: 1rem;
     gap: 1rem;
 
     ${Styles.FANCY_BORDER}
-`
+`;
 
 const colonyListStyle = css`
     ${colonyListBackgroundStyle}
@@ -139,9 +153,9 @@ const colonyListStyle = css`
     overflow-x: hidden;
 
     backdrop-filter: none;
-    -webkit-backdrop-filter: none;  // For Safari support
+    -webkit-backdrop-filter: none; // For Safari support
     box-shadow: none;
-    
+
     // Custom scrollbar styles
     &::-webkit-scrollbar {
         width: 1rem;
@@ -153,21 +167,13 @@ const colonyListStyle = css`
     }
 
     &::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 1); 
+        background: rgba(255, 255, 255, 1);
         width: 1rem;
-        border: .1rem solid black;  // Creates padding around the thumb, cant have transparency...
+        border: 0.1rem solid black; // Creates padding around the thumb, cant have transparency...
         border-radius: 1rem;
     }
 
     &::-webkit-scrollbar-thumb:hover {
         background: rgba(255, 255, 255, 0.5);
     }
-`
-
-const spinnerStyleOverwrite = css`
-    margin: 0 auto;
-    display: block;
-    padding: 1rem;
-    height: 3rem;
-    width: 3rem;
-`
+`;

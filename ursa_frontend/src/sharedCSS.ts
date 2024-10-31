@@ -16,6 +16,28 @@ export const Styles = {
         left: 50%;
         transform: translateX(-50%);
     `,
+    TITLE: css`
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        letter-spacing: 1rem;
+        text-transform: uppercase;
+        color: white;
+        font-size: 8rem;
+        text-shadow: 0.75rem 0.3rem 0.3rem rgba(255, 255, 255, 0.3);
+        filter: drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5));
+    `,
+    SUB_TITLE: css`
+        text-align: center;
+        font-family: 'Orbitron', sans-serif;
+        
+        font-weight: 700;
+        letter-spacing: 0;
+        color: hsla(0, 0%, 100%, 0.7);
+        
+        font-size: 2rem;
+        text-shadow: 0.15rem 0.15rem 0.3rem rgba(255, 255, 255, 0.3);
+        filter: drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5));
+    `,
     MENU_INPUT: css`
         position: relative;
         border-radius: 1rem;
@@ -81,7 +103,7 @@ export const Styles = {
         transform: scale(var(--transform-xScale), var(--transform-yScale)) translate(-50%, -50%);
     `,
     FANCY_BORDER: css`
-        border-radius: 5%;
+        border-radius: 5vh;
         border: 0.25rem solid white;
         border-left: 0px;
         border-right: 0px;
@@ -104,6 +126,16 @@ export const Styles = {
             }
         }
     `,
+    GLASS: {
+        FAINT_BACKGROUND: css`
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(0.3rem);
+        `,
+        BACKGROUND: css`
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(0.5rem);
+        `,
+    },
 };
 export const BigButtonStyle = css`
     background-color: rgba(0, 0, 0, 0.5);

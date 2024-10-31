@@ -1,14 +1,13 @@
-import { Component, createMemo, JSX } from "solid-js";
-import { ColonyInfoResponseDTO, ColonyLocationInformation, LocationInfoResponseDTO } from "../../../integrations/main_backend/mainBackendDTOs";
-import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from "../../../ts/types";
-import { css } from "@emotion/css";
-import NTAwait from "../../util/NoThrowAwait";
-import GenericLocationCard from "./GenericLocationCard";
-import { KnownLocations } from "../../../integrations/main_backend/constants";
-import SpacePortLocationCard from "./SpacePortLocationCard";
-import HomeLocationCard from "./HomeLocationCard";
-import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
-import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
+import { Component, createMemo, JSX } from 'solid-js';
+import { ColonyInfoResponseDTO, ColonyLocationInformation, LocationInfoResponseDTO } from '../../../integrations/main_backend/mainBackendDTOs';
+import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from '../../../ts/types';
+import { css } from '@emotion/css';
+import GenericLocationCard from './GenericLocationCard';
+import { KnownLocations } from '../../../integrations/main_backend/constants';
+import SpacePortLocationCard from './SpacePortLocationCard';
+import HomeLocationCard from './HomeLocationCard';
+import { IEventMultiplexer } from '../../../integrations/multiplayer_backend/eventMultiplexer';
+import { IMultiplayerIntegration } from '../../../integrations/multiplayer_backend/multiplayerBackend';
 
 export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colony: ColonyInfoResponseDTO;
@@ -19,14 +18,12 @@ export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOv
     onClose: () => void;
 }
 
-
 const LocationCard: Component<LocationCardProps> = (props) => {
-
     const renderCardOfType = (locationInfo: LocationInfoResponseDTO): JSX.Element => {
         switch (locationInfo.id) {
             case KnownLocations.Home:
                 return (
-                    <HomeLocationCard 
+                    <HomeLocationCard
                         events={props.events}
                         colonyLocation={props.colonyLocation}
                         closeCard={props.onClose}
@@ -36,25 +33,25 @@ const LocationCard: Component<LocationCardProps> = (props) => {
                         text={props.text}
                         register={props.register}
                     />
-                )
+                );
             case KnownLocations.SpacePort:
                 return (
-                    <SpacePortLocationCard 
+                    <SpacePortLocationCard
                         multiplayer={props.multiplayer}
                         colony={props.colony}
                         events={props.events}
                         colonyLocation={props.colonyLocation}
-                        closeCard={props.onClose} 
+                        closeCard={props.onClose}
                         info={locationInfo}
                         buffer={props.buffer}
                         backend={props.backend}
                         text={props.text}
                         register={props.register}
                     />
-                )
+                );
             default:
                 return (
-                    <GenericLocationCard 
+                    <GenericLocationCard
                         events={props.events}
                         colonyLocation={props.colonyLocation}
                         closeCard={props.onClose}
@@ -62,32 +59,34 @@ const LocationCard: Component<LocationCardProps> = (props) => {
                         buffer={props.buffer}
                         backend={props.backend}
                         text={props.text}
-                        register={props.register}  
+                        register={props.register}
                     />
-                )
+                );
         }
-    }
+    };
 
-    const computedContainerStyle = createMemo(() => css`${locationCardContainerStyle} ${props.styleOverwrite}`);
-    return (
-        <div class={computedContainerStyle()}>
-            {renderCardOfType(props.location)}
-        </div>
-    )
-}
+    const computedContainerStyle = createMemo(
+        () => css`
+            ${locationCardContainerStyle} ${props.styleOverwrite}
+        `,
+    );
+    return <div class={computedContainerStyle()}>{renderCardOfType(props.location)}</div>;
+};
 export default LocationCard;
 
 const locationCardContainerStyle = css`
-z-index: 10000;
-position: fixed;
-display: flex;
+    z-index: 10000;
+    position: fixed;
+    display: flex;
 
-width: 50%;
-height: 66%;
+    width: 50%;
+    height: 66%;
 
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 
-background-color: transparent;
-`
+    background-color: transparent;
+    border-radius: 1rem;
+    box-shadow: 0 0 1rem 0.5rem rgba(0, 0, 0, 0.5);
+`;

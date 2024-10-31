@@ -1,21 +1,31 @@
 import { Logger } from '../../logging/filteredLogger';
-import { PlayerID } from '../main_backend/mainBackendDTOs';
+import { PlayerID, uint32 } from '../main_backend/mainBackendDTOs';
 import { DEBUG_INFO_EVENT, EventSpecification, EventType, IMessage, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from './EventSpecifications';
 
-export type OnEventCallback<T> = (data: T) => void | Promise<void>;
+export type OnEventCallback<T> = ((data: T) => void | Promise<void>) & { internalOrigin?: string };
 export type SubscriptionID = number;
 export type EventID = number;
 
 export interface IEventMultiplexer {
     /**
-     * Subscripe to any amount of events. The callback given is queued as a micro task when an event of the specified type is emitted.
+     * Subscripe to an event. The callback given is queued as a micro task when an event of the specified type is emitted.
      * @returns A subscription ID that can be used to unregister the handler given in this call.
      *
      * Usage
-     * ```typescript
-     * const subscriptionID = multiplexer.subscribe(
-     *     DEBUG_INFO_EVENT, (data) => { ... }
-     * );
+     * ```ts
+     * | const subscriptionID = multiplexer.subscribe(
+     * |    DEBUG_INFO_EVENT, (data) => { ... }
+     * | );
+     * ```
+     * Or with internalOrigin to prevent echoes:
+     * ```ts
+     * | const subscriptionID = multiplexer.subscribe(
+     * |    DEBUG_INFO_EVENT, Object.assign(
+     * |      (data) => { ... },
+     * |      { internalOrigin: 'some identifier' }
+     * |    )
+     * | );
+     * ```
      */
     subscribe: <T extends IMessage>(spec: EventSpecification<T>, callback: OnEventCallback<T>) => SubscriptionID;
     /**
@@ -25,16 +35,22 @@ export interface IEventMultiplexer {
     /**
      * Emit an event into the multiplexer. Multiplayer Integration has special access, however all other access
      * must go through this method.
-     * @returns
+     * @param internalOrigin optionally used to exclude any handlers that is of same origin.
+     * @returns amount of handlers invoked.
      */
-    emit: <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => Promise<void>;
+    emit: <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>, internalOrigin?: string) => Promise<uint32>;
 }
 
 /**
  * Normal IEventMultiplexer but with the option to emit raw events without restrictions.
  */
 export interface IExpandedAccessMultiplexer extends IEventMultiplexer {
-    emitRAW: <T extends IMessage>(data: T) => Promise<void>;
+    /**
+     * @param data the data to send including the eventID and senderID. Use the type param to get intellisense for the type of data.
+     * @param internalOrigin optionally used to exclude any handlers that is of same origin.
+     * @returns amount of handlers invoked.
+     */
+    emitRAW: <T extends IMessage>(data: T, internalOrigin?: string) => Promise<uint32>;
 }
 
 export const initializeEventMultiplexer = (logger: Logger, localPlayer: PlayerID): IExpandedAccessMultiplexer => {
@@ -52,7 +68,7 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
     private nextSubscriptionID = 0;
     constructor(
         private readonly player: PlayerID,
-        private readonly log: Logger
+        private readonly log: Logger,
     ) {}
 
     subscribe = <T extends IMessage>(spec: EventSpecification<T>, callback: OnEventCallback<T>) => {
@@ -83,26 +99,41 @@ class EventMultiplexerImpl implements IExpandedAccessMultiplexer {
         return anyWasRemoved;
     };
 
-    emit = async <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>) => {
+    emit = async <T extends IMessage>(spec: EventSpecification<T>, data: Omit<T, keyof IMessage>, internalOrigin?: string) => {
         const encapsulatedData = Object.freeze({
             ...data,
             senderID: this.player,
             eventID: spec.id,
         });
-        this.emitRAW(encapsulatedData);
+        return this.emitRAW(encapsulatedData, internalOrigin);
     };
 
-    emitRAW = async <T extends IMessage>(data: T) => {
+    emitRAW = async <T extends IMessage>(data: T, internalOrigin?: string) => {
         const handlers = this.subscriptions.get(data.eventID);
         if (!handlers || handlers === null || handlers.length === 0) {
-            return;
+            return 0;
         }
-        // Use Promise.all with queueMicrotask for better performance
-        await Promise.all(handlers.map(handler => new Promise<void>(resolve => {
-            queueMicrotask(() => {
-                handler(data);
-                resolve();
-            });
-        })));
+        let handlerInvocationCount = 0;
+
+        await Promise.all(
+            handlers
+                // Filter out handlers that are of same origin as the event source
+                // h.internalOrigin can be undefined, as it is not required, but if it is, the comparison will not be made.
+                // Otherwise, as eventSource also is allowed to be undefined, all handlers with no specified origin,
+                // would be excluded on any emission not specifying an eventSource.
+                .filter((h) => (h.internalOrigin ? h.internalOrigin !== internalOrigin : true))
+                .map(
+                    (handler) =>
+                        new Promise<void>((resolve) => {
+                            queueMicrotask(() => {
+                                handler(data);
+                                handlerInvocationCount++;
+                                resolve();
+                            });
+                        }),
+                ),
+        );
+        this.log.subtrace(`Emitted event ${data.eventID} to ${handlerInvocationCount} handlers`);
+        return handlerInvocationCount;
     };
 }

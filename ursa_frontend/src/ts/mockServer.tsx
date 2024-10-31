@@ -1,4 +1,4 @@
-import { Component, JSX } from "solid-js";
+import { JSX } from 'solid-js';
 import { IExpandedAccessMultiplexer } from '../integrations/multiplayer_backend/eventMultiplexer';
 import {
     DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
@@ -12,13 +12,9 @@ import {
     IMessage,
     ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT,
 } from '../integrations/multiplayer_backend/EventSpecifications';
-import { ApplicationContext, Error, ResErr } from '../meta/types';
-import { KnownMinigames, loadMiniGame, Minigame } from "../components/colony/mini_games/miniGame";
-import { Logger } from "../logging/filteredLogger";
-import { uint32 } from "../integrations/main_backend/mainBackendDTOs";
-import AsteroidsMiniGame, { AsteroidsSettingsDTO } from "../components/colony/mini_games/asteroids_mini_game/AsteroidsMiniGame";
-import { BackendIntegration } from "../integrations/main_backend/mainBackend";
-import { createAsteroidsGameLoop } from "../components/colony/mini_games/asteroids_mini_game/AsteroidsGameLoop";
+import { ApplicationContext } from '../meta/types';
+import { loadMiniGame } from '../components/colony/mini_games/miniGame';
+import { Logger } from '../logging/filteredLogger';
 
 /**
  * Interface defining the basic operations of the MockServer.
@@ -62,19 +58,19 @@ export class MockServer implements IMockServer {
      */
     constructor(
         private context: ApplicationContext,
-        private readonly setPageContent: ((content: JSX.Element) => void),
-        private readonly returnToColony: (() => void),
-        log: Logger
+        private readonly setPageContent: (content: JSX.Element) => void,
+        private readonly returnToColony: () => void,
+        log: Logger,
     ) {
         this.events = context.events as IExpandedAccessMultiplexer;
-        this.log = log.copyFor("mock server")
+        this.log = log.copyFor('mock server');
     }
 
     /**
      * Starts the MockServer, initializing subscriptions and starting the update loop.
      */
     public start = () => {
-        this.log.info("starting");
+        this.log.info('starting');
         this.reset();
         this.setupSubscriptions();
         this.intervalId = setInterval(this.update, 100);
@@ -84,7 +80,7 @@ export class MockServer implements IMockServer {
      * Shuts down the MockServer, cleaning up subscriptions and stopping the minigame.
      */
     public shutdown = () => {
-        this.log.info("shutdown");
+        this.log.info('shutdown');
         if (this.intervalId !== null) {
             clearInterval(this.intervalId);
         }
@@ -95,12 +91,12 @@ export class MockServer implements IMockServer {
      * Resets the MockServer to its initial state.
      */
     private reset = () => {
-        this.log.info("resetting");
+        this.log.info('resetting');
         this.difficultyConfirmed = null;
         this.messageQueue.length = 0;
         this.lobbyPhase = LobbyPhase.RoamingColony;
         this.loadedMinigameStart = null;
-    }
+    };
     private loadedMinigameStart: (() => void) | null = null;
     /**
      * Main update loop of the MockServer. Processes queued messages and manages lobby phases.
@@ -109,22 +105,22 @@ export class MockServer implements IMockServer {
         if (this.messageQueue.length === 0) return;
         let message: IMessage | undefined;
         while ((message = this.messageQueue.pop()) !== undefined) {
-            switch(this.lobbyPhase) {
+            switch (this.lobbyPhase) {
                 case LobbyPhase.RoamingColony: {
                     // Handle difficulty confirmation
                     if (message.eventID === DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT.id) {
                         this.difficultyConfirmed = message as DifficultyConfirmedForMinigameMessageDTO;
                         this.lobbyPhase = LobbyPhase.AwaitingParticipants;
-                        this.log.trace("Phase changed to AwaitingParticipants");
+                        this.log.trace('Phase changed to AwaitingParticipants');
                     }
                     break;
                 }
                 case LobbyPhase.AwaitingParticipants: {
                     // Handle player joining activity
                     if (message.eventID === PLAYER_JOIN_ACTIVITY_EVENT.id) {
-                        this.events.emitRAW({senderID: MOCK_SERVER_ID, eventID: PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT.id});
+                        this.events.emitRAW({ senderID: MOCK_SERVER_ID, eventID: PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT.id });
                         this.lobbyPhase = LobbyPhase.DeclareIntent;
-                        this.log.trace("Phase changed to DeclareIntent");
+                        this.log.trace('Phase changed to DeclareIntent');
                     }
                     // Handle player aborting minigame
                     if (message.eventID === PLAYER_ABORTING_MINIGAME_EVENT.id) {
@@ -134,7 +130,13 @@ export class MockServer implements IMockServer {
                 }
                 case LobbyPhase.DeclareIntent: {
                     if (this.loadedMinigameStart === null) {
-                        const loadAttempt = await loadMiniGame(this.context, this.returnToColony, this.setPageContent, this.difficultyConfirmed?.minigameID!, this.difficultyConfirmed?.difficultyID!);    
+                        const loadAttempt = await loadMiniGame(
+                            this.context,
+                            this.returnToColony,
+                            this.setPageContent,
+                            this.difficultyConfirmed?.minigameID!,
+                            this.difficultyConfirmed?.difficultyID!,
+                        );
                         if (loadAttempt.err !== null) {
                             this.log.error(`Error loading minigame: ${loadAttempt.err}`);
                             this.reset();
@@ -143,7 +145,7 @@ export class MockServer implements IMockServer {
                             this.loadedMinigameStart = loadAttempt.res;
                         }
                     }
-                    
+
                     if (message.eventID === PLAYER_READY_FOR_MINIGAME_EVENT.id) {
                         this.lobbyPhase = LobbyPhase.InMinigame;
                         if (this.loadedMinigameStart === null) {
@@ -151,23 +153,22 @@ export class MockServer implements IMockServer {
                             this.reset();
                             return;
                         } else {
-                            this.log.info("Starting minigame game loop");
+                            this.log.info('Starting minigame game loop');
                             this.loadedMinigameStart();
                         }
-                        this.log.trace("Phase changed to InMinigame");
+                        this.log.trace('Phase changed to InMinigame');
                     }
                     break;
                 }
                 case LobbyPhase.InMinigame: {
-
                 }
             }
         }
-    }
+    };
 
     private gameFinished() {
-        this.log.trace("Game finished, reverting to colony");
-        this.returnToColony()
+        this.log.trace('Game finished, reverting to colony');
+        this.returnToColony();
         this.reset();
     }
 
@@ -175,10 +176,10 @@ export class MockServer implements IMockServer {
      * Sets up event subscriptions for the MockServer.
      */
     private setupSubscriptions() {
-        this.log.trace("setting up subscriptions");
+        this.log.trace('setting up subscriptions');
         const pushToQueue = (e: IMessage) => {
             this.messageQueue.push(e);
-        } 
+        };
 
         // Subscribe to various events
         this.subscriptionIDs.push(this.context.events.subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, pushToQueue));
@@ -186,10 +187,9 @@ export class MockServer implements IMockServer {
         this.subscriptionIDs.push(this.context.events.subscribe(PLAYER_READY_FOR_MINIGAME_EVENT, pushToQueue));
         this.subscriptionIDs.push(this.context.events.subscribe(PLAYER_ABORTING_MINIGAME_EVENT, pushToQueue));
         this.subscriptionIDs.push(this.context.events.subscribe(PLAYER_JOIN_ACTIVITY_EVENT, pushToQueue));
-        
+
         this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_WON_EVENT, this.gameFinished));
         this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_LOST_EVENT, this.gameFinished));
         this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT, this.gameFinished));
     }
-
 }

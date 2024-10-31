@@ -8,39 +8,37 @@ export interface Logger {
     warn: (message: string) => void;
     error: (message: string) => void;
     copyFor: (name: string) => Logger;
-};
+}
 
 class ErrorOnlyLogger implements Logger {
-    constructor(
-        readonly name: string = 'ursa',
-    ){}
+    constructor(readonly name: string = 'ursa') {}
     copyFor = (name: string) => new ErrorOnlyLogger(name);
     subtrace = (msg: string) => {};
     trace = (msg: string) => {};
     info = (msg: string) => {};
     warn = (msg: string) => {};
-    error = (msg: string) => console.error(this._formatMessage("[E] " + msg));
+    error = (msg: string) => console.error(this._formatMessage('[E] ' + msg));
 
     _formatMessage = (msg: string) => `[${this.name}] ${msg}`;
 }
 
 class WarningLogger extends ErrorOnlyLogger {
-    warn = (msg: string) => console.warn(this._formatMessage("[W] " + msg));
+    warn = (msg: string) => console.warn(this._formatMessage('[W] ' + msg));
     copyFor = (name: string) => new WarningLogger(name);
 }
 
 class VerboseLogger extends WarningLogger {
-    info = (msg: string) => console.log(this._formatMessage("[I] " + msg));
+    info = (msg: string) => console.log(this._formatMessage('[I] ' + msg));
     copyFor = (name: string) => new VerboseLogger(name);
 }
 
 class Blogger extends VerboseLogger {
-    trace = (msg: string) => console.log(this._formatMessage("[T] " + msg));
+    trace = (msg: string) => console.log(this._formatMessage('[T] ' + msg));
     copyFor = (name: string) => new Blogger(name);
 }
 
 class Influencer extends Blogger {
-    subtrace = (msg: string) => console.log(this._formatMessage("[S] " + msg));
+    subtrace = (msg: string) => console.log(this._formatMessage('[S] ' + msg));
     copyFor = (name: string) => new Influencer(name);
 }
 

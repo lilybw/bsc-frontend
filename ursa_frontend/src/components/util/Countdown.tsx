@@ -2,43 +2,45 @@ import { createSignal, onCleanup, Component, createEffect, Accessor, onMount } f
 import { IStyleOverwritable } from '../../ts/types';
 
 interface CountdownProps extends IStyleOverwritable {
-  /**
-  * In seconds.
-  */
-  duration: number;
-  onComplete?: () => void;
-  cancelSignal?: Accessor<boolean>;
+    /**
+     * In seconds.
+     */
+    duration: number;
+    onComplete?: () => void;
+    cancelSignal?: Accessor<boolean>;
 }
 
 const Countdown: Component<CountdownProps> = (props) => {
-  const [timeLeft, setTimeLeft] = createSignal(props.duration);
-  const [isCanceled, setIsCanceled] = createSignal(false);
-  const [timer, setTimer] = createSignal<NodeJS.Timeout | undefined>(undefined);
+    const [timeLeft, setTimeLeft] = createSignal(props.duration);
+    const [isCanceled, setIsCanceled] = createSignal(false);
+    const [timer, setTimer] = createSignal<NodeJS.Timeout | undefined>(undefined);
 
-  onMount(() => {
-    setTimer(setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1 || isCanceled()) {
+    onMount(() => {
+        setTimer(
+            setInterval(() => {
+                setTimeLeft((prev) => {
+                    if (prev <= 1 || isCanceled()) {
+                        clearInterval(timer());
+                        if (props.onComplete && !isCanceled()) {
+                            props.onComplete();
+                        }
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000),
+        );
+
+        onCleanup(() => clearInterval(timer()));
+    });
+
+    createEffect(() => {
+        if (props.cancelSignal && props.cancelSignal()) {
+            setIsCanceled(true);
             clearInterval(timer());
-            if (props.onComplete && !isCanceled()) {
-              props.onComplete();
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-    }, 1000));
+        }
+    });
 
-    onCleanup(() => clearInterval(timer()));
-  })
-
-  createEffect(() => {
-    if (props.cancelSignal && props.cancelSignal()) {
-      setIsCanceled(true);
-      clearInterval(timer());
-    }
-  });
-
-  return <div class={props.styleOverwrite}>{timeLeft()}</div>;
+    return <div class={props.styleOverwrite}>{timeLeft()}</div>;
 };
 export default Countdown;

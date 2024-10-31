@@ -27,11 +27,15 @@ export interface IMultiplayerIntegration {
      */
     getMode: Accessor<MultiplayerMode>;
     /**
-     * The current state of the colony local player is on. 
+     * The current state of the colony local player is on.
      * Open means connected to a lobby, and thus multiplayer.
      * Closed is singleplayer.
      */
     getState: Accessor<ColonyState>;
+    /**
+     * The code of the currently connected colony.
+     */
+    getCode: Accessor<ColonyCode | null>;
     connect: (code: ColonyCode, onClose: (ev: CloseEvent) => void) => Promise<Error | undefined>;
     disconnect: () => Promise<void>;
     getServerStatus: () => Promise<ResCodeErr<HealthCheckDTO>>;
@@ -45,10 +49,8 @@ export const initializeMultiplayerIntegration = (
     backend: BackendIntegration,
     log: Logger,
     multiplexer: IExpandedAccessMultiplexer,
-    mode: MultiplayerMode,
 ): ResErr<IMultiplayerIntegration> => {
-    const integration = new MultiplayerIntegrationImpl(backend, log, multiplexer, mode);
-
+    const integration = new MultiplayerIntegrationImpl(backend, log, multiplexer);
     return { res: integration, err: null };
 };
 
@@ -58,22 +60,23 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
     private connectedLobbyID: number | null = null;
     private serverAddress: string | null = null;
     private subscriptions: number[] = [];
-    
-    private readonly mode: WrappedSignal<MultiplayerMode> = createWrappedSignal<MultiplayerMode>(MultiplayerMode.AS_GUEST);
+
+    private readonly mode: WrappedSignal<MultiplayerMode> = createWrappedSignal<MultiplayerMode>(MultiplayerMode.AS_OWNER);
     private readonly state: WrappedSignal<ColonyState> = createWrappedSignal<ColonyState>(ColonyState.CLOSED);
+    private readonly code: WrappedSignal<ColonyCode | null> = createWrappedSignal<ColonyCode | null>(null);
     private readonly log: Logger;
+    private readonly internalOriginID: string = 'multiplayerIntegration';
     constructor(
         private readonly backend: BackendIntegration,
         log: Logger,
         private readonly multiplexer: IExpandedAccessMultiplexer,
-        mode: MultiplayerMode,
     ) {
-        this.mode = createWrappedSignal(mode);
         this.log = log.copyFor('mp int');
     }
 
     public getMode = this.mode.get; //Function ref to Accessor<MultiplayerMode>
     public getState = this.state.get; //Function ref to Accessor<ColonyState>
+    public getCode = this.code.get; //Function ref to Accessor<ColonyCode | null>
 
     public getServerStatus = async (): Promise<ResCodeErr<HealthCheckDTO>> => {
         if (this.serverAddress === null) {
@@ -96,30 +99,21 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         if (this.connectedLobbyID === null || this.serverAddress === null) {
             return { res: null, code: 601, err: 'Not connected to a lobby' };
         }
-        let res;
-        try {
-            res = await fetch(`${this.serverAddress}/lobby/${this.connectedLobbyID}`);
-        } catch (e) {
-            return { res: null, code: 600, err: 'Failed to send request for lobby state' };
-        }
-        if (!res.ok) {
-            return { res: null, code: res.status, err: 'Failed to get lobby state' };
-        }
-        const json = await res.json();
-        return { res: json, code: res.status, err: null };
+        //Proxying calls for now to avoid preflight checks
+        return this.backend.proxy.multiplayer.getLobbyState(this.connectedLobbyID);
     };
 
     public connect = async (colonyCode: ColonyCode, onClose: (ev: CloseEvent) => void): Promise<Error | undefined> => {
-        const { res, code, err } = await this.backend.joinColony(colonyCode);
+        const { res, code, err } = await this.backend.colony.join(colonyCode);
         if (err != null) {
             return 'Failed to get multiplayer server address from backend. Code: ' + code + ' Error: ' + err;
         }
         const address = res.multiplayerServerAddress;
         const lobbyID = res.lobbyId;
-        const computedIGN = this.backend.localPlayer.firstName + ' ' + this.backend.localPlayer.lastName;
+        const computedIGN = this.backend.player.local.firstName + ' ' + this.backend.player.local.lastName;
         const ownerOfColonyJoined = res.owner;
-        const localUserID = this.backend.localPlayer.id;
-        
+        const localUserID = this.backend.player.local.id;
+
         //protocol://host:port is provided by the main backend, as well as lobby id
         let conn;
         try {
@@ -128,9 +122,11 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         } catch (e) {
             return 'Initial connection attempt to multiplayer server failed. Error: ' + JSON.stringify(e);
         }
-
-        this.mode.set(ownerOfColonyJoined === this.backend.localPlayer.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST);
+        const newMode = ownerOfColonyJoined === this.backend.player.local.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST;
+        this.log.trace(`Local player joined lobby as: ${newMode}`);
+        this.mode.set(newMode);
         this.state.set(ColonyState.OPEN);
+        this.code.set(colonyCode);
         this.connectedLobbyID = lobbyID;
         this.serverAddress = address;
 
@@ -138,36 +134,40 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         if (this.subscriptions && this.subscriptions.length > 0) {
             this.multiplexer.unsubscribe(...this.subscriptions);
         }
-        
+
+        const mode = this.mode.get();
         //Subscribe to all events coming from this frontend's user's actions
         //in order to replicate them back to the server, which will then send them to all other clients
         //However only subscribe to those which this user is allowed to send to the server in the first place
         this.subscriptions = Object.values(EVENT_ID_MAP)
             .filter((spec) => {
-                const mode = this.mode.get();
                 return (
-                    (mode === MultiplayerMode.AS_OWNER && (spec.permissions.owner || spec.permissions.guest)) ||
-                    (mode === MultiplayerMode.AS_GUEST && spec.permissions.guest)
+                    (newMode === MultiplayerMode.AS_OWNER && (spec.permissions.owner || spec.permissions.guest)) ||
+                    (newMode === MultiplayerMode.AS_GUEST && spec.permissions.guest)
                 );
             })
-            .map((spec) => {
-                return this.multiplexer.subscribe(spec, (data) => {
-                    this.send(data, spec);
-                });
-            });
+            .map(this.establishSubscription);
 
         return this.configureConnection(conn, onClose);
     };
+    //Extracted as own function for the generic parameter
+    private establishSubscription = <T extends IMessage>(spec: EventSpecification<T>) => {
+        return this.multiplexer.subscribe(
+            spec,
+            Object.assign((data: T) => this.send(data, spec), { internalOrigin: this.internalOriginID }),
+        );
+    };
 
     public disconnect = async () => {
-        this.log.info("disconnecting from lobby")
+        this.log.info('disconnecting from lobby');
         this.connection?.close();
         this.state.set(ColonyState.CLOSED);
+        this.code.set(null);
         //We do not have to overwrite mode, as it is tied to the current colony, not the lobby
-        
+        //And if the current colony is dismounted, the app reloads anyways
         this.serverAddress = null;
         this.connectedLobbyID = null;
-    }
+    };
 
     /**
      * @param spec Needed to efficiently serialize data
@@ -178,7 +178,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         this.connection?.send(createViewAndSerializeMessage(data, spec));
     };
 
-    private configureConnection = (conn: WebSocket, onClose: (ev: CloseEvent) => void): Promise<Error | undefined> => {
+    private configureConnection = async (conn: WebSocket, onClose: (ev: CloseEvent) => void): Promise<Error | undefined> => {
         conn.onopen = () => {
             this.log.trace(`[multiplayer] Connection to server established: ${conn.url}`);
             this.connection = conn;
@@ -195,7 +195,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
                         this.log.error(`Received message with less than 8 bytes: ${view.byteLength}, content as string: 
                             ${parseGoTypeAtOffsetInView(view, 8, GoType.STRING)}
                         `);
-                        
+
                         return;
                     }
 
@@ -211,7 +211,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
 
                     const decoded = serializeTypeFromData(view, sourceID, spec);
 
-                    this.multiplexer.emitRAW(decoded);
+                    this.multiplexer.emitRAW(decoded, this.internalOriginID);
                 })
                 .catch((e: Error) => {
                     this.log.error(`Error while processing message: ${e}`);
@@ -221,6 +221,6 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             onClose(ce);
             this.multiplexer.unsubscribe(...this.subscriptions);
         };
-        return Promise.resolve(undefined);
+        return undefined;
     };
 }

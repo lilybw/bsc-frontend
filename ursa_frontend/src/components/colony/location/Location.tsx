@@ -1,16 +1,26 @@
-import { Accessor, Component, createMemo, createSignal, onCleanup, onMount } from "solid-js";
-import { ColonyInfoResponseDTO, ColonyLocationInformation, LocationInfoResponseDTO, TransformDTO } from "../../../integrations/main_backend/mainBackendDTOs";
-import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from "../../../ts/types";
-import { css } from "@emotion/css";
-import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eventMultiplexer";
-import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, ENTER_LOCATION_EVENT, PLAYER_MOVE_EVENT } from "../../../integrations/multiplayer_backend/EventSpecifications";
-import BufferBasedButton from "../../BufferBasedButton";
-import AssetCollection from "../AssetCollection";
-import { Styles } from "../../../sharedCSS";
-import LocationCard from "./LocationCard";
-import { WrappedSignal } from "../../../ts/wrappedSignal";
-import { ActionContext, TypeIconTuple } from "../../../ts/actionContext";
-import { IMultiplayerIntegration } from "../../../integrations/multiplayer_backend/multiplayerBackend";
+import { Accessor, Component, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
+import {
+    ColonyInfoResponseDTO,
+    ColonyLocationInformation,
+    LocationInfoResponseDTO,
+    TransformDTO,
+} from '../../../integrations/main_backend/mainBackendDTOs';
+import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from '../../../ts/types';
+import { css } from '@emotion/css';
+import { IEventMultiplexer } from '../../../integrations/multiplayer_backend/eventMultiplexer';
+import {
+    DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
+    DIFFICULTY_SELECT_FOR_MINIGAME_EVENT,
+    ENTER_LOCATION_EVENT,
+    PLAYER_MOVE_EVENT,
+} from '../../../integrations/multiplayer_backend/EventSpecifications';
+import AssetCollection from '../AssetCollection';
+import { Styles } from '../../../sharedCSS';
+import LocationCard from './LocationCard';
+import { WrappedSignal } from '../../../ts/wrappedSignal';
+import { ActionContext, TypeIconTuple } from '../../../ts/actionContext';
+import { IMultiplayerIntegration } from '../../../integrations/multiplayer_backend/multiplayerBackend';
+import BufferBasedButton from '../../base/BufferBasedButton';
 
 interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colony: ColonyInfoResponseDTO;
@@ -29,8 +39,7 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
 const calcNamePlatePosition = (y: number) => {
     //However this should bring the nameplate towards the center of the location in case we're close to the top of the screen.
     return y < 100 ? y + 100 : y - 50;
-}
-
+};
 
 const getCollectionForLevel = (level: number, info: LocationInfoResponseDTO) => {
     const sorted = info.appearances.sort((a, b) => a.level - b.level);
@@ -42,7 +51,7 @@ const getCollectionForLevel = (level: number, info: LocationInfoResponseDTO) => 
         }
     }
     return appearance;
-}
+};
 
 const Location: Component<LocationProps> = (props) => {
     const [isUserHere, setUserIsHere] = createSignal(false);
@@ -50,10 +59,8 @@ const Location: Component<LocationProps> = (props) => {
     const [idOfDiffSelected, setIdOfDiffSelected] = createSignal(-1);
     const [previousActionContext, setPreviousActionContext] = createSignal(ActionContext.NAVIGATION);
 
-    const currentDisplayText = createMemo(() => isUserHere() ?
-        props.text.get("LOCATION.USER_ACTION.ENTER").get() 
-        :
-        props.text.get(props.location.name).get()
+    const currentDisplayText = createMemo(() =>
+        isUserHere() ? props.text.get('LOCATION.USER_ACTION.ENTER').get() : props.text.get(props.location.name).get(),
     );
 
     const onButtonActivation = () => {
@@ -63,27 +70,27 @@ const Location: Component<LocationProps> = (props) => {
             props.actionContext.set(ActionContext.INTERACTION);
             props.plexer.emit(ENTER_LOCATION_EVENT, {
                 id: props.colonyLocation.id,
-            })
+            });
             return;
         }
 
         props.plexer.emit(PLAYER_MOVE_EVENT, {
-            playerID: props.backend.localPlayer.id,
+            playerID: props.backend.player.local.id,
             colonyLocationID: props.colonyLocation.id,
         });
-    }
+    };
 
     onMount(() => {
         const playerMoveSubId = props.plexer.subscribe(PLAYER_MOVE_EVENT, (event) => {
-            if (event.playerID !== props.backend.localPlayer.id) return;
+            if (event.playerID !== props.backend.player.local.id) return;
 
-            if (event.colonyLocationID === props.colonyLocation.id){ 
+            if (event.colonyLocationID === props.colonyLocation.id) {
                 setUserIsHere(true);
-            }else {
+            } else {
                 setUserIsHere(false);
                 setShowLocationCard(false);
                 props.actionContext.set(previousActionContext());
-            }            
+            }
         });
         const diffSelectSubId = props.plexer.subscribe(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, (event) => {
             setIdOfDiffSelected(event.difficultyID);
@@ -93,12 +100,12 @@ const Location: Component<LocationProps> = (props) => {
             props.actionContext.set(previousActionContext());
         });
         onCleanup(() => props.plexer.unsubscribe(playerMoveSubId, diffSelectSubId, diffConfirmedSubId));
-    })
+    });
 
     const onLocationCardClose = () => {
         setShowLocationCard(false);
         props.actionContext.set(previousActionContext());
-    }
+    };
 
     const appendCard = () => {
         if (showLocationCard()) {
@@ -115,16 +122,20 @@ const Location: Component<LocationProps> = (props) => {
                     register={props.register}
                     onClose={onLocationCardClose}
                 />
-            )
+            );
         }
-    }
+    };
 
-    const computedContainerStyle = createMemo(() => css`${locationContainerStyle} ${props.styleOverwrite}`);
+    const computedContainerStyle = createMemo(
+        () => css`
+            ${locationContainerStyle} ${props.styleOverwrite}
+        `,
+    );
     const computedButtonTransform = createMemo<TransformDTO>(() => {
         return {
             ...props.transform.get(),
-            zIndex: props.transform.get().zIndex + 10, // Keep zIndex as is for layering
-        }
+            zIndex: props.transform.get().zIndex + 10, // adjust zIndex to be on top of other graphical assets
+        };
     });
     const computedNamePlateStyle = createMemo(() => {
         const transform = computedButtonTransform();
@@ -132,29 +143,29 @@ const Location: Component<LocationProps> = (props) => {
             ${namePlateStyle}
             ${Styles.transformToCSSVariables(transform)}
             ${Styles.TRANSFORM_APPLICATOR}  
-            top: ${calcNamePlatePosition(transform.yOffset)}px; 
-        `
-    })
+            top: ${calcNamePlatePosition(transform.yOffset)}px;
+        `;
+    });
 
     return (
-        <div class={computedContainerStyle()} id={"location-" + props.location.name + "-level-" + props.colonyLocation.level}>
+        <div class={computedContainerStyle()} id={'location-' + props.location.name + '-level-' + props.colonyLocation.level}>
             <BufferBasedButton
                 styleOverwrite={computedNamePlateStyle()}
                 onActivation={onButtonActivation}
-                name={currentDisplayText} 
+                name={currentDisplayText}
                 buffer={props.buffer}
                 register={props.register}
                 charBaseStyleOverwrite={namePlateTextOverwrite}
             />
-            <AssetCollection 
+            <AssetCollection
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
                 backend={props.backend}
                 topLevelTransform={props.transform}
             />
             {appendCard()}
         </div>
-    )
-}
+    );
+};
 
 export default Location;
 
@@ -162,14 +173,14 @@ const locationContainerStyle = css`
     position: absolute;
     left: 0;
     top: 0;
-`
+`;
 
 const namePlateStyle = css`
     position: absolute;
     left: 0;
     top: 0;
-`
+    ${Styles.GLASS.FAINT_BACKGROUND}
+`;
 const namePlateTextOverwrite = css`
-    color: cyan;
     text-shadow: 5px 5px 10px black;
-`
+`;
