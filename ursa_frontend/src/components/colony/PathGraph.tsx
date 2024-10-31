@@ -1,4 +1,4 @@
-import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect } from 'solid-js';
+import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect, untrack } from 'solid-js';
 import {
     ColonyInfoResponseDTO,
     ColonyLocationInformation,
@@ -79,24 +79,26 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         const currentDNS = DNS();
         const currentGAS = GAS();
 
-        for (const colonyLocationInfo of colonyLocation.get) {
-            const computedTransform: TransformDTO = {
-                ...colonyLocationInfo.transform,
-                // Camera is applied to the parent. Not here.
-                xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x,
-                yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y,
-                xScale: colonyLocationInfo.transform.xScale * currentGAS,
-                yScale: colonyLocationInfo.transform.yScale * currentGAS,
-            };
-
-            transformMap.get(colonyLocationInfo.id)!.set(computedTransform);
-            colonyLocation.mutateByPredicate(
-                (e) => e.id === colonyLocationInfo.id,
-                (element) => ({
-                    ...element, transform: computedTransform
-                }),
-            );
-        }
+        untrack(() => {
+            for (const colonyLocationInfo of colonyLocation.get) {
+                const computedTransform: TransformDTO = {
+                    ...colonyLocationInfo.transform,
+                    // Camera is applied to the parent (camera-container). Not here.
+                    xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x,
+                    yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y,
+                    xScale: colonyLocationInfo.transform.xScale * currentGAS,
+                    yScale: colonyLocationInfo.transform.yScale * currentGAS,
+                };
+    
+                transformMap.get(colonyLocationInfo.id)!.set(computedTransform);
+                colonyLocation.mutateByPredicate(
+                    (e) => e.id === colonyLocationInfo.id,
+                    (element) => ({
+                        ...element, transform: computedTransform
+                    }),
+                );
+            }
+        })
     });
 
     const calculateScalars = () => {
