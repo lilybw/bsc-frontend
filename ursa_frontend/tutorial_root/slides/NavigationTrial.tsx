@@ -27,15 +27,98 @@ interface EntityRef {
 }
 
 const MOCK_LOCATIONS = [
-    { id: 1, name: 'HOME', transform: { xOffset: 960, yOffset: 540, xScale: 1, yScale: 1, zIndex: 1 } },
-    { id: 2, name: 'SHOP', transform: { xOffset: 1440, yOffset: 270, xScale: 1, yScale: 1, zIndex: 1 } },
-    { id: 3, name: 'PARK', transform: { xOffset: 480, yOffset: 810, xScale: 1, yScale: 1, zIndex: 1 } },
-    { id: 4, name: 'LIBRARY', transform: { xOffset: 1440, yOffset: 810, xScale: 1, yScale: 1, zIndex: 1 } }
+    // Center region
+    {
+        id: 1,
+        name: 'HOME',
+        transform: {
+            xOffset: 960,  // Center
+            yOffset: 540,  // Center
+            xScale: 1,
+            yScale: 1,
+            zIndex: 1
+        }
+    },
+    // Upper region, slightly off-center
+    {
+        id: 2,
+        name: 'SHOP',
+        transform: {
+            xOffset: 1280,  // Moved right from previous
+            yOffset: 200,   // Higher up
+            xScale: 1,
+            yScale: 1,
+            zIndex: 1
+        }
+    },
+    // Lower left region
+    {
+        id: 3,
+        name: 'PARK',
+        transform: {
+            xOffset: 400,   // Further left
+            yOffset: 920,   // Lower down
+            xScale: 1,
+            yScale: 1,
+            zIndex: 1
+        }
+    },
+    // Right region
+    {
+        id: 4,
+        name: 'LIBRARY',
+        transform: {
+            xOffset: 1600,  // Further right
+            yOffset: 680,   // Middle-low
+            xScale: 1,
+            yScale: 1,
+            zIndex: 1
+        }
+    },
+    // Upper left region
+    {
+        id: 5,
+        name: 'GARDEN',
+        transform: {
+            xOffset: 320,   // Left side
+            yOffset: 320,   // Upper area
+            xScale: 1,
+            yScale: 1,
+            zIndex: 1
+        }
+    },
+    // Lower right region
+    {
+        id: 6,
+        name: 'CAFE',
+        transform: {
+            xOffset: 1200,  // Right of center
+            yOffset: 880,   // Lower area
+            xScale: 1,
+            yScale: 1,
+            zIndex: 1
+        }
+    }
 ];
 
+// Create a more strategic path layout where not everything is connected
 const MOCK_PATHS = [
-    { from: 1, to: 2 }, { from: 2, to: 3 }, { from: 3, to: 4 },
-    { from: 4, to: 1 }, { from: 1, to: 3 }, { from: 2, to: 4 }
+    // Paths from HOME (central hub)
+    { from: 1, to: 2 },  // HOME to SHOP
+    { from: 1, to: 5 },  // HOME to GARDEN
+    { from: 1, to: 6 },  // HOME to CAFE
+
+    // Upper circuit
+    { from: 2, to: 4 },  // SHOP to LIBRARY
+    { from: 2, to: 5 },  // SHOP to GARDEN
+
+    // Lower circuit
+    { from: 3, to: 6 },  // PARK to CAFE
+    { from: 6, to: 4 },  // CAFE to LIBRARY
+
+    // Cross connections
+    { from: 5, to: 3 },  // GARDEN to PARK
+    { from: 4, to: 1 },  // LIBRARY back to HOME
 ];
 
 const NavigationTrial: Component<NavigationTrialProps> = (props) => {
