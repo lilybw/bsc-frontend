@@ -26,6 +26,14 @@ export interface Minigame<T extends object> {
 
 export enum KnownMinigames {
     ASTEROIDS = 1,
+    UNKNOWN = 99999
+}
+
+export const getMinigameName = (minigameID: uint32): string => {
+    for (const [key, value] of Object.entries(KnownMinigames)) {
+        if (value === minigameID) return key;
+    }
+    return KnownMinigames.UNKNOWN.toString();
 }
 
 /**

@@ -20,6 +20,7 @@ export interface TrackedClient extends ClientDTO {
     participation: PlayerParticipation 
 };
 
+/** Tracks the state of all non-local players */
 class ClientTracker {
     private readonly clients = createArrayStore<TrackedClient>();
     private readonly subIDS: uint32[] = [];
@@ -91,6 +92,10 @@ class ClientTracker {
                 participation: PlayerParticipation.UNDECIDED,
             });
         }
+    }
+
+    public getByID = (id: uint32): TrackedClient | undefined => {
+        return this.clients.findFirst((c) => c.id === id);
     }
 
     public getAsClients = (): ArrayStore<ClientDTO> => {

@@ -166,7 +166,9 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                     <div class={css`${difficultyTextStyle} color: white; text-transform: none;`}>
                         {props.text.get("MINIGAME.DIFFICULTY").get()}
                     </div>
-                    <div class={difficultyTextStyle}>{props.gameToBeMounted.difficultyName}</div>
+                    <div class={difficultyTextStyle}>{
+                        props.text.get(props.gameToBeMounted.difficultyName).get()
+                    }</div>
                 </div>
             </div>
             <OnScreenKeyboard

@@ -31,6 +31,7 @@ import SectionTitle from '../src/components/base/SectionTitle';
 import StarryBackground from '../src/components/base/StarryBackground';
 import { Styles } from '../src/sharedCSS';
 import ClientTracker from '../src/components/colony/mini_games/ClientTracker';
+import { getMinigameName } from '../src/components/colony/mini_games/miniGame';
 
 export type StrictJSX =
     | Node
@@ -38,6 +39,10 @@ export type StrictJSX =
     | (string & {})
     | NonNullable<Exclude<Exclude<Exclude<JSX.Element, string>, number>, boolean>>
     | Element;
+
+interface DiffConfWExtraInfo extends DifficultyConfirmedForMinigameMessageDTO {
+    minigameName: string;
+}
 
 /**
  * ColonyApp component responsible for managing the colony view and minigames.
@@ -48,7 +53,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
         const inputBuffer = createWrappedSignal<string>('');
         const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.NAVIGATION);
         const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
-        const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DifficultyConfirmedForMinigameMessageDTO | null>(null);
+        const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DiffConfWExtraInfo | null>(null);
         const [shuntNotaficationReason, setShuntNotificationReason] = createSignal<string>('Unknown');
         const [showNotification, setShowShuntNotification] = createSignal<boolean>(false);
         const log = props.context.logger.copyFor('colony');
@@ -164,7 +169,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 setShuntNotificationReason('NOTIFICATION.MULTIPLAYER.LOBBY_CLOSING');
             });
             const diffConfirmedSubId = subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (data) => {
-                setConfirmedDifficulty(data);
+                setConfirmedDifficulty({...data, minigameName: getMinigameName(data.minigameID)});
                 //When confirmedDifficulty != null, the HandPlacementCheck is shown
                 //The HandPlacementCheck emits the required Player Join Activity or Player Aborting Activity
                 //And then forwards to the waiting screen
@@ -210,8 +215,10 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
 
             return (
                 <HandPlacementCheck
-                    nameOfOwner={"HOOK MISSING"}
-                    nameOfMinigame={"TOBEIMPLEMENTED"}
+                    nameOfOwner={
+                        clientTracker.getByID(bundleSwapColonyInfo.res?.owner!)?.IGN 
+                        || props.context.backend.player.local.firstName}
+                    nameOfMinigame={confDiff.minigameName}
                     gameToBeMounted={confDiff}
                     events={props.context.events}
                     backend={props.context.backend}
