@@ -39,7 +39,7 @@ const MOCK_PATHS = [
 ];
 
 const NavigationTrial: Component<NavigationTrialProps> = (props) => {
-    const [layoutComplete, setLayoutComplete] = createSignal(false);
+    const [visitedLocations, setVisitedLocations] = createSignal<Set<number>>(new Set([1])); // Start with HOME as visited
     const pathStore = createArrayStore(MOCK_PATHS);
     const worldOffset = createWrappedSignal({ x: 0, y: 0 });
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
@@ -75,8 +75,6 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     const elementRefs = new Map<string, EntityRef>();
     const [elementsReady, setElementsReady] = createSignal(false);
 
-    setTimeout(() => props.onSlideCompleted(), 50); // CHANGE LATER
-
     // Create reactive scaled positions
     const getScaledPositions = createMemo(() => {
         const currentDNS = DNS();
@@ -89,6 +87,16 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         }));
     });
 
+    const checkCompletion = () => {
+        const allLocations = new Set(MOCK_LOCATIONS.map(loc => loc.id));
+        const visited = visitedLocations();
+        const allVisited = Array.from(allLocations).every(id => visited.has(id));
+
+        if (allVisited) {
+            console.log('All locations visited! Completing slide.');
+            props.onSlideCompleted();
+        }
+    };
 
     // Utility to get the center position of an element by its reference key
     const getTargetCenterPosition = (locationId: string): Position | null => {
@@ -210,8 +218,18 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         const paths = pathMap.get(currentLoc);
         if (!paths?.includes(data.colonyLocationID)) return;
 
+        // Update visited locations
+        setVisitedLocations(prev => {
+            const newSet = new Set(prev);
+            newSet.add(data.colonyLocationID);
+            return newSet;
+        });
+
         moveToLocation(currentLoc, data.colonyLocationID);
         setCurrentLocationOfLocalPlayer(data.colonyLocationID);
+
+        // Check if all locations have been visited
+        checkCompletion();
     };
 
     const handleBufferUpdate = (value: string | ((prev: string) => string)) => {
@@ -284,6 +302,32 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         `;
     });
 
+    const getLocationStyle = (location: { id: number; scaledPosition: { x: number; y: number }; transform: { zIndex: number } }) => {
+        const isCurrentLocation = location.id === currentLocationOfLocalPlayer();
+        const canMoveTo = pathMap.get(currentLocationOfLocalPlayer())?.includes(location.id) || false;
+        const isVisited = visitedLocations().has(location.id);
+
+        return css`
+            position: absolute;
+            width: 64px;
+            height: 64px;
+            transform: translate(-50%, -50%);
+            left: ${location.scaledPosition.x}px;
+            top: ${location.scaledPosition.y}px;
+            z-index: ${location.transform.zIndex};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 50%;
+            background-color: black;
+            ${isCurrentLocation ? 'border: 3px solid #3b82f6;' : ''}
+            ${canMoveTo ? 'border: 2px solid rgba(59, 130, 246, 0.5);' : ''}
+            ${isVisited ? 'box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);' : ''}
+            transition: all 0.3s ease-in-out;
+        `;
+    };
+
     return (
         <div class={pathGraphContainerStyle}>
             <StarryBackground />
@@ -347,36 +391,16 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                 {/* Locations */}
                 <For each={getScaledPositions()}>
                     {(location) => {
-                        console.log(`Rendering location ${location.id} at scaled position:`, location.scaledPosition);
-
                         const buttonStyle = css`
-                            position: absolute;
-                            left: ${location.scaledPosition.x}px;
-                            top: ${location.scaledPosition.y - 50}px;
-                            transform: translate(-50%, -50%);
-                            z-index: ${location.transform.zIndex + 1};
-                        `;
-
-
-                        const locationStyle = css`
-                            position: absolute;
-                            width: 64px;
-                            height: 64px;
-                            transform: translate(-50%, -50%);
-                            left: ${location.scaledPosition.x}px;
-                            top: ${location.scaledPosition.y}px;
-                            z-index: ${location.transform.zIndex};
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            overflow: hidden;
-                            border-radius: 50%;
-                            background-color: black;
-                        `;
+                        position: absolute;
+                        left: ${location.scaledPosition.x}px;
+                        top: ${location.scaledPosition.y - 50}px;
+                        transform: translate(-50%, -50%);
+                        z-index: ${location.transform.zIndex + 1};
+                    `;
 
                         return (
                             <div class={locationContainerStyle}>
-
                                 <BufferBasedButton
                                     styleOverwrite={buttonStyle}
                                     onActivation={() => handleMove(location.id)}
@@ -386,7 +410,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                                     charBaseStyleOverwrite={namePlateTextStyle}
                                 />
                                 <div
-                                    class={locationStyle}
+                                    class={getLocationStyle(location)}
                                     ref={(el) => trackElementRef(location.id, el)}
                                 >
                                     <NTAwait func={() => props.backend.assets.getMetadata(1009)}>
@@ -395,10 +419,11 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                                                 metadata={asset}
                                                 backend={props.backend}
                                                 styleOverwrite={css`
-                                                    width: 100%;
-                                                    height: 100%;
-                                                    object-fit: cover;
-                                                `}
+                                                width: 100%;
+                                                height: 100%;
+                                                object-fit: cover;
+                                                ${visitedLocations().has(location.id) ? 'opacity: 1;' : 'opacity: 0.7;'}
+                                            `}
                                             />
                                         )}
                                     </NTAwait>
