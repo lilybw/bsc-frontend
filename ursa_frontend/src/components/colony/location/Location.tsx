@@ -19,13 +19,18 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
     plexer: IEventMultiplexer;
     actionContext: WrappedSignal<TypeIconTuple>;
     multiplayer: IMultiplayerIntegration;
+    /**
+     * Graphical Asset Scalar
+     */
     gas: Accessor<number>;
     transform: WrappedSignal<TransformDTO>;
 }
 
 const calcNamePlatePosition = (y: number) => {
+    //However this should bring the nameplate towards the center of the location in case we're close to the top of the screen.
     return y < 100 ? y + 100 : y - 50;
 }
+
 
 const getCollectionForLevel = (level: number, info: LocationInfoResponseDTO) => {
     const sorted = info.appearances.sort((a, b) => a.level - b.level);
@@ -44,7 +49,6 @@ const Location: Component<LocationProps> = (props) => {
     const [showLocationCard, setShowLocationCard] = createSignal(false);
     const [idOfDiffSelected, setIdOfDiffSelected] = createSignal(-1);
     const [previousActionContext, setPreviousActionContext] = createSignal(ActionContext.NAVIGATION);
-    const [colonyCode, setColonyCode] = createSignal<number | null>(null);
 
     const currentDisplayText = createMemo(() => isUserHere() ?
         props.text.get("LOCATION.USER_ACTION.ENTER").get() 
@@ -75,7 +79,7 @@ const Location: Component<LocationProps> = (props) => {
 
             if (event.colonyLocationID === props.colonyLocation.id){ 
                 setUserIsHere(true);
-            } else {
+            }else {
                 setUserIsHere(false);
                 setShowLocationCard(false);
                 props.actionContext.set(previousActionContext());
@@ -96,14 +100,6 @@ const Location: Component<LocationProps> = (props) => {
         props.actionContext.set(previousActionContext());
     }
 
-    const handleColonyOpen = (code: number) => {
-        setColonyCode(code);
-    };
-
-    const handleColonyClose = () => {
-        setColonyCode(null);
-    };
-
     const appendCard = () => {
         if (showLocationCard()) {
             return (
@@ -118,10 +114,6 @@ const Location: Component<LocationProps> = (props) => {
                     text={props.text}
                     register={props.register}
                     onClose={onLocationCardClose}
-                    styleOverwrite=""
-                    colonyCode={colonyCode}
-                    onColonyOpen={handleColonyOpen}
-                    onColonyClose={handleColonyClose}
                 />
             )
         }
@@ -131,7 +123,7 @@ const Location: Component<LocationProps> = (props) => {
     const computedButtonTransform = createMemo<TransformDTO>(() => {
         return {
             ...props.transform.get(),
-            zIndex: props.transform.get().zIndex + 10,
+            zIndex: props.transform.get().zIndex + 10, // Keep zIndex as is for layering
         }
     });
     const computedNamePlateStyle = createMemo(() => {

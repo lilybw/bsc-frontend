@@ -9,16 +9,12 @@ import { IEventMultiplexer } from "../../../integrations/multiplayer_backend/eve
 import MinigameDifficultyListEntry from "./MinigameDifficultyListEntry";
 import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, DifficultySelectForMinigameMessageDTO } from "../../../integrations/multiplayer_backend/EventSpecifications";
 import UnderConstruction from "../../UnderConstruction";
-import { Accessor } from "solid-js";
 
 export interface GenericLocationCardProps extends IBufferBased, IBackendBased, IInternationalized, IRegistering<string> {
     colonyLocation: ColonyLocationInformation;
     info: LocationInfoResponseDTO;
     events: IEventMultiplexer;
     closeCard: () => void;
-    colonyCode: Accessor<number | null>;
-    onColonyOpen: (code: number) => void;
-    onColonyClose: () => void;
 }
 
 const getIdOfSplashArt = (level: number, choices: {
@@ -37,7 +33,6 @@ const getIdOfSplashArt = (level: number, choices: {
 const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
     const [difficultySelected, setDifficultySelected] = createSignal<DifficultySelectForMinigameMessageDTO | null>(null);
     const log = props.backend.logger.copyFor("gen loc card");
-    
     onMount(() => {
         const diffSelectSubID = props.events.subscribe(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, (data) => {
             if (data.minigameID === props.info.minigameID) {
