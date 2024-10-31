@@ -101,16 +101,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         })
     });
 
-    const calculateScalars = () => {
-        const newWidth = window.innerWidth;
-        const newHeight = window.innerHeight;
-        setViewportDimensions({ width: newWidth, height: newHeight });
-        setDNS({
-            x: newWidth / EXPECTED_WIDTH,
-            y: newHeight / EXPECTED_HEIGHT,
-        });
-        setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)));
-    };
+
 
     const centerCameraOnPoint = (x: number, y: number) => {
         const dim = viewportDimensions();
@@ -143,6 +134,23 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 },
             );
         }
+    };
+
+    let deferRecalculateDNSGASTimeout: NodeJS.Timeout | undefined;
+    const calculateScalars = () => {
+        if (deferRecalculateDNSGASTimeout) {
+            clearTimeout(deferRecalculateDNSGASTimeout);
+        }
+        deferRecalculateDNSGASTimeout = setTimeout(() => {
+            const newWidth = window.innerWidth;
+            const newHeight = window.innerHeight;
+            setViewportDimensions({ width: newWidth, height: newHeight });
+            setDNS({
+                x: newWidth / EXPECTED_WIDTH,
+                y: newHeight / EXPECTED_HEIGHT,
+            });
+            setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)));
+        }, 500);
     };
 
     onMount(() => {
