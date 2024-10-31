@@ -1,28 +1,28 @@
 import { Component, JSX } from 'solid-js';
 import { ApplicationContext, ResErr } from '../../../meta/types';
-import AsteroidsMiniGame from './asteroids_mini_game/AsteroidsMiniGame';
+import AsteroidsMiniGame, { initAsteroidsComponent } from './asteroids_mini_game/AsteroidsMiniGame';
 import { createAsteroidsGameLoop } from './asteroids_mini_game/AsteroidsGameLoop';
 import { AsteroidsSettingsDTO } from './asteroids_mini_game/types/GameTypes';
 import { uint32 } from '../../../integrations/main_backend/mainBackendDTOs';
+import { BackendIntegration } from '../../../integrations/main_backend/mainBackend';
 
-// Define the props interface for minigame components
-export interface MinigameProps<T extends object> {
-    context: ApplicationContext;
-    settings: T;
-    returnToColony: () => void;
-}
 
-export interface Minigame<T extends object> {
-    /** The mock server game loop function
-     *   It takes settings and returns a function to run to start the game loop
-     */
-    mockServerGameloop: (settings: T, context: ApplicationContext) => () => void;
-
-    /** The top-level component for the minigame
-     *   It returns a Solid.js component that accepts MinigameProps
-     */
-    topLevelComponent: () => Component<MinigameProps<T>>;
-}
+/**
+ * Any function, that based on the provided ApplicationContext alone, can initialize all data needed
+ * for establishing the minigame component. The resulting JSX element should be the root of the minigame,
+ * and will be given the entire viewport.
+ */
+export type MinigameComponentInitFunc = (context: ApplicationContext, difficultyID: uint32) => Promise<ResErr<JSX.Element>>;
+/**
+ * Any function, that however it sees fit, starts the single player game loop.
+ * Used by the mock server.
+ */
+export type GenericGameLoopStartFunction = () => void;
+/** 
+ * Any function, that based on the provided ApplicationContext alone, can initialize all data needed
+ * or return an error if something goes wrong during initialization.
+ */
+export type SingleplayerGameLoopInitFunc = (context: ApplicationContext, difficultyID: uint32) => Promise<ResErr<GenericGameLoopStartFunction>>;
 
 export enum KnownMinigames {
     ASTEROIDS = 1,
@@ -39,39 +39,48 @@ export const getMinigameName = (minigameID: uint32): string => {
 /**
  * Load and mount a minigame.
  */
-export const loadMiniGame = async (
-    context: ApplicationContext,
-    returnToColony: () => void,
-    setPageContent: (e: JSX.Element) => void,
-    minigameID: number,
-    difficultyID: number,
-): Promise<ResErr<() => void>> => {
-    if (minigameID === null || difficultyID === null) return { res: null, err: 'Could not load minigame difficualty information is null.' };
-
-    const response = await context.backend.minigame.getMinimizedInfo(minigameID, difficultyID);
-
-    if (response.err !== null) return { res: null, err: response.err };
-
-    const computedSettings = { ...response.res.settings, ...response.res.overwritingSettings };
-    console.table(computedSettings);
-
-    let component: JSX.Element | null = null;
-    let gameLoop: ((settings: AsteroidsSettingsDTO, context: ApplicationContext) => () => void) | null = null;
+export const loadMinigameSingleplayerLoop = (minigameID: number): ResErr<SingleplayerGameLoopInitFunc> => {
+    let gameLoopInitFunc: SingleplayerGameLoopInitFunc | null = null;
 
     switch (minigameID) {
-        case KnownMinigames.ASTEROIDS: {
-            component = <AsteroidsMiniGame settings={computedSettings} context={context} returnToColony={returnToColony} />;
-            gameLoop = createAsteroidsGameLoop;
+        case KnownMinigames.ASTEROIDS: {;
+            gameLoopInitFunc = createAsteroidsGameLoop;
             break;
         }
     }
 
-    if (component === null || gameLoop === null) {
-        return { res: null, err: 'Could not load minigame, no component or minigame found.' };
+    if (gameLoopInitFunc === null) {
+        return { res: null, err: 'Could not load minigame gameloop, no loop found for minigame id: ' + minigameID};
     }
 
-    setPageContent(component);
-    const startLoop = gameLoop(computedSettings, context);
-
-    return { res: startLoop, err: null };
+    return { res: gameLoopInitFunc, err: null };
 };
+
+export const getMinigameComponentInitFunction = (minigameID: number): ResErr<MinigameComponentInitFunc> => {
+    let initFunc: MinigameComponentInitFunc | null = null;
+
+    switch (minigameID) {
+        case KnownMinigames.ASTEROIDS: {
+            initFunc = initAsteroidsComponent;
+            break;
+        }
+    }
+
+    if (!initFunc || initFunc === null) {
+        return {res: null, err: 'Could not find minigame component init function for minigame id: ' + minigameID};
+    }
+
+    return {res: initFunc, err: null};
+}
+
+export const loadComputedSettings = async <T extends Object>(backend: BackendIntegration, minigameID: number, difficultyID: number): Promise<ResErr<T>> => {
+    if (minigameID === null || difficultyID === null) return { res: null, err: 'Could not load minigame difficualty information is null.' };
+
+    const response = await backend.minigame.getMinimizedInfo(minigameID, difficultyID);
+
+    if (response.err !== null) return { res: null, err: response.err };
+
+    const computedSettings = { ...response.res.settings, ...response.res.overwritingSettings };
+
+    return { res: computedSettings, err: null };
+}

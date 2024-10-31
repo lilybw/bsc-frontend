@@ -21,8 +21,8 @@ import {
 } from '../../../../integrations/multiplayer_backend/EventSpecifications';
 import { CharCodeGenerator, SYMBOL_SET } from './charCodeGenerator';
 import { uint32, PlayerID } from '../../../../integrations/main_backend/mainBackendDTOs';
-import { Minigame } from '../miniGame';
-import { ApplicationContext } from '../../../../meta/types';
+import { GenericGameLoopStartFunction, KnownMinigames, loadComputedSettings, SingleplayerGameLoopInitFunc } from '../miniGame';
+import { ApplicationContext, ResErr } from '../../../../meta/types';
 import { MOCK_SERVER_ID } from '../../../../ts/mockServer';
 import { Logger } from '../../../../logging/filteredLogger';
 import { AsteroidsSettingsDTO } from './types/GameTypes';
@@ -211,10 +211,16 @@ class AsteroidsGameLoop {
     };
 }
 
-export const createAsteroidsGameLoop: Minigame<AsteroidsSettingsDTO>['mockServerGameloop'] = (
-    settings: AsteroidsSettingsDTO,
+export const createAsteroidsGameLoop: SingleplayerGameLoopInitFunc = async (
     context: ApplicationContext,
-) => {
-    const loop = new AsteroidsGameLoop(context, settings);
-    return loop.start;
+    difficultyID: uint32,
+): Promise<ResErr<GenericGameLoopStartFunction>> => {
+
+    const settings = await loadComputedSettings<AsteroidsSettingsDTO>(context.backend, KnownMinigames.ASTEROIDS, difficultyID);
+    if (settings.err !== null) {
+        return {res: null, err: "Error initializing gameloop: " + settings.err};
+    }
+    const loop = new AsteroidsGameLoop(context, settings.res);
+
+    return {res: loop.start, err: null};
 };

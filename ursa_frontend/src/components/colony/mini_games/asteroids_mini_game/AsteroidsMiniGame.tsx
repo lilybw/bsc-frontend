@@ -1,8 +1,8 @@
-import { Component, createSignal, onMount, onCleanup, For, createMemo, createEffect } from 'solid-js';
+import { Component, createSignal, onMount, onCleanup, For, createMemo, createEffect, JSX } from 'solid-js';
 import { createArrayStore } from '../../../../ts/arrayStore';
 import { ActionContext, BufferSubscriber, TypeIconTuple } from '../../../../ts/actionContext';
 import { createWrappedSignal } from '../../../../ts/wrappedSignal';
-import { MinigameProps } from '../miniGame';
+import { KnownMinigames, loadComputedSettings, MinigameComponentInitFunc } from '../miniGame';
 import { Asteroid } from './entities/Asteroid';
 import { Player } from './entities/Player';
 import { LazerBeam } from './entities/LazerBeam';
@@ -54,16 +54,33 @@ import StarryBackground from '../../../base/StarryBackground';
 import { BaseParticle, ParticleManager, StunParticle } from './entities/particles';
 import { particleContainerStyle } from './styles/ParticleStyles';
 import PlayerStunEffect from './components/PlayerStunEffect';
+import { ApplicationContext, ResErr } from '../../../../meta/types';
+import { uint32 } from '../../../../integrations/main_backend/mainBackendDTOs';
 
 type PlayerState = {
     isStunned: boolean;
     isDisabled: boolean;
 };
 
+interface AsteroidsProps {
+    context: ApplicationContext;
+    settings: AsteroidsSettingsDTO;
+}
+
+export const initAsteroidsComponent: MinigameComponentInitFunc = async (context: ApplicationContext, difficultyID: uint32): Promise<ResErr<JSX.Element>> => {
+    const settings = await loadComputedSettings(context.backend, KnownMinigames.ASTEROIDS, difficultyID);
+    if (settings.err !== null) {
+        return { res: null, err: "Error initializing minigame component: " + settings.err };
+    }
+    const asteroidSettings = settings.res as AsteroidsSettingsDTO;
+
+    return { res: <AsteroidsMiniGame context={context} settings={asteroidSettings} />, err: null };
+}
+
 /**
  * Main Asteroids minigame component
  */
-const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props) => {
+const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     const internalOrigin = 'ASTEROIDS_MINIGAME_INTERNAL_ORIGIN';
 
     // State Management
@@ -254,7 +271,7 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
     };
 
     // Component Lifecycle and Event Subscriptions
-    onMount(() => {
+    onMount(async () => {
         // Window resize handler
         const handleResize = () => {
             setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -275,7 +292,6 @@ const AsteroidsMiniGame: Component<MinigameProps<AsteroidsSettingsDTO>> = (props
                         y: spawnPos.y,
                         endX: impactPos.x,
                         endY: impactPos.y,
-                        health: props.settings.asteroidMaxHealth,
                         timeUntilImpact: data.timeUntilImpact,
                         speed: data.timeUntilImpact,
                         element: null,

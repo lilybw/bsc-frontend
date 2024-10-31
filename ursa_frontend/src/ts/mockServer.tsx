@@ -13,7 +13,7 @@ import {
     ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT,
 } from '../integrations/multiplayer_backend/EventSpecifications';
 import { ApplicationContext } from '../meta/types';
-import { loadMiniGame } from '../components/colony/mini_games/miniGame';
+import { loadMinigameSingleplayerLoop, SingleplayerGameLoopInitFunc } from '../components/colony/mini_games/miniGame';
 import { Logger } from '../logging/filteredLogger';
 
 /**
@@ -97,7 +97,7 @@ export class MockServer implements IMockServer {
         this.lobbyPhase = LobbyPhase.RoamingColony;
         this.loadedMinigameStart = null;
     };
-    private loadedMinigameStart: (() => void) | null = null;
+    private loadedMinigameStart: SingleplayerGameLoopInitFunc | null = null;
     /**
      * Main update loop of the MockServer. Processes queued messages and manages lobby phases.
      */
@@ -130,12 +130,9 @@ export class MockServer implements IMockServer {
                 }
                 case LobbyPhase.DeclareIntent: {
                     if (this.loadedMinigameStart === null) {
-                        const loadAttempt = await loadMiniGame(
+                        const loadAttempt = await loadMinigameSingleplayerLoop(
                             this.context,
-                            this.returnToColony,
-                            this.setPageContent,
                             this.difficultyConfirmed?.minigameID!,
-                            this.difficultyConfirmed?.difficultyID!,
                         );
                         if (loadAttempt.err !== null) {
                             this.log.error(`Error loading minigame: ${loadAttempt.err}`);
