@@ -38,44 +38,8 @@ const MOCK_PATHS = [
     { from: 4, to: 1 }, { from: 1, to: 3 }, { from: 2, to: 4 }
 ];
 
-const loadPathMap = (paths: typeof MOCK_PATHS): Map<number, number[]> => {
-    const pathMap = new Map<number, number[]>();
-    for (const path of paths) {
-        if (!pathMap.has(path.from)) {
-            pathMap.set(path.from, []);
-        }
-        pathMap.get(path.from)!.push(path.to);
-        // Also add reverse direction
-        if (!pathMap.has(path.to)) {
-            pathMap.set(path.to, []);
-        }
-        pathMap.get(path.to)!.push(path.from);
-    }
-    return pathMap;
-};
-
-// Utility to get the center position of an element by its reference key
-export const getTargetCenterPosition = (entityKey: string, elementRefs: Map<string, EntityRef>): Position | null => {
-    const entityRef = elementRefs.get(entityKey);
-    if (!entityRef) {
-        console.log(`No entity ref found for ID: ${entityKey}`);
-        return null;
-    }
-
-    const element = entityRef.element;
-    if (!element) {
-        console.log(`No element found for entity ${entityKey}`);
-        return null;
-    }
-
-    const imageRect = element.getBoundingClientRect();
-    return {
-        x: (imageRect.left + imageRect.width / 2) / window.innerWidth,
-        y: (imageRect.top + imageRect.height / 2) / window.innerHeight,
-    };
-};
-
 const NavigationTrial: Component<NavigationTrialProps> = (props) => {
+    const [layoutComplete, setLayoutComplete] = createSignal(false);
     const pathStore = createArrayStore(MOCK_PATHS);
     const worldOffset = createWrappedSignal({ x: 0, y: 0 });
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
@@ -88,6 +52,24 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     const [buffer, setBuffer] = createSignal('');
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
     const locationStore = createArrayStore(MOCK_LOCATIONS);
+
+    const loadPathMap = (paths: typeof MOCK_PATHS): Map<number, number[]> => {
+        const pathMap = new Map<number, number[]>();
+        for (const path of paths) {
+            if (!pathMap.has(path.from)) {
+                pathMap.set(path.from, []);
+            }
+            pathMap.get(path.from)!.push(path.to);
+            // Also add reverse direction
+            if (!pathMap.has(path.to)) {
+                pathMap.set(path.to, []);
+            }
+            pathMap.get(path.to)!.push(path.from);
+        }
+        return pathMap;
+    };
+
+
     const pathMap = new Map<number, number[]>(loadPathMap(MOCK_PATHS));
     const log = props.backend.logger.copyFor('navigation trial');
     const elementRefs = new Map<string, EntityRef>();
@@ -106,6 +88,30 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
             }
         }));
     });
+
+
+    // Utility to get the center position of an element by its reference key
+    const getTargetCenterPosition = (locationId: string): Position | null => {
+        const location = MOCK_LOCATIONS.find(loc => loc.id.toString() === locationId);
+        if (!location) {
+            console.log(`No location found for ID: ${locationId}`);
+            return null;
+        }
+
+        // Use the scaled position directly
+        const scaledPositions = getScaledPositions();
+        const scaledLocation = scaledPositions.find(loc => loc.id.toString() === locationId);
+
+        if (!scaledLocation) {
+            console.log(`No scaled position for ID: ${locationId}`);
+            return null;
+        }
+
+        return {
+            x: scaledLocation.scaledPosition.x / window.innerWidth,
+            y: scaledLocation.scaledPosition.y / window.innerHeight
+        };
+    };
 
     const getLocationPosition = (locationId: number) => {
         const scaledLocations = getScaledPositions();
@@ -129,6 +135,51 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
 
         worldOffset.set(newOffset);
     };
+
+    const trackElementRef = (id: number, element: HTMLElement | null) => {
+        if (element) {
+            elementRefs.set(id.toString(), {
+                type: "location",
+                element: element
+            });
+            if (elementRefs.size === MOCK_LOCATIONS.length) {
+                setElementsReady(true);
+            }
+        }
+    };
+
+    createEffect(() => {
+        console.log('Elements ready state:', elementsReady());
+    });
+
+    const renderablePaths = createMemo(() => {
+        console.log("Recalculating paths");
+
+        return pathStore.get.map(path => {
+            const fromPosition = getTargetCenterPosition(path.from.toString());
+            const toPosition = getTargetCenterPosition(path.to.toString());
+
+            if (!fromPosition || !toPosition) {
+                console.log(`Missing position for path ${path.from} -> ${path.to}`);
+                return null;
+            }
+
+            console.log(`Calculated positions for path ${path.from} -> ${path.to}:`,
+                { from: fromPosition, to: toPosition });
+
+            const dx = (toPosition.x - fromPosition.x) * window.innerWidth;
+            const dy = (toPosition.y - fromPosition.y) * window.innerHeight;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+            return {
+                fromPos: fromPosition,
+                toPos: toPosition,
+                length,
+                angle
+            };
+        }).filter(Boolean);
+    });
 
     const calculateScalars = () => {
         const newWidth = window.innerWidth;
@@ -169,6 +220,19 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         } else {
             setBuffer(value);
         }
+    };
+
+    const debugPosition = (id: string, position: Position | null) => {
+        console.log(`Position for ID ${id}:`, position);
+        if (!position) {
+            const ref = elementRefs.get(id);
+            console.log(`Element ref for ID ${id}:`, ref);
+            if (ref) {
+                const rect = ref.element.getBoundingClientRect();
+                console.log(`Element rect for ID ${id}:`, rect);
+            }
+        }
+        return position;
     };
 
     onMount(() => {
@@ -228,42 +292,62 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
 
             <div class={computedCameraStyle()}>
                 {/* Lines */}
-                <For each={pathStore.get}>
+                <For each={renderablePaths()}>
                     {(path) => {
-                        if (!elementsReady()) return null;
+                        if (!path) return null;
 
-                        const fromPosition = getTargetCenterPosition(path.from.toString(), elementRefs);
-                        const toPosition = getTargetCenterPosition(path.to.toString(), elementRefs);
-
-                        if (!fromPosition || !toPosition) return null;
-
-                        const dx = (toPosition.x - fromPosition.x) * window.innerWidth;
-                        const dy = (toPosition.y - fromPosition.y) * window.innerHeight;
-                        const length = Math.sqrt(dx * dx + dy * dy);
-                        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                        const lineStyle = (path: { length: number; angle: number; fromPos: Position }) => css`
+                            position: absolute;
+                            width: ${path.length}px;
+                            height: 12px;
+                            left: ${path.fromPos.x * window.innerWidth}px;
+                            top: ${path.fromPos.y * window.innerHeight}px;
+                            transform-origin: 0 50%;
+                            transform: rotate(${path.angle}deg);
+                            z-index: 1;
+                            pointer-events: none;
+                            background: linear-gradient(
+                                to top,
+                                transparent 0%,
+                                rgba(255, 255, 255, 0.8) 50%,
+                                transparent 100%
+                            );
+                            /* glow effect */
+                            box-shadow: 
+                                0 0 10px rgba(255, 255, 255, 0.3),
+                                0 0 20px rgba(255, 255, 255, 0.2);
+                            /* Smooth edges */
+                            border-radius: 6px;
+                        `;
 
                         return (
-                            <div
-                                class={css`
-                                    position: absolute;
-                                    width: ${length}px;
-                                    height: 2px;
-                                    background-color: white;
-                                    left: ${fromPosition.x * window.innerWidth}px;
-                                    top: ${fromPosition.y * window.innerHeight}px;
-                                    transform-origin: 0 50%;
-                                    transform: rotate(${angle}deg);
-                                    z-index: 0;
-                                `}
-                            />
+                            <>
+                                {/* Main line */}
+                                <div class={lineStyle(path)} />
+                                {/* Glow overlay */}
+                                <div
+                                    class={css`
+                                        ${lineStyle(path)}
+                                        opacity: 0.3;
+                                        filter: blur(4px);
+                                        height: 16px;
+                                        background: linear-gradient(
+                                            to top,
+                                            transparent 0%,
+                                            rgba(255, 255, 255, 0.6) 50%,
+                                            transparent 100%
+                                        );
+                                    `}
+                                />
+                            </>
                         );
                     }}
                 </For>
 
+                {/* Locations */}
                 <For each={getScaledPositions()}>
                     {(location) => {
-                        const isCurrentLocation = location.id === currentLocationOfLocalPlayer();
-                        const canMoveTo = pathMap.get(currentLocationOfLocalPlayer())?.includes(location.id) || false;
+                        console.log(`Rendering location ${location.id} at scaled position:`, location.scaledPosition);
 
                         const buttonStyle = css`
                             position: absolute;
@@ -272,6 +356,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                             transform: translate(-50%, -50%);
                             z-index: ${location.transform.zIndex + 1};
                         `;
+
 
                         const locationStyle = css`
                             position: absolute;
@@ -287,12 +372,11 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                             overflow: hidden;
                             border-radius: 50%;
                             background-color: black;
-                            ${isCurrentLocation ? 'border: 3px solid #3b82f6;' : ''}
-                            ${canMoveTo ? 'border: 2px solid rgba(59, 130, 246, 0.5);' : ''}
                         `;
 
                         return (
                             <div class={locationContainerStyle}>
+
                                 <BufferBasedButton
                                     styleOverwrite={buttonStyle}
                                     onActivation={() => handleMove(location.id)}
@@ -301,7 +385,10 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                                     register={bufferSubscribers.add}
                                     charBaseStyleOverwrite={namePlateTextStyle}
                                 />
-                                <div class={locationStyle}>
+                                <div
+                                    class={locationStyle}
+                                    ref={(el) => trackElementRef(location.id, el)}
+                                >
                                     <NTAwait func={() => props.backend.assets.getMetadata(1009)}>
                                         {(asset) => (
                                             <GraphicalAsset
