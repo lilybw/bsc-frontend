@@ -75,12 +75,12 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
             );
         } else {
             return (
-                <>
+                <div class={noColoniesYetStyle}>
                     {props.context.text.SubTitle('MENU.SUB_TITLE.NO_COLONIES_YET')({})}
-                    <BigMenuButton onClick={() => props.goToPage(MenuPages.NEW_COLONY)} styleOverwrite={Styles.TRANSFORM_CENTER}>
+                    <BigMenuButton onClick={() => props.goToPage(MenuPages.NEW_COLONY)} styleOverwrite={css`width: fit-content;`}>
                         {props.context.text.get('MENU.OPTION.CREATE_COLONY').get()}
                     </BigMenuButton>
-                </>
+                </div>
             );
         }
     };
@@ -102,8 +102,23 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
 
 export default ColonyListPage;
 
+const noColoniesYetStyle = css`
+position: absolute;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+
+top: 20vh;
+left: 50%;
+width: 50%;
+transform: translateX(-50%);
+`
+
 const pageTitleStyle = css`
     font-size: 5rem;
+    left: 1vh;
+    position: absolute;
 `;
 
 const colonyListBackgroundStyle = css`
@@ -114,6 +129,7 @@ const colonyListBackgroundStyle = css`
     width: 66%;
     height: 65vh;
     left: 50%;
+    top: 10vh;
     transform: translateX(-50%);
     padding: 1rem;
     gap: 1rem;

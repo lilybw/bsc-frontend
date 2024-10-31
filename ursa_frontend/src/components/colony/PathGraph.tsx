@@ -20,18 +20,20 @@ import { KnownLocations } from '../../integrations/main_backend/constants';
 import { BufferSubscriber, TypeIconTuple } from '../../ts/actionContext';
 import { ArrayStore, createArrayStore } from '../../ts/arrayStore';
 import ActionInput from './MainActionInput';
-import { MultiplayerMode } from '../../meta/types';
+import { ApplicationContext, ColonyState, MultiplayerMode } from '../../meta/types';
 import Player from './Player';
+import { BackendIntegration as IBackendIntegration } from '../../integrations/main_backend/mainBackend';
+import { InternationalizationService } from '../../integrations/main_backend/internationalization/internationalization';
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
 
-interface PathGraphProps extends IBackendBased, IInternationalized {
+interface PathGraphProps {
     colony: ColonyInfoResponseDTO;
     ownerID: PlayerID;
-    plexer: IEventMultiplexer;
-    localPlayerId: PlayerID;
-    multiplayer: IMultiplayerIntegration;
+
+    context: ApplicationContext;
+
     clients: ArrayStore<ClientDTO>;
     bufferSubscribers: ArrayStore<BufferSubscriber<string>>;
     buffer: WrappedSignal<string>;
@@ -59,13 +61,6 @@ const loadPathMap = (paths: ColonyPathGraphResponseDTO['paths']): Map<ColonyLoca
     }
     return pathMap;
 };
-const findColonyLocationIDOf = (location: KnownLocations, colony: ColonyInfoResponseDTO): ColonyLocationID => {
-    const locationInfo = colony.locations.find((loc) => loc.locationID === location);
-    if (!locationInfo) {
-        return -1;
-    }
-    return locationInfo.id;
-};
 
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
@@ -73,13 +68,12 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const colonyLocation = createArrayStore<ColonyLocationInformation>(props.colony.locations);
     const camera = createWrappedSignal({ x: 0, y: 0 });
     const [viewportDimensions, setViewportDimensions] = createSignal({ width: window.innerWidth, height: window.innerHeight });
-    const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal(
-        props.colony.locations.find((loc) => loc.locationID === KnownLocations.Home)?.id!,
-    );
+    const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal(0);
 
     const transformMap = new Map<ColonyLocationID, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations));
     const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>(loadPathMap(props.graph.paths));
-    const log = props.backend.logger.copyFor('path graph');
+    const log = props.context.logger.copyFor('path graph');
+    log.trace('initialized');
 
     createEffect(() => {
         const currentDNS = DNS();
@@ -97,11 +91,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
             transformMap.get(colonyLocationInfo.id)!.set(computedTransform);
             colonyLocation.mutateByPredicate(
-                (e) => e === colonyLocationInfo,
-                (element) => {
-                    element.transform = computedTransform;
-                    return element;
-                },
+                (e) => e.id === colonyLocationInfo.id,
+                (element) => ({
+                    ...element, transform: computedTransform
+                }),
             );
         }
     });
@@ -128,7 +121,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
         log.subtrace(`Handling player move: ${JSON.stringify(data)}`);
-        if (data.playerID === props.localPlayerId) {
+        if (data.playerID === props.context.backend.player.local.id) {
             const targetLocation = colonyLocation.findFirst((loc) => loc.id === data.colonyLocationID);
 
             if (!targetLocation) {
@@ -153,17 +146,37 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     onMount(() => {
         calculateScalars();
         window.addEventListener('resize', calculateScalars);
-        const playerMoveSubID = props.plexer.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
+        const playerMoveSubID = props.context.events.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
 
         onCleanup(() => {
             window.removeEventListener('resize', calculateScalars);
-            props.plexer.unsubscribe(playerMoveSubID);
+            props.context.events.unsubscribe(playerMoveSubID);
         });
+
+        let generalSpawnLocation;
+        if (props.context.multiplayer.getState() === ColonyState.OPEN) {
+            generalSpawnLocation = props.colony.locations.find(colLoc => colLoc.locationID === KnownLocations.SpacePort)!;
+        } else {
+            generalSpawnLocation = props.colony.locations.find(colLoc => colLoc.locationID === KnownLocations.Home)!;
+        }
+        log.trace(`Setting initial location of local player to ${generalSpawnLocation.id}`);
+
+        props.clients.mutateByPredicate(c => !c.state.lastKnownPosition || c.state.lastKnownPosition === 0, 
+            c => {
+                return {
+                    ...c,
+                    state: {
+                        ...c.state,
+                        lastKnownPosition: generalSpawnLocation.id
+                    }
+                }
+            }
+        )
 
         //Set initial camera position
         //Only works because the createEffect statement is evaluated before this onMount as of right now
-        const trans = colonyLocation.findFirst((loc) => loc.locationID === KnownLocations.Home)!.transform;
-        centerCameraOnPoint(trans.xOffset, trans.yOffset);
+        setCurrentLocationOfLocalPlayer(generalSpawnLocation.id);
+        centerCameraOnPoint(generalSpawnLocation.transform.xOffset, generalSpawnLocation.transform.yOffset);
     });
 
     const computedCameraContainerStyles = createMemo(() => {
@@ -203,19 +216,19 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
                 <For each={colonyLocation.get}>
                     {(colonyLocation) => (
-                        <NTAwait func={() => props.backend.locations.getInfo(colonyLocation.locationID)}>
+                        <NTAwait func={() => props.context.backend.locations.getInfo(colonyLocation.locationID)}>
                             {(locationInfo) => (
                                 <Location
-                                    multiplayer={props.multiplayer}
+                                    multiplayer={props.context.multiplayer}
                                     colony={props.colony}
                                     colonyLocation={colonyLocation}
                                     location={locationInfo}
                                     gas={GAS}
-                                    plexer={props.plexer}
-                                    backend={props.backend}
+                                    plexer={props.context.events}
+                                    backend={props.context.backend}
                                     buffer={props.buffer.get}
                                     actionContext={props.actionContext}
-                                    text={props.text}
+                                    text={props.context.text}
                                     register={props.bufferSubscribers.add}
                                     transform={transformMap.get(colonyLocation.id)!}
                                 />
@@ -225,30 +238,37 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 </For>
 
                 <For each={props.clients.get}>
-                    {(client) => <Player client={client} transformMap={transformMap} backend={props.backend} showNamePlate={true} />}
+                    {(client) => 
+                        <Player 
+                            client={client} 
+                            transformMap={transformMap} 
+                            backend={props.context.backend} 
+                            showNamePlate
+                        />
+                    }
                 </For>
             </div>
 
             <ActionInput
                 subscribers={props.bufferSubscribers}
-                text={props.text}
-                backend={props.backend}
+                text={props.context.text}
+                backend={props.context.backend}
                 actionContext={props.actionContext.get}
                 setInputBuffer={props.buffer.set}
                 inputBuffer={props.buffer.get}
             />
             <Player
                 client={{
-                    id: props.localPlayerId,
-                    type: props.multiplayer.getMode() === MultiplayerMode.AS_GUEST ? OriginType.Guest : OriginType.Owner,
-                    IGN: props.backend.player.local.firstName,
+                    id: props.context.backend.player.local.id,
+                    type: props.context.multiplayer.getMode() === MultiplayerMode.AS_GUEST ? OriginType.Guest : OriginType.Owner,
+                    IGN: props.context.backend.player.local.firstName,
                     state: {
                         lastKnownPosition: currentLocationOfLocalPlayer(),
                         msOfLastMessage: 0,
                     },
                 }}
                 transformMap={new Map()}
-                backend={props.backend}
+                backend={props.context.backend}
                 styleOverwrite={localPlayerStyle}
                 isLocalPlayer={true}
             />

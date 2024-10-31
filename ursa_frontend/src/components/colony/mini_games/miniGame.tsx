@@ -3,6 +3,7 @@ import { ApplicationContext, ResErr } from '../../../meta/types';
 import AsteroidsMiniGame from './asteroids_mini_game/AsteroidsMiniGame';
 import { createAsteroidsGameLoop } from './asteroids_mini_game/AsteroidsGameLoop';
 import { AsteroidsSettingsDTO } from './asteroids_mini_game/types/GameTypes';
+import { uint32 } from '../../../integrations/main_backend/mainBackendDTOs';
 
 // Define the props interface for minigame components
 export interface MinigameProps<T extends object> {

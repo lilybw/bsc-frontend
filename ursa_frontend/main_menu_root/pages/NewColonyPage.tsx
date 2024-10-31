@@ -130,6 +130,8 @@ const pageStyle = css`
 const titleStyle = css`
     font-size: 5rem;
     width: 60%;
+    left: 1vh;
+    position: absolute;
 `;
 
 const inputContainerStyle = css`
