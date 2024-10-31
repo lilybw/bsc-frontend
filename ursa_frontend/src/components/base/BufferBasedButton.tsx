@@ -25,6 +25,10 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
         return props.enable ? !props.enable() : false;
     });
 
+    const getNameValue = () => {
+        return typeof props.name === 'function' ? props.name() : props.name;
+    }
+
     createEffect(() => {
         const currentlyDisabled = isDisabled();
         if (!currentlyDisabled && recentlyEnabled()) {
@@ -45,8 +49,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
 
     onMount(() => {
         const removeFunc = props.register((v) => {
-            let nameValue = typeof props.name === 'function' ? props.name() : props.name;
-            if (v === nameValue && !isDisabled()) {
+            if (v === getNameValue() && !isDisabled()) {
                 setActivated(true);
                 setTimeout(() => {
                     props.onActivation();
@@ -77,7 +80,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     );
 
     return (
-        <button class={computedContainerStyles()} id={'buffer-based-button-' + props.name} disabled={isDisabled()}>
+        <button class={computedContainerStyles()} id={'buffer-based-button-' + getNameValue()} disabled={isDisabled()}>
             <BufferHighlightedName
                 buffer={isDisabled() ? disabledBuffer : props.buffer}
                 name={props.name}

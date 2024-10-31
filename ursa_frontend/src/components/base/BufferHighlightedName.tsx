@@ -33,8 +33,12 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
         `,
     );
 
+    const getNameValue = () => {
+        return typeof props.name === 'function' ? props.name() : props.name;
+    }
+
     createEffect(() => {
-        const currentName = typeof props.name === 'function' ? props.name() : props.name;
+        const currentName = getNameValue();
         const currentBuffer = props.buffer();
         if (currentName.includes(currentBuffer) && currentBuffer !== '') {
             setHasBeenMissed(false);
@@ -59,7 +63,7 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
         if (hasBeenMissed()) {
             return computedCharBaseStyle();
         }
-        if (props.buffer() === props.name) {
+        if (props.buffer() === getNameValue()) {
             return computedNameCompleteStyle();
         }
         if (props.buffer().charAt(index()) === charInName) {
@@ -69,11 +73,7 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
     };
 
     const splitString = (name: Accessor<string> | string) => {
-        if (typeof name === 'string') {
-            return name.split('');
-        } else {
-            return name().split('');
-        }
+        return getNameValue().split('');
     };
 
     return (
@@ -81,7 +81,7 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
             class={css`
                 ${locationNameContainerStyle} ${props.styleOverwrite}
             `}
-            id={'buffer-highlighted-name-' + props.name}
+            id={'buffer-highlighted-name-' + getNameValue()}
         >
             <For each={splitString(props.name)}>
                 {(char, index) => <SectionTitle styleOverwrite={getCharStyle(index, char)}>{char}</SectionTitle>}

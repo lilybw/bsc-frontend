@@ -1,4 +1,4 @@
-import { Component, createEffect, createMemo, createSignal } from 'solid-js';
+import { Accessor, Component, createEffect, createMemo, createSignal } from 'solid-js';
 import { TransformDTO, uint32 } from '../../integrations/main_backend/mainBackendDTOs';
 import { css } from '@emotion/css';
 import { Styles } from '../../sharedCSS';
@@ -9,6 +9,7 @@ import { IBackendBased, IStyleOverwritable } from '../../ts/types';
 interface PlayerProps extends IStyleOverwritable, IBackendBased {
     client: ClientDTO;
     transformMap: Map<uint32, WrappedSignal<TransformDTO>>;
+    GAS: Accessor<number>;
     showNamePlate?: boolean;
     isLocalPlayer?: boolean;
 }
@@ -29,6 +30,7 @@ const Player: Component<PlayerProps> = (props) => {
 
     const computedContainerStyles = createMemo(
         () => css`
+            --GAS: ${props.GAS()};
             ${playerContainer}
             ${props.isLocalPlayer ? localPlayerStyleOverwrite : ''}
             ${Styles.transformToCSSVariables(currentTransform())}
@@ -74,10 +76,11 @@ const namePlateStyle = css`
     ${Styles.GLASS.FAINT_BACKGROUND}
 `;
 
+/** Requires --GAS */
 const playerContainer = css`
     z-index: 200;
-    width: 50px;
-    height: 50px;
+    width: calc(50px * var(--GAS));
+    height: calc(50px * var(--GAS));
     border-radius: 50%;
     background-color: blue;
     box-shadow: 0 0 10px 0 rgba(255, 255, 255, 0.5);

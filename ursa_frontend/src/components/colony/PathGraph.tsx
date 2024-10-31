@@ -78,13 +78,19 @@ const loadPathsFromInitial = (paths: ColonyPathGraphResponseDTO['paths']): Line[
     );
 }
 
+interface ColonyLocationInfoWOriginalTransform extends ColonyLocationInformation { 
+    originalTransform: TransformDTO 
+};
+
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
-    const colonyLocation = createArrayStore<ColonyLocationInformation>(props.colony.locations);
+    const colonyLocations = createArrayStore<ColonyLocationInfoWOriginalTransform>(
+        props.colony.locations.map((loc) => ({ ...loc, originalTransform: loc.transform }))
+    );
     const camera = createWrappedSignal({ x: 0, y: 0 });
     const [viewportDimensions, setViewportDimensions] = createSignal({ width: window.innerWidth, height: window.innerHeight });
-    const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal(0);
+    const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal<ColonyLocationInfoWOriginalTransform>();
 
     const computedPaths = createArrayStore<Line>(loadPathsFromInitial(props.graph.paths));
     const transformMap = new Map<ColonyLocationID, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations));
@@ -97,40 +103,47 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         const currentGAS = GAS();
 
         untrack(() => {
-            for (const colonyLocationInfo of colonyLocation.get) {
+            for (const colLoc of colonyLocations.get) {
+                //Issue here, we are taking from the previous transform, and not the initial
                 const computedTransform: TransformDTO = {
-                    ...colonyLocationInfo.transform,
+                    ...colLoc.originalTransform,
                     // Camera is applied to the parent (camera-container). Not here.
-                    xOffset: colonyLocationInfo.transform.xOffset * currentDNS.x,
-                    yOffset: colonyLocationInfo.transform.yOffset * currentDNS.y,
-                    xScale: colonyLocationInfo.transform.xScale * currentGAS,
-                    yScale: colonyLocationInfo.transform.yScale * currentGAS,
+                    xOffset: colLoc.originalTransform.xOffset * currentDNS.x,
+                    yOffset: colLoc.originalTransform.yOffset * currentDNS.y,
+                    xScale: colLoc.originalTransform.xScale * currentGAS,
+                    yScale: colLoc.originalTransform.yScale * currentGAS,
                 };
     
-                transformMap.get(colonyLocationInfo.id)!.set(computedTransform);
-                colonyLocation.mutateByPredicate(
-                    (e) => e.id === colonyLocationInfo.id,
+                transformMap.get(colLoc.id)!.set(computedTransform);
+                colonyLocations.mutateByPredicate(
+                    (e) => e.id === colLoc.id,
                     (element) => ({
                         ...element, transform: computedTransform
                     }),
                 );
 
                 computedPaths.mutateByPredicate(
-                    l => l.from === colonyLocationInfo.id,
+                    l => l.from === colLoc.id,
                     l => ({
                         ...l,
-                        x1: colonyLocationInfo.transform.xOffset,
-                        y1: colonyLocationInfo.transform.yOffset,
+                        x1: computedTransform.xOffset,
+                        y1: computedTransform.yOffset,
                     })
                 )
                 computedPaths.mutateByPredicate(
-                    l => l.to === colonyLocationInfo.id,
+                    l => l.to === colLoc.id,
                     l => ({
                         ...l,
-                        x2: colonyLocationInfo.transform.xOffset,
-                        y2: colonyLocationInfo.transform.yOffset,
+                        x2: computedTransform.xOffset,
+                        y2: computedTransform.yOffset,
                     })
                 )
+            }
+
+            //Update camera position
+            const currentLocOfLocalPlayer = currentLocationOfLocalPlayer(); //Not tracked as we're inside untrack
+            if (currentLocOfLocalPlayer) {
+                centerCameraOnPoint(currentLocOfLocalPlayer.transform.xOffset, currentLocOfLocalPlayer.transform.yOffset);
             }
         })
     });
@@ -148,14 +161,14 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const handlePlayerMove = (data: PlayerMoveMessageDTO) => {
         log.subtrace(`Handling player move: ${JSON.stringify(data)}`);
         if (data.playerID === props.context.backend.player.local.id) {
-            const targetLocation = colonyLocation.findFirst((loc) => loc.id === data.colonyLocationID);
+            const targetLocation = colonyLocations.findFirst((loc) => loc.id === data.colonyLocationID);
 
             if (!targetLocation) {
                 log.error(`Unable to find location with ID on player move: ${data.colonyLocationID}`);
                 return;
             }
 
-            setCurrentLocationOfLocalPlayer(targetLocation.locationID);
+            setCurrentLocationOfLocalPlayer(targetLocation);
             centerCameraOnPoint(targetLocation.transform.xOffset, targetLocation.transform.yOffset);
         } else {
             log.trace(`Updating location of player ${data.playerID} to ${data.colonyLocationID}`);
@@ -201,9 +214,9 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
         let generalSpawnLocation;
         if (props.context.multiplayer.getState() === ColonyState.OPEN) {
-            generalSpawnLocation = props.colony.locations.find(colLoc => colLoc.locationID === KnownLocations.SpacePort)!;
+            generalSpawnLocation = colonyLocations.findFirst(colLoc => colLoc.locationID === KnownLocations.SpacePort)!;
         } else {
-            generalSpawnLocation = props.colony.locations.find(colLoc => colLoc.locationID === KnownLocations.Home)!;
+            generalSpawnLocation = colonyLocations.findFirst(colLoc => colLoc.locationID === KnownLocations.Home)!;
         }
         log.trace(`Setting initial location of local player to ${generalSpawnLocation.id}`);
 
@@ -221,7 +234,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
         //Set initial camera position
         //Only works because the createEffect statement is evaluated before this onMount as of right now
-        setCurrentLocationOfLocalPlayer(generalSpawnLocation.id);
+        setCurrentLocationOfLocalPlayer(generalSpawnLocation);
         centerCameraOnPoint(generalSpawnLocation.transform.xOffset, generalSpawnLocation.transform.yOffset);
     });
 
@@ -252,7 +265,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     </For>
                 </svg>
 
-                <For each={colonyLocation.get}>
+                <For each={colonyLocations.get}>
                     {(colonyLocation) => (
                         <NTAwait func={() => props.context.backend.locations.getInfo(colonyLocation.locationID)}>
                             {(locationInfo) => (
@@ -278,6 +291,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 <For each={props.clients.get}>
                     {(client) => 
                         <Player 
+                            GAS={GAS}
                             client={client} 
                             transformMap={transformMap} 
                             backend={props.context.backend} 
@@ -301,10 +315,11 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     type: props.context.multiplayer.getMode() === MultiplayerMode.AS_GUEST ? OriginType.Guest : OriginType.Owner,
                     IGN: props.context.backend.player.local.firstName,
                     state: {
-                        lastKnownPosition: currentLocationOfLocalPlayer(),
+                        lastKnownPosition: currentLocationOfLocalPlayer()?.id || 0,
                         msOfLastMessage: 0,
                     },
                 }}
+                GAS={GAS}
                 transformMap={new Map()}
                 backend={props.context.backend}
                 styleOverwrite={localPlayerStyle}
