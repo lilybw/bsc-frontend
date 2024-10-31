@@ -11,6 +11,13 @@ import {
     DifficultyConfirmedForMinigameMessageDTO,
     IMessage,
     ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT,
+    PLAYER_LOAD_COMPLETE_EVENT,
+    PLAYER_LOAD_FAILURE_EVENT,
+    GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT,
+    GenericMinigameUntimelyAbortMessageDTO,
+    PlayerLoadFailureMessageDTO,
+    GenericMinigameSequenceResetMessageDTO,
+    GENERIC_MINIGAME_SEQUENCE_RESET_EVENT,
 } from '../integrations/multiplayer_backend/EventSpecifications';
 import { ApplicationContext } from '../meta/types';
 import { loadMinigameSingleplayerLoop, SingleplayerGameLoopInitFunc } from '../components/colony/mini_games/miniGame';
@@ -31,7 +38,8 @@ export enum LobbyPhase {
     RoamingColony = 0,
     AwaitingParticipants = 1,
     DeclareIntent = 2,
-    InMinigame = 3,
+    PlayersLoading = 3,
+    InMinigame = 4,
 }
 
 /**
@@ -51,6 +59,7 @@ export class MockServer implements IMockServer {
     private lobbyPhase: LobbyPhase = LobbyPhase.RoamingColony;
     private readonly events: IExpandedAccessMultiplexer;
     private readonly log: Logger;
+    private minigameLoopInitFunc: SingleplayerGameLoopInitFunc | null = null;
 
     /**
      * Constructs a new MockServer instance.
@@ -95,9 +104,12 @@ export class MockServer implements IMockServer {
         this.difficultyConfirmed = null;
         this.messageQueue.length = 0;
         this.lobbyPhase = LobbyPhase.RoamingColony;
-        this.loadedMinigameStart = null;
+        this.minigameLoopInitFunc = null;
+        this.events.emitRAW<GenericMinigameSequenceResetMessageDTO>({ 
+            senderID: MOCK_SERVER_ID, 
+            eventID: GENERIC_MINIGAME_SEQUENCE_RESET_EVENT.id,
+        });
     };
-    private loadedMinigameStart: SingleplayerGameLoopInitFunc | null = null;
     /**
      * Main update loop of the MockServer. Processes queued messages and manages lobby phases.
      */
@@ -129,31 +141,45 @@ export class MockServer implements IMockServer {
                     break;
                 }
                 case LobbyPhase.DeclareIntent: {
-                    if (this.loadedMinigameStart === null) {
-                        const loadAttempt = await loadMinigameSingleplayerLoop(
-                            this.context,
+                    if (this.minigameLoopInitFunc === null) {
+                        const loadAttempt = loadMinigameSingleplayerLoop(
                             this.difficultyConfirmed?.minigameID!,
                         );
                         if (loadAttempt.err !== null) {
                             this.log.error(`Error loading minigame: ${loadAttempt.err}`);
                             this.reset();
                             return;
-                        } else {
-                            this.loadedMinigameStart = loadAttempt.res;
                         }
+                        this.minigameLoopInitFunc = loadAttempt.res;
                     }
 
                     if (message.eventID === PLAYER_READY_FOR_MINIGAME_EVENT.id) {
-                        this.lobbyPhase = LobbyPhase.InMinigame;
-                        if (this.loadedMinigameStart === null) {
+                        if (this.minigameLoopInitFunc === null) {
                             this.log.error(`Loaded minigame is null, but a player ready was recieved`);
                             this.reset();
                             return;
-                        } else {
-                            this.log.info('Starting minigame game loop');
-                            this.loadedMinigameStart();
                         }
+                        this.lobbyPhase = LobbyPhase.PlayersLoading;
+                        this.log.trace('Phase changed to PlayerLoading');
+                    }
+                    break;
+                }
+                case LobbyPhase.PlayersLoading: {
+                    if (message.eventID === PLAYER_LOAD_COMPLETE_EVENT.id) {
+                        if (this.minigameLoopInitFunc === null) {
+                            this.sequenceErrorGenericAbort(MOCK_SERVER_ID, 'Minigame loop init function is null');
+                            return;
+                        }
+                        this.lobbyPhase = LobbyPhase.InMinigame;
+                        this.log.info('Starting minigame game loop');
+                        this.minigameLoopInitFunc(this.context, this.difficultyConfirmed?.difficultyID!);
                         this.log.trace('Phase changed to InMinigame');
+                    
+                    }
+                    if (message.eventID === PLAYER_LOAD_FAILURE_EVENT.id) {
+                        const cast = message as PlayerLoadFailureMessageDTO;
+                        this.sequenceErrorGenericAbort(cast.senderID, cast.reason);
+                        this.reset();
                     }
                     break;
                 }
@@ -162,6 +188,15 @@ export class MockServer implements IMockServer {
             }
         }
     };
+
+    private sequenceErrorGenericAbort = (sourceID: number, reason?: string) => {
+        this.events.emitRAW<GenericMinigameUntimelyAbortMessageDTO>({
+            senderID: MOCK_SERVER_ID,
+            eventID: GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT.id,
+            reason: reason || "Unknown reason",
+            id: sourceID,
+        });
+    } 
 
     private gameFinished() {
         this.log.trace('Game finished, reverting to colony');
