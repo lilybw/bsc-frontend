@@ -11,6 +11,7 @@ import BufferBasedButton from "../../src/components/base/BufferBasedButton";
 import ActionInput from "../../src/components/colony/MainActionInput";
 import NTAwait from "../../src/components/util/NoThrowAwait";
 import GraphicalAsset from "../../src/components/base/GraphicalAsset";
+import { Position } from "../../src/components/colony/mini_games/asteroids_mini_game/entities/BaseEntity";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -53,7 +54,29 @@ const loadPathMap = (paths: typeof MOCK_PATHS): Map<number, number[]> => {
     return pathMap;
 };
 
+// Utility to get the center position of an element by its reference key
+export const getTargetCenterPosition = (entityKey: string, elementRefs: Map<string, EntityRef>): Position | null => {
+    const entityRef = elementRefs.get(entityKey);
+    if (!entityRef) {
+        console.log(`No entity ref found for ID: ${entityKey}`);
+        return null;
+    }
+
+    const element = entityRef.element;
+    if (!element) {
+        console.log(`No element found for entity ${entityKey}`);
+        return null;
+    }
+
+    const imageRect = element.getBoundingClientRect();
+    return {
+        x: (imageRect.left + imageRect.width / 2) / window.innerWidth,
+        y: (imageRect.top + imageRect.height / 2) / window.innerHeight,
+    };
+};
+
 const NavigationTrial: Component<NavigationTrialProps> = (props) => {
+    const pathStore = createArrayStore(MOCK_PATHS);
     const worldOffset = createWrappedSignal({ x: 0, y: 0 });
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
@@ -67,8 +90,10 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     const locationStore = createArrayStore(MOCK_LOCATIONS);
     const pathMap = new Map<number, number[]>(loadPathMap(MOCK_PATHS));
     const log = props.backend.logger.copyFor('navigation trial');
+    const elementRefs = new Map<string, EntityRef>();
+    const [elementsReady, setElementsReady] = createSignal(false);
 
-    setTimeout(() => props.onSlideCompleted(), 50);
+    setTimeout(() => props.onSlideCompleted(), 50); // CHANGE LATER
 
     // Create reactive scaled positions
     const getScaledPositions = createMemo(() => {
@@ -163,6 +188,12 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
             worldOffset.set(initialOffset);
         }
 
+        createEffect(() => {
+            if (elementRefs.size === MOCK_LOCATIONS.length) {
+                setElementsReady(true);
+            }
+        });
+
         onCleanup(() => {
             window.removeEventListener('resize', calculateScalars);
             props.context.events.unsubscribe(moveHandlerId);
@@ -196,27 +227,38 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
             {props.text.SubTitle('TUTORIAL.NAVIGATION_TRIAL.DESCRIPTION')({ styleOverwrite: subtitleStyleOverwrite })}
 
             <div class={computedCameraStyle()}>
-                <svg class={svgContainerStyle}>
-                    <For each={MOCK_PATHS}>
-                        {(path) => {
-                            const scaledLocations = getScaledPositions();
-                            const fromLocation = scaledLocations.find(l => l.id === path.from);
-                            const toLocation = scaledLocations.find(l => l.id === path.to);
-                            if (!fromLocation || !toLocation) return null;
+                {/* Lines */}
+                <For each={pathStore.get}>
+                    {(path) => {
+                        if (!elementsReady()) return null;
 
-                            return (
-                                <line
-                                    x1={fromLocation.scaledPosition.x}
-                                    y1={fromLocation.scaledPosition.y}
-                                    x2={toLocation.scaledPosition.x}
-                                    y2={toLocation.scaledPosition.y}
-                                    stroke="white"
-                                    stroke-width={10}
-                                />
-                            );
-                        }}
-                    </For>
-                </svg>
+                        const fromPosition = getTargetCenterPosition(path.from.toString(), elementRefs);
+                        const toPosition = getTargetCenterPosition(path.to.toString(), elementRefs);
+
+                        if (!fromPosition || !toPosition) return null;
+
+                        const dx = (toPosition.x - fromPosition.x) * window.innerWidth;
+                        const dy = (toPosition.y - fromPosition.y) * window.innerHeight;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                        return (
+                            <div
+                                class={css`
+                                    position: absolute;
+                                    width: ${length}px;
+                                    height: 2px;
+                                    background-color: white;
+                                    left: ${fromPosition.x * window.innerWidth}px;
+                                    top: ${fromPosition.y * window.innerHeight}px;
+                                    transform-origin: 0 50%;
+                                    transform: rotate(${angle}deg);
+                                    z-index: 0;
+                                `}
+                            />
+                        );
+                    }}
+                </For>
 
                 <For each={getScaledPositions()}>
                     {(location) => {
