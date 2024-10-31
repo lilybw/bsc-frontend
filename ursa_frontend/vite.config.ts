@@ -35,18 +35,6 @@ export default defineConfig(({ mode }) => {
                             allExtensions: true,
                         }]
                     ],
-                    plugins: [
-                        ['@emotion/babel-plugin', {
-                            // Configure for @emotion/css usage
-                            sourceMap: false,
-                            autoLabel: 'never',
-                            cssPropOptimization: true,
-                            pure: true,
-                            // Specific optimizations for @emotion/css
-                            extractStatic: true,
-                            hoist: true
-                        }],
-                    ],
                 },
                 filter: /\.(tsx|ts|js|jsx)$/,
             }),

@@ -149,10 +149,9 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
     const centerCameraOnPoint = (x: number, y: number) => {
         const dim = viewportDimensions();
-        const dns = DNS();
         camera.set({
-            x: -1 * x * dns.x + dim.width * 0.5,
-            y: -1 * y * dns.y + dim.height * 0.5,
+            x: -1 * x + dim.width * 0.5,
+            y: -1 * y + dim.height * 0.5,
         });
     };
 
