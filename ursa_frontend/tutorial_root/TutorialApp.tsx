@@ -118,7 +118,12 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(
                         <NavigationDemo backend={props.context.backend} onSlideCompleted={onSlideCompleted} text={props.context.text} />
                     </Match>
                     <Match when={currentSlide() === 3}>
-                        <NavigationTrial onSlideCompleted={onSlideCompleted} context={props.context} backend={props.context.backend} text={props.context.text} />
+                        <NavigationTrial
+                            onSlideCompleted={onSlideCompleted}
+                            context={props.context}
+                            backend={props.context.backend}
+                            text={props.context.text}
+                        />
                     </Match>
                     <Match when={currentSlide() === 4}>
                         <LocationDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />

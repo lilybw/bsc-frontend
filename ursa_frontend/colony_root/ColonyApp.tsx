@@ -36,7 +36,7 @@ import StarryBackground from '../src/components/base/StarryBackground';
 import { Styles } from '../src/sharedCSS';
 import ClientTracker from '../src/components/colony/mini_games/ClientTracker';
 import { getMinigameComponentInitFunction, getMinigameName } from '../src/components/colony/mini_games/miniGame';
-import SolarLoadingSpinner from './components/base/SolarLoadingSpinner';
+import SolarLoadingSpinner from '../src/components/base/SolarLoadingSpinner';
 
 export type StrictJSX =
     | Node
@@ -83,43 +83,44 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
          * Renders the main colony layout.
          * @returns The colony layout as a StrictJSX element.
          */
-        const colonyLayout = () => (
-            <Unwrap data={[bundleSwapColonyInfo, props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
-                {(colonyInfo, playerInfo) => (
-                <>
-                <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
-                <BufferBasedButton
-                    name={props.context.text.get('COLONY.UI.LEAVE').get}
-                    buffer={inputBuffer.get}
-                    onActivation={() => props.context.nav.goToMenu()}
-                    register={bufferSubscribers.add}
-                    styleOverwrite="position: absolute; top: 8vh; left: 1vh;"
-                    charBaseStyleOverwrite="font-size: 1.5rem;"
-                />
-                <MNTAwait
-                    funcs={[
-                        () => props.context.backend.colony.get(colonyInfo.owner, colonyInfo.id),
-                        () => props.context.backend.colony.getPathGraph(colonyInfo.id),
-                    ]}
-                >
-                    {(colony, graph) => 
-                        (<PathGraph
-                            ownerID={colonyInfo.owner}
-                            graph={graph}
-                            colony={colony}
-                            bufferSubscribers={bufferSubscribers}
-                            actionContext={actionContext}
-                            clients={clientTracker.getAsClients()}
-                            context={props.context}
-                            buffer={inputBuffer}
-                        />)
-                    }
-                </MNTAwait>
-                </>
-                )}
-            </Unwrap>
-        ) as StrictJSX;
-        
+        const colonyLayout = () =>
+            (
+                <Unwrap data={[bundleSwapColonyInfo, props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
+                    {(colonyInfo, playerInfo) => (
+                        <>
+                            <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>
+                            <BufferBasedButton
+                                name={props.context.text.get('COLONY.UI.LEAVE').get}
+                                buffer={inputBuffer.get}
+                                onActivation={() => props.context.nav.goToMenu()}
+                                register={bufferSubscribers.add}
+                                styleOverwrite="position: absolute; top: 8vh; left: 1vh;"
+                                charBaseStyleOverwrite="font-size: 1.5rem;"
+                            />
+                            <MNTAwait
+                                funcs={[
+                                    () => props.context.backend.colony.get(colonyInfo.owner, colonyInfo.id),
+                                    () => props.context.backend.colony.getPathGraph(colonyInfo.id),
+                                ]}
+                            >
+                                {(colony, graph) => (
+                                    <PathGraph
+                                        ownerID={colonyInfo.owner}
+                                        graph={graph}
+                                        colony={colony}
+                                        bufferSubscribers={bufferSubscribers}
+                                        actionContext={actionContext}
+                                        clients={clientTracker.getAsClients()}
+                                        context={props.context}
+                                        buffer={inputBuffer}
+                                    />
+                                )}
+                            </MNTAwait>
+                        </>
+                    )}
+                </Unwrap>
+            ) as StrictJSX;
+
         const [pageContent, setPageContent] = createSignal<StrictJSX>(colonyLayout());
 
         const clientTracker = new ClientTracker(props.context.events, props.context.logger);
@@ -174,7 +175,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 setShuntNotificationReason('NOTIFICATION.MULTIPLAYER.LOBBY_CLOSING');
             });
             const diffConfirmedSubId = subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (data) => {
-                setConfirmedDifficulty({...data, minigameName: getMinigameName(data.minigameID)});
+                setConfirmedDifficulty({ ...data, minigameName: getMinigameName(data.minigameID) });
                 //When confirmedDifficulty != null, the HandPlacementCheck is shown
                 //The HandPlacementCheck emits the required Player Join Activity or Player Aborting Activity
                 //And then forwards to the waiting screen
@@ -190,8 +191,8 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 //Here is to be emitted Player Ready Event
                 props.context.events.emit(PLAYER_READY_FOR_MINIGAME_EVENT, {
                     id: props.context.backend.player.local.id,
-                    ign: props.context.backend.player.local.firstName, 
-                })
+                    ign: props.context.backend.player.local.firstName,
+                });
             });
 
             let minigameComponent: JSX.Element | null = null;
@@ -202,7 +203,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     log.error('Received load minigame while confirmed difficulty was null');
                     return;
                 }
-                setPageContent(<SolarLoadingSpinner text={"Loading " + diff.minigameName} /> as StrictJSX);
+                setPageContent((<SolarLoadingSpinner text={'Loading ' + diff.minigameName} />) as StrictJSX);
                 const initFunc = getMinigameComponentInitFunction(diff.minigameID);
                 if (initFunc.err !== null) {
                     log.error('Could not load minigame component init function: ' + initFunc.err);
@@ -229,10 +230,10 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             });
             const genericAbortSubId = subscribe(GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT, (data) => {
                 //TODO: Show some notification
-                log.error('Received generic abort event concerning: ' + data.id + " with reason: " + data.reason);
+                log.error('Received generic abort event concerning: ' + data.id + ' with reason: ' + data.reason);
                 setConfirmedDifficulty(null);
                 setPageContent(colonyLayout());
-            })
+            });
 
             onCleanup(() => {
                 clientTracker.unmount();
@@ -244,7 +245,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     loadMinigameSubId,
                     minigameBeginsSubId,
                     resetSequenceSubID,
-                    genericAbortSubId
+                    genericAbortSubId,
                 );
             });
         });
@@ -256,9 +257,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
 
             return (
                 <HandPlacementCheck
-                    nameOfOwner={
-                        clientTracker.getByID(bundleSwapColonyInfo.res?.owner!)?.IGN 
-                        || props.context.backend.player.local.firstName}
+                    nameOfOwner={clientTracker.getByID(bundleSwapColonyInfo.res?.owner!)?.IGN || props.context.backend.player.local.firstName}
                     nameOfMinigame={confDiff.minigameName}
                     gameToBeMounted={confDiff}
                     events={props.context.events}

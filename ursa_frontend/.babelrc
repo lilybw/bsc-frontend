@@ -1,0 +1,22 @@
+{
+    "presets": [
+      "@babel/preset-flow",
+      ["@babel/preset-typescript", {
+        "isTSX": true,
+        "allExtensions": true
+      }]
+    ],
+    "plugins": [
+      [
+        "@emotion/babel-plugin",
+        {
+          "sourceMap": false,
+          "autoLabel": "never",
+          "cssPropOptimization": true,
+          "pure": true,
+          "extractStatic": true,
+          "hoist": true
+        }
+      ]
+    ]
+  }

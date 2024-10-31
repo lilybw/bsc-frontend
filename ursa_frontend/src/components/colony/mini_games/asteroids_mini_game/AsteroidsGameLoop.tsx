@@ -215,12 +215,11 @@ export const createAsteroidsGameLoop: SingleplayerGameLoopInitFunc = async (
     context: ApplicationContext,
     difficultyID: uint32,
 ): Promise<ResErr<GenericGameLoopStartFunction>> => {
-
     const settings = await loadComputedSettings<AsteroidsSettingsDTO>(context.backend, KnownMinigames.ASTEROIDS, difficultyID);
     if (settings.err !== null) {
-        return {res: null, err: "Error initializing gameloop: " + settings.err};
+        return { res: null, err: 'Error initializing gameloop: ' + settings.err };
     }
     const loop = new AsteroidsGameLoop(context, settings.res);
 
-    return {res: loop.start, err: null};
+    return { res: loop.start, err: null };
 };

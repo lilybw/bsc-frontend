@@ -29,11 +29,11 @@ export const Styles = {
     SUB_TITLE: css`
         text-align: center;
         font-family: 'Orbitron', sans-serif;
-        
+
         font-weight: 700;
         letter-spacing: 0;
         color: hsla(0, 0%, 100%, 0.7);
-        
+
         font-size: 2rem;
         text-shadow: 0.15rem 0.15rem 0.3rem rgba(255, 255, 255, 0.3);
         filter: drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5));

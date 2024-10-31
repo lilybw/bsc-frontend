@@ -63,30 +63,28 @@ const loadPathMap = (paths: ColonyPathGraphResponseDTO['paths']): Map<ColonyLoca
     return pathMap;
 };
 
-type Line = { from: ColonyLocationID; to: ColonyLocationID; 
-    x1: number; y1: number; x2: number; y2: number };
+type Line = { from: ColonyLocationID; to: ColonyLocationID; x1: number; y1: number; x2: number; y2: number };
 
 const loadPathsFromInitial = (paths: ColonyPathGraphResponseDTO['paths']): Line[] => {
     return paths.map((path) => ({
-            from: path.from,
-            to: path.to,
-            x1: 0,
-            y1: 0,
-            x2: 0,
-            y2: 0,
-        })
-    );
-}
-
-interface ColonyLocationInfoWOriginalTransform extends ColonyLocationInformation { 
-    originalTransform: TransformDTO 
+        from: path.from,
+        to: path.to,
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+    }));
 };
+
+interface ColonyLocationInfoWOriginalTransform extends ColonyLocationInformation {
+    originalTransform: TransformDTO;
+}
 
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
     const colonyLocations = createArrayStore<ColonyLocationInfoWOriginalTransform>(
-        props.colony.locations.map((loc) => ({ ...loc, originalTransform: loc.transform }))
+        props.colony.locations.map((loc) => ({ ...loc, originalTransform: loc.transform })),
     );
     const camera = createWrappedSignal({ x: 0, y: 0 });
     const [viewportDimensions, setViewportDimensions] = createSignal({ width: window.innerWidth, height: window.innerHeight });
@@ -113,31 +111,32 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     xScale: colLoc.originalTransform.xScale * currentGAS,
                     yScale: colLoc.originalTransform.yScale * currentGAS,
                 };
-    
+
                 transformMap.get(colLoc.id)!.set(computedTransform);
                 colonyLocations.mutateByPredicate(
                     (e) => e.id === colLoc.id,
                     (element) => ({
-                        ...element, transform: computedTransform
+                        ...element,
+                        transform: computedTransform,
                     }),
                 );
 
                 computedPaths.mutateByPredicate(
-                    l => l.from === colLoc.id,
-                    l => ({
+                    (l) => l.from === colLoc.id,
+                    (l) => ({
                         ...l,
                         x1: computedTransform.xOffset,
                         y1: computedTransform.yOffset,
-                    })
-                )
+                    }),
+                );
                 computedPaths.mutateByPredicate(
-                    l => l.to === colLoc.id,
-                    l => ({
+                    (l) => l.to === colLoc.id,
+                    (l) => ({
                         ...l,
                         x2: computedTransform.xOffset,
                         y2: computedTransform.yOffset,
-                    })
-                )
+                    }),
+                );
             }
 
             //Update camera position
@@ -145,9 +144,8 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             if (currentLocOfLocalPlayer) {
                 centerCameraOnPoint(currentLocOfLocalPlayer.transform.xOffset, currentLocOfLocalPlayer.transform.yOffset);
             }
-        })
+        });
     });
-
 
     const centerCameraOnPoint = (x: number, y: number) => {
         const dim = viewportDimensions();
@@ -194,11 +192,9 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             const dns = {
                 x: newWidth / EXPECTED_WIDTH,
                 y: newHeight / EXPECTED_HEIGHT,
-            }
+            };
             setDNS(dns);
-            setGAS(Math.sqrt(
-                Math.min(dns.x, dns.y)
-            ));
+            setGAS(Math.sqrt(Math.min(dns.x, dns.y)));
         }, 500);
     };
 
@@ -214,23 +210,24 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
         let generalSpawnLocation;
         if (props.context.multiplayer.getState() === ColonyState.OPEN) {
-            generalSpawnLocation = colonyLocations.findFirst(colLoc => colLoc.locationID === KnownLocations.SpacePort)!;
+            generalSpawnLocation = colonyLocations.findFirst((colLoc) => colLoc.locationID === KnownLocations.SpacePort)!;
         } else {
-            generalSpawnLocation = colonyLocations.findFirst(colLoc => colLoc.locationID === KnownLocations.Home)!;
+            generalSpawnLocation = colonyLocations.findFirst((colLoc) => colLoc.locationID === KnownLocations.Home)!;
         }
         log.trace(`Setting initial location of local player to ${generalSpawnLocation.id}`);
 
-        props.clients.mutateByPredicate(c => !c.state.lastKnownPosition || c.state.lastKnownPosition === 0, 
-            c => {
+        props.clients.mutateByPredicate(
+            (c) => !c.state.lastKnownPosition || c.state.lastKnownPosition === 0,
+            (c) => {
                 return {
                     ...c,
                     state: {
                         ...c.state,
-                        lastKnownPosition: generalSpawnLocation.id
-                    }
-                }
-            }
-        )
+                        lastKnownPosition: generalSpawnLocation.id,
+                    },
+                };
+            },
+        );
 
         //Set initial camera position
         //Only works because the createEffect statement is evaluated before this onMount as of right now
@@ -252,16 +249,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             <div class={computedCameraContainerStyles()} id="camera-container">
                 <svg id="paths" class={svgContainerStyle}>
                     <For each={computedPaths.get}>
-                        {(line) => 
-                            <line
-                                x1={line.x1}
-                                y1={line.y1}
-                                x2={line.x2}
-                                y2={line.y2}
-                                stroke="white"
-                                stroke-width={10}
-                            />
-                        }
+                        {(line) => <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="white" stroke-width={10} />}
                     </For>
                 </svg>
 
@@ -289,15 +277,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 </For>
 
                 <For each={props.clients.get}>
-                    {(client) => 
-                        <Player 
-                            GAS={GAS}
-                            client={client} 
-                            transformMap={transformMap} 
-                            backend={props.context.backend} 
-                            showNamePlate
-                        />
-                    }
+                    {(client) => <Player GAS={GAS} client={client} transformMap={transformMap} backend={props.context.backend} showNamePlate />}
                 </For>
             </div>
 

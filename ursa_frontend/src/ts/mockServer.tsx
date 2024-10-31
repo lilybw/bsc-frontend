@@ -105,8 +105,8 @@ export class MockServer implements IMockServer {
         this.messageQueue.length = 0;
         this.lobbyPhase = LobbyPhase.RoamingColony;
         this.minigameLoopInitFunc = null;
-        this.events.emitRAW<GenericMinigameSequenceResetMessageDTO>({ 
-            senderID: MOCK_SERVER_ID, 
+        this.events.emitRAW<GenericMinigameSequenceResetMessageDTO>({
+            senderID: MOCK_SERVER_ID,
             eventID: GENERIC_MINIGAME_SEQUENCE_RESET_EVENT.id,
         });
     };
@@ -142,9 +142,7 @@ export class MockServer implements IMockServer {
                 }
                 case LobbyPhase.DeclareIntent: {
                     if (this.minigameLoopInitFunc === null) {
-                        const loadAttempt = loadMinigameSingleplayerLoop(
-                            this.difficultyConfirmed?.minigameID!,
-                        );
+                        const loadAttempt = loadMinigameSingleplayerLoop(this.difficultyConfirmed?.minigameID!);
                         if (loadAttempt.err !== null) {
                             this.log.error(`Error loading minigame: ${loadAttempt.err}`);
                             this.reset();
@@ -174,7 +172,6 @@ export class MockServer implements IMockServer {
                         this.log.info('Starting minigame game loop');
                         this.minigameLoopInitFunc(this.context, this.difficultyConfirmed?.difficultyID!);
                         this.log.trace('Phase changed to InMinigame');
-                    
                     }
                     if (message.eventID === PLAYER_LOAD_FAILURE_EVENT.id) {
                         const cast = message as PlayerLoadFailureMessageDTO;
@@ -193,10 +190,10 @@ export class MockServer implements IMockServer {
         this.events.emitRAW<GenericMinigameUntimelyAbortMessageDTO>({
             senderID: MOCK_SERVER_ID,
             eventID: GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT.id,
-            reason: reason || "Unknown reason",
+            reason: reason || 'Unknown reason',
             id: sourceID,
         });
-    } 
+    };
 
     private gameFinished() {
         this.log.trace('Game finished, reverting to colony');

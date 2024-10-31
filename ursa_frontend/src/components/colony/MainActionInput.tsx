@@ -40,23 +40,23 @@ const ActionInput: Component<ActionInputProps> = (props) => {
 
     if (props.manTriggerShake) {
         createEffect(() => {
-            if(props.manTriggerShake!() === 0 ) return;
+            if (props.manTriggerShake!() === 0) return;
             triggerShake();
-        })
+        });
     }
 
     if (props.manTriggerEnter) {
         createEffect(() => {
-            if( props.manTriggerEnter!() === 0 ) return;
+            if (props.manTriggerEnter!() === 0) return;
             handleEnter();
-        })
+        });
     }
 
     if (props.manTriggerEnterAnimation) {
         createEffect(() => {
-            if( props.manTriggerEnterAnimation!() === 0 ) return;
+            if (props.manTriggerEnterAnimation!() === 0) return;
             triggerEnterAnimation();
-        })
+        });
     }
 
     onMount(() => {
@@ -80,7 +80,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
     const triggerShake = () => {
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), shakeTimeS * 1000);
-    }
+    };
 
     const handleEnter = async () => {
         let consumed = false;
@@ -108,7 +108,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
     const triggerEnterAnimation = () => {
         setEnterSuccessfullyPressed(true);
         setTimeout(() => setEnterSuccessfullyPressed(false), confirmTimeS * 1000);
-    }
+    };
 
     return (
         <div

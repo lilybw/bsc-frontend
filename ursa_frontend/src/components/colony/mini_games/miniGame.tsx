@@ -6,7 +6,6 @@ import { AsteroidsSettingsDTO } from './asteroids_mini_game/types/GameTypes';
 import { uint32 } from '../../../integrations/main_backend/mainBackendDTOs';
 import { BackendIntegration } from '../../../integrations/main_backend/mainBackend';
 
-
 /**
  * Any function, that based on the provided ApplicationContext alone, can initialize all data needed
  * for establishing the minigame component. The resulting JSX element should be the root of the minigame,
@@ -18,7 +17,7 @@ export type MinigameComponentInitFunc = (context: ApplicationContext, difficulty
  * Used by the mock server.
  */
 export type GenericGameLoopStartFunction = () => void;
-/** 
+/**
  * Any function, that based on the provided ApplicationContext alone, can initialize all data needed
  * or return an error if something goes wrong during initialization.
  */
@@ -26,7 +25,7 @@ export type SingleplayerGameLoopInitFunc = (context: ApplicationContext, difficu
 
 export enum KnownMinigames {
     ASTEROIDS = 1,
-    UNKNOWN = 99999
+    UNKNOWN = 99999,
 }
 
 export const getMinigameName = (minigameID: uint32): string => {
@@ -34,7 +33,7 @@ export const getMinigameName = (minigameID: uint32): string => {
         if (value === minigameID) return key;
     }
     return KnownMinigames.UNKNOWN.toString();
-}
+};
 
 /**
  * Load and mount a minigame.
@@ -43,14 +42,14 @@ export const loadMinigameSingleplayerLoop = (minigameID: number): ResErr<Singlep
     let gameLoopInitFunc: SingleplayerGameLoopInitFunc | null = null;
 
     switch (minigameID) {
-        case KnownMinigames.ASTEROIDS: {;
+        case KnownMinigames.ASTEROIDS: {
             gameLoopInitFunc = createAsteroidsGameLoop;
             break;
         }
     }
 
     if (gameLoopInitFunc === null) {
-        return { res: null, err: 'Could not load minigame gameloop, no loop found for minigame id: ' + minigameID};
+        return { res: null, err: 'Could not load minigame gameloop, no loop found for minigame id: ' + minigameID };
     }
 
     return { res: gameLoopInitFunc, err: null };
@@ -67,13 +66,17 @@ export const getMinigameComponentInitFunction = (minigameID: number): ResErr<Min
     }
 
     if (!initFunc || initFunc === null) {
-        return {res: null, err: 'Could not find minigame component init function for minigame id: ' + minigameID};
+        return { res: null, err: 'Could not find minigame component init function for minigame id: ' + minigameID };
     }
 
-    return {res: initFunc, err: null};
-}
+    return { res: initFunc, err: null };
+};
 
-export const loadComputedSettings = async <T extends Object>(backend: BackendIntegration, minigameID: number, difficultyID: number): Promise<ResErr<T>> => {
+export const loadComputedSettings = async <T extends Object>(
+    backend: BackendIntegration,
+    minigameID: number,
+    difficultyID: number,
+): Promise<ResErr<T>> => {
     if (minigameID === null || difficultyID === null) return { res: null, err: 'Could not load minigame difficualty information is null.' };
 
     const response = await backend.minigame.getMinimizedInfo(minigameID, difficultyID);
@@ -83,4 +86,4 @@ export const loadComputedSettings = async <T extends Object>(backend: BackendInt
     const computedSettings = { ...response.res.settings, ...response.res.overwritingSettings };
 
     return { res: computedSettings, err: null };
-}
+};

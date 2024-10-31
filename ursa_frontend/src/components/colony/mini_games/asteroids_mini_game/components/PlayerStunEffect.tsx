@@ -1,12 +1,18 @@
 import { Component, createSignal, createEffect, onCleanup, For, Show, Accessor } from 'solid-js';
 import { BaseParticle } from '../entities/particles';
-import { particleContainerStyle, stunParticleBaseStyle, stunParticleContentStyle, stunParticleHorizontalStyle, stunParticleVerticalStyle } from '../styles/ParticleStyles';
+import {
+    particleContainerStyle,
+    stunParticleBaseStyle,
+    stunParticleContentStyle,
+    stunParticleHorizontalStyle,
+    stunParticleVerticalStyle,
+} from '../styles/ParticleStyles';
 import StunParticleManager from '../entities/particles/stunparticles/StunParticleManager';
 import { EntityRef } from '../types/EntityTypes';
 
 interface PlayerStunEffectProps {
     playerId: number;
-    playerState: Accessor<{ isStunned: boolean; isDisabled: boolean; } | undefined>;
+    playerState: Accessor<{ isStunned: boolean; isDisabled: boolean } | undefined>;
     stunDuration: number;
     elementRefs: Map<string, EntityRef>;
 }
@@ -22,10 +28,10 @@ const PlayerStunEffect: Component<PlayerStunEffectProps> = (props) => {
             const currentParticles = particleManager.getParticles();
             setParticles(currentParticles);
             setHasActiveParticles(currentParticles.length > 0);
-            setHasStunEffect(currentParticles.length > 0);  // Update stun effect state
+            setHasStunEffect(currentParticles.length > 0); // Update stun effect state
         },
         props.playerId,
-        props.elementRefs
+        props.elementRefs,
     );
 
     // Track stun state and manage particles
@@ -90,7 +96,7 @@ const PlayerStunEffect: Component<PlayerStunEffectProps> = (props) => {
                 </div>
             </Show>
         </Show>
-    )
+    );
 };
 
 export default PlayerStunEffect;

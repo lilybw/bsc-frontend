@@ -67,15 +67,18 @@ interface AsteroidsProps {
     settings: AsteroidsSettingsDTO;
 }
 
-export const initAsteroidsComponent: MinigameComponentInitFunc = async (context: ApplicationContext, difficultyID: uint32): Promise<ResErr<JSX.Element>> => {
+export const initAsteroidsComponent: MinigameComponentInitFunc = async (
+    context: ApplicationContext,
+    difficultyID: uint32,
+): Promise<ResErr<JSX.Element>> => {
     const settings = await loadComputedSettings(context.backend, KnownMinigames.ASTEROIDS, difficultyID);
     if (settings.err !== null) {
-        return { res: null, err: "Error initializing minigame component: " + settings.err };
+        return { res: null, err: 'Error initializing minigame component: ' + settings.err };
     }
     const asteroidSettings = settings.res as AsteroidsSettingsDTO;
 
     return { res: <AsteroidsMiniGame context={context} settings={asteroidSettings} />, err: null };
-}
+};
 
 /**
  * Main Asteroids minigame component
@@ -381,7 +384,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
             lazerBeamRemoveFuncs.clear();
             elementRefs.clear();
             // Add particle manager cleanup here
-            playerParticleManagers.forEach(manager => manager.clear());
+            playerParticleManagers.forEach((manager) => manager.clear());
             playerParticleManagers.clear();
             window.removeEventListener('resize', handleResize);
         });

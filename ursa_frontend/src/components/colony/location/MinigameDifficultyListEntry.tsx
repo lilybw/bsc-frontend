@@ -20,7 +20,11 @@ const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> =
     const computedContainerStyles = createMemo(() => {
         return css`
             ${containerStyles}
-            ${isHovered() ? css`left: 5vw;` : ''}
+            ${isHovered()
+                ? css`
+                      left: 5vw;
+                  `
+                : ''}
             ${!props.enabled() ? Styles.CROSS_HATCH_GRADIENT : ''}
             ${hasBeenActivated() ? highlightedOptionStyle : ''}
         `;
@@ -51,10 +55,12 @@ const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> =
 export default MinigameDifficultyListEntry;
 
 const highlightedOptionStyle = css`
-    background-image: linear-gradient(rgba(0, 150, 0, 0.5), rgba(0, 255, 0, 0.5), rgba(0, 150, 0, 0.5)); 
+    background-image: linear-gradient(rgba(0, 150, 0, 0.5), rgba(0, 255, 0, 0.5), rgba(0, 150, 0, 0.5));
     border-color: white;
-    box-shadow: 0 0 1rem rgba(0, 150, 0, 0.5) inset, 0 0 1rem rgba(0, 255, 0, 0.5);
-`
+    box-shadow:
+        0 0 1rem rgba(0, 150, 0, 0.5) inset,
+        0 0 1rem rgba(0, 255, 0, 0.5);
+`;
 
 const containerStyles = css`
     display: flex;

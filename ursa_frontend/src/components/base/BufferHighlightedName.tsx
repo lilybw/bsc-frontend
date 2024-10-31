@@ -35,7 +35,7 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
 
     const getNameValue = () => {
         return typeof props.name === 'function' ? props.name() : props.name;
-    }
+    };
 
     createEffect(() => {
         const currentName = getNameValue();
@@ -57,7 +57,7 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
                 props.onHoverBegin();
             }
         }
-    })
+    });
 
     const getCharStyle = (index: Accessor<number>, charInName: string) => {
         if (hasBeenMissed()) {

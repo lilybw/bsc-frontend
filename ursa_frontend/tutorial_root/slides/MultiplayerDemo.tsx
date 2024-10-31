@@ -51,7 +51,7 @@ export default function MultiplayerDemo(props: MultiplayerDemoProps): JSX.Elemen
         }
         setTimeout(
             () => {
-                setTriggerEnter(prev => prev + 1);
+                setTriggerEnter((prev) => prev + 1);
             },
             baseDelayBeforeDemoStart * 2 + nameOfLocation.get().length * timeBetweenKeyStrokesMS,
         );
@@ -69,7 +69,7 @@ export default function MultiplayerDemo(props: MultiplayerDemoProps): JSX.Elemen
         }
         setTimeout(
             () => {
-                setTriggerEnter(prev => prev + 1);
+                setTriggerEnter((prev) => prev + 1);
             },
             baseDelayBeforeDemoStart * 2 + openButtonText.get().length * timeBetweenKeyStrokesMS,
         );

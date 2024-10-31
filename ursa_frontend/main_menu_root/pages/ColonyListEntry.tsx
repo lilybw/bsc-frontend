@@ -48,24 +48,24 @@ const ColonyListEntry: Component<ColonyListEntryProps> = (props) => {
 export default ColonyListEntry;
 
 const subtitleModifiedStyle = css`
-${Styles.SUB_TITLE}
-font-size: 1.5rem;
-color: cyan;
-`
+    ${Styles.SUB_TITLE}
+    font-size: 1.5rem;
+    color: cyan;
+`;
 
 const timeAgoStyle = css`
-${subtitleModifiedStyle}
-color: white;
-text-shadow: none;
-filter: none;
-box-shadow: none;
-font-size: 1rem;
-`
+    ${subtitleModifiedStyle}
+    color: white;
+    text-shadow: none;
+    filter: none;
+    box-shadow: none;
+    font-size: 1rem;
+`;
 
 const accLevelStyle = css`
-${subtitleModifiedStyle}
-color: orange;
-`
+    ${subtitleModifiedStyle}
+    color: orange;
+`;
 
 const listEntryStyles = css`
     display: grid;

@@ -19,7 +19,12 @@ import BufferBasedButton from '../../base/BufferBasedButton';
 import GraphicalAsset from '../../base/GraphicalAsset';
 import UnderConstruction from '../../base/UnderConstruction';
 import { Styles } from '../../../sharedCSS';
-import { STYLE_LOC_CARD_backgroundImageStyle, STYLE_LOC_CARD_descriptionStyleOverwrite, STYLE_LOC_CARD_lowerThirdWBackgroundStyle, STYLE_LOC_CARD_titleStyleOverwrite } from './SpacePortLocationCard';
+import {
+    STYLE_LOC_CARD_backgroundImageStyle,
+    STYLE_LOC_CARD_descriptionStyleOverwrite,
+    STYLE_LOC_CARD_lowerThirdWBackgroundStyle,
+    STYLE_LOC_CARD_titleStyleOverwrite,
+} from './SpacePortLocationCard';
 
 export interface GenericLocationCardProps extends IBufferBased, IBackendBased, IInternationalized, IRegistering<string> {
     colonyLocation: ColonyLocationInformation;
@@ -96,8 +101,8 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                     </div>
                 )}
             </NTAwait>
-        )
-    }
+        );
+    };
 
     return (
         <div class={cardContainerStyle} id={'location-card-' + props.info.name}>
@@ -109,12 +114,14 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
 
             <div class={lowerThirdModifiedStyle}>
                 {props.text.SubTitle(props.info.description)({ styleOverwrite: STYLE_LOC_CARD_descriptionStyleOverwrite })}
-                <div class={css`
-                    display: flex;
-                    flex-direction: row;
-                    width: 100%;
-                    justify-content: space-evenly;
-                `}>
+                <div
+                    class={css`
+                        display: flex;
+                        flex-direction: row;
+                        width: 100%;
+                        justify-content: space-evenly;
+                    `}
+                >
                     <BufferBasedButton
                         name={props.text.get('LOCATION.USER_ACTION.LEAVE').get()}
                         buffer={props.buffer}
@@ -137,9 +144,9 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
 export default GenericLocationCard;
 
 const lowerThirdModifiedStyle = css`
-${STYLE_LOC_CARD_lowerThirdWBackgroundStyle}
-height: 20%;
-`
+    ${STYLE_LOC_CARD_lowerThirdWBackgroundStyle}
+    height: 20%;
+`;
 
 const cardContainerStyle = css`
     display: flex;

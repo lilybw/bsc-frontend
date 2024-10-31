@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import solidPlugin from 'vite-plugin-solid';
 import devtools from 'solid-devtools/vite';
+import { compression } from 'vite-plugin-compression2';
+import babelPlugin from 'vite-plugin-babel';
 
 export default defineConfig(({ mode }) => {
     const serverConfig = {
@@ -25,6 +27,33 @@ export default defineConfig(({ mode }) => {
                 autoname: true, // e.g. enable autoname
             }),
             solidPlugin(),
+            babelPlugin({
+                babelConfig: {
+                    presets: [
+                        ['@babel/preset-typescript', {
+                            isTSX: true,
+                            allExtensions: true,
+                        }]
+                    ],
+                    plugins: [
+                        ['@emotion/babel-plugin', {
+                            // Configure for @emotion/css usage
+                            sourceMap: false,
+                            autoLabel: 'never',
+                            cssPropOptimization: true,
+                            pure: true,
+                            // Specific optimizations for @emotion/css
+                            extractStatic: true,
+                            hoist: true
+                        }],
+                    ],
+                },
+                filter: /\.(tsx|ts|js|jsx)$/,
+            }),
+            compression({
+                include: /\.(js|css|html|svg)$/,
+                threshold: 1024, // Only compress files bigger than 1KB
+            }),
         ],
         server: serverConfig,
         build: {
@@ -36,6 +65,23 @@ export default defineConfig(({ mode }) => {
                     assetFileNames: `[name].[ext]`,
                 },
             },
+            emptyOutDir: true,
+            minify: 'terser',
+            terserOptions: {
+                ecma: 2020,
+                keep_classnames: false,
+                keep_fnames: false,
+                compress: {
+                    drop_debugger: true,
+                    passes: 2
+                },
+            },
+            cssMinify: true, // Enable CSS minification
+            cssCodeSplit: true, // Enable CSS code splitting
+        },
+        optimizeDeps: {
+            include: ['@emotion/css'],
+            exclude: ['@emotion/react', '@emotion/styled']  // Remove these as they're not used
         },
     };
 });

@@ -34,7 +34,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
     }
     setTimeout(
         () => {
-            setTriggerEnter(prev => prev + 1);
+            setTriggerEnter((prev) => prev + 1);
         },
         baseDelayBeforeDemoStart * 2 + nameOfLocation.get().length * timeBetweenKeyStrokesMS,
     );

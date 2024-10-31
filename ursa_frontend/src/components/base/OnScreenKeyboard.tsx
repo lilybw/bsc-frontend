@@ -172,71 +172,71 @@ const DEFAULTS: NormalizedOnScreenKeyboardProps = {
     layout: EN_GB_KEYBOARD_LAYOUT,
     keyBaseStyleOverride: NOOP_EMP_STR,
     textStyleOverride: NOOP_EMP_STR,
-    styleOverwrite: NOOP_EMP_STR
+    styleOverwrite: NOOP_EMP_STR,
 };
 
 const normalizeProps = (props: OnScreenKeyboardProps): NormalizedOnScreenKeyboardProps => {
-    const semiNormalized = { ...props };  // Create a copy to modify
+    const semiNormalized = { ...props }; // Create a copy to modify
 
     if (Array.isArray(props.highlighted)) {
-      const value = props.highlighted; // Capture the array value
-      semiNormalized.highlighted = (() => value);  // Create an accessor function
+        const value = props.highlighted; // Capture the array value
+        semiNormalized.highlighted = () => value; // Create an accessor function
     }
     if (Array.isArray(props.ignored)) {
-      const value = props.ignored; // Capture the array value
-      semiNormalized.ignored = (() => value);  // Create an accessor function
+        const value = props.ignored; // Capture the array value
+        semiNormalized.ignored = () => value; // Create an accessor function
     }
-    if (typeof props.showHands === "boolean") {
-      const value = props.showHands; // Capture the boolean value
-      semiNormalized.showHands = (() => value);  // Create an accessor function
+    if (typeof props.showHands === 'boolean') {
+        const value = props.showHands; // Capture the boolean value
+        semiNormalized.showHands = () => value; // Create an accessor function
     }
-    if (typeof props.showIntendedFingerUseForKey === "boolean") {
-      const value = props.showIntendedFingerUseForKey; // Capture the boolean value
-      semiNormalized.showIntendedFingerUseForKey = (() => value);  // Create an accessor function
+    if (typeof props.showIntendedFingerUseForKey === 'boolean') {
+        const value = props.showIntendedFingerUseForKey; // Capture the boolean value
+        semiNormalized.showIntendedFingerUseForKey = () => value; // Create an accessor function
     }
-    if (typeof props.hardShadeMultiFingerKeyGradients === "boolean") {
-      const value = props.hardShadeMultiFingerKeyGradients; // Capture the boolean value
-      semiNormalized.hardShadeMultiFingerKeyGradients = (() => value);  // Create an accessor function
+    if (typeof props.hardShadeMultiFingerKeyGradients === 'boolean') {
+        const value = props.hardShadeMultiFingerKeyGradients; // Capture the boolean value
+        semiNormalized.hardShadeMultiFingerKeyGradients = () => value; // Create an accessor function
     }
-    if (typeof props.colorizationIntensity === "number") {
-      const value = props.colorizationIntensity; // Capture the number value
-      semiNormalized.colorizationIntensity = (() => value);  // Create an accessor function
+    if (typeof props.colorizationIntensity === 'number') {
+        const value = props.colorizationIntensity; // Capture the number value
+        semiNormalized.colorizationIntensity = () => value; // Create an accessor function
     }
-    if (typeof props.fingeringSchemeFocused === "number") {
-      const value = props.fingeringSchemeFocused; // Capture the number value
-      semiNormalized.fingeringSchemeFocused = (() => value);  // Create an accessor function
+    if (typeof props.fingeringSchemeFocused === 'number') {
+        const value = props.fingeringSchemeFocused; // Capture the number value
+        semiNormalized.fingeringSchemeFocused = () => value; // Create an accessor function
     }
-    if (typeof props.ignoreSpecialKeys === "boolean") {
-      const value = props.ignoreSpecialKeys; // Capture the boolean value
-      semiNormalized.ignoreSpecialKeys = (() => value);  // Create an accessor function
+    if (typeof props.ignoreSpecialKeys === 'boolean') {
+        const value = props.ignoreSpecialKeys; // Capture the boolean value
+        semiNormalized.ignoreSpecialKeys = () => value; // Create an accessor function
     }
-    if (typeof props.ignoreNumericKeys === "boolean") {
-      const value = props.ignoreNumericKeys; // Capture the boolean value
-      semiNormalized.ignoreNumericKeys = (() => value);  // Create an accessor function
+    if (typeof props.ignoreNumericKeys === 'boolean') {
+        const value = props.ignoreNumericKeys; // Capture the boolean value
+        semiNormalized.ignoreNumericKeys = () => value; // Create an accessor function
     }
-    if (typeof props.ignoreAlphabeticKeys === "boolean") {
-      const value = props.ignoreAlphabeticKeys; // Capture the boolean value
-      semiNormalized.ignoreAlphabeticKeys = (() => value);  // Create an accessor function
+    if (typeof props.ignoreAlphabeticKeys === 'boolean') {
+        const value = props.ignoreAlphabeticKeys; // Capture the boolean value
+        semiNormalized.ignoreAlphabeticKeys = () => value; // Create an accessor function
     }
-    if (typeof props.ignoreGrammarKeys === "boolean") {
-      const value = props.ignoreGrammarKeys; // Capture the boolean value
-      semiNormalized.ignoreGrammarKeys = (() => value);  // Create an accessor function
+    if (typeof props.ignoreGrammarKeys === 'boolean') {
+        const value = props.ignoreGrammarKeys; // Capture the boolean value
+        semiNormalized.ignoreGrammarKeys = () => value; // Create an accessor function
     }
-    if (typeof props.ignoreMathKeys === "boolean") {
-      const value = props.ignoreMathKeys; // Capture the boolean value
-      semiNormalized.ignoreMathKeys = (() => value);  // Create an accessor function
+    if (typeof props.ignoreMathKeys === 'boolean') {
+        const value = props.ignoreMathKeys; // Capture the boolean value
+        semiNormalized.ignoreMathKeys = () => value; // Create an accessor function
     }
-    if (typeof props.keyBaseStyleOverride === "string") {
+    if (typeof props.keyBaseStyleOverride === 'string') {
         const value = props.keyBaseStyleOverride; // Capture the string value
-        semiNormalized.keyBaseStyleOverride = (() => value);  // Create an accessor function
+        semiNormalized.keyBaseStyleOverride = () => value; // Create an accessor function
     }
-    if (typeof props.textStyleOverride === "string") {
+    if (typeof props.textStyleOverride === 'string') {
         const value = props.textStyleOverride; // Capture the string value
-        semiNormalized.textStyleOverride = (() => value);  // Create an accessor function
+        semiNormalized.textStyleOverride = () => value; // Create an accessor function
     }
-    if (typeof props.styleOverwrite === "string") {
+    if (typeof props.styleOverwrite === 'string') {
         const value = props.styleOverwrite; // Capture the string value
-        semiNormalized.styleOverwrite = (() => value);  // Create an accessor function
+        semiNormalized.styleOverwrite = () => value; // Create an accessor function
     }
     // @ts-ignore
     return mergeProps(DEFAULTS, semiNormalized);
@@ -262,8 +262,8 @@ const OnScreenKeyboard: Component<OnScreenKeyboardProps> = (_props) => {
         if (normalizedProps.fingeringSchemeFocused() > -1 || key.finger.length == 1) {
             let indexToUse = key.finger.length - 1;
             if (normalizedProps.fingeringSchemeFocused() != -1) {
-                indexToUse = normalizedProps.fingeringSchemeFocused() >= key.finger.length ? 
-                    key.finger.length - 1 : normalizedProps.fingeringSchemeFocused();
+                indexToUse =
+                    normalizedProps.fingeringSchemeFocused() >= key.finger.length ? key.finger.length - 1 : normalizedProps.fingeringSchemeFocused();
             }
             const finger = key.finger[indexToUse];
             const constColor = `rgba(${finger.color}, ${normalizedProps.colorizationIntensity()})`;
@@ -317,11 +317,19 @@ const OnScreenKeyboard: Component<OnScreenKeyboardProps> = (_props) => {
                     ${computedStyle} ${keyHighlightedStyle}
                 `;
             }
-            computedStyle = css`${computedStyle} ${normalizedProps.keyBaseStyleOverride()}`;
+            computedStyle = css`
+                ${computedStyle} ${normalizedProps.keyBaseStyleOverride()}
+            `;
 
             const children = (
                 <>
-                    <div class={css`${keyboardTextStyle} ${normalizedProps.textStyleOverride()}`}>{key.char}</div>
+                    <div
+                        class={css`
+                            ${keyboardTextStyle} ${normalizedProps.textStyleOverride()}
+                        `}
+                    >
+                        {key.char}
+                    </div>
                     {appendDotIfForJ(key)}
                 </>
             );

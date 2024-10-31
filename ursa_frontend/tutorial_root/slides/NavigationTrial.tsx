@@ -1,16 +1,16 @@
-import { Component, createEffect, createMemo, createSignal, For, onCleanup, onMount } from "solid-js";
-import { ApplicationContext } from "../../src/meta/types";
-import { IBackendBased, IInternationalized, IStyleOverwritable } from "../../src/ts/types";
-import { createWrappedSignal } from "../../src/ts/wrappedSignal";
-import { createArrayStore } from "../../src/ts/arrayStore";
-import { ActionContext, BufferSubscriber } from "../../src/ts/actionContext";
-import { PLAYER_MOVE_EVENT } from "../../src/integrations/multiplayer_backend/EventSpecifications";
-import { css } from "@emotion/css";
-import StarryBackground from "../../src/components/base/StarryBackground";
-import BufferBasedButton from "../../src/components/base/BufferBasedButton";
-import ActionInput from "../../src/components/colony/MainActionInput";
-import NTAwait from "../../src/components/util/NoThrowAwait";
-import GraphicalAsset from "../../src/components/base/GraphicalAsset";
+import { Component, createEffect, createMemo, createSignal, For, onCleanup, onMount } from 'solid-js';
+import { ApplicationContext } from '../../src/meta/types';
+import { IBackendBased, IInternationalized, IStyleOverwritable } from '../../src/ts/types';
+import { createWrappedSignal } from '../../src/ts/wrappedSignal';
+import { createArrayStore } from '../../src/ts/arrayStore';
+import { ActionContext, BufferSubscriber } from '../../src/ts/actionContext';
+import { PLAYER_MOVE_EVENT } from '../../src/integrations/multiplayer_backend/EventSpecifications';
+import { css } from '@emotion/css';
+import StarryBackground from '../../src/components/base/StarryBackground';
+import BufferBasedButton from '../../src/components/base/BufferBasedButton';
+import ActionInput from '../../src/components/colony/MainActionInput';
+import NTAwait from '../../src/components/util/NoThrowAwait';
+import GraphicalAsset from '../../src/components/base/GraphicalAsset';
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -21,7 +21,7 @@ interface NavigationTrialProps extends IBackendBased, IInternationalized, IStyle
 }
 
 interface EntityRef {
-    type: "location";
+    type: 'location';
     element: HTMLElement;
 }
 
@@ -29,12 +29,16 @@ const MOCK_LOCATIONS = [
     { id: 1, name: 'HOME', transform: { xOffset: 960, yOffset: 540, xScale: 1, yScale: 1, zIndex: 1 } },
     { id: 2, name: 'SHOP', transform: { xOffset: 1440, yOffset: 270, xScale: 1, yScale: 1, zIndex: 1 } },
     { id: 3, name: 'PARK', transform: { xOffset: 480, yOffset: 810, xScale: 1, yScale: 1, zIndex: 1 } },
-    { id: 4, name: 'LIBRARY', transform: { xOffset: 1440, yOffset: 810, xScale: 1, yScale: 1, zIndex: 1 } }
+    { id: 4, name: 'LIBRARY', transform: { xOffset: 1440, yOffset: 810, xScale: 1, yScale: 1, zIndex: 1 } },
 ];
 
 const MOCK_PATHS = [
-    { from: 1, to: 2 }, { from: 2, to: 3 }, { from: 3, to: 4 },
-    { from: 4, to: 1 }, { from: 1, to: 3 }, { from: 2, to: 4 }
+    { from: 1, to: 2 },
+    { from: 2, to: 3 },
+    { from: 3, to: 4 },
+    { from: 4, to: 1 },
+    { from: 1, to: 3 },
+    { from: 2, to: 4 },
 ];
 
 const loadPathMap = (paths: typeof MOCK_PATHS): Map<number, number[]> => {
@@ -60,7 +64,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal(1);
     const [viewportDimensions, setViewportDimensions] = createSignal({
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
     });
     const [buffer, setBuffer] = createSignal('');
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
@@ -73,18 +77,18 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     // Create reactive scaled positions
     const getScaledPositions = createMemo(() => {
         const currentDNS = DNS();
-        return MOCK_LOCATIONS.map(location => ({
+        return MOCK_LOCATIONS.map((location) => ({
             ...location,
             scaledPosition: {
                 x: location.transform.xOffset * currentDNS.x,
-                y: location.transform.yOffset * currentDNS.y
-            }
+                y: location.transform.yOffset * currentDNS.y,
+            },
         }));
     });
 
     const getLocationPosition = (locationId: number) => {
         const scaledLocations = getScaledPositions();
-        const location = scaledLocations.find(l => l.id === locationId);
+        const location = scaledLocations.find((l) => l.id === locationId);
         if (!location) return null;
 
         return location.scaledPosition;
@@ -92,14 +96,14 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
 
     const moveToLocation = (fromLocationId: number, toLocationId: number) => {
         const scaledLocations = getScaledPositions();
-        const toLocation = scaledLocations.find(l => l.id === toLocationId);
+        const toLocation = scaledLocations.find((l) => l.id === toLocationId);
         if (!toLocation) return;
 
         const viewport = viewportDimensions();
 
         const newOffset = {
             x: viewport.width / 2 - toLocation.scaledPosition.x,
-            y: viewport.height / 2 - toLocation.scaledPosition.y
+            y: viewport.height / 2 - toLocation.scaledPosition.y,
         };
 
         worldOffset.set(newOffset);
@@ -122,7 +126,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
             log.subtrace(`Moving to location: ${locationId}`);
             props.context.events.emit(PLAYER_MOVE_EVENT, {
                 playerID: props.backend.player.local.id,
-                colonyLocationID: locationId
+                colonyLocationID: locationId,
             });
         }
     };
@@ -139,8 +143,8 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     };
 
     const handleBufferUpdate = (value: string | ((prev: string) => string)) => {
-        if (typeof value === "function") {
-            setBuffer(prev => value(prev));
+        if (typeof value === 'function') {
+            setBuffer((prev) => value(prev));
         } else {
             setBuffer(value);
         }
@@ -158,7 +162,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
             const viewport = viewportDimensions();
             const initialOffset = {
                 x: viewport.width / 2 - homePos.x,
-                y: viewport.height / 2 - homePos.y
+                y: viewport.height / 2 - homePos.y,
             };
             worldOffset.set(initialOffset);
         }
@@ -170,9 +174,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     });
 
     bufferSubscribers.add((inputBuffer: string) => {
-        const targetLocation = locationStore.findFirst(loc =>
-            loc.name.toLowerCase() === inputBuffer.toLowerCase()
-        );
+        const targetLocation = locationStore.findFirst((loc) => loc.name.toLowerCase() === inputBuffer.toLowerCase());
 
         if (targetLocation) {
             handleMove(targetLocation.id);
@@ -200,8 +202,8 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                     <For each={MOCK_PATHS}>
                         {(path) => {
                             const scaledLocations = getScaledPositions();
-                            const fromLocation = scaledLocations.find(l => l.id === path.from);
-                            const toLocation = scaledLocations.find(l => l.id === path.to);
+                            const fromLocation = scaledLocations.find((l) => l.id === path.from);
+                            const toLocation = scaledLocations.find((l) => l.id === path.to);
                             if (!fromLocation || !toLocation) return null;
 
                             return (

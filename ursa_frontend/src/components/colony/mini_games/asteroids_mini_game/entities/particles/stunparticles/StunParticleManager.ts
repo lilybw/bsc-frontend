@@ -11,11 +11,7 @@ export class StunParticleManager {
     private elementRefs: Map<string, EntityRef>;
     private isCleaningUp: boolean = false;
 
-    constructor(
-        updateCallback: () => void,
-        playerId: number,
-        elementRefs: Map<string, EntityRef>
-    ) {
+    constructor(updateCallback: () => void, playerId: number, elementRefs: Map<string, EntityRef>) {
         this.particles = new Map();
         this.nextId = 0;
         this.updateCallback = updateCallback;
@@ -45,7 +41,7 @@ export class StunParticleManager {
                 if (!this.isCleaningUp) {
                     this.removeParticle(id);
                 }
-            }
+            },
         });
 
         this.addParticle(particle);
@@ -73,11 +69,10 @@ export class StunParticleManager {
     public update(): void {
         if (this.isCleaningUp) return;
 
-        const expiredParticles = Array.from(this.particles.values())
-            .filter(particle => particle.isExpired());
+        const expiredParticles = Array.from(this.particles.values()).filter((particle) => particle.isExpired());
 
         if (expiredParticles.length > 0) {
-            expiredParticles.forEach(particle => {
+            expiredParticles.forEach((particle) => {
                 this.removeParticle(particle.id);
             });
         }

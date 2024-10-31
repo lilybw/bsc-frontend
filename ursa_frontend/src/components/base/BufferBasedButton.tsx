@@ -18,8 +18,14 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     const [recentlyEnabled, setRecentlyEnabled] = createSignal(false);
     const [isHovered, setIsHovered] = createSignal(false);
     const disabledBuffer = createMemo(() => '');
-    const onHoverBeginAppended = () => {setIsHovered(true); props.onHoverBegin && props.onHoverBegin()};
-    const onHoverEndAppended = () => {setIsHovered(false); props.onHoverEnd && props.onHoverEnd()};
+    const onHoverBeginAppended = () => {
+        setIsHovered(true);
+        props.onHoverBegin && props.onHoverBegin();
+    };
+    const onHoverEndAppended = () => {
+        setIsHovered(false);
+        props.onHoverEnd && props.onHoverEnd();
+    };
 
     const isDisabled = createMemo(() => {
         return props.enable ? !props.enable() : false;
@@ -27,7 +33,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
 
     const getNameValue = () => {
         return typeof props.name === 'function' ? props.name() : props.name;
-    }
+    };
 
     createEffect(() => {
         const currentlyDisabled = isDisabled();
@@ -62,22 +68,20 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
         onCleanup(removeFunc);
     });
 
-    const computedContainerStyles = createMemo(
-        () => {
-            const disabled = isDisabled();
-            const hover = isHovered();
-            const recEnabled = recentlyEnabled();
-            const isActivated = activated();
-            return css`
-                ${baseStyle}
-                ${props.styleOverwrite}
+    const computedContainerStyles = createMemo(() => {
+        const disabled = isDisabled();
+        const hover = isHovered();
+        const recEnabled = recentlyEnabled();
+        const isActivated = activated();
+        return css`
+            ${baseStyle}
+            ${props.styleOverwrite}
                 ${isActivated && !disabled ? onActivationShimmerAnim : ''}
                 ${disabled ? Styles.CROSS_HATCH_GRADIENT : ''}
                 ${recEnabled && !disabled ? onReEnabledAnim : ''}
                 ${hover && !disabled ? props.onHoverContainerStyle : ''}
-            `;
-        },
-    );
+        `;
+    });
 
     return (
         <button class={computedContainerStyles()} id={'buffer-based-button-' + getNameValue()} disabled={isDisabled()}>
