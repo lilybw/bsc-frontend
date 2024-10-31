@@ -323,19 +323,6 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         }
     };
 
-    const debugPosition = (id: string, position: Position | null) => {
-        console.log(`Position for ID ${id}:`, position);
-        if (!position) {
-            const ref = elementRefs.get(id);
-            console.log(`Element ref for ID ${id}:`, ref);
-            if (ref) {
-                const rect = ref.element.getBoundingClientRect();
-                console.log(`Element rect for ID ${id}:`, rect);
-            }
-        }
-        return position;
-    };
-
     onMount(() => {
         calculateScalars();
         window.addEventListener('resize', calculateScalars);
@@ -571,16 +558,6 @@ const localPlayerStyle = css`
     height: 32px;
     background-color: #ef4444;
     border-radius: 50%;
-`;
-
-const svgContainerStyle = css`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 10;
-    overflow: visible !important;
 `;
 
 const cameraContainer = css`
