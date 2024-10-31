@@ -1,3 +1,4 @@
+import { JSX } from 'solid-js/jsx-runtime';
 import { uint32 } from '../../../integrations/main_backend/mainBackendDTOs';
 import { IEventMultiplexer } from '../../../integrations/multiplayer_backend/eventMultiplexer';
 import {
@@ -12,6 +13,7 @@ import {
 import { ClientDTO } from '../../../integrations/multiplayer_backend/multiplayerDTO';
 import { Logger } from '../../../logging/filteredLogger';
 import { ArrayStore, createArrayStore } from '../../../ts/arrayStore';
+import MinigameWaitingScreen from '../MinigameWaitingScreen';
 
 export enum PlayerParticipation {
     OPT_IN = 'OPT_IN',
@@ -115,6 +117,12 @@ class ClientTracker {
         return this.clients as unknown as ArrayStore<ClientDTO>;
     };
 
-    public getComponent = () => {};
+    public getComponent = (): JSX.Element => {
+        return (
+            <MinigameWaitingScreen 
+                clients={this.clients}    
+            />
+        );
+    };
 }
 export default ClientTracker;

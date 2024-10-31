@@ -294,8 +294,11 @@ const checkExplanationDeclineStyle = css`
 const keyboardStyle = css`
     width: 80vw;
     height: 40vh;
+    border-radius: 1rem;
+    background: none;
     background-image: none;
     background-color: transparent;
+    ${Styles.GLASS.FAINT_BACKGROUND}
     transition: all 0.2s ease-out;
 `;
 

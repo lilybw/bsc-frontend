@@ -195,7 +195,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 });
             });
 
-            let minigameComponent: JSX.Element | null = null;
             const loadMinigameSubId = subscribe(LOAD_MINIGAME_EVENT, async (data) => {
                 //Load the minigame
                 const diff = confirmedDifficulty();
@@ -217,6 +216,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     return;
                 }
                 setPageContent(res.res as StrictJSX);
+                log.trace("Emitting 'player load complete' event");
                 props.context.events.emit(PLAYER_LOAD_COMPLETE_EVENT, {});
             });
 
@@ -250,23 +250,22 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             });
         });
 
-        const [currentSequenceOverlay, setCurrentSequenceOverlay] = createSignal<StrictJSX | null>(null);
+        const [currentSequenceOverlay, setCurrentSequenceOverlay] = createSignal<StrictJSX | null>(
+            <HandPlacementCheck
+                nameOfOwner={clientTracker.getByID(bundleSwapColonyInfo.res?.owner!)?.IGN || props.context.backend.player.local.firstName}
+                nameOfMinigame={confirmedDifficulty()?.minigameName!}
+                gameToBeMounted={confirmedDifficulty()!}
+                events={props.context.events}
+                backend={props.context.backend}
+                text={props.context.text}
+                clearSelf={() => setConfirmedDifficulty(null)}
+                goToWaitingScreen={() => setCurrentSequenceOverlay(clientTracker.getComponent() as StrictJSX)}
+            /> as StrictJSX
+        );
         const appendSequenceOverlay = () => {
             const confDiff = confirmedDifficulty();
             if (confDiff === null) return null;
-
-            return (
-                <HandPlacementCheck
-                    nameOfOwner={clientTracker.getByID(bundleSwapColonyInfo.res?.owner!)?.IGN || props.context.backend.player.local.firstName}
-                    nameOfMinigame={confDiff.minigameName}
-                    gameToBeMounted={confDiff}
-                    events={props.context.events}
-                    backend={props.context.backend}
-                    text={props.context.text}
-                    clearSelf={() => setConfirmedDifficulty(null)}
-                    goToWaitingScreen={() => console.log('on waiting screen')}
-                />
-            );
+            return currentSequenceOverlay();
         };
 
         const shuntNotaMemo = createMemo(

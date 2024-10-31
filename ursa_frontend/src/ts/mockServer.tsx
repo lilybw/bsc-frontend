@@ -18,6 +18,8 @@ import {
     PlayerLoadFailureMessageDTO,
     GenericMinigameSequenceResetMessageDTO,
     GENERIC_MINIGAME_SEQUENCE_RESET_EVENT,
+    LOAD_MINIGAME_EVENT,
+    LoadMinigameMessageDTO,
 } from '../integrations/multiplayer_backend/EventSpecifications';
 import { ApplicationContext } from '../meta/types';
 import { loadMinigameSingleplayerLoop, SingleplayerGameLoopInitFunc } from '../components/colony/mini_games/miniGame';
@@ -159,6 +161,7 @@ export class MockServer implements IMockServer {
                         }
                         this.lobbyPhase = LobbyPhase.PlayersLoading;
                         this.log.trace('Phase changed to PlayerLoading');
+                        this.events.emitRAW<LoadMinigameMessageDTO>({ senderID: MOCK_SERVER_ID, eventID: LOAD_MINIGAME_EVENT.id });
                     }
                     break;
                 }

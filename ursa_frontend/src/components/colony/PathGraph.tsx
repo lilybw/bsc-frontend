@@ -93,6 +93,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const computedPaths = createArrayStore<Line>(loadPathsFromInitial(props.graph.paths));
     const transformMap = new Map<ColonyLocationID, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations));
     const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>(loadPathMap(props.graph.paths));
+    const subscriberMap = new Map<ColonyLocationID, ArrayStore<BufferSubscriber<string>>>();
     const log = props.context.logger.copyFor('path graph');
     log.trace('initialized');
 
@@ -324,6 +325,8 @@ const svgContainerStyle = css`
     height: 100vh;
     z-index: 10;
     overflow: visible !important;
+
+    filter: drop-shadow(0 0 10px black) drop-shadow(0 10px 10px grey);
 `;
 
 const cameraContainer = css`
