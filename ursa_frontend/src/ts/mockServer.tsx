@@ -173,7 +173,12 @@ export class MockServer implements IMockServer {
                         }
                         this.lobbyPhase = LobbyPhase.InMinigame;
                         this.log.info('Starting minigame game loop');
-                        this.minigameLoopInitFunc(this.context, this.difficultyConfirmed?.difficultyID!);
+                        const startFuncAttempt = await this.minigameLoopInitFunc(this.context, this.difficultyConfirmed?.difficultyID!);
+                        if (startFuncAttempt.err !== null) {
+                            this.sequenceErrorGenericAbort(MOCK_SERVER_ID, "Error starting game loop: " + startFuncAttempt.err);
+                            return;
+                        }
+                        startFuncAttempt.res();
                         this.log.trace('Phase changed to InMinigame');
                     }
                     if (message.eventID === PLAYER_LOAD_FAILURE_EVENT.id) {
