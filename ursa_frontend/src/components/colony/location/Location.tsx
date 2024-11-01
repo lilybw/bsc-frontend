@@ -128,7 +128,9 @@ const Location: Component<LocationProps> = (props) => {
 
     const computedContainerStyle = createMemo(
         () => css`
-            ${locationContainerStyle} ${props.styleOverwrite}
+            ${locationContainerStyle} 
+            top: calc(-10vh * ${props.gas()});
+            ${props.styleOverwrite}
         `,
     );
     const computedButtonTransform = createMemo<TransformDTO>(() => {
@@ -137,12 +139,15 @@ const Location: Component<LocationProps> = (props) => {
             zIndex: props.transform.get().zIndex + 10, // adjust zIndex to be on top of other graphical assets
         };
     });
+
+    const [namePlateRef, setNamePlateRef] = createSignal<HTMLButtonElement>();
+
     const computedNamePlateStyle = createMemo(() => {
         const transform = computedButtonTransform();
         return css`
             ${namePlateStyle}
             ${Styles.transformToCSSVariables(transform)}
-            ${Styles.TRANSFORM_APPLICATOR}  
+            ${Styles.TRANSFORM_APPLICATOR}
             top: ${calcNamePlatePosition(transform.yOffset)}px;
         `;
     });
@@ -150,12 +155,13 @@ const Location: Component<LocationProps> = (props) => {
     return (
         <div class={computedContainerStyle()} id={'location-' + props.location.name + '-level-' + props.colonyLocation.level}>
             <BufferBasedButton
-                styleOverwrite={computedNamePlateStyle()}
+                styleOverwrite={css`${computedNamePlateStyle()}`}
                 onActivation={onButtonActivation}
                 name={currentDisplayText}
                 buffer={props.buffer}
                 register={props.register}
                 charBaseStyleOverwrite={namePlateTextOverwrite}
+                setElementRef={setNamePlateRef}
             />
             <AssetCollection
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
@@ -179,6 +185,8 @@ const namePlateStyle = css`
     position: absolute;
     left: 0;
     top: 0;
+    border-radius: 1rem;
+    padding: .5rem;
     ${Styles.GLASS.FAINT_BACKGROUND}
 `;
 const namePlateTextOverwrite = css`

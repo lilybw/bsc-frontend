@@ -1,4 +1,4 @@
-import { Accessor, Component, createSignal, onCleanup, onMount, createMemo, createEffect } from 'solid-js';
+import { Accessor, Component, createSignal, onCleanup, onMount, createMemo, createEffect, Setter } from 'solid-js';
 import { css } from '@emotion/css';
 import BufferHighlightedName, { BufferHighlightedNameProps } from './BufferHighlightedName';
 import { Styles } from '../../sharedCSS';
@@ -11,6 +11,7 @@ export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IPar
     /** Akin to onHover, however is active as long as the buffer input is a subset of the name and applied to the root level
      * container of the button */
     onHoverContainerStyle?: string;
+    setElementRef?: Setter<HTMLButtonElement | undefined>;
 }
 
 const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
@@ -84,7 +85,9 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     });
 
     return (
-        <button class={computedContainerStyles()} id={'buffer-based-button-' + getNameValue()} disabled={isDisabled()}>
+        <button class={computedContainerStyles()} id={'buffer-based-button-' + getNameValue()} 
+            disabled={isDisabled()} ref={r => {props.setElementRef && props.setElementRef(r);}}
+        >
             <BufferHighlightedName
                 buffer={isDisabled() ? disabledBuffer : props.buffer}
                 name={props.name}

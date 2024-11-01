@@ -8,12 +8,9 @@ import {
     uint32,
 } from '../../integrations/main_backend/mainBackendDTOs';
 import { css } from '@emotion/css';
-import { IBackendBased, IInternationalized } from '../../ts/types';
-import { IEventMultiplexer } from '../../integrations/multiplayer_backend/eventMultiplexer';
 import { OriginType, PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from '../../integrations/multiplayer_backend/EventSpecifications';
 import Location from '../colony/location/Location';
 import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
-import { IMultiplayerIntegration } from '../../integrations/multiplayer_backend/multiplayerBackend';
 import { ClientDTO } from '../../integrations/multiplayer_backend/multiplayerDTO';
 import NTAwait from '../util/NoThrowAwait';
 import { KnownLocations } from '../../integrations/main_backend/constants';
@@ -22,9 +19,7 @@ import { ArrayStore, createArrayStore } from '../../ts/arrayStore';
 import ActionInput from './MainActionInput';
 import { ApplicationContext, ColonyState, MultiplayerMode } from '../../meta/types';
 import Player from './Player';
-import { BackendIntegration as IBackendIntegration } from '../../integrations/main_backend/mainBackend';
-import { InternationalizationService } from '../../integrations/main_backend/internationalization/internationalization';
-import { c } from 'vite/dist/node/types.d-aGj9QkWt';
+import { arrayToMap, ColonyLocationID, ColonyLocationInfoWOriginalTransform, Line, loadPathMap, loadPathsFromInitial } from './PathGraphHelpers';
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -42,44 +37,6 @@ interface PathGraphProps {
     graph: ColonyPathGraphResponseDTO;
 }
 
-function arrayToMap(array: ColonyLocationInformation[]): Map<ColonyLocationID, WrappedSignal<TransformDTO>> {
-    const map = new Map();
-
-    for (const element of array) {
-        map.set(element.id, createWrappedSignal(element.transform));
-    }
-
-    return map;
-}
-type ColonyLocationID = uint32;
-const loadPathMap = (paths: ColonyPathGraphResponseDTO['paths']): Map<ColonyLocationID, ColonyLocationID[]> => {
-    const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>();
-    for (const path of paths) {
-        if (!pathMap.has(path.from)) {
-            pathMap.set(path.from, []);
-        }
-        pathMap.get(path.from)!.push(path.to);
-    }
-    return pathMap;
-};
-
-type Line = { from: ColonyLocationID; to: ColonyLocationID; x1: number; y1: number; x2: number; y2: number };
-
-const loadPathsFromInitial = (paths: ColonyPathGraphResponseDTO['paths']): Line[] => {
-    return paths.map((path) => ({
-        from: path.from,
-        to: path.to,
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 0,
-    }));
-};
-
-interface ColonyLocationInfoWOriginalTransform extends ColonyLocationInformation {
-    originalTransform: TransformDTO;
-}
-
 const PathGraph: Component<PathGraphProps> = (props) => {
     const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
     const [GAS, setGAS] = createSignal(1);
@@ -93,7 +50,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const computedPaths = createArrayStore<Line>(loadPathsFromInitial(props.graph.paths));
     const transformMap = new Map<ColonyLocationID, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations));
     const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>(loadPathMap(props.graph.paths));
-    const subscriberMap = new Map<ColonyLocationID, ArrayStore<BufferSubscriber<string>>>();
     const log = props.context.logger.copyFor('path graph');
     log.trace('initialized');
 

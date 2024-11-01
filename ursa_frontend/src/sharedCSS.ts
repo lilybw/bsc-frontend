@@ -86,7 +86,7 @@ export const Styles = {
         --transform-yScale: ${transform ? transform.yScale : 1};
     `,
     /**
-     * NOT CSS TRANSFORM, but rather using various CSS fields to apply some game transform.
+     * NOT CSS TRANSFORM, but rather using various CSS fields to apply some in-world transform.
      *
      * Expects variables:
      * * --transform-x: x position, in pixels
