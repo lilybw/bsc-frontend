@@ -207,21 +207,6 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
     }
 
     /**
-     * Updates player position with smooth animation
-     * @param x New x coordinate
-     * @param y New y coordinate
-     */
-    setPosition(x: number, y: number): void {
-        if (this.element) {
-            const xPercent = x * 100;
-            this.element.style.transition = 'left 0.3s ease-out';
-            this.element.style.left = `${xPercent}%`;
-            this.element.style.transform = `translateX(-50%)`;
-        }
-        super.setPosition(x, y);
-    }
-
-    /**
      * Destroys the player entity and cleans up resources
      */
     destroy(): void {

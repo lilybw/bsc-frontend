@@ -103,7 +103,6 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
 
         const resetSequenceSubID = subscribe(GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, (data) => {
             setConfirmedDifficulty(null);
-            setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
         });
 
         const genericAbortSubId = subscribe(GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT, (data) => {
@@ -112,7 +111,7 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
             setConfirmedDifficulty(null);
             props.setPageContent(props.colonyLayout());
             setAbortInformation(data);
-            setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
+            setLocalSequencePhase(LocalSequencePhase.RESULT_SCREEN_ABORT);
         });
 
         const gameWonSubId = subscribe(MINIGAME_WON_EVENT, (data) => {
@@ -167,11 +166,11 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
                     register={props.register}
                     buffer={props.buffer}
                     clearSelf={() => {
-                        setVictoryInformation(null); 
                         setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
+                        setVictoryInformation(null); 
                     }}
                 />) as StrictJSX;
-            case LocalSequencePhase.RESULT_SCREEN_DEFEAT:return (
+            case LocalSequencePhase.RESULT_SCREEN_DEFEAT: return (
                 <DefeatScreen 
                     backend={props.context.backend}
                     text={props.context.text}
@@ -179,8 +178,8 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
                     register={props.register}
                     buffer={props.buffer}
                     clearSelf={() => {
-                        setDefeatInformation(null); 
                         setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
+                        setDefeatInformation(null); 
                     }}
                 />) as StrictJSX;
             case LocalSequencePhase.RESULT_SCREEN_ABORT: return (

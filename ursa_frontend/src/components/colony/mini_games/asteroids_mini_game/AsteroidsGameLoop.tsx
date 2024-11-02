@@ -189,6 +189,7 @@ class AsteroidsGameLoop {
         this.events.emitRAW<MinigameLostMessageDTO>({
             senderID: MOCK_SERVER_ID,
             eventID: MINIGAME_LOST_EVENT.id,
+            colonyLocationID: this.difficulty.colonyLocationID,
             minigameID: KnownMinigames.ASTEROIDS,
             difficultyID: this.difficulty.difficultyID,
             difficultyName: this.difficulty.difficultyName,
@@ -200,6 +201,7 @@ class AsteroidsGameLoop {
         this.events.emitRAW<MinigameWonMessageDTO>({
             senderID: MOCK_SERVER_ID,
             eventID: MINIGAME_WON_EVENT.id,
+            colonyLocationID: this.difficulty.colonyLocationID,
             minigameID: KnownMinigames.ASTEROIDS,
             difficultyID: this.difficulty.difficultyID,
             difficultyName: this.difficulty.difficultyName,
