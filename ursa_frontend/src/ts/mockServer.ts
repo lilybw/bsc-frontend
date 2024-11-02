@@ -199,7 +199,7 @@ export class MockServer implements IMockServer {
         });
     };
 
-    private gameFinished() {
+    private gameFinished = () => {
         this.log.trace('Game finished');
         this.reset();
     }
@@ -207,7 +207,7 @@ export class MockServer implements IMockServer {
     /**
      * Sets up event subscriptions for the MockServer.
      */
-    private setupSubscriptions() {
+    private setupSubscriptions = () => {
         this.log.trace('setting up subscriptions');
         const pushToQueue = (e: IMessage) => {
             this.messageQueue.push(e);

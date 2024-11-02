@@ -45,6 +45,7 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
     const log = props.context.logger.copyFor('mg seq');
 
     onMount(() => {
+        log.trace('mounting')
         const subscribe = props.context.events.subscribe;
 
         const diffConfirmedSubId = subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (data) => {
@@ -115,11 +116,13 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
         });
 
         const gameWonSubId = subscribe(MINIGAME_WON_EVENT, (data) => {
+            props.setPageContent(props.colonyLayout());
             setVictoryInformation(data);
             setLocalSequencePhase(LocalSequencePhase.RESULT_SCREEN_VICTORY);
         });
 
         const gameLostSubId = subscribe(MINIGAME_LOST_EVENT, (data) => {
+            props.setPageContent(props.colonyLayout());
             setDefeatInformation(data);
             setLocalSequencePhase(LocalSequencePhase.RESULT_SCREEN_DEFEAT);
         });
@@ -150,7 +153,10 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
                     events={props.context.events}
                     backend={props.context.backend}
                     text={props.context.text}
-                    clearSelf={() => setConfirmedDifficulty(null)}
+                    clearSelf={() => {
+                        setConfirmedDifficulty(null); 
+                        setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
+                    }}
                     goToWaitingScreen={() => setLocalSequencePhase(LocalSequencePhase.WAITING_SCREEN)}
                 />) as StrictJSX;
             case LocalSequencePhase.RESULT_SCREEN_VICTORY: return (
@@ -187,7 +193,9 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
                         setAbortInformation(null);
                         setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
                     }}
-                />
+                >
+                    <div>{abortInformation()?.reason}</div>
+                </BufferBasedPopUp>
             ) as StrictJSX;
             case LocalSequencePhase.LOADING_MINIGAME:
             case LocalSequencePhase.IN_MINIGAME:
@@ -196,6 +204,8 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
         }
     });
     
-    return appendSequenceOverlay();
+    return (<div id="sequence-tracking-overlay">
+        {appendSequenceOverlay()}
+    </div>) as StrictJSX;
 };
 export default MinigameSequenceOverlay;

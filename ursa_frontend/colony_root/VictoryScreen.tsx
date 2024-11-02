@@ -43,4 +43,5 @@ ${Styles.OVERLAY.CENTERED_QUARTER}
 justify-content: center;
 ${Styles.FANCY_BORDER}
 ${Styles.GLASS.FAINT_BACKGROUND}
+z-index: 1000000;
 `

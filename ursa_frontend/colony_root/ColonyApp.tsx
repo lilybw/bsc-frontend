@@ -54,6 +54,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
         const [showNotification, setShowShuntNotification] = createSignal<boolean>(false);
         const log = props.context.logger.copyFor('colony');
         const bundleSwapColonyInfo = props.context.nav.getRetainedColonyInfo();
+        const bundeSwapPlayerInfo = props.context.nav.getRetainedUserInfo();
 
         /**
          * Handles colony info load error by logging and redirecting to the menu.
@@ -76,7 +77,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
          */
         const colonyLayout = () =>
             (
-                <Unwrap data={[bundleSwapColonyInfo, props.context.nav.getRetainedUserInfo()]} fallback={onColonyInfoLoadError}>
+                <Unwrap data={[bundleSwapColonyInfo, bundeSwapPlayerInfo]} fallback={onColonyInfoLoadError}>
                     {(colonyInfo, playerInfo) => (
                         <>
                             <SectionTitle styleOverwrite={colonyTitleStyle}>{colonyInfo.name}</SectionTitle>

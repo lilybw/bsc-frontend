@@ -53,7 +53,6 @@ class AsteroidsGameLoop {
             type: 0,
             code: this.localPlayerCode,
         });
-        this.log.trace('settings: ' + JSON.stringify(settings));
 
         const playerShotSubID = this.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, this.onPlayerShot);
         this.subIds = [playerShotSubID];
@@ -73,7 +72,7 @@ class AsteroidsGameLoop {
         const timeTillImpact =
             Math.random() * (this.settings.maxTimeTillImpactS * 1000 - this.settings.minTimeTillImpactS * 1000) +
             this.settings.minTimeTillImpactS * 1000;
-        const health = Math.round(this.settings.asteroidMaxHealth * Math.random());
+        const health = Math.ceil(this.settings.asteroidMaxHealth * Math.random());
 
         const data = {
             id,
@@ -92,7 +91,7 @@ class AsteroidsGameLoop {
         this.asteroids.set(id, { ...data, spawnTimestampMS: this.gameTimeMS });
         this.events.emitRAW(data);
         this.asteroidSpawnCount++;
-        this.log.trace(`Spawned asteroid ${id} at ${startX}, ${startY} with code ${charCode}`);
+        this.log.subtrace(`Spawned asteroid ${id} at ${startX}, ${startY} with code ${charCode}. HP: ${health}`);
     };
 
     private onPlayerShot = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
