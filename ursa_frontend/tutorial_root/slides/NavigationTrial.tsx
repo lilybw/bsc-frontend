@@ -282,6 +282,8 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
             y: newHeight / EXPECTED_HEIGHT,
         });
         setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)));
+
+        moveToLocation(currentLocationOfLocalPlayer(), currentLocationOfLocalPlayer());
     };
 
     const handleMove = (locationId: number) => {
