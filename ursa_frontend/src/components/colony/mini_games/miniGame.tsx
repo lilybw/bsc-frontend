@@ -1,10 +1,10 @@
-import { Component, JSX } from 'solid-js';
+import { JSX } from 'solid-js';
 import { ApplicationContext, ResErr } from '../../../meta/types';
-import AsteroidsMiniGame, { initAsteroidsComponent } from './asteroids_mini_game/AsteroidsMiniGame';
+import { initAsteroidsComponent } from './asteroids_mini_game/AsteroidsMiniGame';
 import { createAsteroidsGameLoop } from './asteroids_mini_game/AsteroidsGameLoop';
-import { AsteroidsSettingsDTO } from './asteroids_mini_game/types/GameTypes';
 import { uint32 } from '../../../integrations/main_backend/mainBackendDTOs';
 import { BackendIntegration } from '../../../integrations/main_backend/mainBackend';
+import { DifficultyConfirmedForMinigameMessageDTO } from '@/integrations/multiplayer_backend/EventSpecifications';
 
 /**
  * Any function, that based on the provided ApplicationContext alone, can initialize all data needed
@@ -21,7 +21,7 @@ export type GenericGameLoopStartFunction = () => void;
  * Any function, that based on the provided ApplicationContext alone, can initialize all data needed
  * or return an error if something goes wrong during initialization.
  */
-export type SingleplayerGameLoopInitFunc = (context: ApplicationContext, difficultyID: uint32) => Promise<ResErr<GenericGameLoopStartFunction>>;
+export type SingleplayerGameLoopInitFunc = (context: ApplicationContext, difficulty: DifficultyConfirmedForMinigameMessageDTO) => Promise<ResErr<GenericGameLoopStartFunction>>;
 
 export enum KnownMinigames {
     ASTEROIDS = 1,

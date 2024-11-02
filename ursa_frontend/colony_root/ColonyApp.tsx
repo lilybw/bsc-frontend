@@ -115,7 +115,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
         const [pageContent, setPageContent] = createSignal<StrictJSX>(colonyLayout());
 
         const clientTracker = new ClientTracker(props.context.events, props.context.logger);
-        const mockServer = new MockServer(props.context, setPageContent, () => setPageContent(colonyLayout()), props.context.logger);
+        const mockServer = new MockServer(props.context, props.context.logger);
 
         const initializeMultiplayerSession = async (code: ColonyCode): Promise<Error | undefined> => {
             log.trace('Connecting to multiplayer, code: ' + code);
@@ -198,6 +198,8 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     setPageContent={setPageContent}
                     colonyLayout={colonyLayout}
                     bundleSwapData={bundleSwapColonyInfo.res!}
+                    register={bufferSubscribers.add}
+                    buffer={inputBuffer.get}
                 />
                 {shuntNotaMemo()}
                 <EventFeed events={props.context.events} backend={props.context.backend} text={props.context.text} />

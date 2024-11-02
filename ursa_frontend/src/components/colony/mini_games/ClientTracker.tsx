@@ -14,6 +14,7 @@ import { ClientDTO } from '../../../integrations/multiplayer_backend/multiplayer
 import { Logger } from '../../../logging/filteredLogger';
 import { ArrayStore, createArrayStore } from '../../../ts/arrayStore';
 import MinigameWaitingScreen from '../MinigameWaitingScreen';
+import { StrictJSX } from '@colony/ColonyApp';
 
 export enum PlayerParticipation {
     OPT_IN = 'OPT_IN',
@@ -117,11 +118,11 @@ class ClientTracker {
         return this.clients as unknown as ArrayStore<ClientDTO>;
     };
 
-    public getComponent = (): JSX.Element => {
+    public getComponent = (): StrictJSX => {
         return (
             <MinigameWaitingScreen 
                 clients={this.clients}    
-            />
+            /> as StrictJSX
         );
     };
 }

@@ -1,3 +1,4 @@
+import { Styles } from '@/sharedCSS';
 import { css } from '@emotion/css';
 
 // All styles need to be exported
@@ -13,12 +14,19 @@ export const wallStyle = css`
 
 export const statusStyle = css`
     position: absolute;
-    top: 1rem;
-    left: 1rem;
+    top: 1vh;
+    left: 1vh;
     color: #004f00;
     text-shadow: 0 0 0.5rem rgba(0, 255, 0, 1);
     font-size: 5rem;
 `;
+
+export const timeLeftStyle = css`
+    ${Styles.SUB_TITLE}
+    position: absolute;
+    left: 1vh;
+    top: 10vh;
+`
 
 export const asteroidStyle = css`
     position: absolute;

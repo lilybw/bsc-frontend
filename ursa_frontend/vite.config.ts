@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => {
         },
         server: serverConfig,
         build: {
-            target: 'esnext',
+            target: ['esnext'],
             rollupOptions: {
                 output: {
                     entryFileNames: `[name].js`,

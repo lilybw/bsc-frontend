@@ -1,7 +1,7 @@
 {
     "name": "ursa-frontend",
-    "version": "0.0.1",
-    "description": "",
+    "version": "0.0.2",
+    "description": "Subdivided frontend for the URSA Project",
     "type": "module",
     "scripts": {
         "test": "vitest",

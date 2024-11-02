@@ -45,6 +45,7 @@ import {
     stunEffectStyle,
     stunnedStyle,
     stunParticleStyle,
+    timeLeftStyle,
     wallStyle,
 } from './styles/GameStyles';
 import Countdown from '../../../util/Countdown';
@@ -56,6 +57,7 @@ import { particleContainerStyle } from './styles/ParticleStyles';
 import PlayerStunEffect from './components/PlayerStunEffect';
 import { ApplicationContext, ResErr } from '../../../../meta/types';
 import { uint32 } from '../../../../integrations/main_backend/mainBackendDTOs';
+import { Styles } from '@/sharedCSS';
 
 type PlayerState = {
     isStunned: boolean;
@@ -66,19 +68,6 @@ interface AsteroidsProps {
     context: ApplicationContext;
     settings: AsteroidsSettingsDTO;
 }
-
-export const initAsteroidsComponent: MinigameComponentInitFunc = async (
-    context: ApplicationContext,
-    difficultyID: uint32,
-): Promise<ResErr<JSX.Element>> => {
-    const settings = await loadComputedSettings(context.backend, KnownMinigames.ASTEROIDS, difficultyID);
-    if (settings.err !== null) {
-        return { res: null, err: 'Error initializing minigame component: ' + settings.err };
-    }
-    const asteroidSettings = settings.res as AsteroidsSettingsDTO;
-
-    return { res: <AsteroidsMiniGame context={context} settings={asteroidSettings} />, err: null };
-};
 
 /**
  * Main Asteroids minigame component
@@ -396,7 +385,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
             <StarryBackground />
             <div class={wallStyle} id="Outer-Wall" />
             <div class={statusStyle}>{'❤'.repeat(health())}</div>
-            <Countdown duration={props.settings.survivalTimeS} />
+            <Countdown duration={props.settings.survivalTimeS} styleOverwrite={timeLeftStyle} />
             <div>
                 {/* Asteroid Rendering */}
                 <For each={asteroids.get}>
@@ -580,4 +569,15 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     );
 };
 
-export default AsteroidsMiniGame;
+export const initAsteroidsComponent: MinigameComponentInitFunc = async (
+    context: ApplicationContext,
+    difficultyID: uint32,
+): Promise<ResErr<JSX.Element>> => {
+    const settings = await loadComputedSettings(context.backend, KnownMinigames.ASTEROIDS, difficultyID);
+    if (settings.err !== null) {
+        return { res: null, err: 'Error initializing minigame component: ' + settings.err };
+    }
+    const asteroidSettings = settings.res as AsteroidsSettingsDTO;
+
+    return { res: <AsteroidsMiniGame context={context} settings={asteroidSettings} />, err: null };
+};

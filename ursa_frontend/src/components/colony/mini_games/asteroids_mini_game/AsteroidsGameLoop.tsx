@@ -1,23 +1,18 @@
-// AsteroidsGameLoop.tsx
-
-import { createStore, SetStoreFunction } from 'solid-js/store';
-import { IEventMultiplexer, IExpandedAccessMultiplexer } from '../../../../integrations/multiplayer_backend/eventMultiplexer';
+import { IExpandedAccessMultiplexer } from '../../../../integrations/multiplayer_backend/eventMultiplexer';
 import {
     ASTEROIDS_ASTEROID_SPAWN_EVENT,
-    ASTEROIDS_GAME_WON_EVENT,
-    ASTEROIDS_GAME_LOST_EVENT,
-    ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT,
     ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT,
-    PLAYER_LEFT_EVENT,
-    LOBBY_CLOSING_EVENT,
-    MINIGAME_BEGINS_EVENT,
     ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT,
     ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
-    DifficultyConfirmedForMinigameMessageDTO,
     AsteroidsAsteroidSpawnMessageDTO,
     AsteroidsPlayerShootAtCodeMessageDTO,
     ASTEROIDS_PLAYER_PENALTY_EVENT,
     PlayerPenaltyType,
+    MinigameLostMessageDTO,
+    MINIGAME_LOST_EVENT,
+    MinigameWonMessageDTO,
+    MINIGAME_WON_EVENT,
+    DifficultyConfirmedForMinigameMessageDTO,
 } from '../../../../integrations/multiplayer_backend/EventSpecifications';
 import { CharCodeGenerator, SYMBOL_SET } from './charCodeGenerator';
 import { uint32, PlayerID } from '../../../../integrations/main_backend/mainBackendDTOs';
@@ -40,6 +35,7 @@ class AsteroidsGameLoop {
     constructor(
         private readonly context: ApplicationContext,
         private readonly settings: AsteroidsSettingsDTO,
+        private readonly difficulty: DifficultyConfirmedForMinigameMessageDTO,
     ) {
         this.charPool = new CharCodeGenerator(SYMBOL_SET, settings.charCodeLength);
         this.remainingHP = settings.colonyHealth;
@@ -187,17 +183,23 @@ class AsteroidsGameLoop {
     };
 
     private onGameLost = () => {
-        this.events.emitRAW({
+        this.events.emitRAW<MinigameLostMessageDTO>({
             senderID: MOCK_SERVER_ID,
-            eventID: ASTEROIDS_GAME_LOST_EVENT.id,
+            eventID: MINIGAME_LOST_EVENT.id,
+            minigameID: KnownMinigames.ASTEROIDS,
+            difficultyID: this.difficulty.difficultyID,
+            difficultyName: this.difficulty.difficultyName,
         });
         this.cleanup();
     };
 
     private onGameWon = () => {
-        this.events.emitRAW({
+        this.events.emitRAW<MinigameWonMessageDTO>({
             senderID: MOCK_SERVER_ID,
-            eventID: ASTEROIDS_GAME_WON_EVENT.id,
+            eventID: MINIGAME_WON_EVENT.id,
+            minigameID: KnownMinigames.ASTEROIDS,
+            difficultyID: this.difficulty.difficultyID,
+            difficultyName: this.difficulty.difficultyName,
         });
         this.cleanup();
     };
@@ -213,13 +215,13 @@ class AsteroidsGameLoop {
 
 export const createAsteroidsGameLoop: SingleplayerGameLoopInitFunc = async (
     context: ApplicationContext,
-    difficultyID: uint32,
+    difficulty: DifficultyConfirmedForMinigameMessageDTO,
 ): Promise<ResErr<GenericGameLoopStartFunction>> => {
-    const settings = await loadComputedSettings<AsteroidsSettingsDTO>(context.backend, KnownMinigames.ASTEROIDS, difficultyID);
+    const settings = await loadComputedSettings<AsteroidsSettingsDTO>(context.backend, KnownMinigames.ASTEROIDS, difficulty.difficultyID);
     if (settings.err !== null) {
         return { res: null, err: 'Error initializing gameloop: ' + settings.err };
     }
-    const loop = new AsteroidsGameLoop(context, settings.res);
+    const loop = new AsteroidsGameLoop(context, settings.res, difficulty);
 
     return { res: loop.start, err: null };
 };

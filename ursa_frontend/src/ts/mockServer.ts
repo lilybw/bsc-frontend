@@ -1,4 +1,3 @@
-import { JSX } from 'solid-js';
 import { IExpandedAccessMultiplexer } from '../integrations/multiplayer_backend/eventMultiplexer';
 import {
     DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
@@ -6,11 +5,8 @@ import {
     PLAYER_READY_FOR_MINIGAME_EVENT,
     PLAYER_ABORTING_MINIGAME_EVENT,
     PLAYER_JOIN_ACTIVITY_EVENT,
-    ASTEROIDS_GAME_WON_EVENT,
-    ASTEROIDS_GAME_LOST_EVENT,
     DifficultyConfirmedForMinigameMessageDTO,
     IMessage,
-    ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT,
     PLAYER_LOAD_COMPLETE_EVENT,
     PLAYER_LOAD_FAILURE_EVENT,
     GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT,
@@ -20,6 +16,8 @@ import {
     GENERIC_MINIGAME_SEQUENCE_RESET_EVENT,
     LOAD_MINIGAME_EVENT,
     LoadMinigameMessageDTO,
+    MINIGAME_WON_EVENT,
+    MINIGAME_LOST_EVENT,
 } from '../integrations/multiplayer_backend/EventSpecifications';
 import { ApplicationContext } from '../meta/types';
 import { loadMinigameSingleplayerLoop, SingleplayerGameLoopInitFunc } from '../components/colony/mini_games/miniGame';
@@ -69,8 +67,6 @@ export class MockServer implements IMockServer {
      */
     constructor(
         private context: ApplicationContext,
-        private readonly setPageContent: (content: JSX.Element) => void,
-        private readonly returnToColony: () => void,
         log: Logger,
     ) {
         this.events = context.events as IExpandedAccessMultiplexer;
@@ -173,7 +169,7 @@ export class MockServer implements IMockServer {
                         }
                         this.lobbyPhase = LobbyPhase.InMinigame;
                         this.log.info('Starting minigame game loop');
-                        const startFuncAttempt = await this.minigameLoopInitFunc(this.context, this.difficultyConfirmed?.difficultyID!);
+                        const startFuncAttempt = await this.minigameLoopInitFunc(this.context, this.difficultyConfirmed!);
                         if (startFuncAttempt.err !== null) {
                             this.sequenceErrorGenericAbort(MOCK_SERVER_ID, "Error starting game loop: " + startFuncAttempt.err);
                             return;
@@ -204,8 +200,7 @@ export class MockServer implements IMockServer {
     };
 
     private gameFinished() {
-        this.log.trace('Game finished, reverting to colony');
-        this.returnToColony();
+        this.log.trace('Game finished');
         this.reset();
     }
 
@@ -217,21 +212,21 @@ export class MockServer implements IMockServer {
         const pushToQueue = (e: IMessage) => {
             this.messageQueue.push(e);
         };
-
-        for (const event of [
-                DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, 
-                PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, 
-                PLAYER_READY_FOR_MINIGAME_EVENT, 
-                PLAYER_ABORTING_MINIGAME_EVENT, 
-                PLAYER_JOIN_ACTIVITY_EVENT,
-                PLAYER_LOAD_COMPLETE_EVENT,
-                PLAYER_LOAD_FAILURE_EVENT,
-            ]) {
+        
+        [
+            DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, 
+            PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, 
+            PLAYER_READY_FOR_MINIGAME_EVENT, 
+            PLAYER_ABORTING_MINIGAME_EVENT, 
+            PLAYER_JOIN_ACTIVITY_EVENT,
+            PLAYER_LOAD_COMPLETE_EVENT,
+            PLAYER_LOAD_FAILURE_EVENT,
+        ].forEach(event => {
             this.subscriptionIDs.push(this.context.events.subscribe(event, pushToQueue));
-        }
+        })
 
-        this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_WON_EVENT, this.gameFinished));
-        this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_GAME_LOST_EVENT, this.gameFinished));
-        this.subscriptionIDs.push(this.context.events.subscribe(ASTEROIDS_UNTIMELY_ABORT_GAME_EVENT, this.gameFinished));
+        this.subscriptionIDs.push(this.context.events.subscribe(MINIGAME_WON_EVENT, this.gameFinished));
+        this.subscriptionIDs.push(this.context.events.subscribe(MINIGAME_LOST_EVENT, this.gameFinished));
+        this.subscriptionIDs.push(this.context.events.subscribe(GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT, this.gameFinished));
     }
 }
