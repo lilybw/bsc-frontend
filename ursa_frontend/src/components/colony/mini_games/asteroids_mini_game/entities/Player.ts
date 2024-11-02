@@ -1,6 +1,5 @@
 import BaseEntity, { Targetable, StatusEffectable } from './BaseEntity';
 import { AsteroidsAssignPlayerDataMessageDTO } from '../../../../../integrations/multiplayer_backend/EventSpecifications';
-import { disabledStyle, stunnedStyle } from '../styles/GameStyles';
 
 /**
  * Interface representing the current state of a player
@@ -205,21 +204,6 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
      */
     canShoot(): boolean {
         return !this._isStunned && !this._isDisabled;
-    }
-
-    /**
-     * Updates player position with smooth animation
-     * @param x New x coordinate
-     * @param y New y coordinate
-     */
-    setPosition(x: number, y: number): void {
-        if (this.element) {
-            const xPercent = x * 100;
-            this.element.style.transition = 'left 0.3s ease-out';
-            this.element.style.left = `${xPercent}%`;
-            this.element.style.transform = `translateX(-50%)`;
-        }
-        super.setPosition(x, y);
     }
 
     /**

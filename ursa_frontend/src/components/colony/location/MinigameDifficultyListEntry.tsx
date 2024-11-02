@@ -10,6 +10,7 @@ interface MinigameDifficultyListEntryProps extends IBackendBased, IBufferBased, 
     difficulty: MinigameDifficultyResponseDTO;
     minigameID: number;
     enabled: Accessor<boolean>;
+    colonyLocationID: number;
 }
 
 const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> = (props: MinigameDifficultyListEntryProps) => {
@@ -39,6 +40,7 @@ const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> =
                 onActivation={() => {
                     setHasBeenActivated(true);
                     props.emit(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, {
+                        colonyLocationID: props.colonyLocationID,
                         minigameID: props.minigameID,
                         difficultyID: props.difficulty.id,
                         difficultyName: props.difficulty.name,

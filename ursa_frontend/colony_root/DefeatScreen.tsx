@@ -1,20 +1,21 @@
 import BufferBasedButton from "@/components/base/BufferBasedButton";
-import { getMinigameName } from "@/components/colony/mini_games/miniGame";
-import { MinigameWonMessageDTO } from "@/integrations/multiplayer_backend/EventSpecifications";
+import { MinigameLostMessageDTO } from "@/integrations/multiplayer_backend/EventSpecifications";
 import { Styles } from "@/sharedCSS";
-import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from "@/ts/types";
+import { IBackendBased, IRegistering, IInternationalized, IBufferBased } from "@/ts/types";
 import { css } from "@emotion/css";
 import { Component } from "solid-js";
+import { postGameScreenContainerStyles } from "./VictoryScreen";
+import { getMinigameName } from "@/components/colony/mini_games/miniGame";
 
-interface VictoryScreenProps extends IBackendBased, IRegistering<string>, IInternationalized, IBufferBased {
-    data: MinigameWonMessageDTO;
+interface DefeatScreenProps extends IBackendBased, IRegistering<string>, IInternationalized, IBufferBased {
+    data: MinigameLostMessageDTO;
     clearSelf: () => void;
 }
 
-const VictoryScreen: Component<VictoryScreenProps> = (props) => {
+const DefeatScreen: Component<DefeatScreenProps> = (props) => {
     return (
         <div class={postGameScreenContainerStyles}>
-            {props.text.Title("MINIGAME.VICTORY")({styleOverwrite: css`color: orange; position: absolute; top: 1vh;`})}
+            {props.text.Title("MINIGAME.DEFEAT")({styleOverwrite: css`color: red; position: absolute; top: 1vh;`})}
             <div class={Styles.MINIGAME.TITLE}>{getMinigameName(props.data.minigameID)}</div>
             <div class={difficultySubsection}>
                 <div>{props.text.SubTitle("MINIGAME.DIFFICULTY")({})}</div>
@@ -30,18 +31,11 @@ const VictoryScreen: Component<VictoryScreenProps> = (props) => {
         </div>
     );
 };
-export default VictoryScreen;
+export default DefeatScreen;
 
 const difficultySubsection = css`
 display: flex; 
 flex-direction: row; 
 justify-content: space-evenly;
 width: 50%;
-`
-export const postGameScreenContainerStyles = css`
-${Styles.OVERLAY.CENTERED_QUARTER}
-justify-content: center;
-${Styles.FANCY_BORDER}
-${Styles.GLASS.FAINT_BACKGROUND}
-z-index: 1000000;
 `

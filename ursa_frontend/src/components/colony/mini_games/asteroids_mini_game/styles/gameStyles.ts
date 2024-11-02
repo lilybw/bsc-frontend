@@ -128,26 +128,30 @@ export const impactCircleStyle = css`
         lazerFade 1s forwards;
 `;
 
-export const buttonContainerStyle = css`
+export const buttonStyleOverwrite = css`
     position: absolute;
-    bottom: 100%;
+    top: 1vh;
     left: 50%;
     transform: translateX(-50%);
-    margin-bottom: 0.5rem;
-    color: white;
     text-align: center;
+    z-index: 100;
 `;
 
-export const playerStyle = css`
+export const playerContainerStyle = (x: number, y: number) => css`
     position: absolute;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
+
+    top: ${y * 100}%;
+    left: ${x * 100}%;
+
     /* Remove fixed width/height to allow content-based sizing */
-    width: auto;
-    min-width: fit-content;
-    transform-origin: bottom center;
+    width: 10vh;
+    height: 10vh;
+    
+    transform: translate(-50%, -50%);
 `;
 
 export const playerIdStyle = css`
@@ -160,23 +164,6 @@ export const playerIdStyle = css`
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     white-space: nowrap;
-`;
-
-// In GameStyles.ts
-export const playerCharacterStyle = css`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: auto;
-    height: auto;
-
-    img {
-        display: block; // Make sure image is block-level
-        width: auto;
-        height: auto;
-        max-height: 10rem;
-    }
 `;
 
 export const stunnedStyle = css`

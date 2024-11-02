@@ -13,6 +13,8 @@ import {
     MinigameWonMessageDTO,
     MINIGAME_WON_EVENT,
     DifficultyConfirmedForMinigameMessageDTO,
+    AsteroidsPlayerPenaltyMessageDTO,
+    AsteroidsAsteroidImpactOnColonyMessageDTO,
 } from '../../../../integrations/multiplayer_backend/EventSpecifications';
 import { CharCodeGenerator, SYMBOL_SET } from './charCodeGenerator';
 import { uint32, PlayerID } from '../../../../integrations/main_backend/mainBackendDTOs';
@@ -20,15 +22,16 @@ import { GenericGameLoopStartFunction, KnownMinigames, loadComputedSettings, Sin
 import { ApplicationContext, ResErr } from '../../../../meta/types';
 import { MOCK_SERVER_ID } from '../../../../ts/mockServer';
 import { Logger } from '../../../../logging/filteredLogger';
-import { AsteroidsSettingsDTO } from './types/GameTypes';
+import { AsteroidsSettingsDTO } from './types/gameTypes';
 
 class AsteroidsGameLoop {
     public static readonly LOOP_FREQUENCY_MS = 1000 / 10; //10 updates per second
+    private readonly internalOrigin = "asteroidsGameLoop"
     private readonly charPool: CharCodeGenerator;
     private readonly asteroids: Map<uint32, AsteroidsAsteroidSpawnMessageDTO & { spawnTimestampMS: number }> = new Map();
     private readonly events: IExpandedAccessMultiplexer;
     private readonly subIds: number[];
-    private readonly localPlayerCode: string;
+    private localPlayerCode?: string;
     private readonly log: Logger;
 
     private remainingHP: number;
@@ -41,19 +44,6 @@ class AsteroidsGameLoop {
         this.remainingHP = settings.colonyHealth;
         this.events = context.events as IExpandedAccessMultiplexer;
         this.log = context.logger.copyFor('ast game loop');
-
-        this.localPlayerCode = this.charPool.generateCode();
-        //Assign player data to local player
-        this.events.emitRAW({
-            senderID: MOCK_SERVER_ID,
-            eventID: ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT.id,
-            id: this.context.backend.player.local.id,
-            x: 0.5,
-            y: 0.9,
-            type: 0,
-            code: this.localPlayerCode,
-        });
-        this.log.trace('settings: ' + JSON.stringify(settings));
 
         const playerShotSubID = this.events.subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, this.onPlayerShot);
         this.subIds = [playerShotSubID];
@@ -73,14 +63,14 @@ class AsteroidsGameLoop {
         const timeTillImpact =
             Math.random() * (this.settings.maxTimeTillImpactS * 1000 - this.settings.minTimeTillImpactS * 1000) +
             this.settings.minTimeTillImpactS * 1000;
-        const health = Math.round(this.settings.asteroidMaxHealth * Math.random());
+        const health = Math.ceil(this.settings.asteroidMaxHealth * Math.random());
 
         const data = {
             id,
             x: startX,
             y: startY,
-            endX: 0.0, // Impact at left edge
-            endY: 0.5, // Impact at vertical center
+            endX: Math.random() * 0.5, // Impact at left edge
+            endY: Math.random() * 0.5, // Impact at vertical center
             health,
             timeUntilImpact: timeTillImpact,
             type: 0,
@@ -90,9 +80,9 @@ class AsteroidsGameLoop {
         };
 
         this.asteroids.set(id, { ...data, spawnTimestampMS: this.gameTimeMS });
-        this.events.emitRAW(data);
+        this.events.emitRAW<AsteroidsAsteroidSpawnMessageDTO>(data, this.internalOrigin);
         this.asteroidSpawnCount++;
-        this.log.trace(`Spawned asteroid ${id} at ${startX}, ${startY} with code ${charCode}`);
+        this.log.subtrace(`Spawned asteroid ${id} at ${startX}, ${startY} with code ${charCode}. HP: ${health}`);
     };
 
     private onPlayerShot = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
@@ -108,30 +98,43 @@ class AsteroidsGameLoop {
         if (data.code === this.localPlayerCode) {
             somethingWasHit = true;
             //Emit ASTEROIDS_PLAYER_PENALTY_EVENT
-            this.events.emitRAW({
+            this.events.emitRAW<AsteroidsPlayerPenaltyMessageDTO>({
                 senderID: MOCK_SERVER_ID,
                 eventID: ASTEROIDS_PLAYER_PENALTY_EVENT.id,
                 playerID: this.context.backend.player.local.id,
                 timeoutDurationS: this.settings.friendlyFirePenaltyS * (this.selfHitCounts++ * this.settings.friendlyFirePenaltyMultiplier),
                 type: PlayerPenaltyType.FriendlyFire,
-            });
+            }, this.internalOrigin);
         }
 
         if (!somethingWasHit) {
             //Emit ASTEROIDS_PLAYER_PENALTY_EVENT
-            this.events.emitRAW({
+            this.events.emitRAW<AsteroidsPlayerPenaltyMessageDTO>({
                 senderID: MOCK_SERVER_ID,
                 eventID: ASTEROIDS_PLAYER_PENALTY_EVENT.id,
                 playerID: this.context.backend.player.local.id,
                 timeoutDurationS: 1,
                 type: PlayerPenaltyType.Miss,
-            });
+            }, this.internalOrigin);
         }
     };
 
     public start = () => {
         this.log.trace('Starting asteroids game loop interval');
-        this.loopInterval = setInterval(this.update, AsteroidsGameLoop.LOOP_FREQUENCY_MS);
+        this.localPlayerCode = this.charPool.generateCode();
+        //Assign player data to local player
+        this.events.emitRAW({
+            senderID: MOCK_SERVER_ID,
+            eventID: ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT.id,
+            id: this.context.backend.player.local.id,
+            x: 0.5,
+            y: 0.8,
+            type: 0,
+            code: this.localPlayerCode,
+        });
+        setTimeout(() => {
+            this.loopInterval = setInterval(this.update, AsteroidsGameLoop.LOOP_FREQUENCY_MS);
+        }, 1000)
     };
 
     private update = () => {
@@ -172,12 +175,12 @@ class AsteroidsGameLoop {
                 //Subtract health
                 this.remainingHP -= asteroid.health;
                 //Send asteroid impact event
-                this.events.emitRAW({
+                this.events.emitRAW<AsteroidsAsteroidImpactOnColonyMessageDTO>({
                     senderID: MOCK_SERVER_ID,
                     eventID: ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT.id,
                     id, //asteroid id
                     colonyHPLeft: this.remainingHP,
-                });
+                }, this.internalOrigin);
             }
         }
     };
@@ -186,10 +189,11 @@ class AsteroidsGameLoop {
         this.events.emitRAW<MinigameLostMessageDTO>({
             senderID: MOCK_SERVER_ID,
             eventID: MINIGAME_LOST_EVENT.id,
+            colonyLocationID: this.difficulty.colonyLocationID,
             minigameID: KnownMinigames.ASTEROIDS,
             difficultyID: this.difficulty.difficultyID,
             difficultyName: this.difficulty.difficultyName,
-        });
+        }, this.internalOrigin);
         this.cleanup();
     };
 
@@ -197,10 +201,11 @@ class AsteroidsGameLoop {
         this.events.emitRAW<MinigameWonMessageDTO>({
             senderID: MOCK_SERVER_ID,
             eventID: MINIGAME_WON_EVENT.id,
+            colonyLocationID: this.difficulty.colonyLocationID,
             minigameID: KnownMinigames.ASTEROIDS,
             difficultyID: this.difficulty.difficultyID,
             difficultyName: this.difficulty.difficultyName,
-        });
+        }, this.internalOrigin);
         this.cleanup();
     };
 

@@ -87,6 +87,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                         <For each={minigame.difficulties}>
                             {(difficulty, index) => (
                                 <MinigameDifficultyListEntry
+                                    colonyLocationID={props.colonyLocation.id}
                                     difficulty={difficulty}
                                     minigameID={minigame.id}
                                     buffer={props.buffer}
