@@ -28,17 +28,6 @@ export default defineConfig(({ mode }) => {
                 autoname: true, // e.g. enable autoname
             }),
             solidPlugin(),
-            babelPlugin({
-                babelConfig: {
-                    presets: [
-                        ['@babel/preset-typescript', {
-                            isTSX: true,
-                            allExtensions: true,
-                        }]
-                    ],
-                },
-                filter: /\.(tsx|ts|js|jsx)$/,
-            }),
             compression({
                 include: /\.(js|css|html|svg)$/,
                 threshold: 1024, // Only compress files bigger than 1KB
@@ -54,7 +43,8 @@ export default defineConfig(({ mode }) => {
         },
         server: serverConfig,
         build: {
-            target: ['esnext'],
+            target: 'esnext',
+            loader: { '.js': 'jsx' },
             rollupOptions: {
                 output: {
                     entryFileNames: `[name].js`,
