@@ -12,6 +12,7 @@ import { BufferSubscriber, ActionContext } from "@/ts/actionContext";
 import { createArrayStore } from "@/ts/arrayStore";
 import { IBackendBased, IInternationalized, IStyleOverwritable } from "@/ts/types";
 import { createWrappedSignal } from "@/ts/wrappedSignal";
+import { Styles } from "@/sharedCSS";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -354,7 +355,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
 
     bufferSubscribers.add((inputBuffer: string) => {
         const targetLocation = locationStore.findFirst(loc =>
-            loc.name.toLowerCase() === inputBuffer.toLowerCase()
+            loc.name === inputBuffer
         );
 
         if (targetLocation) {
@@ -477,7 +478,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                                     name={location.name}
                                     buffer={buffer}
                                     register={bufferSubscribers.add}
-                                    charBaseStyleOverwrite={namePlateTextStyle}
+                                    charBaseStyleOverwrite={namePlateTextOverwrite}
                                 />
                                 <div
                                     class={getLocationStyle(location)}
@@ -537,6 +538,10 @@ const subtitleStyleOverwrite = css`
     z-index: 100;
 `;
 
+const namePlateStyle = css`
+    ${Styles.GLASS.FAINT_BACKGROUND}
+`;
+
 const locationContainerStyle = css`
     position: absolute;
     left: 0;
@@ -576,5 +581,10 @@ const pathGraphContainerStyle = css`
     height: 100vh;
     overflow: visible;
 `;
+
+const namePlateTextOverwrite = css`
+    text-shadow: 5px 5px 10px black;
+`;
+
 
 export default NavigationTrial;
