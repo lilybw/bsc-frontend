@@ -1,6 +1,6 @@
-import { Component, createSignal } from 'solid-js';
+import { Component } from 'solid-js';
 import { css } from '@emotion/css';
-import { createMemo, createResource } from 'solid-js';
+import { createMemo, createSignal, createResource } from 'solid-js';
 import VideoFrame from './VideoFrame';
 import GraphicalAsset from '@/components/base/GraphicalAsset';
 import ImageBufferButton from '@/components/base/ImageBufferButton';
@@ -33,7 +33,9 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
     const [demoPhase, setDemoPhase] = createSignal<'navigation' | 'entry'>('navigation');
     const [multiplayerMode] = createSignal<MultiplayerMode>(MultiplayerMode.AS_OWNER);
     const [colonyState] = createSignal<ColonyState>(ColonyState.CLOSED);
+    const [locationButtonText, setLocationButtonText] = createSignal(props.text.get('LOCATION.HOME.NAME').get());
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
+    const [hasEntered, setHasEntered] = createSignal(false);
 
     const mockEvents = {
         emit: () => Promise.resolve(0),
@@ -50,18 +52,18 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
         getServerStatus: async (): Promise<ResCodeErr<HealthCheckDTO>> => ({
             res: null,
             code: 200,
-            err: "Demo mode - no server status available"
+            err: "Tutorial mode - no server status available"
         }),
         getLobbyState: async (): Promise<ResCodeErr<LobbyStateResponseDTO>> => ({
             res: null,
             code: 200,
-            err: "Demo mode - no lobby state available"
+            err: "Tutorial mode - no lobby state available"
         })
     };
 
     const colony: ColonyInfoResponseDTO = {
         id: 1,
-        name: "Demo Colony",
+        name: "Tutorial Colony",
         accLevel: 1,
         latestVisit: new Date().toISOString(),
         assets: [],
@@ -117,11 +119,16 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
 
     // Phase 2: Enter location
     const locationReached = () => {
+        if (hasEntered()) return; // Prevent multiple entries
+
         setMovePlayerToLocation(true);
+        setHasEntered(true); // Mark as entered
+
         setTimeout(() => {
             setDemoPhase('entry');
             setInputBuffer('');
             const enterCommand = props.text.get('LOCATION.USER_ACTION.ENTER').get();
+            setLocationButtonText(enterCommand);
 
             // Type out ENTER command
             for (let i = 0; i < enterCommand.length; i++) {
@@ -141,6 +148,11 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
                 },
                 enterCommand.length * timeBetweenKeyStrokesMS + baseDelayBeforeDemoStart,
             );
+
+            setTimeout(
+                () => {
+                    props.onSlideCompleted();
+                }, enterCommand.length * timeBetweenKeyStrokesMS + baseDelayBeforeDemoStart + 2000);
         }, 2000);
     };
 
@@ -177,10 +189,11 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
                 <div class={movementPathStyle}></div>
                 <ImageBufferButton
                     register={bufferSubscribers.add}
-                    name={nameOfLocation.get()}
+                    name={locationButtonText()}
                     buffer={inputBuffer}
                     onActivation={locationReached}
                     asset={1009}
+                    styleOverwrite={locationPinStyle}
                     backend={props.backend}
                 />
                 <NTAwait func={() => props.backend.assets.getMetadata(4001)}>
@@ -205,8 +218,6 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
     );
 };
 
-export default LocationDemo;
-
 const movementPathStyle = css`
     border-bottom: 1px dashed white;
     height: 66%;
@@ -214,6 +225,12 @@ const movementPathStyle = css`
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+`;
+
+const locationPinStyle = css`
+    position: absolute;
+    right: 5vw;
+    bottom: 20vh;
 `;
 
 const playerCharacterStyle = css`
@@ -229,3 +246,5 @@ const playerCharacterStyle = css`
 const playerAtLocation = css`
     left: 70%;
 `;
+
+export default LocationDemo;
