@@ -3,7 +3,7 @@
         "strict": true,
         "target": "ESNext",
         "module": "ESNext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
         "jsx": "preserve",
@@ -11,7 +11,19 @@
         "types": ["vite/client", "@testing-library/jest-dom"],
         "noEmit": true,
         "isolatedModules": true,
-        "rootDirs": ["./src", "./tutorial_root", "./main_menu_root", "./colony_root"],
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"],
+            "@colony/*": ["colony_root/*"],
+            "@tutorial/*": ["tutorial_root/*"],
+            "@menu/*": ["main_menu_root/*"]
+        },
         "skipLibCheck": true
-    }
+    },
+    "include": [
+        "src/**/*",
+        "colony_root/**/*",
+        "tutorial_root/**/*",
+        "main_menu_root/**/*"
+    ]
 }

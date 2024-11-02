@@ -3,6 +3,7 @@ import solidPlugin from 'vite-plugin-solid';
 import devtools from 'solid-devtools/vite';
 import { compression } from 'vite-plugin-compression2';
 import babelPlugin from 'vite-plugin-babel';
+import path from 'path';
 
 export default defineConfig(({ mode }) => {
     const serverConfig = {
@@ -43,6 +44,14 @@ export default defineConfig(({ mode }) => {
                 threshold: 1024, // Only compress files bigger than 1KB
             }),
         ],
+        resolve: {
+          alias: {
+            '@': path.resolve(__dirname, './src'),
+            '@colony': path.resolve(__dirname, './colony_root'),
+            '@tutorial': path.resolve(__dirname, './tutorial_root'),
+            '@menu': path.resolve(__dirname, './main_menu_root'),
+          },
+        },
         server: serverConfig,
         build: {
             target: 'esnext',

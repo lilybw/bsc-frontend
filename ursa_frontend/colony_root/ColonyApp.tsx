@@ -1,43 +1,26 @@
-import { Bundle, BundleComponent, ColonyState, MultiplayerMode, Error } from '../src/meta/types';
-import { ApplicationProps } from '../src/ts/types';
-import PathGraph from '../src/components/colony/PathGraph';
-import Unwrap from '../src/components/util/Unwrap';
-import ErrorPage from '../src/ErrorPage';
 import { createSignal, onMount, onCleanup, JSX, createMemo } from 'solid-js';
-import {
-    DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
-    DifficultyConfirmedForMinigameMessageDTO,
-    GENERIC_MINIGAME_SEQUENCE_RESET_EVENT,
-    GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT,
-    LOAD_MINIGAME_EVENT,
-    LOBBY_CLOSING_EVENT,
-    MINIGAME_BEGINS_EVENT,
-    PLAYER_LOAD_COMPLETE_EVENT,
-    PLAYER_LOAD_FAILURE_EVENT,
-    PLAYER_READY_FOR_MINIGAME_EVENT,
-    PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT,
-    SERVER_CLOSING_EVENT,
-} from '../src/integrations/multiplayer_backend/EventSpecifications';
 import { css } from '@emotion/css';
-import { createArrayStore } from '../src/ts/arrayStore';
-import { ActionContext, BufferSubscriber, TypeIconTuple } from '../src/ts/actionContext';
-import { createWrappedSignal } from '../src/ts/wrappedSignal';
-import MNTAwait from '../src/components/util/MultiNoThrowAwait';
-import { MockServer } from '../src/ts/mockServer';
-import HandPlacementCheck from '../src/components/colony/HandPlacementCheck';
-import Countdown from '../src/components/util/Countdown';
-import { ColonyCode } from '../src/integrations/main_backend/mainBackendDTOs';
+import MinigameSequenceOverlay from './MinigameSequenceOverlay';
+import { DifficultyConfirmedForMinigameMessageDTO, LOBBY_CLOSING_EVENT, SERVER_CLOSING_EVENT } from '@/integrations/multiplayer_backend/EventSpecifications';
+import { Bundle, BundleComponent, ColonyState, Error, MultiplayerMode } from '@/meta/types';
+import { ApplicationProps } from '@/ts/types';
+import { createWrappedSignal } from '@/ts/wrappedSignal';
+import { ActionContext, BufferSubscriber, TypeIconTuple } from '@/ts/actionContext';
+import BufferBasedButton from '@/components/base/BufferBasedButton';
+import EventFeed from '@/components/base/EventFeed';
+import SectionTitle from '@/components/base/SectionTitle';
+import StarryBackground from '@/components/base/StarryBackground';
+import ClientTracker from '@/components/colony/mini_games/ClientTracker';
+import PathGraph from '@/components/colony/PathGraph';
+import Countdown from '@/components/util/Countdown';
+import MNTAwait from '@/components/util/MultiNoThrowAwait';
+import Unwrap from '@/components/util/Unwrap';
+import ErrorPage from '@/ErrorPage';
+import { ColonyCode } from '@/integrations/main_backend/mainBackendDTOs';
+import { Styles } from '@/sharedCSS';
+import { createArrayStore } from '@/ts/arrayStore';
+import { MockServer } from '@/ts/mockServer';
 import TimedFullScreenNotification from './TimedFullScreenNotification';
-import BufferBasedButton from '../src/components/base/BufferBasedButton';
-import EventFeed from '../src/components/base/EventFeed';
-import SectionSubTitle from '../src/components/base/SectionSubTitle';
-import SectionTitle from '../src/components/base/SectionTitle';
-import StarryBackground from '../src/components/base/StarryBackground';
-import { Styles } from '../src/sharedCSS';
-import ClientTracker from '../src/components/colony/mini_games/ClientTracker';
-import { getMinigameComponentInitFunction, getMinigameName } from '../src/components/colony/mini_games/miniGame';
-import SolarLoadingSpinner from '../src/components/base/SolarLoadingSpinner';
-import { L } from 'vitest/dist/chunks/reporters.DAfKSDh5';
 
 export type StrictJSX =
     | Node
@@ -67,7 +50,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
         const inputBuffer = createWrappedSignal<string>('');
         const actionContext = createWrappedSignal<TypeIconTuple>(ActionContext.NAVIGATION);
         const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
-        const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DiffConfWExtraInfo | null>(null);
         const [shuntNotaficationReason, setShuntNotificationReason] = createSignal<string>('Unknown');
         const [showNotification, setShowShuntNotification] = createSignal<boolean>(false);
         const log = props.context.logger.copyFor('colony');
@@ -82,7 +64,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             log.error('Failed to load colony: ' + error);
             return (
                 <ErrorPage content={error}>
-                    <SectionSubTitle>Redirecting to menu in:</SectionSubTitle>
+                    {props.context.text.SubTitle("NOTIFICATION.RETURNING_TO_MENU_IN")({})}
                     <Countdown styleOverwrite={Styles.TITLE} duration={5} onComplete={() => props.context.nav.goToMenu()} />
                 </ErrorPage>
             );
@@ -171,8 +153,8 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             if (state === ColonyState.CLOSED) {
                 mockServer.start();
             }
-            const subscribe = props.context.events.subscribe;
 
+            const subscribe = props.context.events.subscribe;
             const serverClosingSubId = subscribe(SERVER_CLOSING_EVENT, (ev) => {
                 if (props.context.multiplayer.getMode() === MultiplayerMode.AS_OWNER) return;
 
@@ -183,108 +165,14 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
 
                 setShuntNotificationReason('NOTIFICATION.MULTIPLAYER.LOBBY_CLOSING');
             });
-            const diffConfirmedSubId = subscribe(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, (data) => {
-                setConfirmedDifficulty({ ...data, minigameName: getMinigameName(data.minigameID) });
-                setLocalSequencePhase(LocalSequencePhase.HAND_PLACEMENT_CHECK);
-                //When confirmedDifficulty != null, the HandPlacementCheck is shown
-                //The HandPlacementCheck emits the required Player Join Activity or Player Aborting Activity
-                //And then forwards to the waiting screen
-            });
-
-            const declareIntentSubId = subscribe(PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT, (data) => {
-                const diff = confirmedDifficulty();
-                if (diff === null) {
-                    log.error('Received intent declaration before difficulty was confirmed');
-                    return;
-                }
-                //Needs to be handled.
-                //Here is to be emitted Player Ready Event
-                props.context.events.emit(PLAYER_READY_FOR_MINIGAME_EVENT, {
-                    id: props.context.backend.player.local.id,
-                    ign: props.context.backend.player.local.firstName,
-                });
-            });
-
-            const loadMinigameSubId = subscribe(LOAD_MINIGAME_EVENT, async (data) => {
-                //Load the minigame
-                setLocalSequencePhase(LocalSequencePhase.LOADING_MINIGAME);
-                const diff = confirmedDifficulty();
-                if (diff === null) {
-                    log.error('Received load minigame while confirmed difficulty was null');
-                    return;
-                }
-                setPageContent((<SolarLoadingSpinner text={'Loading ' + diff.minigameName} />) as StrictJSX);
-                const initFunc = getMinigameComponentInitFunction(diff.minigameID);
-                if (initFunc.err !== null) {
-                    log.error('Could not load minigame component init function: ' + initFunc.err);
-                    props.context.events.emit(PLAYER_LOAD_FAILURE_EVENT, { reason: initFunc.err });
-                    return;
-                }
-                const res = await initFunc.res(props.context, diff.difficultyID);
-                if (res.err !== null) {
-                    log.error('Could not load minigame component: ' + res.err);
-                    props.context.events.emit(PLAYER_LOAD_FAILURE_EVENT, { reason: res.err });
-                    return;
-                }
-                setPageContent(res.res as StrictJSX);
-                props.context.events.emit(PLAYER_LOAD_COMPLETE_EVENT, {});
-            });
-
-            const minigameBeginsSubId = subscribe(MINIGAME_BEGINS_EVENT, (data) => {
-                //Start the minigame
-                //nothing to do here right now
-                setLocalSequencePhase(LocalSequencePhase.IN_MINIGAME);
-            });
-
-            const resetSequenceSubID = subscribe(GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, (data) => {
-                setConfirmedDifficulty(null);
-                setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
-            });
-            const genericAbortSubId = subscribe(GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT, (data) => {
-                //TODO: Show some notification
-                log.error('Received generic abort event concerning: ' + data.id + ' with reason: ' + data.reason);
-                setConfirmedDifficulty(null);
-                setPageContent(colonyLayout());
-                setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
-            });
-
+            
             onCleanup(() => {
                 clientTracker.unmount();
                 props.context.events.unsubscribe(
                     serverClosingSubId,
                     lobbyClosingSubId,
-                    diffConfirmedSubId,
-                    declareIntentSubId,
-                    loadMinigameSubId,
-                    minigameBeginsSubId,
-                    resetSequenceSubID,
-                    genericAbortSubId,
                 );
             });
-        });
-
-        const [localSequencePhase, setLocalSequencePhase] = createSignal<LocalSequencePhase>(LocalSequencePhase.ROAMING_COLONY);
-        const appendSequenceOverlay = createMemo(() => {
-            switch (localSequencePhase()) {
-                case LocalSequencePhase.WAITING_SCREEN:
-                    return clientTracker.getComponent();
-                case LocalSequencePhase.HAND_PLACEMENT_CHECK:
-                    return (
-                        <HandPlacementCheck
-                            nameOfOwner={clientTracker.getByID(bundleSwapColonyInfo.res?.owner!)?.IGN || props.context.backend.player.local.firstName}
-                            nameOfMinigame={confirmedDifficulty()?.minigameName!}
-                            gameToBeMounted={confirmedDifficulty()!}
-                            events={props.context.events}
-                            backend={props.context.backend}
-                            text={props.context.text}
-                            clearSelf={() => setConfirmedDifficulty(null)}
-                            goToWaitingScreen={() => setLocalSequencePhase(LocalSequencePhase.WAITING_SCREEN)}
-                        />) as StrictJSX;
-                case LocalSequencePhase.LOADING_MINIGAME:
-                case LocalSequencePhase.IN_MINIGAME:
-                case LocalSequencePhase.ROAMING_COLONY:
-                default: return <></>;
-            }
         });
 
         const shuntNotaMemo = createMemo(
@@ -304,7 +192,13 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             <div id="colony-app">
                 <StarryBackground />
                 {pageContent()}
-                {appendSequenceOverlay()}
+                <MinigameSequenceOverlay
+                    clientTracker={clientTracker}
+                    context={props.context}
+                    setPageContent={setPageContent}
+                    colonyLayout={colonyLayout}
+                    bundleSwapData={bundleSwapColonyInfo.res!}
+                />
                 {shuntNotaMemo()}
                 <EventFeed events={props.context.events} backend={props.context.backend} text={props.context.text} />
             </div>

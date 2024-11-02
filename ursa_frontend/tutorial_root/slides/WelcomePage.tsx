@@ -1,9 +1,9 @@
 import { JSX } from 'solid-js/jsx-runtime';
 import { css, keyframes } from '@emotion/css';
-import { IBackendBased, IInternationalized } from '../../src/ts/types';
-import NTAwait from '../../src/components/util/NoThrowAwait';
-import StarryBackground from '../../src/components/base/StarryBackground';
-import GraphicalAsset from '../../src/components/base/GraphicalAsset';
+import GraphicalAsset from '@/components/base/GraphicalAsset';
+import StarryBackground from '@/components/base/StarryBackground';
+import NTAwait from '@/components/util/NoThrowAwait';
+import { IBackendBased, IInternationalized } from '@/ts/types';
 
 interface WelcomePageProps extends IBackendBased, IInternationalized {
     styleOverwrite?: string;

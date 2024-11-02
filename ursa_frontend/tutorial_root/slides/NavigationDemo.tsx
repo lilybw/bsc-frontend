@@ -1,15 +1,15 @@
 import { JSX } from 'solid-js/jsx-runtime';
 import { css } from '@emotion/css';
-import ActionInput from '../../src/components/colony/MainActionInput';
-import { ActionContext, BufferSubscriber, TypeIconTuple } from '../../src/ts/actionContext';
 import { createMemo, createSignal } from 'solid-js';
-import { createArrayStore } from '../../src/ts/arrayStore';
 import VideoFrame from './VideoFrame';
-import { IBackendBased, IInternationalized } from '../../src/ts/types';
-import NTAwait from '../../src/components/util/NoThrowAwait';
-import GraphicalAsset from '../../src/components/base/GraphicalAsset';
-import ImageBufferButton from '../../src/components/base/ImageBufferButton';
-import StarryBackground from '../../src/components/base/StarryBackground';
+import GraphicalAsset from '@/components/base/GraphicalAsset';
+import ImageBufferButton from '@/components/base/ImageBufferButton';
+import StarryBackground from '@/components/base/StarryBackground';
+import ActionInput from '@/components/colony/MainActionInput';
+import NTAwait from '@/components/util/NoThrowAwait';
+import { TypeIconTuple, ActionContext, BufferSubscriber } from '@/ts/actionContext';
+import { createArrayStore } from '@/ts/arrayStore';
+import { IInternationalized, IBackendBased } from '@/ts/types';
 
 interface NavigationDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;

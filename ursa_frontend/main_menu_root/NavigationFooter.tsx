@@ -1,8 +1,8 @@
+import BigMenuButton from '@/components/base/BigMenuButton';
+import { NamedVoidFunction } from '@/meta/types';
+import { IInternationalized } from '@/ts/types';
 import { css } from '@emotion/css';
 import { Accessor, Component } from 'solid-js';
-import { NamedVoidFunction } from '../src/meta/types';
-import BigMenuButton from '../src/components/base/BigMenuButton';
-import { IInternationalized } from '../src/ts/types';
 
 interface NavigationFooterProps extends IInternationalized {
     goNext?: NamedVoidFunction;

@@ -1,15 +1,15 @@
 import { JSX, createSignal, createMemo, Show, onMount } from 'solid-js';
 import { css } from '@emotion/css';
-import ActionInput from '../../src/components/colony/MainActionInput';
-import { ActionContext, BufferSubscriber, TypeIconTuple } from '../../src/ts/actionContext';
-import { createArrayStore } from '../../src/ts/arrayStore';
 import VideoFrame from './VideoFrame';
-import NTAwait from '../../src/components/util/NoThrowAwait';
 import SpacePortInterface from './tutorial utility components/Spaceport';
-import { IBackendBased, IInternationalized } from '../../src/ts/types';
-import GraphicalAsset from '../../src/components/base/GraphicalAsset';
-import ImageBufferButton from '../../src/components/base/ImageBufferButton';
-import StarryBackground from '../../src/components/base/StarryBackground';
+import GraphicalAsset from '@/components/base/GraphicalAsset';
+import ImageBufferButton from '@/components/base/ImageBufferButton';
+import StarryBackground from '@/components/base/StarryBackground';
+import ActionInput from '@/components/colony/MainActionInput';
+import NTAwait from '@/components/util/NoThrowAwait';
+import { TypeIconTuple, ActionContext, BufferSubscriber } from '@/ts/actionContext';
+import { createArrayStore } from '@/ts/arrayStore';
+import { IInternationalized, IBackendBased } from '@/ts/types';
 
 interface MultiplayerDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;

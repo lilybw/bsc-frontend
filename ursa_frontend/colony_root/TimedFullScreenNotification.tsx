@@ -1,9 +1,9 @@
+import BigMenuButton from '@/components/base/BigMenuButton';
+import Countdown from '@/components/util/Countdown';
+import { Styles } from '@/sharedCSS';
+import { IInternationalized, IParenting } from '@/ts/types';
 import { css } from '@emotion/css';
-import { Styles } from '../src/sharedCSS';
 import { Component } from 'solid-js';
-import { IInternationalized, IParenting } from '../src/ts/types';
-import Countdown from '../src/components/util/Countdown';
-import BigMenuButton from '../src/components/base/BigMenuButton';
 
 interface TimedFullScreenNotificationProps extends IInternationalized, IParenting {
     /** intl key */

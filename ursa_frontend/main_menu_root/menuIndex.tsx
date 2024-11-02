@@ -1,6 +1,6 @@
 /* @refresh reload */
 import 'solid-devtools';
 import MainMenuApp from './MainMenuApp';
-import { initApp } from '../src/setup';
+import { initApp } from '@/setup';
 
 initApp(MainMenuApp);

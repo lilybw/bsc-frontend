@@ -1,14 +1,13 @@
 import { createSignal, type Component } from 'solid-js';
-import { Styles } from '../src/sharedCSS';
 import { css } from '@emotion/css';
-import { ApplicationContext, Bundle, BundleComponent } from '../src/meta/types';
 import LandingPage from './pages/LandingPage';
-import { ApplicationProps } from '../src/ts/types';
 import ColonyListPage from './pages/ColonyListPage';
 import NewColonyPage from './pages/NewColonyPage';
 import JoinColonyPage from './pages/JoinColony';
 import LanguageSelectInlay from './pages/LanguageSelectInlay';
-import HandPlacementCheck from '../src/components/colony/HandPlacementCheck';
+import { ApplicationContext, BundleComponent, Bundle } from '@/meta/types';
+import { Styles } from '@/sharedCSS';
+import { ApplicationProps } from '@/ts/types';
 
 export enum MenuPages {
     LANDING_PAGE = 'landing',

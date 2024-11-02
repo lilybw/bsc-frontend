@@ -1,9 +1,7 @@
 import { createEffect, createSignal, Match, Switch, type Component } from 'solid-js';
 import { css } from '@emotion/css';
-import BigMenuButton from '../src/components/base/BigMenuButton';
 import ProgressTracker from './ProgressTracker';
 import LanguagePage from './slides/LanguagePage';
-import ErrorPage from '../src/ErrorPage';
 import { createStore } from 'solid-js/store';
 import SlideIcon, { SlideIconProps } from './SlideIcon';
 import WelcomePage from './slides/WelcomePage';
@@ -12,13 +10,15 @@ import NavigationDemo from './slides/NavigationDemo';
 import NavigationTrial from './slides/NavigationTrial';
 import LocationDemo from './slides/LocationDemo';
 import TutorialCompletePage from './slides/TutorialCompletePage';
-import { ApplicationProps } from '../src/ts/types';
-import { Bundle, BundleComponent } from '../src/meta/types';
-import { LanguagePreference } from '../src/integrations/vitec/vitecDTOs';
-import NTAwait from '../src/components/util/NoThrowAwait';
+import BigMenuButton from '@/components/base/BigMenuButton';
+import GraphicalAsset from '@/components/base/GraphicalAsset';
+import StarryBackground from '@/components/base/StarryBackground';
+import NTAwait from '@/components/util/NoThrowAwait';
+import ErrorPage from '@/ErrorPage';
+import { LanguagePreference } from '@/integrations/vitec/vitecDTOs';
+import { BundleComponent, Bundle } from '@/meta/types';
+import { ApplicationProps } from '@/ts/types';
 import MultiplayerDemo from './slides/MultiplayerDemo';
-import GraphicalAsset from '../src/components/base/GraphicalAsset';
-import StarryBackground from '../src/components/base/StarryBackground';
 
 export type SlideEntry = { hasCompleted: boolean; icon: Component<SlideIconProps>; iconId: number };
 const slides: SlideEntry[] = [

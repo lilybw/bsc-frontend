@@ -1,8 +1,8 @@
-import { IBackendBased, IParenting, IStyleOverwritable } from '../../src/ts/types';
 import { Component, createMemo } from 'solid-js';
 import { css } from '@emotion/css';
-import NTAwait from '../../src/components/util/NoThrowAwait';
-import GraphicalAsset from '../../src/components/base/GraphicalAsset';
+import GraphicalAsset from '@/components/base/GraphicalAsset';
+import NTAwait from '@/components/util/NoThrowAwait';
+import { IStyleOverwritable, IBackendBased, IParenting } from '@/ts/types';
 
 interface VideoDemoFrameStyleProps extends IStyleOverwritable, IBackendBased, IParenting {}
 
