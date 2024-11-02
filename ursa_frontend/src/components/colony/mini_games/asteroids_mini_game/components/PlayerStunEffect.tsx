@@ -1,8 +1,8 @@
 import { Accessor, Component, createSignal, createEffect, onCleanup, Show, For } from "solid-js";
-import { BaseParticle } from "../entities/particles";
 import StunParticleManager from "../entities/particles/stunparticles/StunParticleManager";
-import { particleContainerStyle, stunParticleBaseStyle, stunParticleVerticalStyle, stunParticleHorizontalStyle, stunParticleContentStyle } from "../styles/ParticleStyles";
+import { particleContainerStyle, stunParticleBaseStyle, stunParticleVerticalStyle, stunParticleHorizontalStyle, stunParticleContentStyle } from "../styles/particleStyles";
 import { EntityRef } from "../types/entityTypes";
+import BaseParticle from "../entities/particles/BaseParticle";
 
 interface PlayerStunEffectProps {
     playerId: number;

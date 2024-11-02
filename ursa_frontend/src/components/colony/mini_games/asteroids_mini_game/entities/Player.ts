@@ -1,6 +1,5 @@
 import BaseEntity, { Targetable, StatusEffectable } from './BaseEntity';
 import { AsteroidsAssignPlayerDataMessageDTO } from '../../../../../integrations/multiplayer_backend/EventSpecifications';
-import { disabledStyle, stunnedStyle } from '../styles/GameStyles';
 
 /**
  * Interface representing the current state of a player

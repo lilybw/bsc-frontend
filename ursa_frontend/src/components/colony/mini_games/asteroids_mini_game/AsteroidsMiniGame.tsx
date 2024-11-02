@@ -22,6 +22,7 @@ import Player from "./entities/Player";
 import { wallStyle, statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle } from "./styles/gameStyles";
 import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes";
 import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, generateSpawnPosition, generateImpactPosition, calculatePlayerPositions, getRandomRotationSpeed } from "./utils/gameUtils";
+import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
 
 type PlayerState = {
     isStunned: boolean;
@@ -68,7 +69,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     const [windowSize, setWindowSize] = createSignal({ width: window.innerWidth, height: window.innerHeight });
 
     // Particle Management
-    const playerParticleManagers = new Map<number, ParticleManager>();
+    const playerParticleManagers = new Map<number, StunParticleManager>();
 
     /**
      * Handles local player shooting at a specific character code
@@ -432,41 +433,42 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                             id={`player-${player.id}`}
                             class={playerContainerStyle(player.x, player.y)}
                             ref={(el) => {
-                                console.log('Setting element ref for player:', player.id);
                                 elementRefs.set(getEntityRefKey.player(player.id), {
                                     type: 'player',
                                     element: el,
                                 });
                             }}
                         >
-                            {/* Button Container */}
+                            <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
+                                {(asset) => 
+                                    <GraphicalAsset 
+                                        metadata={asset} 
+                                        backend={props.context.backend}
+                                        styleOverwrite={css`
+                                            position: absolute; 
+                                            top: 0; 
+                                            left: 0; 
+                                            width: 100%; 
+                                            height: 100%;
+                                        `} 
+                                    />
+                                }
+                            </NTAwait>
+                            <PlayerStunEffect
+                                playerId={player.id}
+                                playerState={() => getPlayerState(player.id)}
+                                stunDuration={props.settings.stunDurationS}
+                                elementRefs={elementRefs}
+                            />
+
                             <BufferBasedButton
-                                enable={() => buttonsEnabled()}
+                                enable={buttonsEnabled}
                                 name={player.code}
                                 buffer={inputBuffer.get}
                                 onActivation={() => localPlayerShootAtCodeHandler(player.code)}
                                 register={bufferSubscribers.add}
                                 styleOverwrite={buttonStyleOverwrite}
                             />
-
-                            {/* Player Character Container */}
-                            <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
-                                {(asset) => (
-                                    <>
-                                        <GraphicalAsset 
-                                            metadata={asset} 
-                                            backend={props.context.backend}
-                                            styleOverwrite={css`position: absolute; top: 0; left: 0; width: 100%; height: 100%;`} 
-                                        />
-                                        <PlayerStunEffect
-                                            playerId={player.id}
-                                            playerState={() => getPlayerState(player.id)}
-                                            stunDuration={props.settings.stunDurationS}
-                                            elementRefs={elementRefs}
-                                        />
-                                    </>
-                                )}
-                            </NTAwait>
                         </div>
                     )}
                 </For>

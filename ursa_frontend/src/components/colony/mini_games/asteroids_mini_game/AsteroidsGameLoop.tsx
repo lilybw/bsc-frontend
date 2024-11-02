@@ -128,7 +128,7 @@ class AsteroidsGameLoop {
             eventID: ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT.id,
             id: this.context.backend.player.local.id,
             x: 0.5,
-            y: 0.9,
+            y: 0.8,
             type: 0,
             code: this.localPlayerCode,
         });

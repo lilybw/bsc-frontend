@@ -134,6 +134,7 @@ export const buttonStyleOverwrite = css`
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
+    z-index: 100;
 `;
 
 export const playerContainerStyle = (x: number, y: number) => css`
@@ -147,8 +148,8 @@ export const playerContainerStyle = (x: number, y: number) => css`
     left: ${x * 100}%;
 
     /* Remove fixed width/height to allow content-based sizing */
-    width: auto;
-    min-width: fit-content;
+    width: 10vh;
+    height: 10vh;
     
     transform: translate(-50%, -50%);
 `;
