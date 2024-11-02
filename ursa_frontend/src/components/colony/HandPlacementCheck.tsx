@@ -177,7 +177,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 `}
             />
             <div class={gamePreviewContainer}>
-                <div class={titleStyleMod}>{props.nameOfMinigame}</div>
+                <div class={Styles.MINIGAME.TITLE}>{props.nameOfMinigame}</div>
                 <div class={hasBeenStartedByStyle}>{props.text.get('HANDPLACEMENT.PREVIEW.HAS_BEEN_STARTED').get()}</div>
                 <div class={nameOfOwnerStyle}>{props.nameOfOwner}</div>
                 <div
@@ -189,13 +189,13 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
                 >
                     <div
                         class={css`
-                            ${difficultyTextStyle} color: white;
+                            ${Styles.MINIGAME.DIFFICULTY_NAME} color: white;
                             text-transform: none;
                         `}
                     >
                         {props.text.get('MINIGAME.DIFFICULTY').get()}
                     </div>
-                    <div class={difficultyTextStyle}>{props.text.get(props.gameToBeMounted.difficultyName).get()}</div>
+                    <div class={Styles.MINIGAME.DIFFICULTY_NAME}>{props.text.get(props.gameToBeMounted.difficultyName).get()}</div>
                 </div>
             </div>
             <OnScreenKeyboard
@@ -323,13 +323,6 @@ const gamePreviewContainer = css`
     ${Styles.GLASS.FAINT_BACKGROUND}
     background-image: linear-gradient(90deg, black, transparent)
 `;
-
-const titleStyleMod = css`
-    ${Styles.TITLE}
-    font-size: 3rem;
-    color: black;
-    text-shadow: 0 0 0.5rem rgba(60, 140, 255, 1);
-`;
 const hasBeenStartedByStyle = css`
     ${Styles.TITLE}
     text-shadow: none;
@@ -342,12 +335,6 @@ const nameOfOwnerStyle = css`
     text-shadow: none;
     font-size: 2.5rem;
     letter-spacing: 0.2rem;
-`;
-const difficultyTextStyle = css`
-    ${Styles.SUB_TITLE}
-    text-shadow: none;
-    color: hsl(30, 80%, 50%);
-    text-transform: uppercase;
 `;
 
 const leaveButtonStyle = css`

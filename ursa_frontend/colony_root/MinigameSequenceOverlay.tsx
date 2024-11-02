@@ -1,5 +1,5 @@
 import { Accessor, Component, createMemo, createSignal, onCleanup, onMount, Setter } from "solid-js";
-import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DifficultyConfirmedForMinigameMessageDTO, GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT, LOAD_MINIGAME_EVENT, MINIGAME_BEGINS_EVENT, MINIGAME_LOST_EVENT, MINIGAME_WON_EVENT, MinigameLostMessageDTO, MinigameWonMessageDTO, PLAYER_LOAD_COMPLETE_EVENT, PLAYER_LOAD_FAILURE_EVENT, PLAYER_READY_FOR_MINIGAME_EVENT, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from "@/integrations/multiplayer_backend/EventSpecifications";
+import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DifficultyConfirmedForMinigameMessageDTO, GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT, GenericMinigameUntimelyAbortMessageDTO, LOAD_MINIGAME_EVENT, MINIGAME_BEGINS_EVENT, MINIGAME_LOST_EVENT, MINIGAME_WON_EVENT, MinigameLostMessageDTO, MinigameWonMessageDTO, PLAYER_LOAD_COMPLETE_EVENT, PLAYER_LOAD_FAILURE_EVENT, PLAYER_READY_FOR_MINIGAME_EVENT, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from "@/integrations/multiplayer_backend/EventSpecifications";
 import { StrictJSX } from "./ColonyApp";
 import ClientTracker from "@/components/colony/mini_games/ClientTracker";
 import HandPlacementCheck from "@/components/colony/HandPlacementCheck";
@@ -9,6 +9,8 @@ import SolarLoadingSpinner from "@/components/base/SolarLoadingSpinner";
 import { getMinigameComponentInitFunction, getMinigameName } from "@/components/colony/mini_games/miniGame";
 import { IBufferBased, IRegistering } from "@/ts/types";
 import VictoryScreen from "./VictoryScreen";
+import DefeatScreen from "./DefeatScreen";
+import BufferBasedPopUp from "@/components/base/BufferBasedPopUp";
 
 interface MinigameInitiationSequenceProps extends IRegistering<string>, IBufferBased {
     context: ApplicationContext;
@@ -30,6 +32,7 @@ enum LocalSequencePhase {
     IN_MINIGAME = 4,
     RESULT_SCREEN_VICTORY = 5,
     RESULT_SCREEN_DEFEAT = 6,
+    RESULT_SCREEN_ABORT = 7,
 }
 
 const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (props) => {
@@ -37,6 +40,7 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
     const [localSequencePhase, setLocalSequencePhase] = createSignal<LocalSequencePhase>(LocalSequencePhase.ROAMING_COLONY);
     const [victoryInformation, setVictoryInformation] = createSignal<MinigameWonMessageDTO | null>(null);
     const [defeatInformation, setDefeatInformation] = createSignal<MinigameLostMessageDTO | null>(null);
+    const [abortInformation, setAbortInformation] = createSignal<GenericMinigameUntimelyAbortMessageDTO | null>(null);
 
     const log = props.context.logger.copyFor('mg seq');
 
@@ -106,6 +110,7 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
             log.error('Received generic abort event concerning: ' + data.id + ' with reason: ' + data.reason);
             setConfirmedDifficulty(null);
             props.setPageContent(props.colonyLayout());
+            setAbortInformation(data);
             setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
         });
 
@@ -137,33 +142,53 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
         switch (localSequencePhase()) {
             case LocalSequencePhase.WAITING_SCREEN:
                 return props.clientTracker.getComponent();
-            case LocalSequencePhase.HAND_PLACEMENT_CHECK:
-                return (
-                    <HandPlacementCheck
-                        nameOfOwner={props.clientTracker.getByID(props.bundleSwapData.owner)?.IGN || props.context.backend.player.local.firstName}
-                        nameOfMinigame={confirmedDifficulty()?.minigameName!}
-                        gameToBeMounted={confirmedDifficulty()!}
-                        events={props.context.events}
-                        backend={props.context.backend}
-                        text={props.context.text}
-                        clearSelf={() => setConfirmedDifficulty(null)}
-                        goToWaitingScreen={() => setLocalSequencePhase(LocalSequencePhase.WAITING_SCREEN)}
-                    />) as StrictJSX;
-            case LocalSequencePhase.RESULT_SCREEN_VICTORY:
-                return (
-                    <VictoryScreen 
-                        backend={props.context.backend}
-                        text={props.context.text}
-                        data={victoryInformation()!}
-                        register={props.register}
-                        buffer={props.buffer}
-                        clearSelf={() => {
-                            setVictoryInformation(null); 
-                            setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
-                        }}
-                    />) as StrictJSX;
-            case LocalSequencePhase.RESULT_SCREEN_DEFEAT:
-                return <></> as StrictJSX;
+            case LocalSequencePhase.HAND_PLACEMENT_CHECK: return (
+                <HandPlacementCheck
+                    nameOfOwner={props.clientTracker.getByID(props.bundleSwapData.owner)?.IGN || props.context.backend.player.local.firstName}
+                    nameOfMinigame={confirmedDifficulty()?.minigameName!}
+                    gameToBeMounted={confirmedDifficulty()!}
+                    events={props.context.events}
+                    backend={props.context.backend}
+                    text={props.context.text}
+                    clearSelf={() => setConfirmedDifficulty(null)}
+                    goToWaitingScreen={() => setLocalSequencePhase(LocalSequencePhase.WAITING_SCREEN)}
+                />) as StrictJSX;
+            case LocalSequencePhase.RESULT_SCREEN_VICTORY: return (
+                <VictoryScreen 
+                    backend={props.context.backend}
+                    text={props.context.text}
+                    data={victoryInformation()!}
+                    register={props.register}
+                    buffer={props.buffer}
+                    clearSelf={() => {
+                        setVictoryInformation(null); 
+                        setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
+                    }}
+                />) as StrictJSX;
+            case LocalSequencePhase.RESULT_SCREEN_DEFEAT:return (
+                <DefeatScreen 
+                    backend={props.context.backend}
+                    text={props.context.text}
+                    data={defeatInformation()!}
+                    register={props.register}
+                    buffer={props.buffer}
+                    clearSelf={() => {
+                        setDefeatInformation(null); 
+                        setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
+                    }}
+                />) as StrictJSX;
+            case LocalSequencePhase.RESULT_SCREEN_ABORT: return (
+                <BufferBasedPopUp 
+                    text={props.context.text}
+                    title={props.context.text.get('SYSTEM.SOMETHING_WENT_WRONG').get()}
+                    buffer={props.buffer}
+                    register={props.register}
+                    clearSelf={() => {
+                        setAbortInformation(null);
+                        setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
+                    }}
+                />
+            ) as StrictJSX;
             case LocalSequencePhase.LOADING_MINIGAME:
             case LocalSequencePhase.IN_MINIGAME:
             case LocalSequencePhase.ROAMING_COLONY:

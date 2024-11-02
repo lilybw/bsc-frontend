@@ -1,6 +1,30 @@
 import { css } from '@emotion/css';
 import { TransformDTO } from './integrations/main_backend/mainBackendDTOs';
 
+const titleBase = css`
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1rem;
+    text-transform: uppercase;
+    color: white;
+    font-size: 8rem;
+    text-shadow: 0.75rem 0.3rem 0.3rem rgba(255, 255, 255, 0.3);
+    filter: drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5));
+`
+
+const subTitleBase = css`
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+
+    font-weight: 700;
+    letter-spacing: 0;
+    color: hsla(0, 0%, 100%, 0.7);
+
+    font-size: 2rem;
+    text-shadow: 0.15rem 0.15rem 0.3rem rgba(255, 255, 255, 0.3);
+    filter: drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5));
+`
+
 /**
  * Small style fragments
  */
@@ -11,33 +35,42 @@ export const Styles = {
     NO_SHOW: css`
         display: none !important;
     `,
+    OVERLAY: {
+        CENTERED_QUARTER: css`
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-evenly;
+
+            top: 50%;
+            left: 50%;
+            width: 50%;
+            height: 50%;
+            transform: translate(-50%, -50%);
+        `
+    },
+    MINIGAME: {
+        TITLE: css`
+            ${titleBase}
+            font-size: 3rem;
+            color: black;
+            text-shadow: 0 0 0.5rem rgba(60, 140, 255, 1);
+        `,
+        DIFFICULTY_NAME: css`
+            ${subTitleBase}
+            text-shadow: none;
+            color: hsl(30, 80%, 50%);
+            text-transform: uppercase;
+        `
+    },
     TRANSFORM_CENTER: css`
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
     `,
-    TITLE: css`
-        font-family: 'Orbitron', sans-serif;
-        font-weight: 700;
-        letter-spacing: 1rem;
-        text-transform: uppercase;
-        color: white;
-        font-size: 8rem;
-        text-shadow: 0.75rem 0.3rem 0.3rem rgba(255, 255, 255, 0.3);
-        filter: drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5));
-    `,
-    SUB_TITLE: css`
-        text-align: center;
-        font-family: 'Orbitron', sans-serif;
-
-        font-weight: 700;
-        letter-spacing: 0;
-        color: hsla(0, 0%, 100%, 0.7);
-
-        font-size: 2rem;
-        text-shadow: 0.15rem 0.15rem 0.3rem rgba(255, 255, 255, 0.3);
-        filter: drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5));
-    `,
+    TITLE: titleBase,
+    SUB_TITLE: subTitleBase,
     MENU_INPUT: css`
         position: relative;
         border-radius: 1rem;

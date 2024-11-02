@@ -4,6 +4,7 @@ import { IStyleOverwritable, IBufferBased } from '../../ts/types';
 import SectionTitle from './SectionTitle';
 
 export interface BufferHighlightedNameProps extends IStyleOverwritable, IBufferBased {
+    /** Not translated */
     name: Accessor<string> | string;
     nameCompleteOverwrite?: string;
     charHighlightOverwrite?: string;

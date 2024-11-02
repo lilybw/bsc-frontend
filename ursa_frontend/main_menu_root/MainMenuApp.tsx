@@ -9,6 +9,7 @@ import { ApplicationContext, BundleComponent, Bundle } from '@/meta/types';
 import { Styles } from '@/sharedCSS';
 import { ApplicationProps } from '@/ts/types';
 import VictoryScreen from '@colony/VictoryScreen';
+import DefeatScreen from '@colony/DefeatScreen';
 
 export enum MenuPages {
     LANDING_PAGE = 'landing',
@@ -56,20 +57,6 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign(
             <div class={mainMenuAppStyle} id="the-main-menu-app">
                 <LanguageSelectInlay text={props.context.text} backend={props.context.backend} />
                 {CurrentPage()({ context: props.context, goToPage: goToPage, goBack: goBack })}
-                <VictoryScreen
-                    data={{
-                        difficultyName: 'Easy',
-                        minigameID: 1,
-                        difficultyID: 1,
-                        senderID: 1,
-                        eventID: 1,
-                    }}
-                    clearSelf={() => {}}
-                    register={(e) => {return () => {}}}
-                    text={props.context.text}
-                    backend={props.context.backend}
-                    buffer={() => ''}
-                />
             </div>
         );
     },
