@@ -1,63 +1,27 @@
-import { Component, createSignal, onMount, onCleanup, For, createMemo, createEffect, JSX } from 'solid-js';
-import { createArrayStore } from '../../../../ts/arrayStore';
-import { ActionContext, BufferSubscriber, TypeIconTuple } from '../../../../ts/actionContext';
-import { createWrappedSignal } from '../../../../ts/wrappedSignal';
-import { KnownMinigames, loadComputedSettings, MinigameComponentInitFunc } from '../miniGame';
-import { Asteroid } from './entities/Asteroid';
-import { Player } from './entities/Player';
-import { LazerBeam } from './entities/LazerBeam';
-import { EntityRef } from './types/EntityTypes';
-import {
-    handleAsteroidDestruction,
-    generateImpactPosition,
-    generateSpawnPosition,
-    calculatePlayerPositions,
-    getRandomRotationSpeed,
-    getTargetCenterPosition,
-    getEntityRefKey,
-} from './utils/GameUtils';
-import {
-    ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT,
-    ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT,
-    ASTEROIDS_ASTEROID_SPAWN_EVENT,
-    ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT,
-    PLAYER_READY_FOR_MINIGAME_EVENT,
-    AsteroidsAssignPlayerDataMessageDTO,
-    AsteroidsAsteroidImpactOnColonyMessageDTO,
-    AsteroidsAsteroidSpawnMessageDTO,
-    AsteroidsPlayerShootAtCodeMessageDTO,
-} from '../../../../integrations/multiplayer_backend/EventSpecifications';
-import { AsteroidsSettingsDTO } from './types/GameTypes';
-import { Position } from './entities/BaseEntity';
-import ActionInput from '../../MainActionInput';
-import NTAwait from '../../../util/NoThrowAwait';
-import {
-    asteroidButtonStyle,
-    asteroidImageContainerStyle,
-    asteroidStyle,
-    buttonContainerStyle,
-    impactCircleStyle,
-    lazerBeamStyle,
-    playerCharacterStyle,
-    playerStyle,
-    rotatingStyle,
-    statusStyle,
-    stunEffectStyle,
-    stunnedStyle,
-    stunParticleStyle,
-    timeLeftStyle,
-    wallStyle,
-} from './styles/GameStyles';
-import Countdown from '../../../util/Countdown';
-import BufferBasedButton from '../../../base/BufferBasedButton';
-import GraphicalAsset from '../../../base/GraphicalAsset';
-import StarryBackground from '../../../base/StarryBackground';
-import { BaseParticle, ParticleManager, StunParticle } from './entities/particles';
-import { particleContainerStyle } from './styles/ParticleStyles';
-import PlayerStunEffect from './components/PlayerStunEffect';
-import { ApplicationContext, ResErr } from '../../../../meta/types';
-import { uint32 } from '../../../../integrations/main_backend/mainBackendDTOs';
-import { Styles } from '@/sharedCSS';
+import BufferBasedButton from "@/components/base/BufferBasedButton";
+import GraphicalAsset from "@/components/base/GraphicalAsset";
+import StarryBackground from "@/components/base/StarryBackground";
+import Countdown from "@/components/util/Countdown";
+import NTAwait from "@/components/util/NoThrowAwait";
+import { uint32 } from "@/integrations/main_backend/mainBackendDTOs";
+import { ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, AsteroidsPlayerShootAtCodeMessageDTO, ASTEROIDS_ASTEROID_SPAWN_EVENT, AsteroidsAsteroidSpawnMessageDTO, ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT, AsteroidsAsteroidImpactOnColonyMessageDTO, ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, AsteroidsAssignPlayerDataMessageDTO, PLAYER_READY_FOR_MINIGAME_EVENT } from "@/integrations/multiplayer_backend/EventSpecifications";
+import { ApplicationContext, ResErr } from "@/meta/types";
+import { BufferSubscriber, TypeIconTuple, ActionContext } from "@/ts/actionContext";
+import { createArrayStore } from "@/ts/arrayStore";
+import { createWrappedSignal } from "@/ts/wrappedSignal";
+import { css } from "@emotion/css";
+import { Component, createSignal, createMemo, onMount, onCleanup, For } from "solid-js";
+import { JSX } from "solid-js/jsx-runtime";
+import ActionInput from "../../MainActionInput";
+import { MinigameComponentInitFunc, loadComputedSettings, KnownMinigames } from "../miniGame";
+import PlayerStunEffect from "./components/PlayerStunEffect";
+import Asteroid from "./entities/Asteroid";
+import { Position } from "./entities/BaseEntity";
+import LazerBeam from "./entities/LazerBeam";
+import Player from "./entities/Player";
+import { wallStyle, statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle } from "./styles/gameStyles";
+import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes";
+import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, generateSpawnPosition, generateImpactPosition, calculatePlayerPositions, getRandomRotationSpeed } from "./utils/gameUtils";
 
 type PlayerState = {
     isStunned: boolean;
@@ -74,7 +38,6 @@ interface AsteroidsProps {
  */
 const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     const internalOrigin = 'ASTEROIDS_MINIGAME_INTERNAL_ORIGIN';
-
     // State Management
     const asteroids = createArrayStore<Asteroid>();
     const players = createArrayStore<Player>();
@@ -314,8 +277,6 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                 (data: AsteroidsAssignPlayerDataMessageDTO) => {
                     const player = new Player({
                         ...data,
-                        x: 0,
-                        y: 0.9,
                         element: null,
                         stunDuration: props.settings.stunDurationS,
                         friendlyFirePenalty: props.settings.friendlyFirePenaltyS,
@@ -337,7 +298,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                     const newPositions = calculatePlayerPositions(players.get);
 
                     players.mutateByPredicate(
-                        (_) => true,
+                        (p) => p.id === player.id,
                         (player) => {
                             const pos = newPositions.get(player.id);
                             if (pos) {
@@ -469,88 +430,43 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                     {(player) => (
                         <div
                             id={`player-${player.id}`}
-                            class={playerStyle}
+                            class={playerContainerStyle(player.x, player.y)}
                             ref={(el) => {
-                                if (el) {
-                                    console.log('Setting element ref for player:', player.id);
-                                    elementRefs.set(getEntityRefKey.player(player.id), {
-                                        type: 'player',
-                                        element: el,
-                                    });
-                                }
-                            }}
-                            style={{
-                                position: 'absolute',
-                                left: '50%',
-                                bottom: 0,
-                                transform: 'translateX(-50%)',
+                                console.log('Setting element ref for player:', player.id);
+                                elementRefs.set(getEntityRefKey.player(player.id), {
+                                    type: 'player',
+                                    element: el,
+                                });
                             }}
                         >
                             {/* Button Container */}
-                            <div class={buttonContainerStyle}>
-                                <BufferBasedButton
-                                    enable={() => buttonsEnabled()}
-                                    name={player.code}
-                                    buffer={inputBuffer.get}
-                                    onActivation={() => localPlayerShootAtCodeHandler(player.code)}
-                                    register={bufferSubscribers.add}
-                                />
-                            </div>
+                            <BufferBasedButton
+                                enable={() => buttonsEnabled()}
+                                name={player.code}
+                                buffer={inputBuffer.get}
+                                onActivation={() => localPlayerShootAtCodeHandler(player.code)}
+                                register={bufferSubscribers.add}
+                                styleOverwrite={buttonStyleOverwrite}
+                            />
 
-                            {/* Player Rendering */}
-                            <For each={players.get}>
-                                {(player) => (
-                                    <div
-                                        id={`player-${player.id}`}
-                                        class={playerStyle}
-                                        ref={(el) => {
-                                            if (el) {
-                                                console.log('Setting element ref for player:', player.id);
-                                                elementRefs.set(getEntityRefKey.player(player.id), {
-                                                    type: 'player',
-                                                    element: el,
-                                                });
-                                            }
-                                        }}
-                                        style={{
-                                            position: 'absolute',
-                                            left: '50%',
-                                            bottom: 0,
-                                            transform: 'translateX(-50%)',
-                                        }}
-                                    >
-                                        {/* Button Container */}
-                                        <div class={buttonContainerStyle}>
-                                            <BufferBasedButton
-                                                enable={() => buttonsEnabled()}
-                                                name={player.code}
-                                                buffer={inputBuffer.get}
-                                                onActivation={() => localPlayerShootAtCodeHandler(player.code)}
-                                                register={bufferSubscribers.add}
-                                            />
-                                        </div>
-
-                                        {/* Player Character Container */}
-                                        <div class={playerCharacterStyle}>
-                                            <div style={{ position: 'relative' }}>
-                                                <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
-                                                    {(asset) => (
-                                                        <>
-                                                            <GraphicalAsset metadata={asset} backend={props.context.backend} />
-                                                            <PlayerStunEffect
-                                                                playerId={player.id}
-                                                                playerState={() => getPlayerState(player.id)}
-                                                                stunDuration={props.settings.stunDurationS}
-                                                                elementRefs={elementRefs}
-                                                            />
-                                                        </>
-                                                    )}
-                                                </NTAwait>
-                                            </div>
-                                        </div>
-                                    </div>
+                            {/* Player Character Container */}
+                            <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
+                                {(asset) => (
+                                    <>
+                                        <GraphicalAsset 
+                                            metadata={asset} 
+                                            backend={props.context.backend}
+                                            styleOverwrite={css`position: absolute; top: 0; left: 0; width: 100%; height: 100%;`} 
+                                        />
+                                        <PlayerStunEffect
+                                            playerId={player.id}
+                                            playerState={() => getPlayerState(player.id)}
+                                            stunDuration={props.settings.stunDurationS}
+                                            elementRefs={elementRefs}
+                                        />
+                                    </>
                                 )}
-                            </For>
+                            </NTAwait>
                         </div>
                     )}
                 </For>

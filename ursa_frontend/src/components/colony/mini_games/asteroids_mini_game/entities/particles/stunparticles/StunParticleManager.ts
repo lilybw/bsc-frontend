@@ -1,7 +1,7 @@
 import BaseParticle from '../BaseParticle';
 import StunParticle from './StunParticle';
-import { EntityRef } from '../../../types/EntityTypes';
-import { getEntityRefKey, getTargetCenterPosition } from '../../../utils/GameUtils';
+import { EntityRef } from '../../../types/entityTypes';
+import { getEntityRefKey, getTargetCenterPosition } from '../../../utils/gameUtils';
 
 export class StunParticleManager {
     private particles: Map<number, BaseParticle>;
