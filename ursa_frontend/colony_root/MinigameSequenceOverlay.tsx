@@ -17,7 +17,7 @@ interface MinigameInitiationSequenceProps extends IRegistering<string>, IBufferB
     setPageContent: Setter<StrictJSX>;
     clientTracker: ClientTracker;
     bundleSwapData: RetainedColonyInfoForPageSwap;
-    colonyLayout: Accessor<StrictJSX>;
+    goBackToColony: () => void;
 }
 
 interface DiffConfWExtraInfo extends DifficultyConfirmedForMinigameMessageDTO {
@@ -109,19 +109,19 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
             //TODO: Show some notification
             log.error('Received generic abort event concerning: ' + data.id + ' with reason: ' + data.reason);
             setConfirmedDifficulty(null);
-            props.setPageContent(props.colonyLayout());
+            props.goBackToColony();
             setAbortInformation(data);
             setLocalSequencePhase(LocalSequencePhase.RESULT_SCREEN_ABORT);
         });
 
         const gameWonSubId = subscribe(MINIGAME_WON_EVENT, (data) => {
-            props.setPageContent(props.colonyLayout());
+            props.goBackToColony();
             setVictoryInformation(data);
             setLocalSequencePhase(LocalSequencePhase.RESULT_SCREEN_VICTORY);
         });
 
         const gameLostSubId = subscribe(MINIGAME_LOST_EVENT, (data) => {
-            props.setPageContent(props.colonyLayout());
+            props.goBackToColony();
             setDefeatInformation(data);
             setLocalSequencePhase(LocalSequencePhase.RESULT_SCREEN_DEFEAT);
         });

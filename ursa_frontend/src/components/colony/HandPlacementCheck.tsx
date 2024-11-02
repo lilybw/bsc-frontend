@@ -78,7 +78,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
             setBuffer(''); //Clear buffer
             setSequenceIndex((prev) => {
                 currentSequenceIndex = prev + 1;
-                log.trace('sequence index' + currentSequenceIndex);
+                log.subtrace('sequence index' + currentSequenceIndex);
                 return currentSequenceIndex;
             }); //Advance sequence
             setManualEnterAnimTrigger((prev) => prev + 1); //Trigger enter animation

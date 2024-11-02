@@ -75,7 +75,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
          * Renders the main colony layout.
          * @returns The colony layout as a StrictJSX element.
          */
-        const colonyLayout = () =>
+        const colonyLayout = 
             (
                 <Unwrap data={[bundleSwapColonyInfo, bundeSwapPlayerInfo]} fallback={onColonyInfoLoadError}>
                     {(colonyInfo, playerInfo) => (
@@ -113,7 +113,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 </Unwrap>
             ) as StrictJSX;
 
-        const [pageContent, setPageContent] = createSignal<StrictJSX>(colonyLayout());
+        const [pageContent, setPageContent] = createSignal<StrictJSX>(colonyLayout);
 
         const clientTracker = new ClientTracker(props.context.events, props.context.logger);
         const mockServer = new MockServer(props.context, props.context.logger);
@@ -197,7 +197,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                     clientTracker={clientTracker}
                     context={props.context}
                     setPageContent={setPageContent}
-                    colonyLayout={colonyLayout}
+                    goBackToColony={() => setPageContent(colonyLayout)}
                     bundleSwapData={bundleSwapColonyInfo.res!}
                     register={bufferSubscribers.add}
                     buffer={inputBuffer.get}
