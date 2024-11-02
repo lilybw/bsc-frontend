@@ -12,6 +12,7 @@ import { BufferSubscriber, ActionContext } from "@/ts/actionContext";
 import { createArrayStore } from "@/ts/arrayStore";
 import { IBackendBased, IInternationalized, IStyleOverwritable } from "@/ts/types";
 import { createWrappedSignal } from "@/ts/wrappedSignal";
+import { Styles } from "@/sharedCSS";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -26,102 +27,102 @@ interface EntityRef {
     element: HTMLElement;
 }
 
-const MOCK_LOCATIONS = [
-    // Center region
-    {
-        id: 1,
-        name: 'HOME',
-        transform: {
-            xOffset: 960,  // Center
-            yOffset: 540,  // Center
-            xScale: 1,
-            yScale: 1,
-            zIndex: 1
-        }
-    },
-    // Upper region, slightly off-center
-    {
-        id: 2,
-        name: 'SHOP',
-        transform: {
-            xOffset: 1280,  // Moved right from previous
-            yOffset: 200,   // Higher up
-            xScale: 1,
-            yScale: 1,
-            zIndex: 1
-        }
-    },
-    // Lower left region
-    {
-        id: 3,
-        name: 'PARK',
-        transform: {
-            xOffset: 400,   // Further left
-            yOffset: 920,   // Lower down
-            xScale: 1,
-            yScale: 1,
-            zIndex: 1
-        }
-    },
-    // Right region
-    {
-        id: 4,
-        name: 'LIBRARY',
-        transform: {
-            xOffset: 1600,  // Further right
-            yOffset: 680,   // Middle-low
-            xScale: 1,
-            yScale: 1,
-            zIndex: 1
-        }
-    },
-    // Upper left region
-    {
-        id: 5,
-        name: 'GARDEN',
-        transform: {
-            xOffset: 320,   // Left side
-            yOffset: 320,   // Upper area
-            xScale: 1,
-            yScale: 1,
-            zIndex: 1
-        }
-    },
-    // Lower right region
-    {
-        id: 6,
-        name: 'CAFE',
-        transform: {
-            xOffset: 1200,  // Right of center
-            yOffset: 880,   // Lower area
-            xScale: 1,
-            yScale: 1,
-            zIndex: 1
-        }
-    }
-];
-
-// Create a more strategic path layout where not everything is connected
-const MOCK_PATHS = [
-    // Paths from HOME (central hub)
-    { from: 1, to: 2 },  // HOME to SHOP
-    { from: 1, to: 5 },  // HOME to GARDEN
-    { from: 1, to: 6 },  // HOME to CAFE
-
-    // Upper circuit
-    { from: 2, to: 4 },  // SHOP to LIBRARY
-    { from: 2, to: 5 },  // SHOP to GARDEN
-
-    // Lower circuit
-    { from: 3, to: 6 },  // PARK to CAFE
-    { from: 6, to: 4 },  // CAFE to LIBRARY
-
-    // Cross connections
-    { from: 5, to: 3 },  // GARDEN to PARK
-    { from: 4, to: 1 },  // LIBRARY back to HOME
-];
-
 const NavigationTrial: Component<NavigationTrialProps> = (props) => {
+    const MOCK_LOCATIONS = [
+        // Center region
+        {
+            id: 1,
+            name: props.context.text.get('LOCATION.HOME.NAME').get,
+            transform: {
+                xOffset: 960,  // Center
+                yOffset: 540,  // Center
+                xScale: 1,
+                yScale: 1,
+                zIndex: 1
+            }
+        },
+        // Upper region, slightly off-center
+        {
+            id: 2,
+            name: props.context.text.get('LOCATION.TOWN_HALL.NAME').get,
+            transform: {
+                xOffset: 1280,  // Moved right from previous
+                yOffset: 200,   // Higher up
+                xScale: 1,
+                yScale: 1,
+                zIndex: 1
+            }
+        },
+        // Lower left region
+        {
+            id: 3,
+            name: props.context.text.get('LOCATION.SHIELD_GENERATOR.NAME').get,
+            transform: {
+                xOffset: 400,   // Further left
+                yOffset: 920,   // Lower down
+                xScale: 1,
+                yScale: 1,
+                zIndex: 1
+            }
+        },
+        // Right region
+        {
+            id: 4,
+            name: props.context.text.get('LOCATION.AQUIFER_PLANT.NAME').get,
+            transform: {
+                xOffset: 1600,  // Further right
+                yOffset: 680,   // Middle-low
+                xScale: 1,
+                yScale: 1,
+                zIndex: 1
+            }
+        },
+        // Upper left region
+        {
+            id: 5,
+            name: props.context.text.get('LOCATION.AGRICULTURE_CENTER.NAME').get,
+            transform: {
+                xOffset: 320,   // Left side
+                yOffset: 320,   // Upper area
+                xScale: 1,
+                yScale: 1,
+                zIndex: 1
+            }
+        },
+        // Lower right region
+        {
+            id: 6,
+            name: props.context.text.get('LOCATION.VEHICLE_STORAGE.NAME').get,
+            transform: {
+                xOffset: 1200,  // Right of center
+                yOffset: 880,   // Lower area
+                xScale: 1,
+                yScale: 1,
+                zIndex: 1
+            }
+        }
+    ];
+
+    // Create a more strategic path layout where not everything is connected
+    const MOCK_PATHS = [
+        // Paths from HOME (central hub)
+        { from: 1, to: 2 },  // HOME to SHOP
+        { from: 1, to: 5 },  // HOME to GARDEN
+        { from: 1, to: 6 },  // HOME to CAFE
+
+        // Upper circuit
+        { from: 2, to: 4 },  // SHOP to LIBRARY
+        { from: 2, to: 5 },  // SHOP to GARDEN
+
+        // Lower circuit
+        { from: 3, to: 6 },  // PARK to CAFE
+        { from: 6, to: 4 },  // CAFE to LIBRARY
+
+        // Cross connections
+        { from: 5, to: 3 },  // GARDEN to PARK
+        { from: 4, to: 1 },  // LIBRARY back to HOME
+    ];
+
     const [visitedLocations, setVisitedLocations] = createSignal<Set<number>>(new Set([1])); // Start with HOME as visited
     const pathStore = createArrayStore(MOCK_PATHS);
     const worldOffset = createWrappedSignal({ x: 0, y: 0 });
@@ -281,6 +282,8 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
             y: newHeight / EXPECTED_HEIGHT,
         });
         setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)));
+
+        moveToLocation(currentLocationOfLocalPlayer(), currentLocationOfLocalPlayer());
     };
 
     const handleMove = (locationId: number) => {
@@ -354,7 +357,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
 
     bufferSubscribers.add((inputBuffer: string) => {
         const targetLocation = locationStore.findFirst(loc =>
-            loc.name.toLowerCase() === inputBuffer.toLowerCase()
+            loc.name() === inputBuffer
         );
 
         if (targetLocation) {
@@ -477,7 +480,7 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                                     name={location.name}
                                     buffer={buffer}
                                     register={bufferSubscribers.add}
-                                    charBaseStyleOverwrite={namePlateTextStyle}
+                                    charBaseStyleOverwrite={namePlateTextOverwrite}
                                 />
                                 <div
                                     class={getLocationStyle(location)}
@@ -537,6 +540,10 @@ const subtitleStyleOverwrite = css`
     z-index: 100;
 `;
 
+const namePlateStyle = css`
+    ${Styles.GLASS.FAINT_BACKGROUND}
+`;
+
 const locationContainerStyle = css`
     position: absolute;
     left: 0;
@@ -576,5 +583,10 @@ const pathGraphContainerStyle = css`
     height: 100vh;
     overflow: visible;
 `;
+
+const namePlateTextOverwrite = css`
+    text-shadow: 5px 5px 10px black;
+`;
+
 
 export default NavigationTrial;
