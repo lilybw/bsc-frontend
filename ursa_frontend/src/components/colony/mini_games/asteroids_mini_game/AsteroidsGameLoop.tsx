@@ -17,12 +17,12 @@ import {
     AsteroidsAsteroidImpactOnColonyMessageDTO,
 } from '../../../../integrations/multiplayer_backend/EventSpecifications';
 import { CharCodeGenerator, SYMBOL_SET } from './charCodeGenerator';
-import { uint32, PlayerID } from '../../../../integrations/main_backend/mainBackendDTOs';
+import { uint32 } from '../../../../integrations/main_backend/mainBackendDTOs';
 import { GenericGameLoopStartFunction, KnownMinigames, loadComputedSettings, SingleplayerGameLoopInitFunc } from '../miniGame';
 import { ApplicationContext, ResErr } from '../../../../meta/types';
 import { MOCK_SERVER_ID } from '../../../../ts/mockServer';
 import { Logger } from '../../../../logging/filteredLogger';
-import { AsteroidsSettingsDTO } from '../asteroids_mini_game/types/GameTypes';
+import { AsteroidsSettingsDTO } from '../asteroids_mini_game/types/gameTypes';
 
 class AsteroidsGameLoop {
     public static readonly LOOP_FREQUENCY_MS = 1000 / 10; //10 updates per second

@@ -1,5 +1,5 @@
-import { EntityRef } from '../../../types/GameTypes';
-import { getEntityRefKey, getTargetCenterPosition } from '../../../utils/GameUtils';
+import { EntityRef } from '../../../types/gameTypes';
+import { getEntityRefKey, getTargetCenterPosition } from '../../../utils/gameUtils';
 import BaseParticle from '../BaseParticle';
 import StunParticle from './StunParticle';
 

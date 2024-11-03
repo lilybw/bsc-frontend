@@ -1,5 +1,4 @@
 import { uint32 } from '../../../../../integrations/main_backend/mainBackendDTOs';
-import { Position } from '../entities/BaseEntity';
 
 /**
  * Settings DTO for the Asteroids minigame

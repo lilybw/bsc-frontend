@@ -1,6 +1,6 @@
 import { Position } from '../entities/BaseEntity';
 import { Player } from '../entities/Player';
-import { EntityRef } from '../types/EntityTypes';
+import { EntityRef } from '../types/entityTypes';
 
 // Constants for game calculations
 const ASTEROID_SIZE_VW = 18;
@@ -229,19 +229,4 @@ export const getAsteroidRefKey = (asteroidId: number) => `asteroid_${asteroidId}
 export const getEntityRefKey = {
     player: (id: number) => `player_${id}`,
     asteroid: (id: number) => `asteroid_${id}`,
-};
-
-export default {
-    handleAsteroidDestruction,
-    generateImpactPosition,
-    calculateMinSpawnDistance,
-    generateSpawnPosition,
-    calculatePlayerPositions,
-    getRandomRotationSpeed,
-    getAnimatedPosition,
-    getTargetCenterPosition,
-    getPixelPosition,
-    getPlayerRefKey,
-    getAsteroidRefKey,
-    getEntityRefKey,
 };

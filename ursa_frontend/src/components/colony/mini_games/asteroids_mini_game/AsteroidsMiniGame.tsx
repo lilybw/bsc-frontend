@@ -20,8 +20,8 @@ import { Position } from "./entities/BaseEntity";
 import LazerBeam from "./entities/LazerBeam";
 import Player from "./entities/Player";
 import { wallStyle, statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle } from "./styles/gameStyles";
-import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, generateSpawnPosition, generateImpactPosition, calculatePlayerPositions, getRandomRotationSpeed } from "../asteroids_mini_game/utils/GameUtils"
-import { AsteroidsSettingsDTO, EntityRef } from "../asteroids_mini_game/types/GameTypes"
+import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, generateSpawnPosition, generateImpactPosition, calculatePlayerPositions, getRandomRotationSpeed } from "./utils/gameUtils"
+import { AsteroidsSettingsDTO, EntityRef } from "../asteroids_mini_game/types/gameTypes"
 import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
 
 type PlayerState = {

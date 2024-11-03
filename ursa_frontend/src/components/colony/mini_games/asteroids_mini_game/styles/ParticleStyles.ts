@@ -111,4 +111,4 @@ export const PARTICLE_Z_INDICES = {
     CONTAINER: 10,
     PARTICLE_BASE: 100,
     PARTICLE_EFFECT: 101,
-} as const;
+};
