@@ -66,7 +66,7 @@ const slides: SlideEntry[] = [
 
 const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(
     function (props: ApplicationProps) {
-        const [currentSlide, setCurrentSlide] = createSignal(5);
+        const [currentSlide, setCurrentSlide] = createSignal(6);
         const [previousSlide, setPreviousSlide] = createSignal(0);
         const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<LanguagePreference | undefined>(props.context.text.language());
         const [slideStore, setSlides] = createStore<SlideEntry[]>(slides);
