@@ -8,8 +8,6 @@ import LanguageSelectInlay from '../src/components/base/LanguageSelectInlay';
 import { ApplicationContext, BundleComponent, Bundle } from '@/meta/types';
 import { Styles } from '@/sharedCSS';
 import { ApplicationProps } from '@/ts/types';
-import VictoryScreen from '@colony/VictoryScreen';
-import DefeatScreen from '@colony/DefeatScreen';
 
 export enum MenuPages {
     LANDING_PAGE = 'landing',

@@ -1,4 +1,4 @@
-import { createSignal, onMount, onCleanup, JSX, createMemo } from 'solid-js';
+import { createSignal, onMount, onCleanup, JSX, createMemo, createEffect } from 'solid-js';
 import { css } from '@emotion/css';
 import MinigameSequenceOverlay from './MinigameSequenceOverlay';
 import { DifficultyConfirmedForMinigameMessageDTO, LOBBY_CLOSING_EVENT, SERVER_CLOSING_EVENT } from '@/integrations/multiplayer_backend/EventSpecifications';
@@ -138,6 +138,15 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             clientTracker.addClients(...lobbyState.clients);
         };
 
+        createEffect(() => {
+            const colonyState = props.context.multiplayer.getState();
+            if (colonyState === ColonyState.CLOSED) {
+                mockServer.start();
+            }else{
+                mockServer.shutdown();
+            }
+        })
+
         onMount(async () => {
             // If there is a colonyCode present, that means that we're currently trying to go and join someone else's colony
             if (bundleSwapColonyInfo.res?.colonyCode) {
@@ -147,14 +156,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 }
             }
 
-            // Determine colony state
-            const state = props.context.multiplayer.getState();
-
             clientTracker.mount();
-            if (state === ColonyState.CLOSED) {
-                mockServer.start();
-            }
-
             const subscribe = props.context.events.subscribe;
             const serverClosingSubId = subscribe(SERVER_CLOSING_EVENT, (ev) => {
                 if (props.context.multiplayer.getMode() === MultiplayerMode.AS_OWNER) return;

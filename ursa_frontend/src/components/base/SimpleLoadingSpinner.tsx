@@ -13,7 +13,7 @@ const Spinner: Component<SpinnerProps> = (props) => {
     return (
         <div
             class={css`
-                ${spinnerStyle} ${props.styleOverwrite}
+                ${spinnerStyle} ${props.styleOverwrite} aspect-ratio: 1/1;
             `}
         />
     );

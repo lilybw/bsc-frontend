@@ -13,14 +13,16 @@ import {
 import { ClientDTO } from '../../../integrations/multiplayer_backend/multiplayerDTO';
 import { Logger } from '../../../logging/filteredLogger';
 import { ArrayStore, createArrayStore } from '../../../ts/arrayStore';
-import MinigameWaitingScreen from '../MinigameWaitingScreen';
+import MinigameWaitingScreen, { MinigameWaitingScreenProps } from '../MinigameWaitingScreen';
 import { StrictJSX } from '@colony/ColonyApp';
+import { BackendIntegration } from '@/integrations/main_backend/mainBackend';
 
 export enum PlayerParticipation {
     OPT_IN = 'OPT_IN',
     OPT_OUT = 'OPT_OUT',
     UNDECIDED = 'UNDECIDED',
 }
+
 export type PlayerMinigameParticipationResponse = {
     id: uint32;
     ign: string;
@@ -118,12 +120,8 @@ class ClientTracker {
         return this.clients as unknown as ArrayStore<ClientDTO>;
     };
 
-    public getComponent = (): StrictJSX => {
-        return (
-            <MinigameWaitingScreen 
-                clients={this.clients}    
-            /> as StrictJSX
-        );
+    public getComponent = (props: MinigameWaitingScreenProps): StrictJSX => {
+        return MinigameWaitingScreen(this.clients, props);
     };
 }
 export default ClientTracker;

@@ -143,7 +143,7 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
     const appendSequenceOverlay: Accessor<StrictJSX> = createMemo(() => {
         switch (localSequencePhase()) {
             case LocalSequencePhase.WAITING_SCREEN:
-                return props.clientTracker.getComponent();
+                return props.clientTracker.getComponent({backend: props.context.backend, text: props.context.text});
             case LocalSequencePhase.HAND_PLACEMENT_CHECK: return (
                 <HandPlacementCheck
                     nameOfOwner={props.clientTracker.getByID(props.bundleSwapData.owner)?.IGN || props.context.backend.player.local.firstName}

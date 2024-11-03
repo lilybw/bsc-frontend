@@ -3,7 +3,10 @@ import { ResCodeErr } from '../../meta/types';
 import { BackendIntegration, BaseBackendIntegration, URSA_HEADER_ASSET_ID, URSA_HEADER_DETAIL_LEVEL } from './mainBackend';
 import { AssetID, uint32 } from './mainBackendDTOs';
 
-export type ObjectURL = string & { release: () => void };
+export type ObjectURL = string & { 
+    /** release the url back to the cache */
+    release: () => void 
+};
 
 /**
  * Cache for object URLs. Counts how many times an object URL is taken and manages destruction internally.
