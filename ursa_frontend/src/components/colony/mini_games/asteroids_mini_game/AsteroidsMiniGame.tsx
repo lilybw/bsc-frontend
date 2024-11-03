@@ -20,8 +20,8 @@ import { Position } from "./entities/BaseEntity";
 import LazerBeam from "./entities/LazerBeam";
 import Player from "./entities/Player";
 import { wallStyle, statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle } from "./styles/gameStyles";
-import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes";
-import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, generateSpawnPosition, generateImpactPosition, calculatePlayerPositions, getRandomRotationSpeed } from "./utils/gameUtils";
+import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, generateSpawnPosition, generateImpactPosition, calculatePlayerPositions, getRandomRotationSpeed } from "../asteroids_mini_game/utils/GameUtils"
+import { AsteroidsSettingsDTO, EntityRef } from "../asteroids_mini_game/types/GameTypes"
 import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
 
 type PlayerState = {
@@ -440,9 +440,9 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                             }}
                         >
                             <NTAwait func={() => props.context.backend.assets.getMetadata(7002)}>
-                                {(asset) => 
-                                    <GraphicalAsset 
-                                        metadata={asset} 
+                                {(asset) =>
+                                    <GraphicalAsset
+                                        metadata={asset}
                                         backend={props.context.backend}
                                         styleOverwrite={css`
                                             position: absolute; 
@@ -450,7 +450,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                                             left: 0; 
                                             width: 100%; 
                                             height: 100%;
-                                        `} 
+                                        `}
                                     />
                                 }
                             </NTAwait>

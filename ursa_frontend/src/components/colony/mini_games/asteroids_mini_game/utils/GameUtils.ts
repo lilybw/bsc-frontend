@@ -1,6 +1,6 @@
 import { Position } from '../entities/BaseEntity';
 import { Player } from '../entities/Player';
-import { EntityRef } from '../types/entityTypes';
+import { EntityRef } from '../types/EntityTypes';
 
 // Constants for game calculations
 const ASTEROID_SIZE_VW = 18;
