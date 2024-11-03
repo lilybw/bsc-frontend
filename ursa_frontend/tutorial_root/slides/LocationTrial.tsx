@@ -47,8 +47,8 @@ const LocationTrial: Component<LocationTrialProps> = (props) => {
             id: 2,
             name: props.text.get('LOCATION.OUTER_WALLS.NAME').get,
             transform: {
-                xOffset: 1280,  // Right of center
-                yOffset: 200,   // Higher up
+                xOffset: 1500,  // Right of center
+                yOffset: 540,   // Center
                 xScale: 1,
                 yScale: 1,
                 zIndex: 1
@@ -220,37 +220,38 @@ const LocationTrial: Component<LocationTrialProps> = (props) => {
                 newSet.add(2);
                 return newSet;
             });
-            // Set buffer to empty before setting the ENTER command
-            setBuffer('');
-            setTimeout(() => {
-                setBuffer(props.text.get('LOCATION.USER_ACTION.ENTER').get());
-            }, 100);
+            setBuffer(''); // Just clear the buffer, don't auto-fill ENTER
         } else if (phase() === 'entry' && currentLocationOfLocalPlayer() === 2) {
             setShowLocationCard(true);
+
+            props.onSlideCompleted();
         }
     };
 
     const closeLocationCard = () => {
         setShowLocationCard(false);
-        props.onSlideCompleted();
     };
 
     bufferSubscribers.add((inputBuffer: string) => {
+        // Get the command texts once to avoid multiple calls
+        const enterCommand = props.text.get('LOCATION.USER_ACTION.ENTER').get();
+        const outerWallsName = props.text.get('LOCATION.OUTER_WALLS.NAME').get();
+
         if (phase() === 'navigation') {
-            // Only allow moving to Outer Walls, and only if typed exactly
-            const outerWallsName = props.text.get('LOCATION.OUTER_WALLS.NAME').get();
-            if (inputBuffer === outerWallsName && currentLocationOfLocalPlayer() === 1) {
+            // We're at home, only allow moving to Outer Walls by exact name
+            if (currentLocationOfLocalPlayer() === 1 && inputBuffer === outerWallsName) {
                 handleMove();
                 return { consumed: true };
             }
         } else if (phase() === 'entry') {
-            // Only allow ENTER command when at Outer Walls
-            const enterCommand = props.text.get('LOCATION.USER_ACTION.ENTER').get();
-            if (inputBuffer === enterCommand && currentLocationOfLocalPlayer() === 2) {
+            // We're at Outer Walls, only allow ENTER command
+            if (currentLocationOfLocalPlayer() === 2 && inputBuffer === enterCommand) {
                 handleMove();
                 return { consumed: true };
             }
         }
+
+        // Don't consume the input if it doesn't match exactly what we want
         return { consumed: false };
     });
 
@@ -391,6 +392,21 @@ const LocationTrial: Component<LocationTrialProps> = (props) => {
                                 buffer={buffer}
                                 register={bufferSubscribers.add}
                                 charBaseStyleOverwrite={namePlateTextOverwrite}
+                                enable={() => {
+                                    if (location.id === 1) {
+                                        // Home button is always disabled
+                                        return false;
+                                    }
+                                    if (phase() === 'navigation') {
+                                        // Only enable Outer Walls during navigation
+                                        return true;
+                                    }
+                                    if (phase() === 'entry' && location.id === 2) {
+                                        // Only enable Outer Walls during entry
+                                        return true;
+                                    }
+                                    return false;
+                                }}
                             />
                             <div class={getLocationStyle(location)}>
                                 <NTAwait func={() => props.backend.assets.getMetadata(1009)}>

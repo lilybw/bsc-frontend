@@ -14,14 +14,14 @@ import { Component, createSignal, createMemo, onMount, onCleanup, For } from "so
 import { JSX } from "solid-js/jsx-runtime";
 import ActionInput from "../../MainActionInput";
 import { MinigameComponentInitFunc, loadComputedSettings, KnownMinigames } from "../miniGame";
-import PlayerStunEffect from "./components/playerStunEffect";
+import PlayerStunEffect from "./components/PlayerStunEffect";
 import Asteroid from "./entities/Asteroid";
 import { Position } from "./entities/BaseEntity";
 import LazerBeam from "./entities/LazerBeam";
 import Player from "./entities/Player";
 import { wallStyle, statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle } from "./styles/gameStyles";
 import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, generateSpawnPosition, generateImpactPosition, calculatePlayerPositions, getRandomRotationSpeed } from "./utils/gameUtils"
-import { AsteroidsSettingsDTO, EntityRef } from "../asteroids_mini_game/types/gameTypes"
+import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes"
 import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
 
 type PlayerState = {

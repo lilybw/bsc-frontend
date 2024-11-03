@@ -22,7 +22,7 @@ import { GenericGameLoopStartFunction, KnownMinigames, loadComputedSettings, Sin
 import { ApplicationContext, ResErr } from '../../../../meta/types';
 import { MOCK_SERVER_ID } from '../../../../ts/mockServer';
 import { Logger } from '../../../../logging/filteredLogger';
-import { AsteroidsSettingsDTO } from '../asteroids_mini_game/types/gameTypes';
+import { AsteroidsSettingsDTO } from './types/gameTypes';
 
 class AsteroidsGameLoop {
     public static readonly LOOP_FREQUENCY_MS = 1000 / 10; //10 updates per second
