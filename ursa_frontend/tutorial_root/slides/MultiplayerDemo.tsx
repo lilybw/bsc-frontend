@@ -28,8 +28,7 @@ enum DemoStep {
     MOVE_TO_SPACEPORT,
     ENTER_SPACE_PORT,
     OPEN_COLONY,
-    ENTER_CODE,
-    JOIN_COLONY,
+    CLOSE_COLONY,
     COMPLETED
 }
 
@@ -126,63 +125,116 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
         minigameID: 0
     };
 
-    const typeText = (text: string, delay = 0) => {
-        return new Promise<void>((resolve) => {
-            setInputBuffer('');
-            for (let i = 0; i < text.length; i++) {
-                setTimeout(
-                    () => {
-                        setInputBuffer(prev => prev + text[i]);
-                    },
-                    delay + i * timeBetweenKeyStrokesMS
-                );
-            }
-            setTimeout(resolve, delay + text.length * timeBetweenKeyStrokesMS + baseDelayBeforeDemoStart);
+    bufferSubscribers.add((inputBuffer: string) => {
+        const phase = currentStep();
+
+        switch (phase) {
+            case DemoStep.MOVE_TO_SPACEPORT:
+                if (inputBuffer === props.text.get('LOCATION.SPACE_PORT.NAME').get()) {
+                    handleSpacePortReached();
+                    return { consumed: true };
+                }
+                break;
+            case DemoStep.OPEN_COLONY:
+                if (inputBuffer === props.text.get('LOCATION.SPACE_PORT.OPEN_COLONY').get()) {
+                    return { consumed: true };
+                }
+                break;
+            case DemoStep.CLOSE_COLONY:
+                if (inputBuffer === props.text.get('LOCATION.SPACE_PORT.CLOSE_COLONY').get()) {
+                    return { consumed: true };
+                }
+                break;
+        }
+        return { consumed: false };
+    });
+
+    const typeText = (text: string, targetPhase: DemoStep) => {
+        if (currentStep() !== targetPhase) return 0;
+
+        // Clear immediately
+        setInputBuffer('');
+
+        // Use a promise to ensure sequential typing
+        return new Promise<number>((resolve) => {
+            let currentIndex = 0;
+            const intervalId = setInterval(() => {
+                if (currentStep() !== targetPhase) {
+                    clearInterval(intervalId);
+                    resolve(0);
+                    return;
+                }
+
+                if (currentIndex < text.length) {
+                    setInputBuffer(text.substring(0, currentIndex + 1));
+                    currentIndex++;
+                } else {
+                    clearInterval(intervalId);
+                    resolve(text.length * timeBetweenKeyStrokesMS + baseDelayBeforeDemoStart);
+                }
+            }, timeBetweenKeyStrokesMS);
         });
     };
 
-    const triggerEnterAfterDelay = (delay: number) => {
-        return new Promise<void>((resolve) => {
-            setTimeout(() => {
-                setTriggerEnter(prev => prev + 1);
-                resolve();
-            }, delay);
-        });
-    };
-
-    const handleSpacePortReached = async () => {
-        // Phase 1: Move to space port
+    const moveToSpacePort = async () => {
+        if (currentStep() !== DemoStep.MOVE_TO_SPACEPORT) return;
         setMovePlayerToLocation(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setShowLocationCard(true);
-        setCurrentStep(DemoStep.ENTER_SPACE_PORT);
-        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Phase 2: Open Colony - Single insert and wait for action
+        setTimeout(() => {
+            if (currentStep() === DemoStep.MOVE_TO_SPACEPORT) {
+                setShowLocationCard(true);
+                setCurrentStep(DemoStep.ENTER_SPACE_PORT);
+                startOpenColonyPhase();
+            }
+        }, 2000);
+    };
+
+    const startOpenColonyPhase = async () => {
+        if (currentStep() !== DemoStep.ENTER_SPACE_PORT) return;
         setCurrentStep(DemoStep.OPEN_COLONY);
+
         const openColonyText = props.text.get('LOCATION.SPACE_PORT.OPEN_COLONY').get();
-        await typeText(openColonyText);
-        await triggerEnterAfterDelay(100);
+        const typingTime = await typeText(openColonyText, DemoStep.OPEN_COLONY);
 
-        // Update multiplayer state to show code after open colony action
-        setMockMultiplayerState({
-            ...mockMultiplayer,
-            getCode: () => 123456
-        });
+        setTimeout(() => {
+            if (currentStep() === DemoStep.OPEN_COLONY) {
+                setTriggerEnter(prev => prev + 1);
+                setMockMultiplayerState({
+                    ...mockMultiplayer,
+                    getCode: () => 123456
+                });
+                setTimeout(() => startCloseColonyPhase(), 2000);
+            }
+        }, typingTime);
+    };
 
-        // Wait for colony to open and code to appear
-        await new Promise(resolve => setTimeout(resolve, calculateActionTime(openColonyText)));
+    const startCloseColonyPhase = async () => {
+        if (currentStep() !== DemoStep.OPEN_COLONY) return;
+        setCurrentStep(DemoStep.CLOSE_COLONY);
 
-        // Phase 3: Join Colony
-        setCurrentStep(DemoStep.JOIN_COLONY);
-        const joinColonyText = props.text.get('LOCATION.SPACE_PORT.JOIN_COLONY').get();
-        await typeText(joinColonyText);
-        await triggerEnterAfterDelay(500);
-        await new Promise(resolve => setTimeout(resolve, calculateActionTime(joinColonyText)));
+        const closeColonyText = props.text.get('LOCATION.SPACE_PORT.CLOSE_COLONY').get();
+        const typingTime = await typeText(closeColonyText, DemoStep.CLOSE_COLONY);
 
-        // Complete
+        setTimeout(() => {
+            if (currentStep() === DemoStep.CLOSE_COLONY) {
+                setTriggerEnter(prev => prev + 1);
+                setMockMultiplayerState({
+                    ...mockMultiplayer,
+                    getCode: () => null
+                });
+                setTimeout(() => completeDemonstration(), 2000);
+            }
+        }, typingTime);
+    };
+
+    const completeDemonstration = () => {
         setCurrentStep(DemoStep.COMPLETED);
         props.onSlideCompleted();
+    };
+
+    // Simpler main handler that starts the sequence
+    const handleSpacePortReached = () => {
+        moveToSpacePort();
     };
 
     const calculateActionTime = (text: string) => {
@@ -191,14 +243,15 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
 
     // Start demo sequence
     onMount(async () => {
-        setCurrentStep(DemoStep.MOVE_TO_SPACEPORT);
         const spacePortName = props.text.get('LOCATION.SPACE_PORT.NAME').get();
-        await typeText(spacePortName);
-        await triggerEnterAfterDelay(500);
-        await new Promise(resolve =>
-            setTimeout(resolve, calculateActionTime(spacePortName))
-        );
-        handleSpacePortReached();
+        const typingTime = await typeText(spacePortName, DemoStep.MOVE_TO_SPACEPORT);
+
+        setTimeout(() => {
+            if (currentStep() === DemoStep.MOVE_TO_SPACEPORT) {
+                setTriggerEnter(prev => prev + 1);
+                moveToSpacePort();
+            }
+        }, typingTime);
     });
 
     const computedPlayerStyle = createMemo(() => css`
