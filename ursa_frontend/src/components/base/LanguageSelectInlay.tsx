@@ -1,12 +1,12 @@
 import { Component, createMemo, createSignal, For, Show } from 'solid-js';
-import { IBackendBased, IInternationalized } from '../../src/ts/types';
+import { IBackendBased, IInternationalized } from '../../ts/types';
 import { css } from '@emotion/css';
-import NTAwait from '../../src/components/util/NoThrowAwait';
-import BigMenuButton from '../../src/components/base/BigMenuButton';
-import { Styles } from '../../src/sharedCSS';
-import { assureUniformLanguageCode } from '../../src/integrations/vitec/vitecIntegration';
-import { PreferenceKeys } from '../../src/integrations/main_backend/mainBackendDTOs';
-import GraphicalAsset from '../../src/components/base/GraphicalAsset';
+import NTAwait from '../util/NoThrowAwait';
+import BigMenuButton from './BigMenuButton';
+import { Styles } from '../../sharedCSS';
+import { assureUniformLanguageCode } from '../../integrations/vitec/vitecIntegration';
+import { PreferenceKeys } from '../../integrations/main_backend/mainBackendDTOs';
+import GraphicalAsset from './GraphicalAsset';
 
 interface LanguageSelectProps extends IInternationalized, IBackendBased {}
 
@@ -44,7 +44,7 @@ const LanguageSelectInlay: Component<LanguageSelectProps> = (props: LanguageSele
                 {(languages) => (
                     <For each={languages.languages}>
                         {(lang) =>
-                            lang.coverage > 99 && (
+                            lang.coverage > 0.9 && (
                                 <BigMenuButton styleOverwrite={computedSubButtonStyle()} onClick={() => onLangSelect(lang.code)}>
                                     <NTAwait func={() => props.backend.assets.getMetadata(lang.icon)}>
                                         {(asset) => <GraphicalAsset styleOverwrite={imageStyleOverwrite} metadata={asset} backend={props.backend} />}

@@ -48,7 +48,7 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
                 <div class={languageListStyle}>
                     <For each={availableLanguages.latest!.res?.languages}>
                         {(language) => (
-                            <BigMenuButton onClick={() => onLanguageSelected(language.code)} enable={createMemo(() => language.coverage > 80)}>
+                            <BigMenuButton onClick={() => onLanguageSelected(language.code)} enable={createMemo(() => language.coverage > 0.9)}>
                                 <SectionSubTitle>{language.commonName}</SectionSubTitle>
                                 <NTAwait func={() => props.backend.assets.getMetadata(language.icon)}>
                                     {(metadata) => <GraphicalAsset styleOverwrite={imageOverwrite} metadata={metadata} backend={props.backend} />}
