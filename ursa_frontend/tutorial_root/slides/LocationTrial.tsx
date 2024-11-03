@@ -15,6 +15,8 @@ import { createWrappedSignal } from "@/ts/wrappedSignal";
 import { MultiplayerMode, ColonyState } from "@/meta/types";
 import { KnownLocations } from "@/integrations/main_backend/constants";
 import { ColonyLocationInformation, LocationInfoResponseDTO } from "@/integrations/main_backend/mainBackendDTOs";
+import { IMultiplayerIntegration } from "@/integrations/multiplayer_backend/multiplayerBackend";
+import { IEventMultiplexer } from "@/integrations/multiplayer_backend/eventMultiplexer";
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -93,14 +95,14 @@ const LocationTrial: Component<LocationTrialProps> = (props) => {
     });
 
     // Updated mock events to match navigation trial
-    const mockEvents = {
+    const mockEvents: IEventMultiplexer = {
         emit: () => Promise.resolve(0),
         subscribe: () => 0,
         unsubscribe: (..._ids: number[]) => true
     };
 
-    const mockMultiplayer = {
-        connect: () => Promise.resolve("mock-connection"),
+    const mockMultiplayer: IMultiplayerIntegration = {
+        connect: () => Promise.resolve(undefined),
         disconnect: () => Promise.resolve(),
         getMode: () => MultiplayerMode.AS_OWNER,
         getState: () => ColonyState.CLOSED,
@@ -218,7 +220,11 @@ const LocationTrial: Component<LocationTrialProps> = (props) => {
                 newSet.add(2);
                 return newSet;
             });
-            setBuffer(props.text.get('LOCATION.USER_ACTION.ENTER').get());
+            // Set buffer to empty before setting the ENTER command
+            setBuffer('');
+            setTimeout(() => {
+                setBuffer(props.text.get('LOCATION.USER_ACTION.ENTER').get());
+            }, 100);
         } else if (phase() === 'entry' && currentLocationOfLocalPlayer() === 2) {
             setShowLocationCard(true);
         }
@@ -231,17 +237,19 @@ const LocationTrial: Component<LocationTrialProps> = (props) => {
 
     bufferSubscribers.add((inputBuffer: string) => {
         if (phase() === 'navigation') {
-            const targetLocation = locationStore.findFirst(loc =>
-                loc.name() === inputBuffer && loc.id === 2
-            );
-            if (targetLocation) {
+            // Only allow moving to Outer Walls, and only if typed exactly
+            const outerWallsName = props.text.get('LOCATION.OUTER_WALLS.NAME').get();
+            if (inputBuffer === outerWallsName && currentLocationOfLocalPlayer() === 1) {
                 handleMove();
                 return { consumed: true };
             }
-        } else if (phase() === 'entry' &&
-            inputBuffer === props.text.get('LOCATION.USER_ACTION.ENTER').get()) {
-            handleMove();
-            return { consumed: true };
+        } else if (phase() === 'entry') {
+            // Only allow ENTER command when at Outer Walls
+            const enterCommand = props.text.get('LOCATION.USER_ACTION.ENTER').get();
+            if (inputBuffer === enterCommand && currentLocationOfLocalPlayer() === 2) {
+                handleMove();
+                return { consumed: true };
+            }
         }
         return { consumed: false };
     });

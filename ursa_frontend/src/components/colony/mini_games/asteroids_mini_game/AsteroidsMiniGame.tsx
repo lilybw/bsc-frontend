@@ -14,7 +14,7 @@ import { Component, createSignal, createMemo, onMount, onCleanup, For } from "so
 import { JSX } from "solid-js/jsx-runtime";
 import ActionInput from "../../MainActionInput";
 import { MinigameComponentInitFunc, loadComputedSettings, KnownMinigames } from "../miniGame";
-import PlayerStunEffect from "./components/PlayerStunEffect";
+import PlayerStunEffect from "./components/playerStunEffect";
 import Asteroid from "./entities/Asteroid";
 import { Position } from "./entities/BaseEntity";
 import LazerBeam from "./entities/LazerBeam";
