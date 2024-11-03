@@ -13,8 +13,6 @@ interface PlayerState {
  * Interface for player creation options
  */
 export interface PlayerCreationOptions extends AsteroidsAssignPlayerDataMessageDTO {
-    x: number;
-    y: number;
     element: HTMLDivElement | null;
     stunDuration: number;
     friendlyFirePenalty: number;

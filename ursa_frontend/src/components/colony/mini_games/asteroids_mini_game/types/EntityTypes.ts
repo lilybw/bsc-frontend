@@ -1,5 +1,3 @@
-import { Position } from '../entities/BaseEntity';
-
 /**
  * Entity reference for DOM elements
  */
@@ -13,8 +11,3 @@ export interface EntityRef {
  */
 export const isAsteroidRef = (ref: EntityRef): boolean => ref.type === 'asteroid';
 export const isPlayerRef = (ref: EntityRef): boolean => ref.type === 'player';
-
-export default {
-    isAsteroidRef,
-    isPlayerRef,
-};
