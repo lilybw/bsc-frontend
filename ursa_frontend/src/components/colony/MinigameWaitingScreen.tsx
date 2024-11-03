@@ -26,9 +26,34 @@ const ClientTile: Component<{ client: TrackedClient, backend: BackendIntegration
                 return 1027;
         }
     })
+
+    const computedContainerStyles = createMemo(() => {
+        switch (props.client.participation) {
+            case PlayerParticipation.OPT_IN:
+                return css`
+                    ${clientTileContainerStyle}
+                    border-color: green;
+                    background-image: linear-gradient(transparent 60%, hsla(120, 80%, 50%, .3));
+                `
+            case PlayerParticipation.OPT_OUT:
+                return css`
+                    ${clientTileContainerStyle}
+                    border-color: red;
+                    background-image: linear-gradient(transparent 60%, hsla(0, 80%, 50%, .3));
+                `
+            case PlayerParticipation.UNDECIDED:
+                return css`
+                    ${clientTileContainerStyle}
+                    border-color: orange;
+                    background-image: linear-gradient(transparent 60%, hsla(40, 80%, 50%, .3));
+                `
+            default:
+                return clientTileContainerStyle;
+        }
+    })
     
     return (
-        <div class={clientTileContainerStyle}>
+        <div class={computedContainerStyles()}>
             <div class={playerIGNStyles}>{props.client.IGN}</div>
             <NTAwait func={() => props.backend.assets.getMetadata(getParticipationStatusIconId())}>{metadata => (
                 <GraphicalAsset metadata={metadata} backend={props.backend} styleOverwrite={iconStyle} />
@@ -64,21 +89,23 @@ const clientTileContainerStyle = css`
     border-top: none;
 `
 const iconStyle = css`
-    width: 80%;
-    height: 80%;
+    width: 8vh;
+    height: 8vh;
     object-fit: contain;
 `
 const playerIGNStyles = css`
     position: absolute;
     ${Styles.SUB_TITLE}
     border-radius: 1rem;
-    ${Styles.GLASS.FAINT_BACKGROUND}
+    ${Styles.GLASS.BACKGROUND}
     padding-left: 0.5rem;
     padding-right: 0.5rem;
     left: 50%;
     transform: translateX(-50%);
     bottom: 5%;
     z-index: 1;
+    font-size: 1.5rem;
+    filter: none;
 `
 const titleModStyle = css`
     ${Styles.SUB_TITLE}
@@ -104,6 +131,6 @@ const clientTileListStyle = css`
 const containerStyle = css`
     ${Styles.OVERLAY.CENTERED_QUARTER}
     ${Styles.FANCY_BORDER}
-    ${Styles.GLASS.FAINT_BACKGROUND}
+    ${Styles.GLASS.BACKGROUND}
     z-index: 100000;
 `;
