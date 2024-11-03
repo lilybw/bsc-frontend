@@ -10,6 +10,9 @@ import { Styles } from '@/sharedCSS';
 import { ApplicationProps } from '@/ts/types';
 import VictoryScreen from '@colony/VictoryScreen';
 import DefeatScreen from '@colony/DefeatScreen';
+import MinigameWaitingScreen from '@/components/colony/MinigameWaitingScreen';
+import { createArrayStore } from '@/ts/arrayStore';
+import { PlayerParticipation, TrackedClient } from '@/components/colony/mini_games/ClientTracker';
 
 export enum MenuPages {
     LANDING_PAGE = 'landing',

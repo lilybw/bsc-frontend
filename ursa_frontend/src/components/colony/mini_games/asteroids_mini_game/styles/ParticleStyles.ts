@@ -84,7 +84,7 @@ export const PARTICLE_ANIMATION_DURATIONS = {
     STUN: 6000, // 6 seconds
     FADE_IN: 150, // 0.15 seconds
     FADE_OUT: 300, // 0.3 seconds
-} as const;
+};
 
 /**
  * Utility function to generate blur style

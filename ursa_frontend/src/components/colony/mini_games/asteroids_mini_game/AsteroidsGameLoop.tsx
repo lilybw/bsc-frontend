@@ -90,7 +90,10 @@ class AsteroidsGameLoop {
         let somethingWasHit = false;
         for (const [id, asteroid] of this.asteroids) {
             if (asteroid.charCode === data.code) {
-                this.asteroids.delete(id);
+                asteroid.health--;
+                if (asteroid.health <= 0) {
+                    this.asteroids.delete(id);
+                }
                 somethingWasHit = true;
             }
         }
