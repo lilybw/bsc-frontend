@@ -12,9 +12,9 @@ import { AvailableLanguagesResponseDTO, PreferenceKeys } from '@/integrations/ma
 import { LanguagePreference } from '@/integrations/vitec/vitecDTOs';
 import { assureUniformLanguageCode } from '@/integrations/vitec/vitecIntegration';
 import { ResCodeErr } from '@/meta/types';
-import { IBackendBased, IStyleOverwritable } from '@/ts/types';
+import { IBackendBased, IInternationalized, IStyleOverwritable } from '@/ts/types';
 
-interface LanguagePageProps extends IBackendBased, IStyleOverwritable {
+interface LanguagePageProps extends IBackendBased, IStyleOverwritable, IInternationalized {
     onSlideCompleted: () => void;
     onLanguageSelected: (language: LanguagePreference) => void;
 }
@@ -38,26 +38,18 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
     return (
         <div class="language-tutorial-page">
             <StarryBackground />
-            <Show when={availableLanguages.loading}>
-                <Spinner />
-            </Show>
-            <Show when={availableLanguages.error}>
-                <SomethingWentWrongIcon message={availableLanguages.latest?.err} />
-            </Show>
-            <Show when={availableLanguages.state === 'ready'}>
-                <div class={languageListStyle}>
-                    <For each={availableLanguages.latest!.res?.languages}>
-                        {(language) => (
-                            <BigMenuButton onClick={() => onLanguageSelected(language.code)} enable={createMemo(() => language.coverage > 0.9)}>
-                                <SectionSubTitle>{language.commonName}</SectionSubTitle>
-                                <NTAwait func={() => props.backend.assets.getMetadata(language.icon)}>
-                                    {(metadata) => <GraphicalAsset styleOverwrite={imageOverwrite} metadata={metadata} backend={props.backend} />}
-                                </NTAwait>
-                            </BigMenuButton>
-                        )}
-                    </For>
-                </div>
-            </Show>
+            <div class={languageListStyle}>
+                <For each={props.text.getAvailableLanguages()}>
+                    {(language) => (
+                        <BigMenuButton onClick={() => onLanguageSelected(language.code)} enable={createMemo(() => language.coverage > 0.9)}>
+                            <SectionSubTitle>{language.commonName}</SectionSubTitle>
+                            <NTAwait func={() => props.backend.assets.getMetadata(language.icon)}>
+                                {(metadata) => <GraphicalAsset styleOverwrite={imageOverwrite} metadata={metadata} backend={props.backend} />}
+                            </NTAwait>
+                        </BigMenuButton>
+                    )}
+                </For>
+            </div>
         </div>
     );
 }

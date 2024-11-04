@@ -209,16 +209,20 @@ export type MinimizedMinigameInfoResponseDTO = {
     overwritingSettings: any;
 };
 
+export type TranslationOverviewDTO = {
+    /** Internal ID */
+    id: uint32;
+    /**
+     * 0-1, percent, how much of the translation is available
+     */
+    coverage: number;
+    commonName: string;
+    /** Language code i.e. en-GB, en-US, da-DK, sv-SE ... etc */
+    code: string;
+    icon: AssetID;
+}
 export type AvailableLanguagesResponseDTO = {
-    languages: {
-        /**
-         * 0-100, percent-like, how much of the translation is available
-         */
-        coverage: number;
-        commonName: string;
-        code: string;
-        icon: AssetID;
-    }[];
+    languages: TranslationOverviewDTO[];
 };
 
 export type SetPreferenceRequestDTO = {

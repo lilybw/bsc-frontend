@@ -9,6 +9,7 @@ import I_SectionTitle from './I_SectionTitle';
 import I_SectionSubTitle from './I_SectionSubTitle';
 import { SubSectionTitleProps } from '../../../components/base/SectionSubTitle';
 import { SectionTitleProps } from '../../../components/base/SectionTitle';
+import { AvailableLanguagesResponseDTO, TranslationOverviewDTO } from '../mainBackendDTOs';
 
 export interface InternationalizationService {
     Title: (key: string, fallback?: string) => Component<SectionTitleProps>;
@@ -18,6 +19,7 @@ export interface InternationalizationService {
     setLanguage: (lang: LanguagePreference) => void;
 
     get(key: string): WrappedSignal<string>;
+    getAvailableLanguages: () => TranslationOverviewDTO[];
 }
 
 class InternationalizationServiceImpl implements InternationalizationService {
@@ -86,7 +88,18 @@ class InternationalizationServiceImpl implements InternationalizationService {
         return catalogueEntry;
     };
 
+    private cachedLanguages: TranslationOverviewDTO[] = [];
+    public getAvailableLanguages = (): TranslationOverviewDTO[] => {
+        return this.cachedLanguages;
+    }
+
     public async loadInitialCatalogue(): Promise<Error | undefined> {
+        const availableLanguages = await this.backend.getAvailableLanguages();
+        if (availableLanguages.err != null) {
+            return availableLanguages.err;
+        }
+        this.cachedLanguages = availableLanguages.res.languages;
+
         return this.loadCatalogue(this.currentLanguage);
     }
 }
