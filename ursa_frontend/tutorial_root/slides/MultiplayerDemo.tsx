@@ -170,7 +170,7 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
                     currentIndex++;
                 } else {
                     clearInterval(intervalId);
-                    resolve(text.length * timeBetweenKeyStrokesMS + baseDelayBeforeDemoStart);
+                    resolve(1000);
                 }
             }, timeBetweenKeyStrokesMS);
         });
@@ -203,7 +203,7 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
                     ...mockMultiplayer,
                     getCode: () => 123456
                 });
-                setTimeout(() => startCloseColonyPhase(), 2000);
+                setTimeout(() => startCloseColonyPhase(), 1000);
             }
         }, typingTime);
     };
@@ -222,7 +222,7 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
                     ...mockMultiplayer,
                     getCode: () => null
                 });
-                setTimeout(() => completeDemonstration(), 2000);
+                setTimeout(() => completeDemonstration(), 1000);
             }
         }, typingTime);
     };
@@ -235,10 +235,6 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
     // Simpler main handler that starts the sequence
     const handleSpacePortReached = () => {
         moveToSpacePort();
-    };
-
-    const calculateActionTime = (text: string) => {
-        return text.length * timeBetweenKeyStrokesMS + baseDelayBeforeDemoStart + 2000; // text time + base delay + buffer
     };
 
     // Start demo sequence
