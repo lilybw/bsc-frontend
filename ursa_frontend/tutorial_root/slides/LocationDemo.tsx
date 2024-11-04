@@ -144,7 +144,10 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
             setTimeout(
                 () => {
                     setTriggerEnter(prev => prev + 1);
-                    setShowLocationCard(true);
+                    setTimeout(
+                        () => {
+                            setShowLocationCard(true);
+                        }, 1500)
                 },
                 enterCommand.length * timeBetweenKeyStrokesMS + baseDelayBeforeDemoStart,
             );
