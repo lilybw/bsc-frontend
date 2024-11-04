@@ -43,11 +43,13 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         const openResponse = await props.backend.colony.open(props.colony.id, request);
 
         if (openResponse.err !== null) {
+            log.error('Failed to open colony: ' + openResponse.err);
             return openResponse.err;
         }
 
         const err = await props.multiplayer.connect(openResponse.res.code, () => {});
-        if (err !== null) {
+        if (err) {
+            log.error('Failed to connect to multiplayer: ' + err);
             setConnectErr(err);
             return;
         }
@@ -79,10 +81,10 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
         <>
             <div
                 class={css`
-                    ${Styles.MENU_INPUT} ${codeDisplayStyle}
+                    ${Styles.MENU_INPUT} ${codeDisplayStyle} ${connectErr() ? css`border-color: red; font-size: 2rem;` : ""}
                 `}
             >
-                {formatCodeForDisplay(code)}
+                {connectErr() ? connectErr() : formatCodeForDisplay(code)}
             </div>
             <div class={STYLE_LOC_CARD_lowerThirdWBackgroundStyle}>
                 <div

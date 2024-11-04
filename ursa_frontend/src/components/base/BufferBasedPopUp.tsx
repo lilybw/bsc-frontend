@@ -11,7 +11,12 @@ interface Props extends IParenting, IStyleOverwritable, IBufferBased, IRegisteri
 
 const BufferBasedPopUp: Component<Props> = (props) => {
     return (
-        <div class={css`${Styles.OVERLAY.CENTERED_QUARTER} ${props.styleOverwrite}`}>
+        <div id={"buffer-based-pop-up-"+props.title} class={
+                css`${Styles.OVERLAY.CENTERED_QUARTER} 
+                    ${Styles.GLASS.BACKGROUND} 
+                    border-radius: 1rem;
+                    ${props.styleOverwrite}`
+        }>
             {props.title && <div class={css`${Styles.SUB_TITLE} position: absolute; top: 1vh;`}>{props.title}</div>}
             {props.children}
             {props.clearSelf && <BufferBasedButton 
