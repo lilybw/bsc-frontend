@@ -36,7 +36,7 @@ const slides: SlideEntry[] = [
     {
         hasCompleted: false,
         icon: SlideIcon,
-        iconId: 1005,
+        iconId: 1030,
     },
     {
         hasCompleted: false,
@@ -46,7 +46,7 @@ const slides: SlideEntry[] = [
     {
         hasCompleted: false,
         icon: SlideIcon,
-        iconId: 1002,
+        iconId: 1030,
     },
     {
         hasCompleted: false,
@@ -56,7 +56,7 @@ const slides: SlideEntry[] = [
     {
         hasCompleted: false,
         icon: SlideIcon,
-        iconId: 1004,
+        iconId: 1030,
     },
     {
         hasCompleted: false,
