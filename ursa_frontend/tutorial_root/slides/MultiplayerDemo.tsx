@@ -1,7 +1,6 @@
 import { JSX, createSignal, createMemo, Show, onMount, Component } from 'solid-js';
 import { css } from '@emotion/css';
 import VideoFrame from './VideoFrame';
-import SpacePortInterface from './tutorial utility components/Spaceport';
 import GraphicalAsset from '@/components/base/GraphicalAsset';
 import ImageBufferButton from '@/components/base/ImageBufferButton';
 import StarryBackground from '@/components/base/StarryBackground';
@@ -22,7 +21,6 @@ interface MultiplayerDemoProps extends IInternationalized, IBackendBased {
 }
 
 const timeBetweenKeyStrokesMS = 500;
-const baseDelayBeforeDemoStart = 1000;
 
 enum DemoStep {
     MOVE_TO_SPACEPORT,

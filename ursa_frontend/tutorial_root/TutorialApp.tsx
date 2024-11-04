@@ -19,6 +19,7 @@ import { LanguagePreference } from '@/integrations/vitec/vitecDTOs';
 import { BundleComponent, Bundle } from '@/meta/types';
 import { ApplicationProps } from '@/ts/types';
 import MultiplayerDemo from './slides/MultiplayerDemo';
+import MultiplayerTrial from './slides/MultiplayerTrial';
 
 export type SlideEntry = { hasCompleted: boolean; icon: Component<SlideIconProps>; iconId: number };
 const slides: SlideEntry[] = [
@@ -60,13 +61,18 @@ const slides: SlideEntry[] = [
     {
         hasCompleted: false,
         icon: SlideIcon,
+        iconId: 1004,
+    },
+    {
+        hasCompleted: false,
+        icon: SlideIcon,
         iconId: 1018,
     },
 ];
 
 const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(
     function (props: ApplicationProps) {
-        const [currentSlide, setCurrentSlide] = createSignal(6);
+        const [currentSlide, setCurrentSlide] = createSignal(7);
         const [previousSlide, setPreviousSlide] = createSignal(0);
         const [userSelectedLanguage, setUserSelectedLanguage] = createSignal<LanguagePreference | undefined>(props.context.text.language());
         const [slideStore, setSlides] = createStore<SlideEntry[]>(slides);
@@ -135,6 +141,9 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(
                         <MultiplayerDemo onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />
                     </Match>
                     <Match when={currentSlide() === 7}>
+                        <MultiplayerTrial onSlideCompleted={onSlideCompleted} text={props.context.text} backend={props.context.backend} />
+                    </Match>
+                    <Match when={currentSlide() === 8}>
                         <TutorialCompletePage
                             nav={props.context.nav}
                             onSlideCompleted={onSlideCompleted}
