@@ -260,6 +260,9 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
     return (
         <div class="multiplayer-demo">
             <StarryBackground />
+            {props.text.SubTitle(
+                "TUTORIAL.MULTPLAYER.DESCRIPTION"
+            )({})}
             <VideoFrame backend={props.backend}>
                 <ActionInput
                     subscribers={bufferSubscribers}
