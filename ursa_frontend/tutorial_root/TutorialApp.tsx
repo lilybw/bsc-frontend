@@ -115,7 +115,7 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(
                 />
                 <Switch fallback={<ErrorPage content="OOC: Out of Cases" />}>
                     <Match when={currentSlide() === 0}>
-                        <LanguagePage onLanguageSelected={onLanguageChange} onSlideCompleted={onSlideCompleted} backend={props.context.backend} />
+                        <LanguagePage onLanguageSelected={onLanguageChange} onSlideCompleted={onSlideCompleted} backend={props.context.backend} text={props.context.text} />
                     </Match>
                     <Match when={currentSlide() === 1}>
                         <WelcomePage onSlideCompleted={onSlideCompleted} backend={props.context.backend} text={props.context.text} />

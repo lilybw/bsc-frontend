@@ -40,21 +40,17 @@ const LanguageSelectInlay: Component<LanguageSelectProps> = (props: LanguageSele
             <NTAwait func={() => props.backend.assets.getMetadata(1022)}>
                 {(asset) => <GraphicalAsset styleOverwrite={imageStyleOverwrite} metadata={asset} backend={props.backend} />}
             </NTAwait>
-            <NTAwait func={() => props.backend.getAvailableLanguages()}>
-                {(languages) => (
-                    <For each={languages.languages}>
-                        {(lang) =>
-                            lang.coverage > 0.9 && (
-                                <BigMenuButton styleOverwrite={computedSubButtonStyle()} onClick={() => onLangSelect(lang.code)}>
-                                    <NTAwait func={() => props.backend.assets.getMetadata(lang.icon)}>
-                                        {(asset) => <GraphicalAsset styleOverwrite={imageStyleOverwrite} metadata={asset} backend={props.backend} />}
-                                    </NTAwait>
-                                </BigMenuButton>
-                            )
-                        }
-                    </For>
+            <For each={props.text.getAvailableLanguages()}>
+                {(language) => (
+                    language.coverage > 0.9 && (
+                        <BigMenuButton styleOverwrite={computedSubButtonStyle()} onClick={() => onLangSelect(language.code)}>
+                            <NTAwait func={() => props.backend.assets.getMetadata(language.icon)}>
+                                {(asset) => <GraphicalAsset styleOverwrite={imageStyleOverwrite} metadata={asset} backend={props.backend} />}
+                            </NTAwait>
+                        </BigMenuButton>
+                    )
                 )}
-            </NTAwait>
+            </For>
         </BigMenuButton>
     );
 };
