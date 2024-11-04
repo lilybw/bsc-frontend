@@ -197,11 +197,13 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
         setTimeout(() => {
             if (currentStep() === DemoStep.OPEN_COLONY) {
                 setTriggerEnter(prev => prev + 1);
-                setMockMultiplayerState({
-                    ...mockMultiplayer,
-                    getCode: () => 123456
-                });
-                setTimeout(() => startCloseColonyPhase(), 1000);
+                setTimeout(() => {
+                    setMockMultiplayerState({
+                        ...mockMultiplayer,
+                        getCode: () => 123456
+                    });
+                    setTimeout(() => startCloseColonyPhase(), 1000);
+                }, 1500);
             }
         }, typingTime);
     };
@@ -216,11 +218,13 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
         setTimeout(() => {
             if (currentStep() === DemoStep.CLOSE_COLONY) {
                 setTriggerEnter(prev => prev + 1);
-                setMockMultiplayerState({
-                    ...mockMultiplayer,
-                    getCode: () => null
-                });
-                setTimeout(() => completeDemonstration(), 1000);
+                setTimeout(() => {
+                    setMockMultiplayerState({
+                        ...mockMultiplayer,
+                        getCode: () => null
+                    });
+                    setTimeout(() => completeDemonstration(), 1000);
+                }, 1500);
             }
         }, typingTime);
     };
