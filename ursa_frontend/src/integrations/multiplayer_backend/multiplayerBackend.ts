@@ -118,7 +118,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         let conn;
         try {
             this.log.trace(`Connecting to lobby: ${lobbyID} at ${address}, as user id: ${localUserID}`);
-            conn = new WebSocket(`${address}/connect?IGN=${computedIGN}&lobbyID=${lobbyID}&clientID=${localUserID}`);
+            conn = new WebSocket(`${address}/connect?IGN=${computedIGN}&lobbyID=${lobbyID}&clientID=${localUserID}&colonyID=${res.colonyId}&ownerID=${ownerOfColonyJoined}`);
         } catch (e) {
             return 'Initial connection attempt to multiplayer server failed. Error: ' + JSON.stringify(e);
         }
@@ -135,7 +135,6 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             this.multiplexer.unsubscribe(...this.subscriptions);
         }
 
-        const mode = this.mode.get();
         //Subscribe to all events coming from this frontend's user's actions
         //in order to replicate them back to the server, which will then send them to all other clients
         //However only subscribe to those which this user is allowed to send to the server in the first place
@@ -185,6 +184,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         };
         conn.onerror = (ev) => {
             this.log.error(`[multiplayer] Connection error: ${JSON.stringify(ev)}`);
+            this.disconnect();
         };
         conn.onmessage = (ev) =>
             ev.data

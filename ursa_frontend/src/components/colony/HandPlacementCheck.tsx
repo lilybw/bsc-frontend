@@ -101,7 +101,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
         }, maxTimeBetweenInputsMS);
     };
     const resetCheck = () => {
-        log.trace('resetting check');
+        log.subtrace('resetting check');
         timestampOfLastChange = -1; //reset timestamp
         setSequenceIndex(0); //reset sequence index
         setManualShakeTrigger((prev) => prev + 1); //trigger input shake
@@ -126,7 +126,7 @@ const HandPlacementCheck: Component<HandplacementCheckProps> = (props) => {
         cancelTimeBarAnimation();
         clearTimeout(invalidationTimeout);
         setTimeout(() => {
-            log.trace('Animation complete, proceeding');
+            log.subtrace('Animation complete, proceeding');
             setComputedKeyboardStyle(keyboardStyle);
             props.events.emit(PLAYER_JOIN_ACTIVITY_EVENT, {
                 id: props.backend.player.local.id,

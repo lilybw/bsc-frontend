@@ -11,6 +11,8 @@ import { IBufferBased, IRegistering } from "@/ts/types";
 import VictoryScreen from "./VictoryScreen";
 import DefeatScreen from "./DefeatScreen";
 import BufferBasedPopUp from "@/components/base/BufferBasedPopUp";
+import { css } from "@emotion/css";
+import { Styles } from "@/sharedCSS";
 
 interface MinigameInitiationSequenceProps extends IRegistering<string>, IBufferBased {
     context: ApplicationContext;
@@ -192,8 +194,9 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
                         setAbortInformation(null);
                         setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY);
                     }}
+                    styleOverwrite={css`z-index: 10000; background-image: linear-gradient(hsla(0, 0%, 40%, 0.5), hsla(0, 80%, 60%, 0.5));`}
                 >
-                    <div>{abortInformation()?.reason}</div>
+                    <div class={Styles.SUB_TITLE}>{abortInformation()?.reason}</div>
                 </BufferBasedPopUp>
             ) as StrictJSX;
             case LocalSequencePhase.LOADING_MINIGAME:
