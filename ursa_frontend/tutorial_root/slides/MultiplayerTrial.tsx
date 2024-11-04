@@ -421,7 +421,7 @@ const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
         <div class={containerStyle}>
             <StarryBackground />
             {props.text.Title('TUTORIAL.TRIAL.TITLE')({ styleOverwrite: trialTitleStyleOverwrite })}
-            {props.text.SubTitle('TUTORIAL.TRIAL.YOUR_TURN')({ styleOverwrite: subtitleStyleOverwrite })}
+            {props.text.SubTitle('TUTORIAL.MULTPLAYER.DESCRIPTION')({ styleOverwrite: subtitleStyleOverwrite })}
             <ActionInput
                 subscribers={bufferSubscribers}
                 text={props.text}
