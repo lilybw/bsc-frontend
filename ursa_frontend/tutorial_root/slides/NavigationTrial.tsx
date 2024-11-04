@@ -117,21 +117,21 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     // Create a more strategic path layout where not everything is connected
     const MOCK_PATHS = [
         // Paths from HOME (central hub)
-        { from: 1, to: 2 },  // HOME to SHOP
-        { from: 1, to: 5 },  // HOME to GARDEN
-        { from: 1, to: 6 },  // HOME to CAFE
+        { from: 1, to: 2 },
+        { from: 1, to: 5 },
+        { from: 1, to: 6 },
 
         // Upper circuit
-        { from: 2, to: 4 },  // SHOP to LIBRARY
-        { from: 2, to: 5 },  // SHOP to GARDEN
+        { from: 2, to: 4 },
+        { from: 2, to: 5 },
 
         // Lower circuit
-        { from: 3, to: 6 },  // PARK to CAFE
-        { from: 6, to: 4 },  // CAFE to LIBRARY
+        { from: 3, to: 6 },
+        { from: 6, to: 4 },
 
         // Cross connections
-        { from: 5, to: 3 },  // GARDEN to PARK
-        { from: 4, to: 1 },  // LIBRARY back to HOME
+        { from: 5, to: 3 },
+        { from: 4, to: 1 },
     ];
     const pathStore = createArrayStore(MOCK_PATHS);
     const locationStore = createArrayStore(MOCK_LOCATIONS);
