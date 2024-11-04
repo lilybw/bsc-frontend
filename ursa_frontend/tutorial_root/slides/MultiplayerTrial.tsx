@@ -1,6 +1,5 @@
 import { Component, createSignal, createMemo, For, onMount, onCleanup } from 'solid-js';
 import { css } from '@emotion/css';
-import VideoFrame from './VideoFrame';
 import StarryBackground from '@/components/base/StarryBackground';
 import ActionInput from '@/components/colony/MainActionInput';
 import GraphicalAsset from '@/components/base/GraphicalAsset';
@@ -14,6 +13,7 @@ import { ColonyState, MultiplayerMode } from '@/meta/types';
 import { KnownLocations } from '@/integrations/main_backend/constants';
 import LocationCard from '@/components/colony/location/LocationCard';
 import { IMultiplayerIntegration } from '@/integrations/multiplayer_backend/multiplayerBackend';
+import { Position } from '@/components/colony/mini_games/asteroids_mini_game/entities/BaseEntity';
 
 interface MultiplayerTrialProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
@@ -54,6 +54,12 @@ const MOCK_LOCATIONS = [
         }
     }
 ];
+
+const MOCK_PATHS = [
+    { from: 1, to: 2 }  // Single path from home to space port
+];
+
+const pathStore = createArrayStore(MOCK_PATHS);
 
 const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
     const [currentStep, setCurrentStep] = createSignal<TrialStep>(TrialStep.MOVE_TO_SPACEPORT);
@@ -148,6 +154,43 @@ const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
         minigameID: 0
     };
 
+
+
+    const lineStyle = (path: { length: number; angle: number; fromPos: Position }) => css`
+    position: absolute;
+    width: ${path.length}px;
+    height: 12px;
+    left: ${path.fromPos.x * window.innerWidth}px;
+    top: ${path.fromPos.y * window.innerHeight}px;
+    transform-origin: 0 50%;
+    transform: rotate(${path.angle}deg);
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+        to top,
+        transparent 0%,
+        rgba(255, 255, 255, 0.8) 50%,
+        transparent 100%
+    );
+    box-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+`;
+
+    const lineGlowStyle = (path: { length: number; angle: number; fromPos: Position }) => css`
+    ${lineStyle(path)}
+    opacity: 0.3;
+    filter: blur(4px);
+    height: 16px;
+    background: linear-gradient(
+        to top,
+        transparent 0%,
+        rgba(255, 255, 255, 0.6) 50%,
+        transparent 100%
+    );
+`;
+
     const calculateScalars = () => {
         const newWidth = window.innerWidth;
         const newHeight = window.innerHeight;
@@ -167,6 +210,39 @@ const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
                 y: location.transform.yOffset * currentDNS.y
             }
         }));
+    });
+
+    const getTargetCenterPosition = (locationId: string): Position | null => {
+        const scaledPositions = getScaledPositions();
+        const scaledLocation = scaledPositions.find(loc => loc.id.toString() === locationId);
+
+        if (!scaledLocation) return null;
+
+        return {
+            x: scaledLocation.scaledPosition.x / window.innerWidth,
+            y: scaledLocation.scaledPosition.y / window.innerHeight
+        };
+    };
+
+    const renderablePaths = createMemo(() => {
+        return pathStore.get.map(path => {
+            const fromPosition = getTargetCenterPosition(path.from.toString());
+            const toPosition = getTargetCenterPosition(path.to.toString());
+
+            if (!fromPosition || !toPosition) return null;
+
+            const dx = (toPosition.x - fromPosition.x) * window.innerWidth;
+            const dy = (toPosition.y - fromPosition.y) * window.innerHeight;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+            return {
+                fromPos: fromPosition,
+                toPos: toPosition,
+                length,
+                angle
+            };
+        }).filter(Boolean);
     });
 
     const moveToLocation = (toLocationId: number) => {
@@ -251,6 +327,8 @@ const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
     };
 
     bufferSubscribers.add((inputBuffer: string) => {
+        { props.text.SubTitle('TUTORIAL.TRIAL.YOUR_TURN')({ styleOverwrite: subtitleStyleOverwrite }) }
+
         const step = currentStep();
         const enterCommand = props.text.get('LOCATION.USER_ACTION.ENTER').get();
 
@@ -342,6 +420,10 @@ const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
     return (
         <div class={containerStyle}>
             <StarryBackground />
+            {props.text.Title('TUTORIAL.TRIAL.TITLE')({ styleOverwrite: trialTitleStyleOverwrite })}
+            {props.text.SubTitle('TUTORIAL.TRIAL.YOUR_TURN')({ styleOverwrite: subtitleStyleOverwrite })}
+
+
             <ActionInput
                 subscribers={bufferSubscribers}
                 text={props.text}
@@ -350,6 +432,18 @@ const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
                 setInputBuffer={setInputBuffer}
                 inputBuffer={inputBuffer}
             />
+
+            <For each={renderablePaths()}>
+                {(path) => {
+                    if (!path) return null;
+                    return (
+                        <>
+                            <div class={lineStyle(path)} />
+                            <div class={lineGlowStyle(path)} />
+                        </>
+                    );
+                }}
+            </For>
 
             <div class={computedCameraStyle()}>
                 <For each={getScaledPositions()}>
@@ -448,6 +542,25 @@ const locationIconStyle = css`
     width: 100%;
     height: 100%;
     object-fit: cover;
+`;
+
+const trialTitleStyleOverwrite = css`
+    position: absolute;
+    font-size: 4rem;
+    letter-spacing: 0;
+    z-index: 100;
+    left: 50%;
+    top: 10%;
+    transform: translateX(-50%);
+`;
+
+const subtitleStyleOverwrite = css`
+    position: absolute;
+    bottom: 10vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    z-index: 100;
 `;
 
 export default MultiplayerTrial;

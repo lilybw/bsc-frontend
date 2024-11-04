@@ -7,7 +7,6 @@ import ActionInput from "@/components/colony/MainActionInput";
 import LocationCard from "@/components/colony/location/LocationCard";
 import NTAwait from "@/components/util/NoThrowAwait";
 import { Position } from "@/components/colony/mini_games/asteroids_mini_game/entities/BaseEntity";
-import { PLAYER_MOVE_EVENT } from "@/integrations/multiplayer_backend/EventSpecifications";
 import { ActionContext, BufferSubscriber } from "@/ts/actionContext";
 import { createArrayStore } from "@/ts/arrayStore";
 import { IBackendBased, IInternationalized, IStyleOverwritable } from "@/ts/types";
@@ -23,11 +22,6 @@ export const EXPECTED_HEIGHT = 1080;
 
 interface LocationTrialProps extends IBackendBased, IInternationalized, IStyleOverwritable {
     onSlideCompleted: () => void;
-}
-
-interface EntityRef {
-    type: "location";
-    element: HTMLElement;
 }
 
 const LocationTrial: Component<LocationTrialProps> = (props) => {
@@ -73,10 +67,6 @@ const LocationTrial: Component<LocationTrialProps> = (props) => {
     });
     const [buffer, setBuffer] = createSignal('');
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
-    const locationStore = createArrayStore(MOCK_LOCATIONS);
-    const elementRefs = new Map<string, EntityRef>();
-    const [elementsReady, setElementsReady] = createSignal(false);
-
     const defaultLocationInfo: LocationInfoResponseDTO = {
         id: KnownLocations.OuterWalls,
         name: 'LOCATION.OUTER_WALLS.NAME',
