@@ -1,6 +1,5 @@
 import { JSX } from 'solid-js/jsx-runtime';
-import { css } from '@emotion/css';
-import { createMemo, createSignal } from 'solid-js';
+import { createMemo, createSignal, onMount } from 'solid-js';
 import VideoFrame from './VideoFrame';
 import GraphicalAsset from '@/components/base/GraphicalAsset';
 import ImageBufferButton from '@/components/base/ImageBufferButton';
@@ -10,53 +9,85 @@ import NTAwait from '@/components/util/NoThrowAwait';
 import { TypeIconTuple, ActionContext, BufferSubscriber } from '@/ts/actionContext';
 import { createArrayStore } from '@/ts/arrayStore';
 import { IInternationalized, IBackendBased } from '@/ts/types';
+import { css } from '@emotion/css';
+import { typeText } from '@tutorial/utils/tutorialUtils';
+import { tutorialStyles } from '@tutorial/styles/tutorialStyles';
 
 interface NavigationDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
 }
-const timeBetweenKeyStrokesMS = 500;
-const baseDelayBeforeDemoStart = 1000;
+
+// Keep only demo-specific styles that aren't shared across components
+const demoStyles = {
+    videoFrame: css`
+        margin-top: 2rem;
+    `,
+
+    characterContainer: css`
+        position: absolute;
+        --edge-offset: 5vw;
+        bottom: 20vh;
+    `,
+
+    location: {
+        pin: css`
+            position: absolute;
+            --edge-offset: 5vw;
+            bottom: 20vh;
+            right: var(--edge-offset);
+        `,
+
+        player: (isAtLocation: boolean) => css`
+            ${tutorialStyles.elements.characterBase}
+            left: var(--edge-offset);
+            transition: left 2s;
+            ${isAtLocation ? 'left: 70%;' : ''}
+        `
+    }
+};
+
 export default function NavigationDemo(props: NavigationDemoProps): JSX.Element {
     const [inputBuffer, setInputBuffer] = createSignal<string>('');
-    const [actionContext, setActionContext] = createSignal<TypeIconTuple>(ActionContext.NAVIGATION);
+    const [actionContext] = createSignal<TypeIconTuple>(ActionContext.NAVIGATION);
     const [triggerEnter, setTriggerEnter] = createSignal<number>(0);
     const [movePlayerToLocation, setMovePlayerToLocation] = createSignal<boolean>(false);
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
 
-    const nameOfLocation = props.text.get('LOCATION.OUTER_WALLS.NAME');
-    for (let i = 0; i < nameOfLocation.get().length; i++) {
-        setTimeout(
-            () => {
-                setInputBuffer(inputBuffer() + nameOfLocation.get()[i]);
-            },
-            baseDelayBeforeDemoStart + i * timeBetweenKeyStrokesMS,
-        );
-    }
-    setTimeout(
-        () => {
-            setTriggerEnter((prev) => prev + 1);
-        },
-        baseDelayBeforeDemoStart * 2 + nameOfLocation.get().length * timeBetweenKeyStrokesMS,
-    );
+    const nameOfLocation = props.text.get('LOCATION.OUTER_WALLS.NAME').get();
 
-    const buttonPressed = () => {
+    const handleButtonPress = () => {
         setMovePlayerToLocation(true);
-        setTimeout(() => {
-            props.onSlideCompleted();
-        }, 2000);
+        setTimeout(() => props.onSlideCompleted(), 2000);
     };
 
-    const computedPlayerStyle = createMemo(
-        () => css`
-            ${playerCharStyleOverwrite} ${movePlayerToLocation() ? playerAtLocation : ''}
-        `,
+    onMount(() => {
+        typeText({
+            text: nameOfLocation,
+            delay: 500,
+            onType: (text) => setInputBuffer(text),
+            onComplete: () => {
+                setTimeout(() => {
+                    setTriggerEnter(prev => prev + 1);
+                }, 1000);
+            }
+        });
+    });
+
+    const computedPlayerStyle = createMemo(() =>
+        demoStyles.location.player(movePlayerToLocation())
     );
 
     return (
-        <div class="navigation-demo">
+        <div class={tutorialStyles.layout.container}>
             <StarryBackground />
-            {props.text.SubTitle('TUTORIAL.NAVIGATION_DEMO.DESCRIPTION')({})}
-            <VideoFrame styleOverwrite={videoDemoFrameStyle} backend={props.backend}>
+            {props.text.SubTitle('TUTORIAL.NAVIGATION_DEMO.DESCRIPTION')({
+                styleOverwrite: tutorialStyles.typography.subtitle
+            })}
+
+            <VideoFrame
+                styleOverwrite={demoStyles.videoFrame}
+                backend={props.backend}
+            >
                 <ActionInput
                     subscribers={bufferSubscribers}
                     text={props.text}
@@ -67,56 +98,29 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                     manTriggerEnter={triggerEnter}
                     demoMode={true}
                 />
-                <div class={movementPathStyle}></div>
+
+                <div class={tutorialStyles.elements.movementPath} />
+
                 <ImageBufferButton
-                    styleOverwrite={locationPinStyleOverwrite}
+                    styleOverwrite={demoStyles.location.pin}
                     register={bufferSubscribers.add}
-                    name={nameOfLocation.get()}
+                    name={nameOfLocation}
                     buffer={inputBuffer}
-                    onActivation={buttonPressed}
+                    onActivation={handleButtonPress}
                     asset={1009}
                     backend={props.backend}
                 />
+
                 <NTAwait func={() => props.backend.assets.getMetadata(4001)}>
-                    {(asset) => <GraphicalAsset styleOverwrite={computedPlayerStyle()} metadata={asset} backend={props.backend} />}
+                    {(asset) => (
+                        <GraphicalAsset
+                            styleOverwrite={computedPlayerStyle()}
+                            metadata={asset}
+                            backend={props.backend}
+                        />
+                    )}
                 </NTAwait>
             </VideoFrame>
         </div>
     );
 }
-
-const movementPathStyle = css`
-    border-bottom: 1px dashed white;
-    height: 66%;
-    width: 50%;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-`;
-
-const shared = css`
-    position: absolute;
-    --edge-offset: 5vw;
-    bottom: 20vh;
-`;
-
-const playerCharStyleOverwrite = css`
-    ${shared}
-    left: var(--edge-offset);
-    --dude-size: 8vw;
-    width: var(--dude-size);
-    height: var(--dude-size);
-    transition: left 2s;
-`;
-
-const playerAtLocation = css`
-    left: 70%;
-`;
-const locationPinStyleOverwrite = css`
-    ${shared}
-    right: var(--edge-offset);
-`;
-
-const videoDemoFrameStyle = css`
-    margin-top: 2rem;
-`;

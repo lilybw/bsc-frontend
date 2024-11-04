@@ -4,18 +4,17 @@ import BufferBasedButton from "@/components/base/BufferBasedButton";
 import GraphicalAsset from "@/components/base/GraphicalAsset";
 import StarryBackground from "@/components/base/StarryBackground";
 import ActionInput from "@/components/colony/MainActionInput";
-import { Position } from "@/components/colony/mini_games/asteroids_mini_game/entities/BaseEntity";
 import NTAwait from "@/components/util/NoThrowAwait";
 import { PLAYER_MOVE_EVENT } from "@/integrations/multiplayer_backend/EventSpecifications";
 import { ApplicationContext } from "@/meta/types";
-import { BufferSubscriber, ActionContext } from "@/ts/actionContext";
+import { ActionContext, BufferSubscriber } from "@/ts/actionContext";
 import { createArrayStore } from "@/ts/arrayStore";
 import { IBackendBased, IInternationalized, IStyleOverwritable } from "@/ts/types";
 import { createWrappedSignal } from "@/ts/wrappedSignal";
-import { Styles } from "@/sharedCSS";
+import { calculateLocationOffset, calculatePaths, calculateScaledPositions, calculateViewportScalars } from "@tutorial/utils/tutorialUtils";
+import { getTargetCenterPosition, loadPathMap, RenderablePath } from "@tutorial/utils/navigationUtils";
+import { tutorialStyles } from "@tutorial/styles/tutorialStyles";
 
-export const EXPECTED_WIDTH = 1920;
-export const EXPECTED_HEIGHT = 1080;
 
 interface NavigationTrialProps extends IBackendBased, IInternationalized, IStyleOverwritable {
     onSlideCompleted: () => void;
@@ -28,6 +27,18 @@ interface EntityRef {
 }
 
 const NavigationTrial: Component<NavigationTrialProps> = (props) => {
+    // Initialize base state
+    const [visitedLocations, setVisitedLocations] = createSignal<Set<number>>(new Set([1]));
+    const [currentLocation, setCurrentLocation] = createSignal(1);
+    const [viewportDimensions, setViewportDimensions] = createSignal(
+        calculateViewportScalars(window.innerWidth, window.innerHeight)
+    );
+    const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
+    const worldOffset = createWrappedSignal({ x: 0, y: 0 });
+    const [buffer, setBuffer] = createSignal('');
+    const [elementsReady, setElementsReady] = createSignal(false);
+
+    // Initialize stores
     const MOCK_LOCATIONS = [
         // Center region
         {
@@ -122,54 +133,25 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         { from: 5, to: 3 },  // GARDEN to PARK
         { from: 4, to: 1 },  // LIBRARY back to HOME
     ];
-
-    const [visitedLocations, setVisitedLocations] = createSignal<Set<number>>(new Set([1])); // Start with HOME as visited
     const pathStore = createArrayStore(MOCK_PATHS);
-    const worldOffset = createWrappedSignal({ x: 0, y: 0 });
-    const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
-    const [GAS, setGAS] = createSignal(1);
-    const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal(1);
-    const [viewportDimensions, setViewportDimensions] = createSignal({
-        width: window.innerWidth,
-        height: window.innerHeight
-    });
-    const [buffer, setBuffer] = createSignal('');
-    const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
     const locationStore = createArrayStore(MOCK_LOCATIONS);
-
-    const loadPathMap = (paths: typeof MOCK_PATHS): Map<number, number[]> => {
-        const pathMap = new Map<number, number[]>();
-        for (const path of paths) {
-            if (!pathMap.has(path.from)) {
-                pathMap.set(path.from, []);
-            }
-            pathMap.get(path.from)!.push(path.to);
-            // Also add reverse direction
-            if (!pathMap.has(path.to)) {
-                pathMap.set(path.to, []);
-            }
-            pathMap.get(path.to)!.push(path.from);
-        }
-        return pathMap;
-    };
-
-
-    const pathMap = new Map<number, number[]>(loadPathMap(MOCK_PATHS));
-    const log = props.backend.logger.copyFor('navigation trial');
+    const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
     const elementRefs = new Map<string, EntityRef>();
-    const [elementsReady, setElementsReady] = createSignal(false);
 
-    // Create reactive scaled positions
-    const getScaledPositions = createMemo(() => {
-        const currentDNS = DNS();
-        return MOCK_LOCATIONS.map(location => ({
-            ...location,
-            scaledPosition: {
-                x: location.transform.xOffset * currentDNS.x,
-                y: location.transform.yOffset * currentDNS.y
-            }
-        }));
-    });
+    // Initialize path mapping
+    const pathMap = loadPathMap(MOCK_PATHS);
+    const log = props.backend.logger.copyFor('navigation trial');
+
+    // Computed values
+    const scaledPositions = createMemo(() =>
+        calculateScaledPositions(MOCK_LOCATIONS, DNS())
+    );
+
+    const renderablePaths = createMemo(() =>
+        calculatePaths(pathStore.get, (id) =>
+            getTargetCenterPosition(id, MOCK_LOCATIONS, scaledPositions())
+        ).filter((path): path is RenderablePath => path !== null)
+    );
 
     const checkCompletion = () => {
         const allLocations = new Set(MOCK_LOCATIONS.map(loc => loc.id));
@@ -177,119 +159,25 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         const allVisited = Array.from(allLocations).every(id => visited.has(id));
 
         if (allVisited) {
-            console.log('All locations visited! Completing slide.');
             props.onSlideCompleted();
         }
     };
 
-    // Utility to get the center position of an element by its reference key
-    const getTargetCenterPosition = (locationId: string): Position | null => {
-        const location = MOCK_LOCATIONS.find(loc => loc.id.toString() === locationId);
-        if (!location) {
-            console.log(`No location found for ID: ${locationId}`);
-            return null;
-        }
-
-        // Use the scaled position directly
-        const scaledPositions = getScaledPositions();
-        const scaledLocation = scaledPositions.find(loc => loc.id.toString() === locationId);
-
-        if (!scaledLocation) {
-            console.log(`No scaled position for ID: ${locationId}`);
-            return null;
-        }
-
-        return {
-            x: scaledLocation.scaledPosition.x / window.innerWidth,
-            y: scaledLocation.scaledPosition.y / window.innerHeight
-        };
-    };
-
-    const getLocationPosition = (locationId: number) => {
-        const scaledLocations = getScaledPositions();
-        const location = scaledLocations.find(l => l.id === locationId);
-        if (!location) return null;
-
-        return location.scaledPosition;
-    };
-
     const moveToLocation = (fromLocationId: number, toLocationId: number) => {
-        const scaledLocations = getScaledPositions();
-        const toLocation = scaledLocations.find(l => l.id === toLocationId);
+        const toLocation = scaledPositions().find(l => l.id === toLocationId);
         if (!toLocation) return;
 
-        const viewport = viewportDimensions();
-
-        const newOffset = {
-            x: viewport.width / 2 - toLocation.scaledPosition.x,
-            y: viewport.height / 2 - toLocation.scaledPosition.y
-        };
+        const newOffset = calculateLocationOffset(
+            toLocation,
+            viewportDimensions()
+        );
 
         worldOffset.set(newOffset);
     };
 
-    const trackElementRef = (id: number, element: HTMLElement | null) => {
-        if (element) {
-            elementRefs.set(id.toString(), {
-                type: "location",
-                element: element
-            });
-            if (elementRefs.size === MOCK_LOCATIONS.length) {
-                setElementsReady(true);
-            }
-        }
-    };
-
-    createEffect(() => {
-        console.log('Elements ready state:', elementsReady());
-    });
-
-    const renderablePaths = createMemo(() => {
-        console.log("Recalculating paths");
-
-        return pathStore.get.map(path => {
-            const fromPosition = getTargetCenterPosition(path.from.toString());
-            const toPosition = getTargetCenterPosition(path.to.toString());
-
-            if (!fromPosition || !toPosition) {
-                console.log(`Missing position for path ${path.from} -> ${path.to}`);
-                return null;
-            }
-
-            console.log(`Calculated positions for path ${path.from} -> ${path.to}:`,
-                { from: fromPosition, to: toPosition });
-
-            const dx = (toPosition.x - fromPosition.x) * window.innerWidth;
-            const dy = (toPosition.y - fromPosition.y) * window.innerHeight;
-            const length = Math.sqrt(dx * dx + dy * dy);
-            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-            return {
-                fromPos: fromPosition,
-                toPos: toPosition,
-                length,
-                angle
-            };
-        }).filter(Boolean);
-    });
-
-    const calculateScalars = () => {
-        const newWidth = window.innerWidth;
-        const newHeight = window.innerHeight;
-        setViewportDimensions({ width: newWidth, height: newHeight });
-        setDNS({
-            x: newWidth / EXPECTED_WIDTH,
-            y: newHeight / EXPECTED_HEIGHT,
-        });
-        setGAS(Math.sqrt(Math.min(newWidth / EXPECTED_WIDTH, newHeight / EXPECTED_HEIGHT)));
-
-        moveToLocation(currentLocationOfLocalPlayer(), currentLocationOfLocalPlayer());
-    };
-
     const handleMove = (locationId: number) => {
-        const paths = pathMap.get(currentLocationOfLocalPlayer());
+        const paths = pathMap.get(currentLocation());
         if (paths?.includes(locationId)) {
-            log.subtrace(`Moving to location: ${locationId}`);
             props.context.events.emit(PLAYER_MOVE_EVENT, {
                 playerID: props.backend.player.local.id,
                 colonyLocationID: locationId
@@ -300,11 +188,10 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
     const handlePlayerMove = (data: { playerID: number; colonyLocationID: number }) => {
         if (data.playerID !== props.backend.player.local.id) return;
 
-        const currentLoc = currentLocationOfLocalPlayer();
+        const currentLoc = currentLocation();
         const paths = pathMap.get(currentLoc);
         if (!paths?.includes(data.colonyLocationID)) return;
 
-        // Update visited locations
         setVisitedLocations(prev => {
             const newSet = new Set(prev);
             newSet.add(data.colonyLocationID);
@@ -312,49 +199,43 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         });
 
         moveToLocation(currentLoc, data.colonyLocationID);
-        setCurrentLocationOfLocalPlayer(data.colonyLocationID);
-
-        // Check if all locations have been visited
+        setCurrentLocation(data.colonyLocationID);
         checkCompletion();
     };
 
-    const handleBufferUpdate = (value: string | ((prev: string) => string)) => {
-        if (typeof value === "function") {
-            setBuffer(prev => value(prev));
-        } else {
-            setBuffer(value);
-        }
-    };
-
+    // Lifecycle handlers
     onMount(() => {
-        calculateScalars();
-        window.addEventListener('resize', calculateScalars);
+        const handleResize = () => {
+            const dims = calculateViewportScalars(window.innerWidth, window.innerHeight);
+            setViewportDimensions(dims);
+            setDNS(dims.dns);
+            moveToLocation(currentLocation(), currentLocation());
+        };
 
-        const moveHandlerId = props.context.events.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
+        handleResize();
+        window.addEventListener('resize', handleResize);
 
-        // Initialize world position to center HOME using scaled position
-        const homePos = getLocationPosition(1);
+        const moveHandlerId = props.context.events.subscribe(
+            PLAYER_MOVE_EVENT,
+            handlePlayerMove
+        );
+
+        const homePos = scaledPositions().find(l => l.id === 1);
         if (homePos) {
-            const viewport = viewportDimensions();
-            const initialOffset = {
-                x: viewport.width / 2 - homePos.x,
-                y: viewport.height / 2 - homePos.y
-            };
-            worldOffset.set(initialOffset);
+            const offset = calculateLocationOffset(
+                homePos,
+                viewportDimensions()
+            );
+            worldOffset.set(offset);
         }
-
-        createEffect(() => {
-            if (elementRefs.size === MOCK_LOCATIONS.length) {
-                setElementsReady(true);
-            }
-        });
 
         onCleanup(() => {
-            window.removeEventListener('resize', calculateScalars);
+            window.removeEventListener('resize', handleResize);
             props.context.events.unsubscribe(moveHandlerId);
         });
     });
 
+    // Buffer subscriber
     bufferSubscribers.add((inputBuffer: string) => {
         const targetLocation = locationStore.findFirst(loc =>
             loc.name() === inputBuffer
@@ -367,226 +248,102 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         return { consumed: false };
     });
 
-    const computedCameraStyle = createMemo(() => {
-        const offset = worldOffset.get();
-        return css`
-            ${cameraContainer}
-            transform: translate(${offset.x}px, ${offset.y}px);
-        `;
-    });
-
-    const getLocationStyle = (location: { id: number; scaledPosition: { x: number; y: number }; transform: { zIndex: number } }) => {
-        const isCurrentLocation = location.id === currentLocationOfLocalPlayer();
-        const canMoveTo = pathMap.get(currentLocationOfLocalPlayer())?.includes(location.id) || false;
-        const isVisited = visitedLocations().has(location.id);
-
-        return css`
-            position: absolute;
-            width: 64px;
-            height: 64px;
-            transform: translate(-50%, -50%);
-            left: ${location.scaledPosition.x}px;
-            top: ${location.scaledPosition.y}px;
-            z-index: ${location.transform.zIndex};
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border-radius: 50%;
-            background-color: black;
-            ${isCurrentLocation ? 'border: 3px solid #3b82f6;' : ''}
-            ${canMoveTo ? 'border: 2px solid rgba(59, 130, 246, 0.5);' : ''}
-            ${isVisited ? 'box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);' : ''}
-            transition: all 0.3s ease-in-out;
-        `;
-    };
-
     return (
-        <div class={pathGraphContainerStyle}>
+        <div class={tutorialStyles.layout.container}>
             <StarryBackground />
-            {props.text.Title('TUTORIAL.TRIAL.TITLE')({ styleOverwrite: trialTitleStyleOverwrite })}
-            {props.text.SubTitle('TUTORIAL.NAVIGATION_TRIAL.DESCRIPTION')({ styleOverwrite: subtitleStyleOverwrite })}
+            {props.text.Title('TUTORIAL.TRIAL.TITLE')({
+                styleOverwrite: tutorialStyles.typography.title
+            })}
+            {props.text.SubTitle('TUTORIAL.NAVIGATION_TRIAL.DESCRIPTION')({
+                styleOverwrite: tutorialStyles.typography.subtitle
+            })}
 
-            <div class={computedCameraStyle()}>
-                {/* Lines */}
+            <div class={css`
+                ${tutorialStyles.layout.camera}
+                ${tutorialStyles.generators.cameraTransform(worldOffset.get())}
+            `}>
                 <For each={renderablePaths()}>
-                    {(path) => {
-                        if (!path) return null;
-
-                        const lineStyle = (path: { length: number; angle: number; fromPos: Position }) => css`
-                            position: absolute;
-                            width: ${path.length}px;
-                            height: 12px;
-                            left: ${path.fromPos.x * window.innerWidth}px;
-                            top: ${path.fromPos.y * window.innerHeight}px;
-                            transform-origin: 0 50%;
-                            transform: rotate(${path.angle}deg);
-                            z-index: 1;
-                            pointer-events: none;
-                            background: linear-gradient(
-                                to top,
-                                transparent 0%,
-                                rgba(255, 255, 255, 0.8) 50%,
-                                transparent 100%
-                            );
-                            /* glow effect */
-                            box-shadow: 
-                                0 0 10px rgba(255, 255, 255, 0.3),
-                                0 0 20px rgba(255, 255, 255, 0.2);
-                            /* Smooth edges */
-                            border-radius: 6px;
-                        `;
-
-                        return (
-                            <>
-                                {/* Main line */}
-                                <div class={lineStyle(path)} />
-                                {/* Glow overlay */}
-                                <div
-                                    class={css`
-                                        ${lineStyle(path)}
-                                        opacity: 0.3;
-                                        filter: blur(4px);
-                                        height: 16px;
-                                        background: linear-gradient(
-                                            to top,
-                                            transparent 0%,
-                                            rgba(255, 255, 255, 0.6) 50%,
-                                            transparent 100%
-                                        );
-                                    `}
-                                />
-                            </>
-                        );
-                    }}
+                    {(path) => (
+                        <>
+                            <div class={tutorialStyles.generators.pathLine({
+                                length: path.length,
+                                angle: path.angle,
+                                position: path.fromPos,
+                                isGlow: false
+                            })} />
+                            <div class={tutorialStyles.generators.pathLine({
+                                length: path.length,
+                                angle: path.angle,
+                                position: path.fromPos,
+                                isGlow: true
+                            })} />
+                        </>
+                    )}
                 </For>
 
-                {/* Locations */}
-                <For each={getScaledPositions()}>
-                    {(location) => {
-                        const buttonStyle = css`
-                        position: absolute;
-                        left: ${location.scaledPosition.x}px;
-                        top: ${location.scaledPosition.y - 50}px;
-                        transform: translate(-50%, -50%);
-                        z-index: ${location.transform.zIndex + 1};
-                    `;
-
-                        return (
-                            <div class={locationContainerStyle}>
-                                <BufferBasedButton
-                                    styleOverwrite={buttonStyle}
-                                    onActivation={() => handleMove(location.id)}
-                                    name={location.name}
-                                    buffer={buffer}
-                                    register={bufferSubscribers.add}
-                                    charBaseStyleOverwrite={namePlateTextOverwrite}
-                                />
-                                <div
-                                    class={getLocationStyle(location)}
-                                    ref={(el) => trackElementRef(location.id, el)}
-                                >
-                                    <NTAwait func={() => props.backend.assets.getMetadata(1009)}>
-                                        {(asset) => (
-                                            <GraphicalAsset
-                                                metadata={asset}
-                                                backend={props.backend}
-                                                styleOverwrite={css`
-                                                width: 100%;
-                                                height: 100%;
-                                                object-fit: cover;
-                                                ${visitedLocations().has(location.id) ? 'opacity: 1;' : 'opacity: 0.7;'}
-                                            `}
-                                            />
-                                        )}
-                                    </NTAwait>
-                                </div>
+                <For each={scaledPositions()}>
+                    {(location) => (
+                        <div class={tutorialStyles.layout.locationContainer}>
+                            <BufferBasedButton
+                                styleOverwrite={tutorialStyles.generators.locationButton({
+                                    position: location.scaledPosition,
+                                    zIndex: location.transform.zIndex
+                                })}
+                                onActivation={() => handleMove(location.id)}
+                                name={location.name}
+                                buffer={buffer}
+                                register={bufferSubscribers.add}
+                                charBaseStyleOverwrite={tutorialStyles.typography.nameplate}
+                            />
+                            <div
+                                class={tutorialStyles.generators.locationStyle({
+                                    position: location.scaledPosition,
+                                    zIndex: location.transform.zIndex,
+                                    isCurrentLocation: location.id === currentLocation(),
+                                    canMoveTo: pathMap.get(currentLocation())?.includes(location.id) || false,
+                                    isVisited: visitedLocations().has(location.id)
+                                })}
+                                ref={(el) => {
+                                    if (el) {
+                                        elementRefs.set(location.id.toString(), {
+                                            type: "location",
+                                            element: el
+                                        });
+                                        if (elementRefs.size === MOCK_LOCATIONS.length) {
+                                            setElementsReady(true);
+                                        }
+                                    }
+                                }}
+                            >
+                                <NTAwait func={() => props.backend.assets.getMetadata(1009)}>
+                                    {(asset) => (
+                                        <GraphicalAsset
+                                            metadata={asset}
+                                            backend={props.backend}
+                                            styleOverwrite={tutorialStyles.generators.locationAsset(
+                                                visitedLocations().has(location.id)
+                                            )}
+                                        />
+                                    )}
+                                </NTAwait>
                             </div>
-                        );
-                    }}
+                        </div>
+                    )}
                 </For>
             </div>
 
-            <div class={localPlayerStyle} />
+            <div class={tutorialStyles.elements.localPlayer} />
 
             <ActionInput
                 subscribers={bufferSubscribers}
                 text={props.text}
                 backend={props.backend}
                 actionContext={createMemo(() => ActionContext.NAVIGATION)}
-                setInputBuffer={handleBufferUpdate}
+                setInputBuffer={setBuffer}
                 inputBuffer={buffer}
             />
         </div>
     );
 };
-
-export const trialTitleStyleOverwrite = css`
-    position: absolute;
-    font-size: 4rem;
-    letter-spacing: 0;
-    z-index: 100;
-    left: 50%;
-    top: 10%;
-    transform: translateX(-50%);
-`;
-
-const subtitleStyleOverwrite = css`
-    position: absolute;
-    bottom: 10vh;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    z-index: 100;
-`;
-
-const namePlateStyle = css`
-    ${Styles.GLASS.FAINT_BACKGROUND}
-`;
-
-const locationContainerStyle = css`
-    position: absolute;
-    left: 0;
-    top: 0;
-`;
-
-const namePlateTextStyle = css`
-    text-shadow: 5px 5px 10px black;
-    color: white;
-`;
-
-const localPlayerStyle = css`
-    position: absolute;
-    z-index: 200;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 32px;
-    height: 32px;
-    background-color: #ef4444;
-    border-radius: 50%;
-`;
-
-const cameraContainer = css`
-    position: absolute;
-    top: 0;
-    left: 0;
-    overflow: visible;
-    transition: all 0.5s ease-in-out;
-`;
-
-const pathGraphContainerStyle = css`
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: visible;
-`;
-
-const namePlateTextOverwrite = css`
-    text-shadow: 5px 5px 10px black;
-`;
-
 
 export default NavigationTrial;
