@@ -12,14 +12,12 @@ import LocationCard from '@/components/colony/location/LocationCard';
 import { KnownLocations } from '@/integrations/main_backend/constants';
 import { createDemoEnvironment, createDemoPhaseManager } from '@tutorial/utils/demoUtils';
 import { typeText } from '@tutorial/utils/tutorialUtils';
-import { css } from '@emotion/css';
 import { tutorialStyles } from '@tutorial/styles/tutorialStyles';
 
 interface LocationDemoProps extends IStyleOverwritable, IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
 }
 
-// Constants
 const DEMO_TIMING = {
     typeDelay: 500,
     baseDelay: 1000,
@@ -82,7 +80,6 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
         props.onSlideCompleted();
     };
 
-    // Initialize demo sequence
     onMount(() => {
         const nameOfLocation = props.text.get('LOCATION.HOME.NAME').get();
         typeText({
@@ -94,15 +91,6 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
             }
         });
     });
-
-    // Custom styles for the demo
-    const demoStyles = {
-        locationPin: css`
-            position: absolute;
-            right: 5vw;
-            bottom: 20vh;
-        `
-    };
 
     const computedPlayerStyle = createMemo(() =>
         tutorialStyles.generators.playerCharacter(movePlayerToLocation())
@@ -117,7 +105,10 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
                     : 'TUTORIAL.LOCATION_DEMO.DESCRIPTION'
             )({ styleOverwrite: tutorialStyles.typography.subtitle })}
 
-            <VideoFrame backend={props.backend}>
+            <VideoFrame
+                styleOverwrite={tutorialStyles.components.videoFrame}
+                backend={props.backend}
+            >
                 <ActionInput
                     subscribers={bufferSubscribers}
                     text={props.text}
@@ -137,7 +128,7 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
                     buffer={inputBuffer}
                     onActivation={locationReached}
                     asset={1009}
-                    styleOverwrite={demoStyles.locationPin}
+                    styleOverwrite={tutorialStyles.elements.locationPin}
                     backend={props.backend}
                 />
 

@@ -77,18 +77,31 @@ export const tutorialStyles = {
             transform: translateX(-50%);
         `,
         characterBase: css`
-        position: absolute;
-        --edge-offset: 5vw;
-        bottom: 20vh;
-        --dude-size: 8vw;
-        width: var(--dude-size);
-        height: var(--dude-size);
-    `,
+            position: absolute;
+            --edge-offset: 5vw;
+            bottom: 20vh;
+            --dude-size: 8vw;
+            width: var(--dude-size);
+            height: var(--dude-size);
+        `,
 
         characterContainer: css`
             position: absolute;
             --edge-offset: 5vw;
             bottom: 20vh;
+        `,
+
+        locationPin: css`
+            position: absolute;
+            --edge-offset: 5vw;
+            bottom: 20vh;
+            right: var(--edge-offset);
+        `,
+    },
+
+    components: {
+        videoFrame: css`
+            margin-top: 2rem;
         `
     },
 

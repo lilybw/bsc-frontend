@@ -9,42 +9,12 @@ import NTAwait from '@/components/util/NoThrowAwait';
 import { TypeIconTuple, ActionContext, BufferSubscriber } from '@/ts/actionContext';
 import { createArrayStore } from '@/ts/arrayStore';
 import { IInternationalized, IBackendBased } from '@/ts/types';
-import { css } from '@emotion/css';
 import { typeText } from '@tutorial/utils/tutorialUtils';
 import { tutorialStyles } from '@tutorial/styles/tutorialStyles';
 
 interface NavigationDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
 }
-
-// Keep only demo-specific styles that aren't shared across components
-const demoStyles = {
-    videoFrame: css`
-        margin-top: 2rem;
-    `,
-
-    characterContainer: css`
-        position: absolute;
-        --edge-offset: 5vw;
-        bottom: 20vh;
-    `,
-
-    location: {
-        pin: css`
-            position: absolute;
-            --edge-offset: 5vw;
-            bottom: 20vh;
-            right: var(--edge-offset);
-        `,
-
-        player: (isAtLocation: boolean) => css`
-            ${tutorialStyles.elements.characterBase}
-            left: var(--edge-offset);
-            transition: left 2s;
-            ${isAtLocation ? 'left: 70%;' : ''}
-        `
-    }
-};
 
 export default function NavigationDemo(props: NavigationDemoProps): JSX.Element {
     const [inputBuffer, setInputBuffer] = createSignal<string>('');
@@ -74,7 +44,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
     });
 
     const computedPlayerStyle = createMemo(() =>
-        demoStyles.location.player(movePlayerToLocation())
+        tutorialStyles.generators.playerCharacter(movePlayerToLocation())
     );
 
     return (
@@ -85,7 +55,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
             })}
 
             <VideoFrame
-                styleOverwrite={demoStyles.videoFrame}
+                styleOverwrite={tutorialStyles.components.videoFrame}
                 backend={props.backend}
             >
                 <ActionInput
@@ -102,7 +72,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
                 <div class={tutorialStyles.elements.movementPath} />
 
                 <ImageBufferButton
-                    styleOverwrite={demoStyles.location.pin}
+                    styleOverwrite={tutorialStyles.elements.locationPin}
                     register={bufferSubscribers.add}
                     name={nameOfLocation}
                     buffer={inputBuffer}

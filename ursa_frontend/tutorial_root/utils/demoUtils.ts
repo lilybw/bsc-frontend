@@ -71,13 +71,52 @@ export const createDefaultColony = (locationId: KnownLocations = KnownLocations.
     }
 });
 
-export const createDemoEnvironment = (locationId: KnownLocations = KnownLocations.Home) => {
+export const createDemoEnvironment = (
+    locationId: KnownLocations = KnownLocations.Home,
+    overrides?: {
+        locationInfo?: {
+            id?: KnownLocations;
+            name?: string;
+            description?: string;
+            appearances?: Array<{
+                level: number;
+                splashArt: number;
+                assetCollectionID: number;
+            }>;
+            minigameID?: number;
+        };
+        colonyLocation?: {
+            id?: number;
+            level?: number;
+            transform?: {
+                xOffset?: number;
+                yOffset?: number;
+                zIndex?: number;
+                xScale?: number;
+                yScale?: number;
+            };
+        };
+    }
+) => {
     const { colony, colonyLocation } = createDefaultColony(locationId);
+    const defaultLocationInfo = createDefaultLocationInfo(locationId);
+
     return {
         events: createMockEvents(),
         multiplayer: createMockMultiplayer(),
         colony,
-        colonyLocation,
-        locationInfo: createDefaultLocationInfo(locationId)
+        colonyLocation: overrides?.colonyLocation ? {
+            ...colonyLocation,
+            ...overrides.colonyLocation,
+            transform: {
+                ...colonyLocation.transform,
+                ...overrides.colonyLocation.transform
+            }
+        } : colonyLocation,
+        locationInfo: overrides?.locationInfo ? {
+            ...defaultLocationInfo,
+            ...overrides.locationInfo,
+            appearances: overrides.locationInfo.appearances || defaultLocationInfo.appearances
+        } : defaultLocationInfo
     };
 };

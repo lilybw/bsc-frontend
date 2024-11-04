@@ -1,117 +1,53 @@
-import { JSX, createSignal, createMemo, Show, onMount, Component } from 'solid-js';
-import { css } from '@emotion/css';
+import { Component, createMemo, createSignal, onMount } from 'solid-js';
 import VideoFrame from './VideoFrame';
 import GraphicalAsset from '@/components/base/GraphicalAsset';
 import ImageBufferButton from '@/components/base/ImageBufferButton';
 import StarryBackground from '@/components/base/StarryBackground';
 import ActionInput from '@/components/colony/MainActionInput';
 import NTAwait from '@/components/util/NoThrowAwait';
-import { TypeIconTuple, ActionContext, BufferSubscriber } from '@/ts/actionContext';
+import { ActionContext, BufferSubscriber, TypeIconTuple } from '@/ts/actionContext';
 import { createArrayStore } from '@/ts/arrayStore';
 import { IInternationalized, IBackendBased } from '@/ts/types';
-import { ColonyState, MultiplayerMode } from '@/meta/types';
 import { KnownLocations } from '@/integrations/main_backend/constants';
 import LocationCard from '@/components/colony/location/LocationCard';
-import { IMultiplayerIntegration } from '@/integrations/multiplayer_backend/multiplayerBackend';
-import { IEventMultiplexer } from '@/integrations/multiplayer_backend/eventMultiplexer';
-import { ColonyInfoResponseDTO } from '@/integrations/main_backend/mainBackendDTOs';
+import { createMockMultiplayer, typeText } from '@tutorial/utils/tutorialUtils';
+import { createDemoPhaseManager, createDemoEnvironment } from '@tutorial/utils/demoUtils';
+import { tutorialStyles } from '@tutorial/styles/tutorialStyles';
 
 interface MultiplayerDemoProps extends IInternationalized, IBackendBased {
     onSlideCompleted: () => void;
 }
 
-const timeBetweenKeyStrokesMS = 500;
+const DEMO_TIMING = {
+    typeDelay: 500,
+    phaseTransition: 2000,
+    enterDelay: 1500,
+    commandDelay: 1000
+} as const;
 
-enum DemoStep {
-    MOVE_TO_SPACEPORT,
-    ENTER_SPACE_PORT,
-    OPEN_COLONY,
-    CLOSE_COLONY,
-    COMPLETED
-}
+type DemoStep = 'MOVE_TO_SPACEPORT' | 'ENTER_SPACE_PORT' | 'OPEN_COLONY' | 'CLOSE_COLONY' | 'COMPLETED';
 
 const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
+    // Basic state
     const [inputBuffer, setInputBuffer] = createSignal('');
-    const [actionContext, setActionContext] = createSignal<TypeIconTuple>(ActionContext.NAVIGATION);
+    const [actionContext] = createSignal<TypeIconTuple>(ActionContext.NAVIGATION);
     const [triggerEnter, setTriggerEnter] = createSignal(0);
     const [movePlayerToLocation, setMovePlayerToLocation] = createSignal(false);
     const [showLocationCard, setShowLocationCard] = createSignal(false);
-    const [currentStep, setCurrentStep] = createSignal<DemoStep>(DemoStep.MOVE_TO_SPACEPORT);
     const bufferSubscribers = createArrayStore<BufferSubscriber<string>>();
 
-    // Mock data for SpacePort location card
-    const mockEvents: IEventMultiplexer = {
-        emit: () => Promise.resolve(0),
-        subscribe: () => 0,
-        unsubscribe: (..._ids: number[]) => true
+    // Demo environment setup
+    const demoPhase = createDemoPhaseManager<DemoStep>('MOVE_TO_SPACEPORT');
+    const [mockMultiplayerState, setMockMultiplayerState] = createSignal(createMockMultiplayer());
+
+    const updateMultiplayerCode = (code: number | null) => {
+        setMockMultiplayerState(prev => ({
+            ...prev,
+            getCode: () => code
+        }));
     };
 
-    const mockMultiplayer: IMultiplayerIntegration = {
-        connect: () => Promise.resolve(undefined),
-        disconnect: () => Promise.resolve(),
-        getMode: () => MultiplayerMode.AS_OWNER,
-        getState: () => ColonyState.CLOSED,
-        getCode: () => null,
-        getServerStatus: async () => ({
-            res: null,
-            code: 200,
-            err: "Tutorial mode"
-        }),
-        getLobbyState: async () => ({
-            res: null,
-            code: 200,
-            err: "Tutorial mode"
-        })
-    };
-
-    const [mockMultiplayerState, setMockMultiplayerState] = createSignal<IMultiplayerIntegration>({
-        ...mockMultiplayer,
-        getCode: () => null
-    });
-
-    const mockColony: ColonyInfoResponseDTO = {
-        id: 1,
-        accLevel: 1,
-        name: "Tutorial Colony",
-        latestVisit: new Date().toISOString(),
-        assets: [{
-            assetCollectionID: 1,
-            transform: {
-                xOffset: 0,
-                yOffset: 0,
-                zIndex: 1,
-                xScale: 1,
-                yScale: 1
-            }
-        }],
-        locations: [{
-            id: 1,
-            level: 0,
-            locationID: KnownLocations.SpacePort,
-            transform: {
-                xOffset: 0,
-                yOffset: 0,
-                zIndex: 1,
-                xScale: 1,
-                yScale: 1
-            }
-        }]
-    };
-
-    const mockColonyLocation = {
-        id: 1,
-        locationID: KnownLocations.SpacePort,
-        level: 0,
-        transform: {
-            xOffset: 0,
-            yOffset: 0,
-            zIndex: 1,
-            xScale: 1,
-            yScale: 1
-        }
-    };
-
-    const defaultLocationInfo = {
+    const spacePortLocationInfo = {
         id: KnownLocations.SpacePort,
         name: 'LOCATION.SPACE_PORT.NAME',
         description: 'LOCATION.SPACE_PORT.DESCRIPTION',
@@ -123,23 +59,33 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
         minigameID: 0
     };
 
+    const demoEnv = createDemoEnvironment(KnownLocations.SpacePort, {
+        locationInfo: spacePortLocationInfo
+    });
+
+    // Buffer handler
     bufferSubscribers.add((inputBuffer: string) => {
-        const phase = currentStep();
+        const phase = demoPhase.phase();
+        const commands = {
+            spacePort: props.text.get('LOCATION.SPACE_PORT.NAME').get(),
+            openColony: props.text.get('LOCATION.SPACE_PORT.OPEN_COLONY').get(),
+            closeColony: props.text.get('LOCATION.SPACE_PORT.CLOSE_COLONY').get()
+        };
 
         switch (phase) {
-            case DemoStep.MOVE_TO_SPACEPORT:
-                if (inputBuffer === props.text.get('LOCATION.SPACE_PORT.NAME').get()) {
+            case 'MOVE_TO_SPACEPORT':
+                if (inputBuffer === commands.spacePort) {
                     handleSpacePortReached();
                     return { consumed: true };
                 }
                 break;
-            case DemoStep.OPEN_COLONY:
-                if (inputBuffer === props.text.get('LOCATION.SPACE_PORT.OPEN_COLONY').get()) {
+            case 'OPEN_COLONY':
+                if (inputBuffer === commands.openColony) {
                     return { consumed: true };
                 }
                 break;
-            case DemoStep.CLOSE_COLONY:
-                if (inputBuffer === props.text.get('LOCATION.SPACE_PORT.CLOSE_COLONY').get()) {
+            case 'CLOSE_COLONY':
+                if (inputBuffer === commands.closeColony) {
                     return { consumed: true };
                 }
                 break;
@@ -147,123 +93,94 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
         return { consumed: false };
     });
 
-    const typeText = (text: string, targetPhase: DemoStep) => {
-        if (currentStep() !== targetPhase) return 0;
-
-        // Clear immediately
-        setInputBuffer('');
-
-        // Use a promise to ensure sequential typing
-        return new Promise<number>((resolve) => {
-            let currentIndex = 0;
-            const intervalId = setInterval(() => {
-                if (currentStep() !== targetPhase) {
-                    clearInterval(intervalId);
-                    resolve(0);
-                    return;
-                }
-
-                if (currentIndex < text.length) {
-                    setInputBuffer(text.substring(0, currentIndex + 1));
-                    currentIndex++;
-                } else {
-                    clearInterval(intervalId);
-                    resolve(1000);
-                }
-            }, timeBetweenKeyStrokesMS);
-        });
-    };
-
+    // Phase management
     const moveToSpacePort = async () => {
-        if (currentStep() !== DemoStep.MOVE_TO_SPACEPORT) return;
+        if (demoPhase.phase() !== 'MOVE_TO_SPACEPORT') return;
         setMovePlayerToLocation(true);
 
         setTimeout(() => {
-            if (currentStep() === DemoStep.MOVE_TO_SPACEPORT) {
+            if (demoPhase.phase() === 'MOVE_TO_SPACEPORT') {
                 setShowLocationCard(true);
-                setCurrentStep(DemoStep.ENTER_SPACE_PORT);
+                demoPhase.transition('ENTER_SPACE_PORT');
                 startOpenColonyPhase();
             }
-        }, 2000);
+        }, DEMO_TIMING.phaseTransition);
     };
 
     const startOpenColonyPhase = async () => {
-        if (currentStep() !== DemoStep.ENTER_SPACE_PORT) return;
-        setCurrentStep(DemoStep.OPEN_COLONY);
+        if (demoPhase.phase() !== 'ENTER_SPACE_PORT') return;
+        demoPhase.setPhase('OPEN_COLONY');
 
-        const openColonyText = props.text.get('LOCATION.SPACE_PORT.OPEN_COLONY').get();
-        const typingTime = await typeText(openColonyText, DemoStep.OPEN_COLONY);
+        const text = props.text.get('LOCATION.SPACE_PORT.OPEN_COLONY').get();
+        setInputBuffer('');
+
+        await typeText({
+            text,
+            delay: DEMO_TIMING.typeDelay,
+            onType: setInputBuffer
+        });
+        setTriggerEnter(prev => prev + 1);
 
         setTimeout(() => {
-            if (currentStep() === DemoStep.OPEN_COLONY) {
-                setTriggerEnter(prev => prev + 1);
-                setTimeout(() => {
-                    setMockMultiplayerState({
-                        ...mockMultiplayer,
-                        getCode: () => 123456
-                    });
-                    setTimeout(() => startCloseColonyPhase(), 1000);
-                }, 1500);
-            }
-        }, typingTime);
+            updateMultiplayerCode(123456);
+            setTimeout(() => startCloseColonyPhase(), DEMO_TIMING.commandDelay);
+        }, DEMO_TIMING.enterDelay);
     };
 
     const startCloseColonyPhase = async () => {
-        if (currentStep() !== DemoStep.OPEN_COLONY) return;
-        setCurrentStep(DemoStep.CLOSE_COLONY);
+        if (demoPhase.phase() !== 'OPEN_COLONY') return;
+        demoPhase.setPhase('CLOSE_COLONY');
 
-        const closeColonyText = props.text.get('LOCATION.SPACE_PORT.CLOSE_COLONY').get();
-        const typingTime = await typeText(closeColonyText, DemoStep.CLOSE_COLONY);
+        const text = props.text.get('LOCATION.SPACE_PORT.CLOSE_COLONY').get();
+        setInputBuffer('');
+
+        await typeText({
+            text,
+            delay: DEMO_TIMING.typeDelay,
+            onType: setInputBuffer
+        });
+        setTriggerEnter(prev => prev + 1);
 
         setTimeout(() => {
-            if (currentStep() === DemoStep.CLOSE_COLONY) {
-                setTriggerEnter(prev => prev + 1);
-                setTimeout(() => {
-                    setMockMultiplayerState({
-                        ...mockMultiplayer,
-                        getCode: () => null
-                    });
-                    setTimeout(() => completeDemonstration(), 1000);
-                }, 1500);
-            }
-        }, typingTime);
+            updateMultiplayerCode(null);
+            setTimeout(() => {
+                demoPhase.setPhase('COMPLETED');
+                props.onSlideCompleted();
+            }, DEMO_TIMING.commandDelay);
+        }, DEMO_TIMING.enterDelay);
     };
 
-    const completeDemonstration = () => {
-        setCurrentStep(DemoStep.COMPLETED);
-        props.onSlideCompleted();
-    };
+    const handleSpacePortReached = () => moveToSpacePort();
 
-    // Simpler main handler that starts the sequence
-    const handleSpacePortReached = () => {
-        moveToSpacePort();
-    };
-
-    // Start demo sequence
+    // Initialize demo
     onMount(async () => {
-        const spacePortName = props.text.get('LOCATION.SPACE_PORT.NAME').get();
-        const typingTime = await typeText(spacePortName, DemoStep.MOVE_TO_SPACEPORT);
+        const text = props.text.get('LOCATION.SPACE_PORT.NAME').get();
+        await typeText({
+            text,
+            delay: DEMO_TIMING.typeDelay,
+            onType: setInputBuffer
+        });
 
-        setTimeout(() => {
-            if (currentStep() === DemoStep.MOVE_TO_SPACEPORT) {
-                setTriggerEnter(prev => prev + 1);
-                moveToSpacePort();
-            }
-        }, typingTime);
+        if (demoPhase.phase() === 'MOVE_TO_SPACEPORT') {
+            setTriggerEnter(prev => prev + 1);
+            moveToSpacePort();
+        }
     });
 
-    const computedPlayerStyle = createMemo(() => css`
-        ${playerCharStyleOverwrite} 
-        ${movePlayerToLocation() ? playerAtLocation : ''}
-    `);
+    const computedPlayerStyle = createMemo(() =>
+        tutorialStyles.generators.playerCharacter(movePlayerToLocation())
+    );
 
     return (
-        <div class="multiplayer-demo">
+        <div class={tutorialStyles.layout.container}>
             <StarryBackground />
-            {props.text.SubTitle(
-                "TUTORIAL.MULTPLAYER.DESCRIPTION"
-            )({})}
-            <VideoFrame backend={props.backend}>
+            {props.text.SubTitle("TUTORIAL.MULTPLAYER.DESCRIPTION")({
+                styleOverwrite: tutorialStyles.typography.subtitle
+            })}
+            <VideoFrame
+                styleOverwrite={tutorialStyles.components.videoFrame}
+                backend={props.backend}
+            >
                 <ActionInput
                     subscribers={bufferSubscribers}
                     text={props.text}
@@ -274,14 +191,14 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
                     manTriggerEnter={triggerEnter}
                     demoMode={true}
                 />
-                <div class={movementPathStyle}></div>
+                <div class={tutorialStyles.elements.movementPath} />
                 <ImageBufferButton
                     register={bufferSubscribers.add}
                     name={props.text.get('LOCATION.SPACE_PORT.NAME').get()}
                     buffer={inputBuffer}
                     onActivation={handleSpacePortReached}
                     asset={1009}
-                    styleOverwrite={locationPinStyleOverwrite}
+                    styleOverwrite={tutorialStyles.elements.locationPin}
                     backend={props.backend}
                 />
                 <NTAwait func={() => props.backend.assets.getMetadata(4001)}>
@@ -295,10 +212,8 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
                 </NTAwait>
                 {showLocationCard() && (
                     <LocationCard
-                        colony={mockColony}
-                        colonyLocation={mockColonyLocation}
-                        location={defaultLocationInfo}
-                        events={mockEvents}
+                        {...demoEnv}
+                        location={demoEnv.locationInfo}  // Explicitly provide location prop
                         multiplayer={mockMultiplayerState()}
                         onClose={() => setShowLocationCard(false)}
                         buffer={inputBuffer}
@@ -311,38 +226,5 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
         </div>
     );
 };
-
-const movementPathStyle = css`
-    border-bottom: 1px dashed white;
-    height: 66%;
-    width: 50%;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-`;
-
-const shared = css`
-    position: absolute;
-    --edge-offset: 5vw;
-    bottom: 20vh;
-`;
-
-const playerCharStyleOverwrite = css`
-    ${shared}
-    left: var(--edge-offset);
-    --dude-size: 8vw;
-    width: var(--dude-size);
-    height: var(--dude-size);
-    transition: left 2s;
-`;
-
-const playerAtLocation = css`
-    left: 70%;
-`;
-
-const locationPinStyleOverwrite = css`
-    ${shared}
-    right: var(--edge-offset);
-`;
 
 export default MultiplayerDemo;
