@@ -422,8 +422,6 @@ const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
             <StarryBackground />
             {props.text.Title('TUTORIAL.TRIAL.TITLE')({ styleOverwrite: trialTitleStyleOverwrite })}
             {props.text.SubTitle('TUTORIAL.TRIAL.YOUR_TURN')({ styleOverwrite: subtitleStyleOverwrite })}
-
-
             <ActionInput
                 subscribers={bufferSubscribers}
                 text={props.text}
@@ -432,20 +430,18 @@ const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
                 setInputBuffer={setInputBuffer}
                 inputBuffer={inputBuffer}
             />
-
-            <For each={renderablePaths()}>
-                {(path) => {
-                    if (!path) return null;
-                    return (
-                        <>
-                            <div class={lineStyle(path)} />
-                            <div class={lineGlowStyle(path)} />
-                        </>
-                    );
-                }}
-            </For>
-
             <div class={computedCameraStyle()}>
+                <For each={renderablePaths()}>
+                    {(path) => {
+                        if (!path) return null;
+                        return (
+                            <>
+                                <div class={lineStyle(path)} />
+                                <div class={lineGlowStyle(path)} />
+                            </>
+                        );
+                    }}
+                </For>
                 <For each={getScaledPositions()}>
                     {(location) => (
                         <div class={locationContainerStyle}>
