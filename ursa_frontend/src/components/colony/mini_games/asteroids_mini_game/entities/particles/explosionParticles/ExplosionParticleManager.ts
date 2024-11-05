@@ -1,3 +1,5 @@
+import { EntityRef } from '../../../types/gameTypes';
+import { getEntityRefKey, getTargetCenterPosition } from '../../../utils/gameUtils';
 import { BaseParticleManager } from '../BaseParticleManager';
 import ExplosionParticle from './ExplosionParticle';
 
@@ -6,11 +8,38 @@ export interface ExplosionConfig {
     particleCount: number;
     duration: number;
     spread: number;
+    entityId: number;  // ID of the entity that exploded
+    entityType: 'asteroid' | 'player';  // Type of entity that exploded
 }
 
 export class ExplosionParticleManager extends BaseParticleManager<ExplosionParticle> {
-    public createExplosion(x: number, y: number, config: ExplosionConfig): void {
-        if (this.isCleaningUp) return;
+    private entityId: number;
+    private entityType: 'asteroid' | 'player';
+
+    constructor(
+        updateCallback: () => void,
+        entityId: number,
+        entityType: 'asteroid' | 'player',
+        elementRefs: Map<string, EntityRef>
+    ) {
+        super(updateCallback, elementRefs);
+        this.entityId = entityId;
+        this.entityType = entityType;
+    }
+
+    public createExplosion(config: ExplosionConfig): number {
+        if (this.isCleaningUp) return -1;
+
+        const entityKey = this.entityType === 'asteroid'
+            ? getEntityRefKey.asteroid(this.entityId)
+            : getEntityRefKey.player(this.entityId);
+
+        const centerPos = getTargetCenterPosition(entityKey, this.elementRefs);
+
+        if (!centerPos) {
+            console.error(`[EXPLOSION] Could not get ${this.entityType} center position for ID:`, this.entityId);
+            return -1;
+        }
 
         const {
             size = 1,
@@ -18,6 +47,8 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
             duration = 2000,
             spread = 100 * size
         } = config;
+
+        let createdParticles = 0;
 
         // Create particles in a circular pattern
         for (let i = 0; i < particleCount; i++) {
@@ -29,8 +60,8 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
 
             const particle = new ExplosionParticle({
                 id: this.getNextId(),
-                x,
-                y,
+                x: centerPos.x,
+                y: centerPos.y,
                 duration,
                 size: 2.5 * Math.sqrt(size),
                 velocity,
@@ -44,6 +75,12 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
             });
 
             this.addParticle(particle);
+            createdParticles++;
         }
+
+        console.log(`[EXPLOSION] Created ${createdParticles} particles for ${this.entityType} ${this.entityId}`);
+        return createdParticles;
     }
 }
+
+export default ExplosionParticleManager;

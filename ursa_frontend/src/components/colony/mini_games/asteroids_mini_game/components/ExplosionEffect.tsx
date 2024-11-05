@@ -1,13 +1,14 @@
+// ExplosionEffect.tsx
 import { Accessor, Component, createSignal, createEffect, onCleanup, Show, For } from "solid-js";
+import { ExplosionParticleManager, ExplosionConfig } from "../entities/particles/explosionParticles/ExplosionParticleManager";
 import { particleContainerStyle, stunParticleBaseStyle, stunParticleContentStyle } from "../styles/particleStyles";
 import { EntityRef } from "../types/entityTypes";
 import BaseParticle from "../entities/particles/BaseParticle";
-import { ExplosionConfig, ExplosionParticleManager } from "../entities/particles/explosionParticles/ExplosionParticleManager";
 
 interface ExplosionEffectProps {
-    x: number;
-    y: number;
-    config: ExplosionConfig;
+    entityId: number;
+    entityType: 'asteroid' | 'player';
+    config: Omit<ExplosionConfig, 'entityId' | 'entityType'>;
     elementRefs: Map<string, EntityRef>;
 }
 
@@ -22,19 +23,25 @@ const ExplosionEffect: Component<ExplosionEffectProps> = (props) => {
             setParticles(currentParticles);
             setHasActiveParticles(currentParticles.length > 0);
         },
+        props.entityId,
+        props.entityType,
         props.elementRefs
     );
 
     // Create explosion on mount
     createEffect(() => {
-        particleManager.createExplosion(props.x, props.y, props.config);
+        particleManager.createExplosion({
+            ...props.config,
+            entityId: props.entityId,
+            entityType: props.entityType
+        });
 
-        // Start regular updates
+        // Regular updates
         const updateInterval = setInterval(() => {
             particleManager.update();
         }, 16); // 60fps update rate
 
-        // Cleanup interval when component unmounts
+        // Cleanup
         onCleanup(() => {
             clearInterval(updateInterval);
             particleManager.clear();
