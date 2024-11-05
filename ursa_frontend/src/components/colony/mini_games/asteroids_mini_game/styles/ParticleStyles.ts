@@ -31,20 +31,21 @@ export const stunParticleBaseStyle = css`
 
 export const stunParticleVerticalStyle = css`
     animation: riseY 4s linear forwards;
-
     @keyframes riseY {
         0% {
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
             opacity: 0;
         }
         5% {
             opacity: 1;
+            transform: translateY(-20%) scale(1.2);
         }
         90% {
             opacity: 1;
+            transform: translateY(-450%) scale(0.8);
         }
         100% {
-            transform: translateY(-500%);
+            transform: translateY(-500%) scale(0.2);
             opacity: 0;
         }
     }
