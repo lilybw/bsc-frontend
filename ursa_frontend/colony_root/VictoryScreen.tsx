@@ -14,7 +14,7 @@ interface VictoryScreenProps extends IBackendBased, IRegistering<string>, IInter
 const VictoryScreen: Component<VictoryScreenProps> = (props) => {
     return (
         <div class={postGameScreenContainerStyles}>
-            {props.text.Title("MINIGAME.VICTORY")({styleOverwrite: css`color: orange; position: absolute; top: 1vh;`})}
+            {props.text.Title("MINIGAME.VICTORY")({styleOverwrite: css`color: orange; position: absolute; top: 1vh; font-size: 5rem;`})}
             <div class={Styles.MINIGAME.TITLE}>{getMinigameName(props.data.minigameID)}</div>
             <div class={difficultySubsection}>
                 <div>{props.text.SubTitle("MINIGAME.DIFFICULTY")({})}</div>

@@ -15,7 +15,7 @@ interface DefeatScreenProps extends IBackendBased, IRegistering<string>, IIntern
 const DefeatScreen: Component<DefeatScreenProps> = (props) => {
     return (
         <div class={postGameScreenContainerStyles}>
-            {props.text.Title("MINIGAME.DEFEAT")({styleOverwrite: css`color: red; position: absolute; top: 1vh;`})}
+            {props.text.Title("MINIGAME.DEFEAT")({styleOverwrite: css`color: red; position: absolute; top: 1vh; font-size: 5rem;`})}
             <div class={Styles.MINIGAME.TITLE}>{getMinigameName(props.data.minigameID)}</div>
             <div class={difficultySubsection}>
                 <div>{props.text.SubTitle("MINIGAME.DIFFICULTY")({})}</div>
