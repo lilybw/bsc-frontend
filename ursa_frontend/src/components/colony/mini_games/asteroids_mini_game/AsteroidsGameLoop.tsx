@@ -60,9 +60,9 @@ class AsteroidsGameLoop {
         const startY = Math.random() * 0.9 + 0.1; // Start somewhere random vertically
         const id = this.nextAsteroidID++;
         const charCode = this.charPool.generateCode();
-        const timeTillImpact =
-            Math.random() * (this.settings.maxTimeTillImpactS * 1000 - this.settings.minTimeTillImpactS * 1000) +
-            this.settings.minTimeTillImpactS * 1000;
+        const timeTillImpactMS =
+            (Math.random() * (this.settings.maxTimeTillImpactS - this.settings.minTimeTillImpactS) +
+            this.settings.minTimeTillImpactS) * 1000;
         const health = Math.ceil(this.settings.asteroidMaxHealth * Math.random());
 
         const data = {
@@ -72,7 +72,7 @@ class AsteroidsGameLoop {
             endX: Math.random() * 0.5, // Impact at left edge
             endY: Math.random() * 0.5, // Impact at vertical center
             health,
-            timeUntilImpact: timeTillImpact,
+            timeUntilImpact: timeTillImpactMS,
             type: 0,
             charCode,
             senderID: MOCK_SERVER_ID,
