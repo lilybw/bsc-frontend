@@ -23,6 +23,8 @@ import { wallStyle, statusStyle, timeLeftStyle, asteroidStyle, asteroidImageCont
 import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, generateSpawnPosition, generateImpactPosition, calculatePlayerPositions, getRandomRotationSpeed } from "./utils/gameUtils"
 import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes"
 import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
+import ExplosionParticleManager, { ExplosionData } from "./entities/particles/explosionParticles/ExplosionParticleManager";
+import ExplosionEffect from "./components/ExplosionEffect";
 
 type PlayerState = {
     isStunned: boolean;
@@ -70,6 +72,8 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
 
     // Particle Management
     const playerParticleManagers = new Map<number, StunParticleManager>();
+    const explosions = createArrayStore<ExplosionData>();
+    let explosionCounter = 0;
 
     /**
      * Handles local player shooting at a specific character code
@@ -146,6 +150,18 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
 
                     createLazerBeam(shooterPos, targetPos);
 
+                    // Create explosion effect
+                    explosions.add({
+                        id: explosionCounter++,
+                        entityId: asteroid.id,
+                        entityType: 'asteroid',
+                        config: {
+                            size: 1,         // Health
+                            particleCount: 1, // Health
+                            duration: 1000    // Health
+                        }
+                    });
+
                     console.log('Destroying asteroid:', asteroid.id);
                     handleAsteroidDestruction(asteroid.id, elementRefs, asteroidsRemoveFuncs);
                 } else {
@@ -170,6 +186,13 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                     });
 
                     createLazerBeam(shooterPos, targetPos);
+
+                    // Create explosion effect
+                    explosions.add({
+                        id: explosionCounter++,
+                        entityId: player.id,
+                        entityType: 'player'
+                    });
 
                     player.stun();
                     shooter.disable();
@@ -470,6 +493,17 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                                 styleOverwrite={buttonStyleOverwrite}
                             />
                         </div>
+                    )}
+                </For>
+
+                <For each={explosions.get}>
+                    {(explosion) => (
+                        <ExplosionEffect
+                            entityId={explosion.entityId}
+                            entityType={explosion.entityType}
+                            elementRefs={elementRefs}
+                            config={explosion.config}
+                        />
                     )}
                 </For>
 

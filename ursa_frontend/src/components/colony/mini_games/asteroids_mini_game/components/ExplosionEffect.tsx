@@ -1,22 +1,25 @@
-// ExplosionEffect.tsx
-import { Accessor, Component, createSignal, createEffect, onCleanup, Show, For } from "solid-js";
-import { ExplosionParticleManager, ExplosionConfig } from "../entities/particles/explosionParticles/ExplosionParticleManager";
-import { particleContainerStyle, stunParticleBaseStyle, stunParticleContentStyle } from "../styles/particleStyles";
+import { Component, createSignal, createEffect, onCleanup, Show, For } from "solid-js";
+import { particleContainerStyle, stunParticleBaseStyle, stunParticleContentStyle } from "../styles/fireParticleStyles";
+import { explosionParticleMovementStyle } from "../styles/explosionParticleStyles";
 import { EntityRef } from "../types/entityTypes";
 import BaseParticle from "../entities/particles/BaseParticle";
+import { ExplosionParticleManager } from "../entities/particles/explosionParticles/ExplosionParticleManager";
 
 interface ExplosionEffectProps {
     entityId: number;
     entityType: 'asteroid' | 'player';
-    config: Omit<ExplosionConfig, 'entityId' | 'entityType'>;
     elementRefs: Map<string, EntityRef>;
+    config?: {
+        size?: number;         // Default: 1
+        particleCount?: number; // Default: 1
+        duration?: number;      // Default: 1000
+    };
 }
 
 const ExplosionEffect: Component<ExplosionEffectProps> = (props) => {
     const [particles, setParticles] = createSignal<BaseParticle[]>([]);
     const [hasActiveParticles, setHasActiveParticles] = createSignal(false);
 
-    // Create particle manager
     const particleManager = new ExplosionParticleManager(
         () => {
             const currentParticles = particleManager.getParticles();
@@ -28,21 +31,22 @@ const ExplosionEffect: Component<ExplosionEffectProps> = (props) => {
         props.elementRefs
     );
 
-    // Create explosion on mount
     createEffect(() => {
+        console.log(`[EXPLOSION] Creating explosion for ${props.entityType} ${props.entityId}`);
+
+        // Create explosion immediately
         particleManager.createExplosion({
-            ...props.config,
             entityId: props.entityId,
-            entityType: props.entityType
+            entityType: props.entityType,
+            ...props.config
         });
 
-        // Regular updates
         const updateInterval = setInterval(() => {
             particleManager.update();
-        }, 16); // 60fps update rate
+        }, 16);
 
-        // Cleanup
         onCleanup(() => {
+            console.log(`[EXPLOSION] Cleaning up explosion for ${props.entityType} ${props.entityId}`);
             clearInterval(updateInterval);
             particleManager.clear();
         });
@@ -54,7 +58,9 @@ const ExplosionEffect: Component<ExplosionEffectProps> = (props) => {
                 <For each={particles()}>
                     {(particle) => (
                         <div class={stunParticleBaseStyle} style={particle.getStyle()}>
-                            <div class={stunParticleContentStyle} />
+                            <div class={explosionParticleMovementStyle}>
+                                <div class={stunParticleContentStyle} />
+                            </div>
                         </div>
                     )}
                 </For>

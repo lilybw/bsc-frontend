@@ -20,6 +20,17 @@ export interface ExplosionConfig {
     spread?: number;         // Default: size * 100
 }
 
+export interface ExplosionData {
+    id: number;
+    entityId: number;
+    entityType: 'asteroid' | 'player';
+    config?: {
+        size?: number;
+        particleCount?: number;
+        duration?: number;
+    };
+}
+
 export class ExplosionParticleManager extends BaseParticleManager<ExplosionParticle> {
     private entityId: number;
     private entityType: 'asteroid' | 'player';
@@ -61,6 +72,9 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
         const actualParticleCount = Math.floor(DEFAULT_BASE_PARTICLE_COUNT * particleCount);
 
         let createdParticles = 0;
+
+        console.log('[EXPLOSION] Center position:', centerPos);
+        console.log('[EXPLOSION] Particle count:', actualParticleCount);
 
         // Create particles in a circular pattern
         for (let i = 0; i < actualParticleCount; i++) {
