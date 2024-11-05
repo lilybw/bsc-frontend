@@ -193,7 +193,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
                     const view = new DataView(buffer);
                     if (view.byteLength < 8) {
                         this.log.error(`Received message with less than 8 bytes: ${view.byteLength}, content as string: 
-                            ${parseGoTypeAtOffsetInView(view, 8, GoType.STRING)}
+                            ${parseGoTypeAtOffsetInView(view, 0, GoType.STRING)}
                         `);
 
                         return;
@@ -204,7 +204,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
 
                     if (!spec || spec === null) {
                         this.log.error(`Received event with unknown ID: ${eventID}, source id: ${sourceID}, content as string: 
-                            ${parseGoTypeAtOffsetInView(view, 8, GoType.STRING)}
+                            ${parseGoTypeAtOffsetInView(view, 0, GoType.STRING)}
                         `);
                         return;
                     }
