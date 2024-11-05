@@ -25,11 +25,14 @@ import {
     STYLE_LOC_CARD_lowerThirdWBackgroundStyle,
     STYLE_LOC_CARD_titleStyleOverwrite,
 } from './SpacePortLocationCard';
+import { IMultiplayerIntegration } from '@/integrations/multiplayer_backend/multiplayerBackend';
+import { MultiplayerMode } from '@/meta/types';
 
 export interface GenericLocationCardProps extends IBufferBased, IBackendBased, IInternationalized, IRegistering<string> {
     colonyLocation: ColonyLocationInformation;
     info: LocationInfoResponseDTO;
     events: IEventMultiplexer;
+    multiplayer: IMultiplayerIntegration;
     closeCard: () => void;
 }
 
@@ -129,13 +132,13 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                         register={props.register}
                         onActivation={props.closeCard}
                     />
-                    <BufferBasedButton
+                    {props.multiplayer.getMode() === MultiplayerMode.AS_OWNER && <BufferBasedButton
                         name={props.text.get('MINIGAME.START').get()}
                         buffer={props.buffer}
                         register={props.register}
                         onActivation={onDifficultyConfirmed}
                         enable={() => difficultySelected() !== null}
-                    />
+                    />}
                 </div>
             </div>
         </div>

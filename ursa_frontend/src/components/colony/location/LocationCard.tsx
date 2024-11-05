@@ -24,6 +24,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             case KnownLocations.Home:
                 return (
                     <HomeLocationCard
+                        multiplayer={props.multiplayer}
                         events={props.events}
                         colonyLocation={props.colonyLocation}
                         closeCard={props.onClose}
@@ -52,6 +53,7 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             default:
                 return (
                     <GenericLocationCard
+                        multiplayer={props.multiplayer}
                         events={props.events}
                         colonyLocation={props.colonyLocation}
                         closeCard={props.onClose}

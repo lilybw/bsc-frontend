@@ -155,8 +155,8 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
                     backend={props.context.backend}
                     text={props.context.text}
                     clearSelf={() => {
-                        setConfirmedDifficulty(null); 
                         setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
+                        setConfirmedDifficulty(null); 
                     }}
                     goToWaitingScreen={() => setLocalSequencePhase(LocalSequencePhase.WAITING_SCREEN)}
                 />) as StrictJSX;
