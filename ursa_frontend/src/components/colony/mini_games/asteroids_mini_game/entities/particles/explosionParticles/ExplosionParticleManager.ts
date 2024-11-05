@@ -3,13 +3,21 @@ import { getEntityRefKey, getTargetCenterPosition } from '../../../utils/gameUti
 import { BaseParticleManager } from '../BaseParticleManager';
 import ExplosionParticle from './ExplosionParticle';
 
+// Constants for default values
+const DEFAULT_BASE_PARTICLE_COUNT = 25;
+const DEFAULT_DURATION_MS = 1000;
+const DEFAULT_SIZE = 1;
+
 export interface ExplosionConfig {
-    size: number;
-    particleCount: number;
-    duration: number;
-    spread: number;
-    entityId: number;  // ID of the entity that exploded
-    entityType: 'asteroid' | 'player';  // Type of entity that exploded
+    // Required properties
+    entityId: number;
+    entityType: 'asteroid' | 'player';
+
+    // Optional properties with defaults
+    size?: number;           // Default: 1
+    particleCount?: number;  // Default: 1 (multiplier for BASE_PARTICLE_COUNT)
+    duration?: number;       // Default: 1 (seconds)
+    spread?: number;         // Default: size * 100
 }
 
 export class ExplosionParticleManager extends BaseParticleManager<ExplosionParticle> {
@@ -41,18 +49,22 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
             return -1;
         }
 
+        // Apply defaults
+        const size = config.size ?? DEFAULT_SIZE;
         const {
-            size = 1,
-            particleCount = Math.floor(20 * size),
-            duration = 2000,
-            spread = 100 * size
+            particleCount = DEFAULT_SIZE,
+            duration = DEFAULT_DURATION_MS,
+            spread = size * 100  // Default spread is proportional to size
         } = config;
+
+        // Calculate actual particle count using base count and multiplier
+        const actualParticleCount = Math.floor(DEFAULT_BASE_PARTICLE_COUNT * particleCount);
 
         let createdParticles = 0;
 
         // Create particles in a circular pattern
-        for (let i = 0; i < particleCount; i++) {
-            const angle = (i / particleCount) * Math.PI * 2 + Math.random() * 0.5;
+        for (let i = 0; i < actualParticleCount; i++) {
+            const angle = (i / actualParticleCount) * Math.PI * 2 + Math.random() * 0.5;
             const velocity = {
                 x: Math.cos(angle),
                 y: Math.sin(angle)
@@ -78,7 +90,7 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
             createdParticles++;
         }
 
-        console.log(`[EXPLOSION] Created ${createdParticles} particles for ${this.entityType} ${this.entityId}`);
+        console.log(`[EXPLOSION] Created ${createdParticles} particles for ${this.entityType} ${this.entityId} (size: ${size}, spread: ${spread})`);
         return createdParticles;
     }
 }
