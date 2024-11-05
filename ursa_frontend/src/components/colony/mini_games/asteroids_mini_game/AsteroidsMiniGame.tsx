@@ -20,7 +20,7 @@ import { Position } from "./entities/BaseEntity";
 import LazerBeam from "./entities/LazerBeam";
 import Player from "./entities/Player";
 import { wallStyle, statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle } from "./styles/gameStyles";
-import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, generateSpawnPosition, generateImpactPosition, calculatePlayerPositions, getRandomRotationSpeed } from "./utils/gameUtils"
+import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, translateSpawnPosition, generateImpactPosition, getRandomRotationSpeed } from "./utils/gameUtils"
 import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes"
 import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
 
@@ -239,7 +239,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
             ASTEROIDS_ASTEROID_SPAWN_EVENT,
             Object.assign(
                 (data: AsteroidsAsteroidSpawnMessageDTO) => {
-                    const spawnPos = generateSpawnPosition({ width: windowSize().width, height: windowSize().height });
+                    const spawnPos = translateSpawnPosition({ width: windowSize().width, height: windowSize().height });
                     const impactPos = generateImpactPosition();
 
                     const asteroid = new Asteroid({
@@ -278,6 +278,8 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                 (data: AsteroidsAssignPlayerDataMessageDTO) => {
                     const player = new Player({
                         ...data,
+                        x: data.x * windowSize().width,
+                        y: data.y * windowSize().height,
                         element: null,
                         stunDuration: props.settings.stunDurationS,
                         friendlyFirePenalty: props.settings.friendlyFirePenaltyS,
@@ -296,18 +298,6 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
 
                     players.add(player);
                     updatePlayerState(player.id, { isStunned: false, isDisabled: false });
-                    const newPositions = calculatePlayerPositions(players.get);
-
-                    players.mutateByPredicate(
-                        (p) => p.id === player.id,
-                        (player) => {
-                            const pos = newPositions.get(player.id);
-                            if (pos) {
-                                player.setPosition(pos.x, pos.y);
-                            }
-                            return player;
-                        },
-                    );
                 },
                 { internalOrigin },
             ),
