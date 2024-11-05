@@ -46,7 +46,7 @@ export const calculateMinSpawnDistance = (windowWidth: number): number => {
 /**
  * Generates a spawn position
  */
-export const generateSpawnPosition = (windowSize: { width: number; height: number }): Position => {
+export const translateSpawnPosition = (windowSize: { width: number; height: number }): Position => {
     const minSpawnDistance = calculateMinSpawnDistance(windowSize.width);
     const angleRange = Math.PI / 2;
     const baseAngle = -Math.PI / 4;
@@ -57,71 +57,6 @@ export const generateSpawnPosition = (windowSize: { width: number; height: numbe
         x: 1 + (Math.cos(randomAngle) * spawnDistance) / windowSize.width,
         y: 0 + (Math.sin(randomAngle) * spawnDistance) / windowSize.height,
     };
-};
-
-/**
- * Calculates player positions with local player centered
- */
-export const calculatePlayerPositions = (players: Player[]): Map<number, Position> => {
-    const positions = new Map<number, Position>();
-    const totalPlayers = players.length;
-
-    // Debug logging
-    console.log(
-        'Calculating positions for players:',
-        players.map((p) => ({
-            id: p.id,
-            isLocal: p.isLocal,
-            firstName: p.firstName,
-        })),
-    );
-
-    const margin = 0.1;
-    const availableWidth = 1 - 2 * margin;
-
-    // Sort players so local player is first
-    const sortedPlayers = [...players].sort((a, b) => {
-        if (a.isLocal) return -1;
-        if (b.isLocal) return 1;
-        return 0;
-    });
-
-    // For single player
-    if (totalPlayers === 1) {
-        const pos = { x: 0.5, y: 0.9 };
-        positions.set(sortedPlayers[0].id, pos);
-        console.log(`Single player ${sortedPlayers[0].id} positioned at:`, pos);
-        return positions;
-    }
-
-    // For multiple players
-    const spacing = availableWidth / (totalPlayers - 1);
-
-    sortedPlayers.forEach((player, index) => {
-        let xPosition: number;
-
-        if (player.isLocal) {
-            // Local player always in center
-            xPosition = 0.5;
-        } else {
-            // Distribute other players evenly, skipping the center position
-            const leftHalf = index <= totalPlayers / 2;
-            if (leftHalf) {
-                xPosition = margin + spacing * index;
-            } else {
-                // Skip the center position for right half
-                xPosition = 0.5 + spacing * (index - Math.floor(totalPlayers / 2));
-            }
-        }
-
-        const position = { x: xPosition, y: 0.9 };
-        positions.set(player.id, position);
-
-        console.log(`Player ${player.id} (${player.isLocal ? 'local' : 'remote'}) positioned at:`, position);
-    });
-
-    console.log('Final positions map:', Array.from(positions.entries()));
-    return positions;
 };
 
 /**

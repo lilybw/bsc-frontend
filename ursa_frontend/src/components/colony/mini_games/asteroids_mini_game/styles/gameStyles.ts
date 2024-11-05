@@ -130,12 +130,19 @@ export const impactCircleStyle = css`
 
 export const buttonStyleOverwrite = css`
     position: absolute;
-    top: 1vh;
+    top: -1vh;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
     z-index: 100;
+    text-shadow: 0 0 0.5rem rgba(0, 0, 0, 1);
 `;
+
+export const playerNamePlateStyle = css`
+${Styles.SUB_TITLE}
+position: absolute;
+bottom: 0;
+`
 
 export const playerContainerStyle = (x: number, y: number) => css`
     position: absolute;
@@ -144,8 +151,8 @@ export const playerContainerStyle = (x: number, y: number) => css`
     justify-content: flex-end;
     align-items: center;
 
-    top: ${y * 100}%;
-    left: ${x * 100}%;
+    top: ${y}px;
+    left: ${x}px;
 
     /* Remove fixed width/height to allow content-based sizing */
     width: 10vh;
