@@ -10,13 +10,11 @@ interface ExplosionParticleProps extends ParticleProps {
 }
 
 export class ExplosionParticle extends BaseParticle {
-    // Add a default spread like in StunParticle
+    private static computeDefaultSpread(): number {
+        return window.innerWidth / 5;
+    }
     private static readonly defaultSpread = ExplosionParticle.computeDefaultSpread();
 
-    // Compute the spread - much larger than stun spread
-    private static computeDefaultSpread(): number {
-        return window.innerWidth / 5; // 4x bigger than stun's default of /20
-    }
 
     private readonly size: number;
     private readonly velocity: { x: number; y: number };
