@@ -20,11 +20,11 @@ import { Position } from "./entities/BaseEntity";
 import LazerBeam from "./entities/LazerBeam";
 import Player from "./entities/Player";
 import { wallStyle, statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle, playerNamePlateStyle } from "./styles/gameStyles";
-import { getEntityRefKey, getTargetCenterPosition, handleAsteroidDestruction, translateSpawnPosition, generateImpactPosition, getRandomRotationSpeed } from "./utils/gameUtils"
 import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes"
 import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
 import ExplosionParticleManager, { ExplosionData } from "./entities/particles/explosionParticles/ExplosionParticleManager";
 import ExplosionEffect from "./components/ExplosionEffect";
+import { generateImpactPosition, getEntityRefKey, getRandomRotationSpeed, getTargetCenterPosition, handleAsteroidDestruction, translateSpawnPosition } from "./utils/gameUtils";
 
 type PlayerState = {
     isStunned: boolean;

@@ -54,6 +54,7 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
             : getEntityRefKey.player(this.entityId);
 
         const centerPos = getTargetCenterPosition(entityKey, this.elementRefs);
+        console.log(`[EXPLOSION] Creating explosion at position:`, centerPos);
 
         if (!centerPos) {
             console.error(`[EXPLOSION] Could not get ${this.entityType} center position for ID:`, this.entityId);
@@ -91,8 +92,7 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
                 duration,
                 size: 2.5 * Math.sqrt(size),
                 velocity,
-                initialSpeed: spread / 20,
-                deceleration: 1.5,
+                initialSpeed: spread,
                 onComplete: () => {
                     if (!this.isCleaningUp) {
                         this.removeParticle(particle.id);
