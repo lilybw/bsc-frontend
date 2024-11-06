@@ -32,52 +32,25 @@ export interface ExplosionData {
 }
 
 export class ExplosionParticleManager extends BaseParticleManager<ExplosionParticle> {
-    private entityId: number;
-    private entityType: 'asteroid' | 'player';
-
     constructor(
         updateCallback: () => void,
-        entityId: number,
-        entityType: 'asteroid' | 'player',
         elementRefs: Map<string, EntityRef>
     ) {
         super(updateCallback, elementRefs);
-        this.entityId = entityId;
-        this.entityType = entityType;
     }
 
     public createExplosion(config: ExplosionConfig): number {
-        if (this.isCleaningUp) return -1;
+        const entityKey = config.entityType === 'asteroid'
+            ? getEntityRefKey.asteroid(config.entityId)
+            : getEntityRefKey.player(config.entityId);
 
-        const entityKey = this.entityType === 'asteroid'
-            ? getEntityRefKey.asteroid(this.entityId)
-            : getEntityRefKey.player(this.entityId);
-
+        // Use the same position calculation as LazerBeam
         const centerPos = getTargetCenterPosition(entityKey, this.elementRefs);
-        console.log(`[EXPLOSION] Creating explosion at position:`, centerPos);
+        if (!centerPos) return -1;
 
-        if (!centerPos) {
-            console.error(`[EXPLOSION] Could not get ${this.entityType} center position for ID:`, this.entityId);
-            return -1;
-        }
-
-        // Apply defaults
-        const size = config.size ?? DEFAULT_SIZE;
-        const {
-            particleCount = DEFAULT_SIZE,
-            duration = DEFAULT_DURATION_MS,
-            spread = size * 100  // Default spread is proportional to size
-        } = config;
-
-        // Calculate actual particle count using base count and multiplier
-        const actualParticleCount = Math.floor(DEFAULT_BASE_PARTICLE_COUNT * particleCount);
-
+        const actualParticleCount = Math.floor(DEFAULT_BASE_PARTICLE_COUNT * (config.particleCount ?? DEFAULT_SIZE));
         let createdParticles = 0;
 
-        console.log('[EXPLOSION] Center position:', centerPos);
-        console.log('[EXPLOSION] Particle count:', actualParticleCount);
-
-        // Create particles in a circular pattern
         for (let i = 0; i < actualParticleCount; i++) {
             const angle = (i / actualParticleCount) * Math.PI * 2 + Math.random() * 0.5;
             const velocity = {
@@ -87,12 +60,13 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
 
             const particle = new ExplosionParticle({
                 id: this.getNextId(),
+                // Use the exact same position as LazerBeam's impact
                 x: centerPos.x,
                 y: centerPos.y,
-                duration,
-                size: 2.5 * Math.sqrt(size),
+                duration: config.duration ?? DEFAULT_DURATION_MS,
+                size: 2.5 * Math.sqrt(config.size ?? DEFAULT_SIZE),
                 velocity,
-                initialSpeed: spread * 2,
+                initialSpeed: (config.spread ?? (config.size ?? DEFAULT_SIZE) * 100),
                 onComplete: () => {
                     if (!this.isCleaningUp) {
                         this.removeParticle(particle.id);
@@ -104,7 +78,6 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
             createdParticles++;
         }
 
-        console.log(`[EXPLOSION] Created ${createdParticles} particles for ${this.entityType} ${this.entityId} (size: ${size}, spread: ${spread})`);
         return createdParticles;
     }
 }

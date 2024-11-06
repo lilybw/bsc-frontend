@@ -26,8 +26,6 @@ const ExplosionEffect: Component<ExplosionEffectProps> = (props) => {
             setParticles(currentParticles);
             setHasActiveParticles(currentParticles.length > 0);
         },
-        props.entityId,
-        props.entityType,
         props.elementRefs
     );
 

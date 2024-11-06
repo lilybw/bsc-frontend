@@ -5,18 +5,18 @@ export const explosionParticleMovementStyle = css`
 
     @keyframes explodeOutwards {
         0% {
-            transform: translate(-50%, -50%) scale(1);
+            transform: scale(1);
             opacity: 0;
         }
         10% {
-            transform: translate(-50%, -50%) scale(1);
+            transform: scale(1);
             opacity: 1;
         }
         100% {
             transform: 
                 translate(
-                    calc(-50% + var(--spread-x)),
-                    calc(-50% + var(--spread-y))
+                    var(--spread-x),
+                    var(--spread-y)
                 ) 
                 scale(0.5);
             opacity: 0;

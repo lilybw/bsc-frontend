@@ -96,56 +96,42 @@ export const getAnimatedPosition = (entityId: number, elementRefs: Map<number, E
  */
 export const getTargetCenterPosition = (entityKey: string, elementRefs: Map<string, EntityRef>): Position | null => {
     const entityRef = elementRefs.get(entityKey);
-    if (!entityRef) {
-        console.log(`No entity ref found for ID: ${entityKey}`);
+    if (!entityRef?.element) {
+        console.log(`No valid entity ref found for ID: ${entityKey}`);
         return null;
     }
 
-    const element = entityRef.element;
-    if (!element) {
-        console.log(`No element found for entity ${entityKey}`);
+    // For both players and asteroids, find the actual visual element
+    const visualElement = entityRef.type === 'player'
+        ? (entityRef.element.querySelector('[class*="playerCharacterStyle"] img') ||
+            entityRef.element.querySelector('img') ||
+            entityRef.element)
+        : (entityRef.element.querySelector('.asteroidImageContainerStyle img') ||
+            entityRef.element.querySelector('img') ||
+            entityRef.element);
+
+    if (!visualElement) {
+        console.log(`No visual element found for ${entityKey}`);
         return null;
     }
 
-    if (entityRef.type === 'player') {
-        console.log('Player element structure:', {
-            element: element.outerHTML,
-            characterContainer: element.querySelector('[class*="playerCharacterStyle"]')?.outerHTML,
-            imageElement: element.querySelector('[class*="playerCharacterStyle"] img')?.outerHTML,
-        });
-
-        // Try multiple selectors to find the image
-        const imageElement =
-            element.querySelector('[class*="playerCharacterStyle"] img') || element.querySelector('img') || element.getElementsByTagName('img')[0];
-
-        if (!imageElement) {
-            console.log(`No image found in player ${entityKey}'s DOM structure`);
-            return null;
-        }
-
-        const imageRect = imageElement.getBoundingClientRect();
-        const position = {
-            x: (imageRect.left + imageRect.width / 2) / window.innerWidth,
-            y: (imageRect.top + imageRect.height / 2) / window.innerHeight,
-        };
-
-        console.log(`Found player ${entityKey} image position:`, position, 'from rect:', imageRect);
-        return position;
-    } else {
-        // For asteroids, keep existing behavior
-        const imageElement = element.querySelector('img');
-        if (!imageElement) {
-            console.log(`No image found for asteroid ${entityKey}`);
-            return null;
-        }
-
-        const imageRect = imageElement.getBoundingClientRect();
-        return {
-            x: (imageRect.left + imageRect.width / 2) / window.innerWidth,
-            y: (imageRect.top + imageRect.height / 2) / window.innerHeight,
-        };
-    }
+    return calculateElementPosition(visualElement as HTMLElement);
 };
+
+export const calculateElementPosition = (element: HTMLElement): Position => {
+    const rect = element.getBoundingClientRect();
+    return {
+        x: (rect.left + rect.width / 2) / window.innerWidth,
+        y: (rect.top + rect.height / 2) / window.innerHeight
+    };
+};
+
+export const normalizePosition = (position: Position): Position => {
+    return {
+        x: Math.max(0, Math.min(1, position.x)),
+        y: Math.max(0, Math.min(1, position.y))
+    };
+}
 
 /**
  * Converts percentage position to pixels

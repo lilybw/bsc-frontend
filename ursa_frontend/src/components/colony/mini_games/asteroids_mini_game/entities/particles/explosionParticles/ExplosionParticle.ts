@@ -28,19 +28,19 @@ export class ExplosionParticle extends BaseParticle {
     }
 
     public getStyle(): Record<string, string> {
-        const sizeVariation = 0.8 + Math.random() * 0.4;
-
         return {
             'position': 'absolute',
-            'left': `${this.x * 100}%`,
-            'top': `${this.y * 100}%`,
-            '--particle-size': `${this.size * sizeVariation}em`,
+            'left': `${this.x * window.innerWidth}px`,
+            'top': `${this.y * window.innerHeight}px`,
+            'transform': 'translate(-50%, -50%)', // Center like the impact circle
+            '--particle-size': `${this.size}em`,
             '--glow-color': `rgba(255, ${200 + Math.random() * 55}, 0)`,
             '--mid-color': `rgba(255, ${100 + Math.random() * 55}, 0)`,
             '--outer-color': `rgba(255, ${50 + Math.random() * 30}, 0)`,
-            '--blur-amount': `${0.15 * sizeVariation}em`,
-            '--spread-x': `${this.velocity.x * this.initialSpeed * 2}%`,
-            '--spread-y': `${this.velocity.y * this.initialSpeed * 2}%`,
+            '--blur-amount': '0.15em',
+
+            '--spread-x': `${this.velocity.x * this.initialSpeed}px`,
+            '--spread-y': `${this.velocity.y * this.initialSpeed}px`,
         };
     }
 }

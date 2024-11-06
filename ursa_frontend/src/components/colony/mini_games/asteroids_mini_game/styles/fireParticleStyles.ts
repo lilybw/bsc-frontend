@@ -4,18 +4,14 @@ import { css } from '@emotion/css';
  * Container style for all particle effects
  */
 export const particleContainerStyle = css`
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     pointer-events: none;
     z-index: 10;
     overflow: visible;
-    filter: blur(0.1em);
-    /* Add flexbox centering */
-    display: flex;
-    justify-content: center;
-    align-items: center;
 `;
 
 /**
@@ -23,10 +19,6 @@ export const particleContainerStyle = css`
  */
 export const stunParticleBaseStyle = css`
     position: absolute;
-    /* Center the base particle */
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
 `;
 
 export const stunParticleVerticalStyle = css`
