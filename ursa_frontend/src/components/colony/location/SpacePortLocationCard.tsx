@@ -12,7 +12,6 @@ import GraphicalAsset from '../../base/GraphicalAsset';
 
 interface SpacePortCardProps extends GenericLocationCardProps {
     colony: ColonyInfoResponseDTO;
-    multiplayer: IMultiplayerIntegration;
 }
 
 const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
