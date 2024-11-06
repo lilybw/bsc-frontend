@@ -135,7 +135,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 return lobbyStateReq.err;
             }
             const lobbyState = lobbyStateReq.res;
-            clientTracker.addClients(...lobbyState.clients);
+            clientTracker.addClients(...lobbyState.clients.filter((c) => c.id !== props.context.backend.player.local.id));
         };
 
         createEffect(() => {

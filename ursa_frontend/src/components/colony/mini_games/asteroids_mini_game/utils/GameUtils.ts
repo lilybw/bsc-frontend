@@ -1,5 +1,4 @@
 import { Position } from '../entities/BaseEntity';
-import { Player } from '../entities/Player';
 import { EntityRef } from '../types/entityTypes';
 
 // Constants for game calculations
