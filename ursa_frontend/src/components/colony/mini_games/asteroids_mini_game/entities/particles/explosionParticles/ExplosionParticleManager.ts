@@ -92,7 +92,7 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
                 duration,
                 size: 2.5 * Math.sqrt(size),
                 velocity,
-                initialSpeed: spread,
+                initialSpeed: spread * 2,
                 onComplete: () => {
                     if (!this.isCleaningUp) {
                         this.removeParticle(particle.id);
