@@ -60,7 +60,6 @@ export class ExplosionParticleManager extends BaseParticleManager<ExplosionParti
 
             const particle = new ExplosionParticle({
                 id: this.getNextId(),
-                // Use the exact same position as LazerBeam's impact
                 x: centerPos.x,
                 y: centerPos.y,
                 duration: config.duration ?? DEFAULT_DURATION_MS,

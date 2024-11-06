@@ -25,7 +25,7 @@ export class StunParticleManager extends BaseParticleManager<StunParticle> {
 
         const particle = new StunParticle({
             id,
-            size: 4,
+            size: 3,
             x: centerPos.x,
             y: centerPos.y,
             duration: 4000,
