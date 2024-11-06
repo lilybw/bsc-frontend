@@ -10,6 +10,11 @@ interface ExplosionParticleProps extends ParticleProps {
 }
 
 export class ExplosionParticle extends BaseParticle {
+    private static computeDefaultSpread(): number {
+        return window.innerWidth / 2.5;
+    }
+    private static readonly defaultSpread = ExplosionParticle.computeDefaultSpread();
+
     private readonly size: number;
     private readonly velocity: { x: number; y: number };
     private readonly initialSpeed: number;
@@ -18,7 +23,7 @@ export class ExplosionParticle extends BaseParticle {
         super(props);
         this.size = props.size || 2.5;
         this.velocity = props.velocity;
-        this.initialSpeed = props.initialSpeed;
+        this.initialSpeed = props.initialSpeed || ExplosionParticle.defaultSpread;
     }
 
     public getStyle(): Record<string, string> {
@@ -33,8 +38,8 @@ export class ExplosionParticle extends BaseParticle {
             '--mid-color': `rgba(255, ${100 + Math.random() * 55}, 0)`,
             '--outer-color': `rgba(255, ${50 + Math.random() * 30}, 0)`,
             '--blur-amount': `${0.15 * sizeVariation}em`,
-            '--spread-x': `${this.velocity.x * this.initialSpeed}%`,
-            '--spread-y': `${this.velocity.y * this.initialSpeed}%`,
+            '--spread-x': `${this.velocity.x * this.initialSpeed * 2}%`,
+            '--spread-y': `${this.velocity.y * this.initialSpeed * 2}%`,
         };
     }
 }

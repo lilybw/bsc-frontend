@@ -156,9 +156,9 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                         entityId: asteroid.id,
                         entityType: 'asteroid',
                         config: {
-                            size: 1,         // Health
-                            particleCount: 1, // Health
-                            duration: 1000    // Health
+                            size: (asteroid.maxHealth + 1) - asteroid.health,
+                            particleCount: (asteroid.maxHealth + 1) - asteroid.health,
+                            duration: 1000 * ((asteroid.maxHealth + 1) - asteroid.health)
                         }
                     });
 
