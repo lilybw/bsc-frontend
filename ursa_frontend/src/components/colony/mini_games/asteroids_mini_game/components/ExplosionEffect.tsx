@@ -1,6 +1,6 @@
 import { Component, createSignal, createEffect, onCleanup, Show, For } from "solid-js";
 import { particleContainerStyle, stunParticleBaseStyle, stunParticleContentStyle } from "../styles/fireParticleStyles";
-import { explosionParticleMovementStyle } from "../styles/explosionParticleStyles";
+import { explosionParticleMovementStyle, explosionParticleContentStyle } from "../styles/explosionParticleStyles";
 import { EntityRef } from "../types/entityTypes";
 import BaseParticle from "../entities/particles/BaseParticle";
 import { ExplosionParticleManager } from "../entities/particles/explosionParticles/ExplosionParticleManager";
@@ -57,7 +57,7 @@ const ExplosionEffect: Component<ExplosionEffectProps> = (props) => {
                     {(particle) => (
                         <div class={stunParticleBaseStyle} style={particle.getStyle()}>
                             <div class={explosionParticleMovementStyle}>
-                                <div class={stunParticleContentStyle} />
+                                <div class={explosionParticleContentStyle} />
                             </div>
                         </div>
                     )}

@@ -39,9 +39,9 @@ export class StunParticle extends BaseParticle {
             'transform': 'translate(-50%, -50%)',
             '--spread-x': `${spreadX}%`,
             '--particle-size': `${this.size * sizeVariation}em`,
-            '--glow-color': `rgba(255, ${200 + Math.random() * 55}, 0)`,
-            '--mid-color': `rgba(255, ${100 + Math.random() * 55}, 0)`,
-            '--outer-color': `rgba(255, ${50 + Math.random() * 30}, 0)`,
+            '--glow-color': `rgba(0, ${200 + Math.random() * 55}, 255)`,
+            '--mid-color': `rgba(30, ${100 + Math.random() * 55}, 255)`,
+            '--outer-color': `rgba(50, ${50 + Math.random() * 30}, 255)`,
             '--blur-amount': `${0.15 * sizeVariation}em`,
         };
     }

@@ -64,10 +64,15 @@ export const stunParticleContentStyle = css`
     z-index: 1000;
     pointer-events: none;
     filter: blur(var(--blur-amount));
-    background-image: radial-gradient(var(--glow-color) 10%, var(--mid-color) 30%, var(--outer-color) 50%, rgba(255, 30, 0, 0) 70%);
+    background-image: radial-gradient(
+        var(--glow-color) 10%, 
+        var(--mid-color) 30%, 
+        var(--outer-color) 50%, 
+        rgba(0, 30, 255, 0) 70%
+    );
     box-shadow:
-        0 0 1em 0.2em rgba(255, 200, 0, 0.5),
-        0 0 2em 0.5em rgba(255, 100, 0, 0.3);
+        0 0 1em 0.2em rgba(0, 200, 255, 0.5),
+        0 0 2em 0.5em rgba(0, 100, 255, 0.3);
 `;
 
 /**
