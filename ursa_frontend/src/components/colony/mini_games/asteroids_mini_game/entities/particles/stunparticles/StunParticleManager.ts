@@ -16,7 +16,10 @@ export class StunParticleManager extends BaseParticleManager<StunParticle> {
 
         const id = this.getNextId();
         const playerKey = getEntityRefKey.player(this.playerId);
+        console.log('[STUNPARTICLE] Creating particle - player key:', playerKey);
+
         const centerPos = getTargetCenterPosition(playerKey, this.elementRefs);
+        console.log('[STUNPARTICLE] Initial center pos:', centerPos);
 
         if (!centerPos) {
             console.error('[STUNPARTICLE] Could not get player center position');
@@ -34,6 +37,12 @@ export class StunParticleManager extends BaseParticleManager<StunParticle> {
                     this.removeParticle(id);
                 }
             },
+        });
+
+        console.log('[STUNPARTICLE] Created particle with position:', {
+            id,
+            x: particle.x,
+            y: particle.y
         });
 
         this.addParticle(particle);

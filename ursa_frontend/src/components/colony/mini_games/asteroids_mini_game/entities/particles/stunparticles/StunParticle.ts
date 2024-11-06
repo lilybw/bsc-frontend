@@ -8,7 +8,6 @@ export interface StunParticleProps extends ParticleProps {
 export class StunParticle extends BaseParticle {
     private static readonly defaultSpread = StunParticle.computeDefaultSpread();
 
-    // Compute the spread only once for the class
     private static computeDefaultSpread(): number {
         return window.innerWidth / 20;
     }
@@ -29,7 +28,15 @@ export class StunParticle extends BaseParticle {
         const direction = Math.random() > 0.5 ? 1 : -1;
         const spreadX = direction * (minSpread + Math.random() * (spreadRange - minSpread));
 
+        // Convert normalized coordinates to pixels
+        const pixelX = this.x * window.innerWidth;
+        const pixelY = this.y * window.innerHeight;
+
         return {
+            'position': 'absolute',
+            'top': `${pixelY}px`,
+            'left': `${pixelX}px`,
+            'transform': 'translate(-50%, -50%)',
             '--spread-x': `${spreadX}%`,
             '--particle-size': `${this.size * sizeVariation}em`,
             '--glow-color': `rgba(255, ${200 + Math.random() * 55}, 0)`,
