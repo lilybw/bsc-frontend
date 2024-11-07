@@ -50,73 +50,192 @@ const Wall: Component<WallProps> = (props) => {
     let animationFrame: number;
     let wallImage: HTMLImageElement | null = null;
     let lastFrameTime = performance.now();
+    let backgroundCanvas: HTMLCanvasElement | null = null;
 
     const distance = (p1: Point, p2: Point): number => {
         return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
     };
 
-    const generatePoints = (width: number, height: number): Point[] => {
+    const generateGridPoints = (width: number, height: number): Point[] => {
         const points: Point[] = [];
+        // Create larger cells - maybe 3-4 cells across the width
+        const cellWidth = width / 3;
+        const cellHeight = height / 6;  // More cells vertically since wall is tall
 
-        // Add corners with zero inset to ensure coverage
-        points.push({ x: 0, y: 0 });
-        points.push({ x: width, y: 0 });
-        points.push({ x: width, y: height });
-        points.push({ x: 0, y: height });
-
-        // Calculate spacing to ensure more even coverage
-        const horizontalSpacing = Math.max(
-            MIN_EDGE_SPACING,
-            width / MAX_EDGE_POINTS
-        );
-
-        const verticalSpacing = Math.max(
-            MIN_EDGE_SPACING,
-            height / MAX_EDGE_POINTS
-        );
-
-        // Reduced variance for more consistent coverage
-        const variance = Math.min(horizontalSpacing, verticalSpacing) * 0.15;
-
-        // Add edge points with less randomness
-        for (let x = horizontalSpacing; x < width - horizontalSpacing / 2; x += horizontalSpacing) {
-            points.push({
-                x: x + (Math.random() - 0.5) * variance,
-                y: (Math.random() - 0.5) * variance
-            });
-            points.push({
-                x: x + (Math.random() - 0.5) * variance,
-                y: height + (Math.random() - 0.5) * variance
-            });
+        // Create grid points
+        for (let y = 0; y <= height; y += cellHeight) {
+            for (let x = 0; x <= width; x += cellWidth) {
+                // Add some randomness to non-edge points to make it less regular
+                if (x > 0 && x < width && y > 0 && y < height) {
+                    points.push({
+                        x: x + (Math.random() - 0.5) * cellWidth * 0.3,
+                        y: y + (Math.random() - 0.5) * cellHeight * 0.3
+                    });
+                } else {
+                    // Keep edge points aligned
+                    points.push({ x, y });
+                }
+            }
         }
+        return points;
+    };
 
-        for (let y = verticalSpacing; y < height - verticalSpacing / 2; y += verticalSpacing) {
-            points.push({
-                x: (Math.random() - 0.5) * variance,
-                y: y + (Math.random() - 0.5) * variance
-            });
-            points.push({
-                x: width + (Math.random() - 0.5) * variance,
-                y: y + (Math.random() - 0.5) * variance
-            });
-        }
+    const generateGridFragments = (width: number, height: number): Point[][] => {
+        const regions: Point[][] = [];
+        const numColumns = 4;
+        const cellWidth = width / numColumns;
+        const cellHeight = cellWidth; // Make cells square
+        const numRows = Math.ceil(height / cellHeight) + 1; // Add one extra row below
 
-        // Add more interior points for better coverage
-        const minInteriorSpacing = Math.min(horizontalSpacing, verticalSpacing) * 0.4;
-        const attempts = INTERIOR_POINTS * 3;
+        // Create rectangular fragments
+        for (let row = 0; row < numRows; row++) {
+            for (let col = 0; col < numColumns; col++) {
+                const x1 = col * cellWidth;
+                const y1 = row * cellHeight;
+                const x2 = x1 + cellWidth;
+                const y2 = y1 + cellHeight;
 
-        for (let i = 0; i < attempts && points.length < INTERIOR_POINTS + points.length; i++) {
-            const newPoint = {
-                x: Math.random() * width,
-                y: Math.random() * height
-            };
-
-            if (points.every(p => distance(newPoint, p) >= minInteriorSpacing)) {
-                points.push(newPoint);
+                // Define rectangle corners clockwise
+                const region = [
+                    { x: x1, y: y1 }, // Top left
+                    { x: x2, y: y1 }, // Top right
+                    { x: x2, y: y2 }, // Bottom right
+                    { x: x1, y: y2 }, // Bottom left
+                    { x: x1, y: y1 }  // Back to start to close the shape
+                ];
+                regions.push(region);
             }
         }
 
-        return points;
+        return regions;
+    };
+
+    const findFragmentsFromGrid = (points: Point[], width: number, height: number): Point[][] => {
+        const regions: Point[][] = [];
+        const gridSize = Math.sqrt(points.length);
+        const rowSize = Math.ceil(width / (width / 3)) + 1;  // Number of points per row
+
+        // Helper to get point at grid position
+        const getPoint = (x: number, y: number): Point | undefined => {
+            const index = y * rowSize + x;
+            return points[index];
+        };
+
+        // Helper to create a random region from grid cells
+        const createRegion = (startX: number, startY: number, width: number, height: number): Point[] => {
+            const region: Point[] = [];
+            const topLeft = getPoint(startX, startY);
+            const topRight = getPoint(startX + width, startY);
+            const bottomRight = getPoint(startX + width, startY + height);
+            const bottomLeft = getPoint(startX, startY + height);
+
+            if (topLeft && topRight && bottomRight && bottomLeft) {
+                // Add points in clockwise order
+                region.push(topLeft);
+                region.push(topRight);
+                region.push(bottomRight);
+                region.push(bottomLeft);
+                region.push(topLeft); // Close the loop
+            }
+
+            return region;
+        };
+
+        // Create larger fragments by combining grid cells
+        for (let y = 0; y < rowSize - 1; y += 2) {
+            for (let x = 0; x < rowSize - 1; x += 1) {
+                const region = createRegion(x, y, 1, 2);
+                if (region.length > 0) {
+                    regions.push(region);
+                }
+            }
+        }
+
+        return regions;
+    };
+
+    const findTriangulation = (points: Point[]): Point[][] => {
+        const regions: Point[][] = [];
+        const usedEdges = new Set<string>();
+
+        const edgeKey = (p1: Point, p2: Point) => {
+            return `${Math.min(p1.x, p2.x)},${Math.min(p1.y, p2.y)}-${Math.max(p1.x, p2.x)},${Math.max(p1.y, p2.y)}`;
+        };
+
+        // For each point, find its 3 closest neighbors
+        points.forEach(point => {
+            const neighbors = findNearestPoints(point, points, 3);
+            neighbors.forEach(neighbor => {
+                const key = edgeKey(point, neighbor);
+                if (!usedEdges.has(key)) {
+                    usedEdges.add(key);
+                }
+            });
+        });
+
+        // Find triangles from the edges
+        points.forEach(p1 => {
+            const neighbors = findNearestPoints(p1, points, 6);
+            for (let i = 0; i < neighbors.length - 1; i++) {
+                const p2 = neighbors[i];
+                for (let j = i + 1; j < neighbors.length; j++) {
+                    const p3 = neighbors[j];
+
+                    const edge1 = edgeKey(p1, p2);
+                    const edge2 = edgeKey(p2, p3);
+                    const edge3 = edgeKey(p3, p1);
+
+                    if (usedEdges.has(edge1) && usedEdges.has(edge2) && usedEdges.has(edge3)) {
+                        const region = [p1, p2, p3, p1];
+                        regions.push(region);
+                    }
+                }
+            }
+        });
+
+        // Merge triangles into larger regions
+        const mergedRegions: Point[][] = [];
+        let usedTriangles = new Set<number>();
+
+        regions.forEach((region1, i) => {
+            if (usedTriangles.has(i)) return;
+
+            let currentRegion = [...region1];
+            usedTriangles.add(i);
+
+            let merged;
+            do {
+                merged = false;
+                regions.forEach((region2, j) => {
+                    if (usedTriangles.has(j)) return;
+
+                    // Check if regions share two points
+                    const sharedPoints = currentRegion.filter(p1 =>
+                        region2.some(p2 => p2.x === p1.x && p2.y === p1.y)
+                    );
+
+                    if (sharedPoints.length >= 2 && currentRegion.length < 10) {  // Limited size for more uniform fragments
+                        // Merge regions
+                        const uniquePoints = region2.filter(p1 =>
+                            !currentRegion.some(p2 => p2.x === p1.x && p2.y === p1.y)
+                        );
+
+                        // Find best insertion point for natural shape
+                        const insertIndex = currentRegion.findIndex(p =>
+                            p.x === sharedPoints[0].x && p.y === sharedPoints[0].y
+                        );
+
+                        currentRegion.splice(insertIndex, 0, ...uniquePoints);
+                        usedTriangles.add(j);
+                        merged = true;
+                    }
+                });
+            } while (merged);
+
+            mergedRegions.push(currentRegion);
+        });
+
+        return mergedRegions;
     };
 
     const findNearestPoints = (point: Point, allPoints: Point[], maxConnections: number): Point[] => {
@@ -180,8 +299,14 @@ const Wall: Component<WallProps> = (props) => {
         const width = containerRef.clientWidth;
         const height = containerRef.clientHeight;
 
+        // Clean up any existing background canvas
+        if (backgroundCanvas) {
+            backgroundCanvas.remove();
+            backgroundCanvas = null;
+        }
+
         // Create and append the background canvas first
-        const backgroundCanvas = document.createElement('canvas');
+        backgroundCanvas = document.createElement('canvas');
         backgroundCanvas.width = width;
         backgroundCanvas.height = height;
         backgroundCanvas.style.position = 'absolute';
@@ -200,62 +325,8 @@ const Wall: Component<WallProps> = (props) => {
 
         containerRef.appendChild(backgroundCanvas);
 
-        const points = generatePoints(width, height);
-
-        // Create edges with overlap to prevent gaps
-        const edges: Edge[] = [];
-        points.forEach(point => {
-            const nearestPoints = findNearestPoints(point, points, MAX_CONNECTIONS);
-            nearestPoints.forEach(nearPoint => {
-                edges.push({ p1: point, p2: nearPoint });
-            });
-        });
-
-        // Create regions with overlap
-        const regions: Point[][] = [];
-        let usedPoints = new Set<Point>();
-
-        edges.forEach(edge => {
-            if (!usedPoints.has(edge.p1)) {
-                const region: Point[] = [edge.p1];
-                let currentPoint = edge.p2;
-                let attempts = 0;
-
-                while (attempts < 8) { // Increased from 5 for better coverage
-                    const nearPoints = findNearestPoints(currentPoint, points, MAX_CONNECTIONS)
-                        .filter(p => !region.includes(p));
-
-                    if (nearPoints.length > 0) {
-                        region.push(currentPoint);
-                        currentPoint = nearPoints[0];
-                        attempts = 0;
-                    } else {
-                        attempts++;
-                    }
-
-                    if (region.length >= 6) break; // Increased from 5 for better coverage
-                }
-
-                if (region.length >= 3) {
-                    // Add extra points to ensure edge coverage
-                    if (region[0].x <= MIN_EDGE_SPACING) {
-                        region.push({ x: 0, y: region[0].y });
-                    }
-                    if (region[0].x >= width - MIN_EDGE_SPACING) {
-                        region.push({ x: width, y: region[0].y });
-                    }
-                    if (region[0].y <= MIN_EDGE_SPACING) {
-                        region.push({ x: region[0].x, y: 0 });
-                    }
-                    if (region[0].y >= height - MIN_EDGE_SPACING) {
-                        region.push({ x: region[0].x, y: height });
-                    }
-
-                    regions.push(region);
-                    region.forEach(p => usedPoints.add(p));
-                }
-            }
-        });
+        // Generate rectangular grid fragments
+        const regions = generateGridFragments(width, height);
 
         // Create temporary canvas for the wall texture
         const tempCanvas = document.createElement('canvas');
@@ -275,8 +346,8 @@ const Wall: Component<WallProps> = (props) => {
             const xs = region.map(p => p.x);
             const ys = region.map(p => p.y);
 
-            // Add padding to prevent gaps
-            const padding = 2;
+            // Add minimal padding to prevent gaps
+            const padding = 1;
             const minX = Math.max(0, Math.min(...xs) - padding);
             const maxX = Math.min(width, Math.max(...xs) + padding);
             const minY = Math.max(0, Math.min(...ys) - padding);
@@ -295,37 +366,15 @@ const Wall: Component<WallProps> = (props) => {
             const ctx = canvas.getContext('2d')!;
             ctx.save();
 
-            // Create fragment path with smooth edges
+            // Draw straight lines for the rectangle
             ctx.beginPath();
             ctx.moveTo(region[0].x - minX, region[0].y - minY);
 
-            // Draw smooth curves between points
+            // Draw straight lines between points
             for (let i = 1; i < region.length; i++) {
-                const p1 = region[i - 1];
-                const p2 = region[i];
-                const xc = (p1.x + p2.x) / 2;
-                const yc = (p1.y + p2.y) / 2;
-
-                ctx.quadraticCurveTo(
-                    p1.x - minX,
-                    p1.y - minY,
-                    xc - minX,
-                    yc - minY
-                );
+                const p = region[i];
+                ctx.lineTo(p.x - minX, p.y - minY);
             }
-
-            // Close the path with a smooth curve
-            const last = region[region.length - 1];
-            const first = region[0];
-            const xc = (last.x + first.x) / 2;
-            const yc = (last.y + first.y) / 2;
-
-            ctx.quadraticCurveTo(
-                last.x - minX,
-                last.y - minY,
-                xc - minX,
-                yc - minY
-            );
 
             ctx.closePath();
             ctx.clip();
@@ -342,11 +391,11 @@ const Wall: Component<WallProps> = (props) => {
                 canvas.height
             );
 
-            // Add a subtle shadow effect to hide potential gaps
-            ctx.shadowColor = 'rgba(0,0,0,0.2)';
-            ctx.shadowBlur = 1;
-            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-            ctx.lineWidth = 1;
+            // Add a very subtle shadow effect
+            ctx.shadowColor = 'rgba(0,0,0,0.1)';
+            ctx.shadowBlur = 0.5;
+            ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+            ctx.lineWidth = 0.5;
             ctx.stroke();
 
             ctx.restore();
@@ -372,32 +421,15 @@ const Wall: Component<WallProps> = (props) => {
             fragments.push(fragment);
             containerRef?.appendChild(canvas);
         });
-    };
 
-    const dropFragments = (percentToDrop: number) => {
-        const availableFragments = fragments.filter(f => f.isActive && !f.hasDropped);
-        const numToDrop = Math.ceil(availableFragments.length * (percentToDrop / 100));
+        // Clean up temporary canvas
+        tempCanvas.width = 0;
+        tempCanvas.height = 0;
 
-        for (let i = 0; i < numToDrop && availableFragments.length > 0; i++) {
-            const index = Math.floor(Math.random() * availableFragments.length);
-            const fragment = availableFragments[index];
-
-            if (fragment) {
-                const sidewaysDirection = fragment.centroid.x > containerRef!.clientWidth / 2 ? 1 : -1;
-
-                fragment.dx = sidewaysDirection * (Math.random() * 0.2);
-                fragment.dy = 0;
-                fragment.rotation = sidewaysDirection * (Math.random() * 45);
-                fragment.timeSinceDrop = 0;
-                fragment.hasDropped = true;
-            }
-
-            availableFragments.splice(index, 1);
-        }
-
-        if (!animationFrame) {
-            lastFrameTime = performance.now();
-            updateFragments();
+        // Remove background canvas immediately after creating fragments
+        if (backgroundCanvas) {
+            backgroundCanvas.remove();
+            backgroundCanvas = null;
         }
     };
 
@@ -459,6 +491,33 @@ const Wall: Component<WallProps> = (props) => {
         }
     };
 
+    const dropFragments = (percentToDrop: number) => {
+        const availableFragments = fragments.filter(f => f.isActive && !f.hasDropped);
+        const numToDrop = Math.ceil(availableFragments.length * (percentToDrop / 100));
+
+        for (let i = 0; i < numToDrop && availableFragments.length > 0; i++) {
+            const index = Math.floor(Math.random() * availableFragments.length);
+            const fragment = availableFragments[index];
+
+            if (fragment) {
+                const sidewaysDirection = fragment.centroid.x > containerRef!.clientWidth / 2 ? 1 : -1;
+
+                fragment.dx = sidewaysDirection * (Math.random() * 0.2);
+                fragment.dy = 0;
+                fragment.rotation = sidewaysDirection * (Math.random() * 45);
+                fragment.timeSinceDrop = 0;
+                fragment.hasDropped = true;
+            }
+
+            availableFragments.splice(index, 1);
+        }
+
+        if (!animationFrame) {
+            lastFrameTime = performance.now();
+            updateFragments();
+        }
+    };
+
     createEffect(() => {
         const currentHealth = props.health();
         if (currentHealth < lastHealth) {
@@ -472,6 +531,10 @@ const Wall: Component<WallProps> = (props) => {
         fragments.forEach(f => {
             if (f.element) f.element.remove();
         });
+        if (backgroundCanvas) {
+            backgroundCanvas.remove();
+            backgroundCanvas = null;
+        }
         if (animationFrame) {
             cancelAnimationFrame(animationFrame);
         }
