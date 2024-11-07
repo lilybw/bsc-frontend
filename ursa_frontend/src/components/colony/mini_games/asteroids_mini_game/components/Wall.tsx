@@ -85,9 +85,10 @@ const Wall: Component<WallProps> = (props) => {
         const numColumns = 4;
         const cellWidth = width / numColumns;
         const cellHeight = cellWidth; // Make cells square
-        const numRows = Math.ceil(height / cellHeight) + 1; // Add one extra row below
+        const numRows = Math.ceil(height / cellHeight); // Removed the +1
 
-        // Create rectangular fragments
+        console.log(`Creating grid: ${numColumns} columns x ${numRows} rows`); // Debug info
+
         for (let row = 0; row < numRows; row++) {
             for (let col = 0; col < numColumns; col++) {
                 const x1 = col * cellWidth;
@@ -95,13 +96,12 @@ const Wall: Component<WallProps> = (props) => {
                 const x2 = x1 + cellWidth;
                 const y2 = y1 + cellHeight;
 
-                // Define rectangle corners clockwise
                 const region = [
-                    { x: x1, y: y1 }, // Top left
-                    { x: x2, y: y1 }, // Top right
-                    { x: x2, y: y2 }, // Bottom right
-                    { x: x1, y: y2 }, // Bottom left
-                    { x: x1, y: y1 }  // Back to start to close the shape
+                    { x: x1, y: y1 },
+                    { x: x2, y: y1 },
+                    { x: x2, y: y2 },
+                    { x: x1, y: y2 },
+                    { x: x1, y: y1 }
                 ];
                 regions.push(region);
             }
@@ -299,31 +299,14 @@ const Wall: Component<WallProps> = (props) => {
         const width = containerRef.clientWidth;
         const height = containerRef.clientHeight;
 
-        // Clean up any existing background canvas
-        if (backgroundCanvas) {
-            backgroundCanvas.remove();
-            backgroundCanvas = null;
-        }
+        // Clear any existing fragments
+        fragments.forEach(f => {
+            if (f.element) f.element.remove();
+        });
+        fragments = [];
 
-        // Create and append the background canvas first
-        backgroundCanvas = document.createElement('canvas');
-        backgroundCanvas.width = width;
-        backgroundCanvas.height = height;
-        backgroundCanvas.style.position = 'absolute';
-        backgroundCanvas.style.left = '0';
-        backgroundCanvas.style.top = '0';
-        backgroundCanvas.style.width = '100%';
-        backgroundCanvas.style.height = '100%';
-        backgroundCanvas.style.zIndex = '1';
-
-        const bgCtx = backgroundCanvas.getContext('2d')!;
-        const pattern = bgCtx.createPattern(wallImage, 'repeat');
-        if (pattern) {
-            bgCtx.fillStyle = pattern;
-            bgCtx.fillRect(0, 0, width, height);
-        }
-
-        containerRef.appendChild(backgroundCanvas);
+        // Don't create background canvas at all since we want to see the red background
+        // when fragments fall
 
         // Generate rectangular grid fragments
         const regions = generateGridFragments(width, height);
@@ -341,13 +324,13 @@ const Wall: Component<WallProps> = (props) => {
             tempCtx.fillRect(0, 0, width, height);
         }
 
-        // Create fragments with overlap
+        // Create fragments
         regions.forEach(region => {
             const xs = region.map(p => p.x);
             const ys = region.map(p => p.y);
 
-            // Add minimal padding to prevent gaps
-            const padding = 1;
+            // Minimal padding
+            const padding = 0.5;
             const minX = Math.max(0, Math.min(...xs) - padding);
             const maxX = Math.min(width, Math.max(...xs) + padding);
             const minY = Math.max(0, Math.min(...ys) - padding);
@@ -370,7 +353,6 @@ const Wall: Component<WallProps> = (props) => {
             ctx.beginPath();
             ctx.moveTo(region[0].x - minX, region[0].y - minY);
 
-            // Draw straight lines between points
             for (let i = 1; i < region.length; i++) {
                 const p = region[i];
                 ctx.lineTo(p.x - minX, p.y - minY);
@@ -390,13 +372,6 @@ const Wall: Component<WallProps> = (props) => {
                 canvas.width,
                 canvas.height
             );
-
-            // Add a very subtle shadow effect
-            ctx.shadowColor = 'rgba(0,0,0,0.1)';
-            ctx.shadowBlur = 0.5;
-            ctx.strokeStyle = 'rgba(0,0,0,0.05)';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
 
             ctx.restore();
 
@@ -425,12 +400,6 @@ const Wall: Component<WallProps> = (props) => {
         // Clean up temporary canvas
         tempCanvas.width = 0;
         tempCanvas.height = 0;
-
-        // Remove background canvas immediately after creating fragments
-        if (backgroundCanvas) {
-            backgroundCanvas.remove();
-            backgroundCanvas = null;
-        }
     };
 
     const updateFragments = () => {
@@ -571,7 +540,7 @@ const wallContainerStyle = css`
     overflow: hidden;
     transform-style: preserve-3d;
     perspective: 1000px;
-    background-color: red; // Fallback color
+    background-color: red; // This is the only background we need
 `;
 
 const backgroundStyle = css`
@@ -582,7 +551,6 @@ const backgroundStyle = css`
     bottom: 0;
     width: 100%;
     height: 100%;
-    background-color: red;
     z-index: 0;
 `;
 
