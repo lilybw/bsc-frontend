@@ -28,20 +28,9 @@ interface Fragment {
     centroid: Point;
 }
 
-interface Edge {
-    p1: Point;
-    p2: Point;
-}
-
-const MIN_EDGE_POINTS = 15;
-const MAX_EDGE_POINTS = 25;
-const MIN_EDGE_SPACING = 20;
-const INTERIOR_POINTS = 30;
 const FRAME_TIME = 1000 / 60;
 const FRAGMENT_LIFETIME = 3000;
 const GRAVITY = 0.1;
-const MIN_POINT_DISTANCE = 30;
-const MAX_CONNECTIONS = 2;
 
 const Wall: Component<WallProps> = (props) => {
     let containerRef: HTMLDivElement | undefined;
@@ -51,264 +40,140 @@ const Wall: Component<WallProps> = (props) => {
     let wallImage: HTMLImageElement | null = null;
     let lastFrameTime = performance.now();
     let backgroundCanvas: HTMLCanvasElement | null = null;
-
-    const distance = (p1: Point, p2: Point): number => {
-        return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-    };
-
-    const generateGridPoints = (width: number, height: number): Point[] => {
-        const points: Point[] = [];
-        // Create larger cells - maybe 3-4 cells across the width
-        const cellWidth = width / 3;
-        const cellHeight = height / 6;  // More cells vertically since wall is tall
-
-        // Create grid points
-        for (let y = 0; y <= height; y += cellHeight) {
-            for (let x = 0; x <= width; x += cellWidth) {
-                // Add some randomness to non-edge points to make it less regular
-                if (x > 0 && x < width && y > 0 && y < height) {
-                    points.push({
-                        x: x + (Math.random() - 0.5) * cellWidth * 0.3,
-                        y: y + (Math.random() - 0.5) * cellHeight * 0.3
-                    });
-                } else {
-                    // Keep edge points aligned
-                    points.push({ x, y });
-                }
-            }
-        }
-        return points;
-    };
+    let isGeneratingFragments = false;
 
     const generateGridFragments = (width: number, height: number): Point[][] => {
         const regions: Point[][] = [];
         const numColumns = 4;
-        const cellWidth = width / numColumns;
-        const cellHeight = cellWidth; // Make cells square
-        const numRows = Math.ceil(height / cellHeight); // Removed the +1
+        const baseWidth = width / numColumns;
+        const baseHeight = baseWidth * 3; // Making cells 3 times taller than wide
+        const numRows = Math.ceil(height / baseHeight);
 
-        console.log(`Creating grid: ${numColumns} columns x ${numRows} rows`); // Debug info
+        console.log(`Wall dimensions: ${width}x${height}`);
+        console.log(`Cell dimensions: ${baseWidth}x${baseHeight}`);
+        console.log(`Grid size: ${numColumns}x${numRows}`);
+        console.log(`Expected total cells: ${numColumns * numRows}`);
+
+        // Store edge deformations so they can be shared
+        const edgeDeformations: Map<string, number[]> = new Map();
+
+        // Helper to get/create shared edge deformation
+        const getEdgeDeformation = (x1: number, y1: number, x2: number, y2: number): number[] => {
+            const key = `${x1},${y1}-${x2},${y2}`;
+            const reverseKey = `${x2},${y2}-${x1},${y1}`;
+
+            if (edgeDeformations.has(key)) {
+                return edgeDeformations.get(key)!;
+            }
+            if (edgeDeformations.has(reverseKey)) {
+                return edgeDeformations.get(reverseKey)!.slice().reverse();
+            }
+
+            const baseOffset = width * 0.3;
+            const maxVariation = width * 0.2;
+            const segments = 4;
+            const deformations = [];
+
+            for (let i = 0; i < segments; i++) {
+                const variation = Math.random() * maxVariation;
+                deformations.push(baseOffset + variation);
+            }
+
+            edgeDeformations.set(key, deformations);
+            return deformations;
+        };
 
         for (let row = 0; row < numRows; row++) {
             for (let col = 0; col < numColumns; col++) {
-                const x1 = col * cellWidth;
-                const y1 = row * cellHeight;
-                const x2 = x1 + cellWidth;
-                const y2 = y1 + cellHeight;
+                // Base rectangle coordinates
+                const x1 = col * baseWidth;
+                const y1 = row * baseHeight;
+                const x2 = (col + 1) * baseWidth;
+                const y2 = (row + 1) * baseHeight;
 
-                const region = [
-                    { x: x1, y: y1 },
-                    { x: x2, y: y1 },
-                    { x: x2, y: y2 },
-                    { x: x1, y: y2 },
-                    { x: x1, y: y1 }
-                ];
+                // Skip if this cell would extend beyond the wall height
+                if (y1 >= height) continue;
+
+                const region: Point[] = [];
+
+                // Start with top-left corner
+                region.push({ x: x1, y: y1 });
+
+                // Top edge
+                const topDeforms = getEdgeDeformation(x1, y1, x2, y1);
+                for (let i = 0; i < topDeforms.length; i++) {
+                    const t = (i + 1) / (topDeforms.length + 1);
+                    region.push({
+                        x: x1 + (x2 - x1) * t,
+                        y: y1 - topDeforms[i]
+                    });
+                }
+
+                region.push({ x: x2, y: y1 });
+
+                // Right edge
+                const rightDeforms = getEdgeDeformation(x2, y1, x2, y2);
+                for (let i = 0; i < rightDeforms.length; i++) {
+                    const t = (i + 1) / (rightDeforms.length + 1);
+                    region.push({
+                        x: x2 + rightDeforms[i],
+                        y: y1 + (y2 - y1) * t
+                    });
+                }
+
+                region.push({ x: x2, y: y2 });
+
+                // Bottom edge
+                const bottomDeforms = getEdgeDeformation(x2, y2, x1, y2);
+                for (let i = 0; i < bottomDeforms.length; i++) {
+                    const t = (i + 1) / (bottomDeforms.length + 1);
+                    region.push({
+                        x: x2 - (x2 - x1) * t,
+                        y: y2 + bottomDeforms[i]
+                    });
+                }
+
+                region.push({ x: x1, y: y2 });
+
+                // Left edge
+                const leftDeforms = getEdgeDeformation(x1, y2, x1, y1);
+                for (let i = 0; i < leftDeforms.length; i++) {
+                    const t = (i + 1) / (leftDeforms.length + 1);
+                    region.push({
+                        x: x1 - leftDeforms[i],
+                        y: y2 - (y2 - y1) * t
+                    });
+                }
+
+                region.push({ x: x1, y: y1 });
                 regions.push(region);
             }
         }
 
+        console.log(`Final region count: ${regions.length}`);
         return regions;
-    };
-
-    const findFragmentsFromGrid = (points: Point[], width: number, height: number): Point[][] => {
-        const regions: Point[][] = [];
-        const gridSize = Math.sqrt(points.length);
-        const rowSize = Math.ceil(width / (width / 3)) + 1;  // Number of points per row
-
-        // Helper to get point at grid position
-        const getPoint = (x: number, y: number): Point | undefined => {
-            const index = y * rowSize + x;
-            return points[index];
-        };
-
-        // Helper to create a random region from grid cells
-        const createRegion = (startX: number, startY: number, width: number, height: number): Point[] => {
-            const region: Point[] = [];
-            const topLeft = getPoint(startX, startY);
-            const topRight = getPoint(startX + width, startY);
-            const bottomRight = getPoint(startX + width, startY + height);
-            const bottomLeft = getPoint(startX, startY + height);
-
-            if (topLeft && topRight && bottomRight && bottomLeft) {
-                // Add points in clockwise order
-                region.push(topLeft);
-                region.push(topRight);
-                region.push(bottomRight);
-                region.push(bottomLeft);
-                region.push(topLeft); // Close the loop
-            }
-
-            return region;
-        };
-
-        // Create larger fragments by combining grid cells
-        for (let y = 0; y < rowSize - 1; y += 2) {
-            for (let x = 0; x < rowSize - 1; x += 1) {
-                const region = createRegion(x, y, 1, 2);
-                if (region.length > 0) {
-                    regions.push(region);
-                }
-            }
-        }
-
-        return regions;
-    };
-
-    const findTriangulation = (points: Point[]): Point[][] => {
-        const regions: Point[][] = [];
-        const usedEdges = new Set<string>();
-
-        const edgeKey = (p1: Point, p2: Point) => {
-            return `${Math.min(p1.x, p2.x)},${Math.min(p1.y, p2.y)}-${Math.max(p1.x, p2.x)},${Math.max(p1.y, p2.y)}`;
-        };
-
-        // For each point, find its 3 closest neighbors
-        points.forEach(point => {
-            const neighbors = findNearestPoints(point, points, 3);
-            neighbors.forEach(neighbor => {
-                const key = edgeKey(point, neighbor);
-                if (!usedEdges.has(key)) {
-                    usedEdges.add(key);
-                }
-            });
-        });
-
-        // Find triangles from the edges
-        points.forEach(p1 => {
-            const neighbors = findNearestPoints(p1, points, 6);
-            for (let i = 0; i < neighbors.length - 1; i++) {
-                const p2 = neighbors[i];
-                for (let j = i + 1; j < neighbors.length; j++) {
-                    const p3 = neighbors[j];
-
-                    const edge1 = edgeKey(p1, p2);
-                    const edge2 = edgeKey(p2, p3);
-                    const edge3 = edgeKey(p3, p1);
-
-                    if (usedEdges.has(edge1) && usedEdges.has(edge2) && usedEdges.has(edge3)) {
-                        const region = [p1, p2, p3, p1];
-                        regions.push(region);
-                    }
-                }
-            }
-        });
-
-        // Merge triangles into larger regions
-        const mergedRegions: Point[][] = [];
-        let usedTriangles = new Set<number>();
-
-        regions.forEach((region1, i) => {
-            if (usedTriangles.has(i)) return;
-
-            let currentRegion = [...region1];
-            usedTriangles.add(i);
-
-            let merged;
-            do {
-                merged = false;
-                regions.forEach((region2, j) => {
-                    if (usedTriangles.has(j)) return;
-
-                    // Check if regions share two points
-                    const sharedPoints = currentRegion.filter(p1 =>
-                        region2.some(p2 => p2.x === p1.x && p2.y === p1.y)
-                    );
-
-                    if (sharedPoints.length >= 2 && currentRegion.length < 10) {  // Limited size for more uniform fragments
-                        // Merge regions
-                        const uniquePoints = region2.filter(p1 =>
-                            !currentRegion.some(p2 => p2.x === p1.x && p2.y === p1.y)
-                        );
-
-                        // Find best insertion point for natural shape
-                        const insertIndex = currentRegion.findIndex(p =>
-                            p.x === sharedPoints[0].x && p.y === sharedPoints[0].y
-                        );
-
-                        currentRegion.splice(insertIndex, 0, ...uniquePoints);
-                        usedTriangles.add(j);
-                        merged = true;
-                    }
-                });
-            } while (merged);
-
-            mergedRegions.push(currentRegion);
-        });
-
-        return mergedRegions;
-    };
-
-    const findNearestPoints = (point: Point, allPoints: Point[], maxConnections: number): Point[] => {
-        const nearest = allPoints
-            .filter(p => p !== point)
-            .sort((a, b) => distance(point, a) - distance(point, b))
-            .slice(0, maxConnections * 2); // Get more points than needed for better selection
-
-        // Filter points to avoid sharp angles
-        const selected: Point[] = [];
-        let remainingPoints = [...nearest];
-
-        // Start with the closest point
-        if (remainingPoints.length > 0) {
-            selected.push(remainingPoints[0]);
-            remainingPoints.splice(0, 1);
-        }
-
-        // Add additional points while avoiding sharp angles
-        while (selected.length < maxConnections && remainingPoints.length > 0) {
-            let bestPoint: Point | null = null;
-            let bestAngle = 0;
-
-            for (const candidate of remainingPoints) {
-                // Calculate angle between existing connections
-                const angles = selected.map(p => {
-                    const dx = candidate.x - point.x;
-                    const dy = candidate.y - point.y;
-                    return Math.atan2(dy, dx);
-                });
-
-                // Find minimum angle difference with existing connections
-                let minAngleDiff = Math.PI * 2;
-                for (let i = 0; i < angles.length; i++) {
-                    for (let j = i + 1; j < angles.length; j++) {
-                        const diff = Math.abs(angles[i] - angles[j]);
-                        minAngleDiff = Math.min(minAngleDiff, diff);
-                    }
-                }
-
-                if (!bestPoint || minAngleDiff > bestAngle) {
-                    bestPoint = candidate;
-                    bestAngle = minAngleDiff;
-                }
-            }
-
-            if (bestPoint) {
-                selected.push(bestPoint);
-                remainingPoints = remainingPoints.filter(p => p !== bestPoint);
-            } else {
-                break;
-            }
-        }
-
-        return selected;
     };
 
     const createFragments = () => {
-        if (!containerRef || !wallImage) return;
+        if (!containerRef || !wallImage || isGeneratingFragments) {
+            console.log("Skipping fragment generation - already in progress or missing dependencies");
+            return;
+        }
+
+        isGeneratingFragments = true;
+        console.log("Starting fragment generation");
 
         const width = containerRef.clientWidth;
         const height = containerRef.clientHeight;
 
-        // Clear any existing fragments
+        // Clean up any existing fragments
         fragments.forEach(f => {
             if (f.element) f.element.remove();
         });
         fragments = [];
 
-        // Don't create background canvas at all since we want to see the red background
-        // when fragments fall
+        console.log(`Container children before generation: ${containerRef.children.length}`);
 
-        // Generate rectangular grid fragments
         const regions = generateGridFragments(width, height);
 
         // Create temporary canvas for the wall texture
@@ -329,12 +194,10 @@ const Wall: Component<WallProps> = (props) => {
             const xs = region.map(p => p.x);
             const ys = region.map(p => p.y);
 
-            // Minimal padding
-            const padding = 0.5;
-            const minX = Math.max(0, Math.min(...xs) - padding);
-            const maxX = Math.min(width, Math.max(...xs) + padding);
-            const minY = Math.max(0, Math.min(...ys) - padding);
-            const maxY = Math.min(height, Math.max(...ys) + padding);
+            const minX = Math.max(0, Math.min(...xs));
+            const maxX = Math.min(width, Math.max(...xs));
+            const minY = Math.max(0, Math.min(...ys));
+            const maxY = Math.min(height, Math.max(...ys));
 
             const canvas = document.createElement('canvas');
             canvas.width = maxX - minX;
@@ -349,19 +212,18 @@ const Wall: Component<WallProps> = (props) => {
             const ctx = canvas.getContext('2d')!;
             ctx.save();
 
-            // Draw straight lines for the rectangle
+            // Draw the noisy path
             ctx.beginPath();
             ctx.moveTo(region[0].x - minX, region[0].y - minY);
 
             for (let i = 1; i < region.length; i++) {
-                const p = region[i];
-                ctx.lineTo(p.x - minX, p.y - minY);
+                ctx.lineTo(region[i].x - minX, region[i].y - minY);
             }
 
             ctx.closePath();
             ctx.clip();
 
-            // Draw the wall texture onto the fragment
+            // Draw the wall texture
             ctx.drawImage(tempCanvas,
                 minX,
                 minY,
@@ -397,9 +259,13 @@ const Wall: Component<WallProps> = (props) => {
             containerRef?.appendChild(canvas);
         });
 
-        // Clean up temporary canvas
+        // Clean up
         tempCanvas.width = 0;
         tempCanvas.height = 0;
+
+        console.log(`Container children after generation: ${containerRef.children.length}`);
+        isGeneratingFragments = false;
+        console.log("Finished fragment generation");
     };
 
     const updateFragments = () => {
