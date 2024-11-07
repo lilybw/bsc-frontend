@@ -115,13 +115,14 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         const localUserID = this.backend.player.local.id;
 
         //protocol://host:port is provided by the main backend, as well as lobby id
-        let conn;
-        try {
-            this.log.trace(`Connecting to lobby: ${lobbyID} at ${address}, as user id: ${localUserID}`);
-            conn = new WebSocket(`${address}/connect?IGN=${computedIGN}&lobbyID=${lobbyID}&clientID=${localUserID}&colonyID=${res.colonyId}&ownerID=${ownerOfColonyJoined}`);
-        } catch (e) {
-            return 'Initial connection attempt to multiplayer server failed. Error: ' + JSON.stringify(e);
+        const url = `${address}/connect?IGN=${computedIGN}&lobbyID=${lobbyID}&clientID=${localUserID}&colonyID=${res.colonyId}&ownerID=${ownerOfColonyJoined}`
+        this.log.trace(`Connecting to lobby: ${lobbyID} at ${address}, as user id: ${localUserID}`);
+        const connectAttempt = await websocketConnectHelper(url);
+        if (connectAttempt.err != null) {
+            return connectAttempt.err;
         }
+        const conn = connectAttempt.res;
+
         const newMode = ownerOfColonyJoined === this.backend.player.local.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST;
         this.log.trace(`Local player joined lobby as: ${newMode}`);
         this.mode.set(newMode);
@@ -223,4 +224,81 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         };
         return undefined;
     };
+}
+
+export const WebSocketCodeMessage = {
+    1000: 'Normal Closure',
+    1001: 'Going Away',
+    1002: 'Protocol Error',
+    1003: 'Unsupported Data',
+    1005: 'No Status Received',
+    1006: 'Abnormal Closure (possible network error or CORS issue)',
+    1007: 'Invalid frame payload data',
+    1008: 'Policy Violation',
+    1009: 'Message too big',
+    1010: 'Missing Extension',
+    1011: 'Internal Error',
+    1015: 'TLS Handshake Error'
+}
+export const WebSocketStateMessage = {
+    0: 'CONNECTING',
+    1: 'OPEN',
+    2: 'CLOSING',
+    3: 'CLOSED'
+}
+
+const websocketConnectHelper = async (url: string): Promise<ResErr<WebSocket>> => {
+    let socket: WebSocket | null = null;
+    try {
+        socket = new WebSocket(url);
+
+        await new Promise<WebSocket>((resolve, reject) => {
+            let errorOccurred = false;
+            socket!.onopen = () => {
+                if (errorOccurred) {
+                    reject(new Error('WebSocket Error Occurred before onopen unable to determine if connection was successful'));
+                }    
+                resolve(socket!)
+            };
+    
+            socket!.onerror = (error: Event) => {
+                // There is no information in the error event, so we have to wait for onclose
+                errorOccurred = true;
+            };
+            
+            socket!.onclose = (event) => {
+                const details: any = {
+                    code: event.code,
+                    reason: event.reason || 'No reason provided',
+                    wasClean: event.wasClean,
+                    url: url,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Map common close codes to readable messages
+                const codeMessage = WebSocketCodeMessage[event.code as keyof typeof WebSocketCodeMessage] 
+                    || 'Unknown Close Code';
+                
+                details.meaning = codeMessage;
+                
+                reject(new Error(`WebSocket Closed - ${JSON.stringify(details)}`));
+            };
+    
+            setTimeout(() => {
+                const state = socket?.readyState;
+                reject(new Error(`WebSocket Timeout - Current state: 
+                    ${WebSocketStateMessage[state as keyof typeof WebSocketStateMessage]}`));
+            }, 5000);
+        });
+        
+        return { res: socket, err: null };
+    } catch (e) {
+        if (socket) {
+            socket.close();
+        }
+        return { 
+            res: null, 
+            err: `Failed to create WebSocket connection: ${e instanceof Error ? e.message : JSON.stringify(e)}`
+        };
+    }
 }

@@ -9,6 +9,7 @@ import { MultiplayerMode } from '../../../meta/types';
 import { Styles } from '../../../sharedCSS';
 import BufferBasedButton from '../../base/BufferBasedButton';
 import GraphicalAsset from '../../base/GraphicalAsset';
+import Spinner from '@/components/base/SimpleLoadingSpinner';
 
 interface SpacePortCardProps extends GenericLocationCardProps {
     colony: ColonyInfoResponseDTO;
@@ -16,9 +17,11 @@ interface SpacePortCardProps extends GenericLocationCardProps {
 
 const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     const [connectErr, setConnectErr] = createSignal<string | undefined>();
+    const [isConnecting, setIsConnecting] = createSignal(false);
     const log = props.backend.logger.copyFor('space port');
 
     const openColony = async () => {
+        setIsConnecting(true);
         const getCurrentDateTimeLocaleString = () => {
             const now = new Date();
             return now.toLocaleString('en-US', {
@@ -43,15 +46,18 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
 
         if (openResponse.err !== null) {
             log.error('Failed to open colony: ' + openResponse.err);
+            setIsConnecting(false);
             return openResponse.err;
         }
 
         const err = await props.multiplayer.connect(openResponse.res.code, () => {});
         if (err) {
             log.error('Failed to connect to multiplayer: ' + err);
+            setIsConnecting(false);
             setConnectErr(err);
             return;
         }
+        setIsConnecting(false);
         props.events.emit(PLAYER_MOVE_EVENT, {
             playerID: props.backend.player.local.id,
             colonyLocationID: props.colonyLocation.id,
@@ -79,11 +85,9 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     const getOpenLayout = (code: ColonyCode) => (
         <>
             <div
-                class={css`
-                    ${Styles.MENU_INPUT} ${codeDisplayStyle} ${connectErr() ? css`border-color: red; font-size: 2rem;` : ""}
-                `}
+                class={css`${Styles.MENU_INPUT} ${codeDisplayStyle}`}
             >
-                {connectErr() ? connectErr() : formatCodeForDisplay(code)}
+                {formatCodeForDisplay(code)}
             </div>
             <div class={STYLE_LOC_CARD_lowerThirdWBackgroundStyle}>
                 <div
@@ -140,6 +144,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
                         buffer={props.buffer}
                         register={props.register}
                         onActivation={openColony}
+                        enable={createMemo(() => !isConnecting())}
                     />
                 )}
             </div>
@@ -168,6 +173,10 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
             {props.text.Title(props.info.name)({ styleOverwrite: STYLE_LOC_CARD_titleStyleOverwrite })}
 
             {getBody()}
+            {connectErr() && 
+                <div class={errorMessageStyle}>connectErr()</div>}
+            {isConnecting() && 
+                <Spinner styleOverwrite={codeDisplayStyle}/>}
         </div>
     );
 };
@@ -187,6 +196,12 @@ const codeDisplayStyle = css`
     text-align: center;
     ${Styles.GLASS.BACKGROUND}
 `;
+const errorMessageStyle = css`
+    ${codeDisplayStyle}; 
+    font-size: 1.5rem; 
+    border-color: red; 
+    background-image: linear-gradient(rgba(255, 0, 0, 0.5), rgba(0, 0, 0, 0.5)); 
+`
 
 export const STYLE_LOC_CARD_lowerThirdWBackgroundStyle = css`
     display: flex;
