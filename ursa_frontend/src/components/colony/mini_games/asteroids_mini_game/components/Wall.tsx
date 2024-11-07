@@ -58,79 +58,60 @@ const Wall: Component<WallProps> = (props) => {
     const generatePoints = (width: number, height: number): Point[] => {
         const points: Point[] = [];
 
-        // Add corners with slight inset to avoid tiny corner fragments
-        const inset = MIN_POINT_DISTANCE / 2;
-        points.push({ x: inset, y: inset });
-        points.push({ x: width - inset, y: inset });
-        points.push({ x: width - inset, y: height - inset });
-        points.push({ x: inset, y: height - inset });
+        // Add corners with zero inset to ensure coverage
+        points.push({ x: 0, y: 0 });
+        points.push({ x: width, y: 0 });
+        points.push({ x: width, y: height });
+        points.push({ x: 0, y: height });
 
-        // Calculate spacing based on wall dimensions and limits
+        // Calculate spacing to ensure more even coverage
         const horizontalSpacing = Math.max(
             MIN_EDGE_SPACING,
-            Math.min(
-                width / MIN_EDGE_POINTS,
-                width / MAX_EDGE_POINTS
-            )
+            width / MAX_EDGE_POINTS
         );
 
         const verticalSpacing = Math.max(
             MIN_EDGE_SPACING,
-            Math.min(
-                height / MIN_EDGE_POINTS,
-                height / MAX_EDGE_POINTS
-            )
+            height / MAX_EDGE_POINTS
         );
 
-        // Add edge points with controlled randomness
-        const variance = Math.min(horizontalSpacing, verticalSpacing) * 0.25;
+        // Reduced variance for more consistent coverage
+        const variance = Math.min(horizontalSpacing, verticalSpacing) * 0.15;
 
-        // Helper function to check if a point is too close to existing points
-        const isTooClose = (newPoint: Point): boolean => {
-            return points.some(existingPoint =>
-                distance(newPoint, existingPoint) < MIN_POINT_DISTANCE
-            );
-        };
-
-        // Add edge points
-        for (let x = horizontalSpacing; x < width - horizontalSpacing; x += horizontalSpacing) {
-            const topPoint = {
+        // Add edge points with less randomness
+        for (let x = horizontalSpacing; x < width - horizontalSpacing / 2; x += horizontalSpacing) {
+            points.push({
                 x: x + (Math.random() - 0.5) * variance,
-                y: inset + (Math.random() - 0.5) * variance
-            };
-            const bottomPoint = {
+                y: (Math.random() - 0.5) * variance
+            });
+            points.push({
                 x: x + (Math.random() - 0.5) * variance,
-                y: height - inset + (Math.random() - 0.5) * variance
-            };
-
-            if (!isTooClose(topPoint)) points.push(topPoint);
-            if (!isTooClose(bottomPoint)) points.push(bottomPoint);
+                y: height + (Math.random() - 0.5) * variance
+            });
         }
 
-        for (let y = verticalSpacing; y < height - verticalSpacing; y += verticalSpacing) {
-            const leftPoint = {
-                x: inset + (Math.random() - 0.5) * variance,
+        for (let y = verticalSpacing; y < height - verticalSpacing / 2; y += verticalSpacing) {
+            points.push({
+                x: (Math.random() - 0.5) * variance,
                 y: y + (Math.random() - 0.5) * variance
-            };
-            const rightPoint = {
-                x: width - inset + (Math.random() - 0.5) * variance,
+            });
+            points.push({
+                x: width + (Math.random() - 0.5) * variance,
                 y: y + (Math.random() - 0.5) * variance
-            };
-
-            if (!isTooClose(leftPoint)) points.push(leftPoint);
-            if (!isTooClose(rightPoint)) points.push(rightPoint);
+            });
         }
 
-        // Add interior points
-        const interiorAttempts = INTERIOR_POINTS * 2;
+        // Add more interior points for better coverage
+        const minInteriorSpacing = Math.min(horizontalSpacing, verticalSpacing) * 0.4;
+        const attempts = INTERIOR_POINTS * 3;
 
-        for (let i = 0; i < interiorAttempts && points.length < INTERIOR_POINTS + points.length; i++) {
+        for (let i = 0; i < attempts && points.length < INTERIOR_POINTS + points.length; i++) {
             const newPoint = {
-                x: Math.random() * (width - horizontalSpacing * 2) + horizontalSpacing,
-                y: Math.random() * (height - verticalSpacing * 2) + verticalSpacing
+                x: Math.random() * width,
+                y: Math.random() * height
             };
 
-            if (!isTooClose(newPoint)) {
+            if (points.every(p => distance(newPoint, p) >= minInteriorSpacing)) {
                 points.push(newPoint);
             }
         }
@@ -199,19 +180,38 @@ const Wall: Component<WallProps> = (props) => {
         const width = containerRef.clientWidth;
         const height = containerRef.clientHeight;
 
-        // Generate more points to ensure full coverage
+        // Create and append the background canvas first
+        const backgroundCanvas = document.createElement('canvas');
+        backgroundCanvas.width = width;
+        backgroundCanvas.height = height;
+        backgroundCanvas.style.position = 'absolute';
+        backgroundCanvas.style.left = '0';
+        backgroundCanvas.style.top = '0';
+        backgroundCanvas.style.width = '100%';
+        backgroundCanvas.style.height = '100%';
+        backgroundCanvas.style.zIndex = '1';
+
+        const bgCtx = backgroundCanvas.getContext('2d')!;
+        const pattern = bgCtx.createPattern(wallImage, 'repeat');
+        if (pattern) {
+            bgCtx.fillStyle = pattern;
+            bgCtx.fillRect(0, 0, width, height);
+        }
+
+        containerRef.appendChild(backgroundCanvas);
+
         const points = generatePoints(width, height);
 
-        // Create edges between points
+        // Create edges with overlap to prevent gaps
         const edges: Edge[] = [];
         points.forEach(point => {
-            const nearestPoints = findNearestPoints(point, points, 3);
+            const nearestPoints = findNearestPoints(point, points, MAX_CONNECTIONS);
             nearestPoints.forEach(nearPoint => {
                 edges.push({ p1: point, p2: nearPoint });
             });
         });
 
-        // Create regions from edges
+        // Create regions with overlap
         const regions: Point[][] = [];
         let usedPoints = new Set<Point>();
 
@@ -221,75 +221,85 @@ const Wall: Component<WallProps> = (props) => {
                 let currentPoint = edge.p2;
                 let attempts = 0;
 
-                // Try to create a polygon with 3-5 vertices
-                while (attempts < 8 && region.length < 5) {
-                    const nearPoints = findNearestPoints(currentPoint, points, 4)
-                        .filter(p => !region.includes(p) &&
-                            !region.some(existing => distance(p, existing) < MIN_POINT_DISTANCE));
+                while (attempts < 8) { // Increased from 5 for better coverage
+                    const nearPoints = findNearestPoints(currentPoint, points, MAX_CONNECTIONS)
+                        .filter(p => !region.includes(p));
 
                     if (nearPoints.length > 0) {
                         region.push(currentPoint);
-                        // Pick a random point from the nearest points to create more irregular shapes
-                        currentPoint = nearPoints[Math.floor(Math.random() * Math.min(nearPoints.length, 2))];
+                        currentPoint = nearPoints[0];
                         attempts = 0;
                     } else {
                         attempts++;
                     }
+
+                    if (region.length >= 6) break; // Increased from 5 for better coverage
                 }
 
-                // Close the polygon if we have enough points
                 if (region.length >= 3) {
+                    // Add extra points to ensure edge coverage
+                    if (region[0].x <= MIN_EDGE_SPACING) {
+                        region.push({ x: 0, y: region[0].y });
+                    }
+                    if (region[0].x >= width - MIN_EDGE_SPACING) {
+                        region.push({ x: width, y: region[0].y });
+                    }
+                    if (region[0].y <= MIN_EDGE_SPACING) {
+                        region.push({ x: region[0].x, y: 0 });
+                    }
+                    if (region[0].y >= height - MIN_EDGE_SPACING) {
+                        region.push({ x: region[0].x, y: height });
+                    }
+
                     regions.push(region);
                     region.forEach(p => usedPoints.add(p));
                 }
             }
         });
 
-        // Create fragment elements
+        // Create temporary canvas for the wall texture
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = width;
         tempCanvas.height = height;
         const tempCtx = tempCanvas.getContext('2d')!;
 
-        // Draw the repeating texture pattern
-        const pattern = tempCtx.createPattern(wallImage, 'repeat');
-        if (pattern) {
-            tempCtx.fillStyle = pattern;
+        // Fill the temporary canvas with the repeated wall texture
+        const wallPattern = tempCtx.createPattern(wallImage, 'repeat');
+        if (wallPattern) {
+            tempCtx.fillStyle = wallPattern;
             tempCtx.fillRect(0, 0, width, height);
         }
 
+        // Create fragments with overlap
         regions.forEach(region => {
-            if (region.length < 3) return;
-
-            // Calculate bounding box with padding
             const xs = region.map(p => p.x);
             const ys = region.map(p => p.y);
-            const minX = Math.min(...xs) - 2;
-            const maxX = Math.max(...xs) + 2;
-            const minY = Math.min(...ys) - 2;
-            const maxY = Math.max(...ys) + 2;
+
+            // Add padding to prevent gaps
+            const padding = 2;
+            const minX = Math.max(0, Math.min(...xs) - padding);
+            const maxX = Math.min(width, Math.max(...xs) + padding);
+            const minY = Math.max(0, Math.min(...ys) - padding);
+            const maxY = Math.min(height, Math.max(...ys) + padding);
 
             const canvas = document.createElement('canvas');
-            canvas.width = maxX - minX + 4;  // Add padding
-            canvas.height = maxY - minY + 4;
+            canvas.width = maxX - minX;
+            canvas.height = maxY - minY;
+
             canvas.style.position = 'absolute';
-            canvas.style.left = `${minX - 2}px`;
-            canvas.style.top = `${minY - 2}px`;
+            canvas.style.left = `${minX}px`;
+            canvas.style.top = `${minY}px`;
             canvas.style.transformOrigin = 'center center';
-            canvas.style.pointerEvents = 'none';
-            canvas.style.zIndex = '2'
+            canvas.style.zIndex = '2';
 
             const ctx = canvas.getContext('2d')!;
-
-            // Draw the fragment shape
             ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(
-                region[0].x - minX + 2,
-                region[0].y - minY + 2
-            );
 
-            // Use curve interpolation for smoother shapes
+            // Create fragment path with smooth edges
+            ctx.beginPath();
+            ctx.moveTo(region[0].x - minX, region[0].y - minY);
+
+            // Draw smooth curves between points
             for (let i = 1; i < region.length; i++) {
                 const p1 = region[i - 1];
                 const p2 = region[i];
@@ -297,34 +307,33 @@ const Wall: Component<WallProps> = (props) => {
                 const yc = (p1.y + p2.y) / 2;
 
                 ctx.quadraticCurveTo(
-                    p1.x - minX + 2,
-                    p1.y - minY + 2,
-                    xc - minX + 2,
-                    yc - minY + 2
+                    p1.x - minX,
+                    p1.y - minY,
+                    xc - minX,
+                    yc - minY
                 );
             }
 
-            // Close the path back to the first point
+            // Close the path with a smooth curve
             const last = region[region.length - 1];
             const first = region[0];
             const xc = (last.x + first.x) / 2;
             const yc = (last.y + first.y) / 2;
 
             ctx.quadraticCurveTo(
-                last.x - minX + 2,
-                last.y - minY + 2,
-                xc - minX + 2,
-                yc - minY + 2
+                last.x - minX,
+                last.y - minY,
+                xc - minX,
+                yc - minY
             );
 
             ctx.closePath();
             ctx.clip();
 
-            // Draw the texture
-            ctx.drawImage(
-                tempCanvas,
-                minX - 2,
-                minY - 2,
+            // Draw the wall texture onto the fragment
+            ctx.drawImage(tempCanvas,
+                minX,
+                minY,
                 canvas.width,
                 canvas.height,
                 0,
@@ -333,9 +342,15 @@ const Wall: Component<WallProps> = (props) => {
                 canvas.height
             );
 
+            // Add a subtle shadow effect to hide potential gaps
+            ctx.shadowColor = 'rgba(0,0,0,0.2)';
+            ctx.shadowBlur = 1;
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
             ctx.restore();
 
-            // Calculate centroid
             const centroid = {
                 x: region.reduce((sum, p) => sum + p.x, 0) / region.length,
                 y: region.reduce((sum, p) => sum + p.y, 0) / region.length
@@ -464,15 +479,11 @@ const Wall: Component<WallProps> = (props) => {
 
     return (
         <div class={wallContainerStyle} id="Outer-Wall" ref={containerRef}>
-            {/* Red background - lowest layer */}
             <div class={backgroundStyle}></div>
-
-            {/* Only load the image for creating fragments, but don't display it */}
             <NTAwait func={() => props.context.backend.assets.getMetadata(7003)}>
                 {(asset) => (
-                    <div style={{ display: 'none' }}>  {/* Hide the original image */}
+                    <div style={{ display: 'none' }}>
                         <GraphicalAsset
-                            styleOverwrite={wallTextureStyle}
                             backend={props.context.backend}
                             metadata={asset}
                             onImageLoad={(img) => {
@@ -497,29 +508,19 @@ const wallContainerStyle = css`
     overflow: hidden;
     transform-style: preserve-3d;
     perspective: 1000px;
+    background-color: red; // Fallback color
 `;
 
-const textureContainerStyle = css`
+const backgroundStyle = css`
     position: absolute;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
-    
-    img {
-        width: auto !important;
-        height: auto !important;
-        object-fit: none !important;
-        position: absolute;
-        top: 0;
-        left: 0;
-        image-rendering: pixelated;
-        transform: none !important;
-    }
-`;
-
-const wallTextureStyle = css`
-    background-repeat: repeat;
+    background-color: red;
+    z-index: 0;
 `;
 
 const gradientOverlayStyle = css`
@@ -536,15 +537,4 @@ const gradientOverlayStyle = css`
     pointer-events: none;
     z-index: 3;
 `;
-
 export default Wall;
-
-const backgroundStyle = css`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: red;
-    z-index: 0;
-`;
