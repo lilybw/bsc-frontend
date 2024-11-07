@@ -1,7 +1,6 @@
 import { Styles } from '@/sharedCSS';
 import { css } from '@emotion/css';
 
-// All styles need to be exported
 export const wallStyle = css`
     position: absolute;
     top: 0;

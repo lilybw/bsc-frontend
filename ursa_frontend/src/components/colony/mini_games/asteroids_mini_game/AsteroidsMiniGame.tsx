@@ -19,12 +19,13 @@ import Asteroid from "./entities/Asteroid";
 import { Position } from "./entities/BaseEntity";
 import LazerBeam from "./entities/LazerBeam";
 import Player from "./entities/Player";
-import { wallStyle, statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle, playerNamePlateStyle } from "./styles/gameStyles";
+import { statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle, playerNamePlateStyle } from "./styles/gameStyles";
 import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes"
 import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
-import ExplosionParticleManager, { ExplosionData } from "./entities/particles/explosionParticles/ExplosionParticleManager";
+import { ExplosionData } from "./entities/particles/explosionParticles/ExplosionParticleManager";
 import ExplosionEffect from "./components/ExplosionEffect";
 import { generateImpactPosition, getEntityRefKey, getRandomRotationSpeed, getTargetCenterPosition, handleAsteroidDestruction, translateSpawnPosition } from "./utils/gameUtils";
+import Wall from "./components/Wall";
 
 type PlayerState = {
     isStunned: boolean;
@@ -358,7 +359,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     return (
         <div>
             <StarryBackground />
-            <div class={wallStyle} id="Outer-Wall" />
+            <Wall context={props.context} health={health} />
             <div class={statusStyle}>{'❤'.repeat(health())}</div>
             <Countdown duration={props.settings.survivalTimeS} styleOverwrite={timeLeftStyle} />
             <div>
