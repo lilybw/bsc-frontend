@@ -14,6 +14,10 @@ interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IB
      * Applied first if provided and only to the container of the image
      */
     transform?: TransformDTO;
+    /**
+     * Callback for when the image is loaded
+     */
+    onImageLoad?: (img: HTMLImageElement) => void;
 }
 
 const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
@@ -22,6 +26,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
     const [loading, setLoading] = createSignal(true);
     const [error, setError] = createSignal<string | undefined>(undefined);
     const [currentLODLevel, setCurrentLODLevel] = createSignal(9001);
+    const [imageElement, setImageElement] = createSignal<HTMLImageElement | null>(null);
 
     createEffect(() => {
         let mounted = true;
@@ -53,6 +58,9 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
                                 });
                                 setCurrentLODLevel(lod.detailLevel);
                                 setLoading(false);
+                                if (props.onImageLoad) {
+                                    props.onImageLoad(img);
+                                }
                             }
                             resolve();
                         };
@@ -86,7 +94,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
         () => css`
             ${baseStyles}
             ${Styles.transformToCSSVariables(props.transform)}
-    width: calc(${props.metadata.width}px * var(--transform-xScale));
+            width: calc(${props.metadata.width}px * var(--transform-xScale));
             height: calc(${props.metadata.height}px * var(--transform-yScale));
             ${props.transform ? Styles.TRANSFORM_APPLICATOR : ''}
             ${props.styleOverwrite}
@@ -116,6 +124,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
                         src={currentSrc()!}
                         alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
                         class={computedStyles()}
+                        ref={setImageElement}
                     />
                     {appendChildren()}
                 </>
@@ -123,6 +132,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
         </>
     );
 };
+
 export default GraphicalAsset;
 
 const baseStyles = css`
