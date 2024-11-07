@@ -69,9 +69,9 @@ const Wall: Component<WallProps> = (props) => {
                 return edgeDeformations.get(reverseKey)!.slice().reverse();
             }
 
-            const baseOffset = width * 0.3;
-            const maxVariation = width * 0.2;
-            const segments = 4;
+            const baseOffset = width * 0.15;    // 15% offset
+            const maxVariation = width * 0.1;   // 10% additional variation
+            const segments = 8;
             const deformations = [];
 
             for (let i = 0; i < segments; i++) {
