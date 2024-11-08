@@ -122,7 +122,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             return connectAttempt.err;
         }
         const conn = connectAttempt.res;
-
+        
         const newMode = ownerOfColonyJoined === this.backend.player.local.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST;
         this.log.subtrace(`Local player joined lobby as: ${newMode}`);
         this.mode.set(newMode);
@@ -130,6 +130,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
         this.code.set(colonyCode);
         this.connectedLobbyID = lobbyID;
         this.serverAddress = address;
+        this.connection = conn;
 
         //Unsubscribe from all previous subscriptions, if any
         if (this.subscriptions && this.subscriptions.length > 0) {
@@ -161,6 +162,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
     public disconnect = async () => {
         this.log.info('disconnecting from lobby');
         this.connection?.close();
+        this.connection = null;
         this.state.set(ColonyState.CLOSED);
         this.code.set(null);
         //We do not have to overwrite mode, as it is tied to the current colony, not the lobby
@@ -175,6 +177,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
      * Exceptionally allowed to THROW
      */
     private send = async <T extends IMessage>(data: T, spec: EventSpecification<T>) => {
+        this.log.info(`Sending message with event id: ${spec.id} name: ${spec.name}`);
         this.connection?.send(createViewAndSerializeMessage(data, spec));
     };
 
