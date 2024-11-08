@@ -16,15 +16,10 @@ interface Point {
 }
 
 interface Fragment {
-    element: HTMLCanvasElement;
+    element: HTMLDivElement;
     points: Point[];
     isActive: boolean;
     hasDropped: boolean;
-    dx: number;
-    dy: number;
-    rotation: number;
-    opacity: number;
-    timeSinceDrop: number;
     centroid: Point;
 }
 
@@ -172,22 +167,10 @@ const Wall: Component<WallProps> = (props) => {
         });
         fragments = [];
 
-        console.log(`Container children before generation: ${containerRef.children.length}`);
-
         const regions = generateGridFragments(width, height);
 
-        // Create temporary canvas for the wall texture
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = width;
-        tempCanvas.height = height;
-        const tempCtx = tempCanvas.getContext('2d')!;
-
-        // Fill the temporary canvas with the repeated wall texture
-        const wallPattern = tempCtx.createPattern(wallImage, 'repeat');
-        if (wallPattern) {
-            tempCtx.fillStyle = wallPattern;
-            tempCtx.fillRect(0, 0, width, height);
-        }
+        // Store the image source to avoid null checks
+        const wallImageSrc = wallImage.src;
 
         // Create fragments
         regions.forEach(region => {
@@ -199,43 +182,24 @@ const Wall: Component<WallProps> = (props) => {
             const minY = Math.max(0, Math.min(...ys));
             const maxY = Math.min(height, Math.max(...ys));
 
-            const canvas = document.createElement('canvas');
-            canvas.width = maxX - minX;
-            canvas.height = maxY - minY;
+            const element = document.createElement('div');
+            element.className = fragmentStyle;
 
-            canvas.style.position = 'absolute';
-            canvas.style.left = `${minX}px`;
-            canvas.style.top = `${minY}px`;
-            canvas.style.transformOrigin = 'center center';
-            canvas.style.zIndex = '2';
+            // Set size and position
+            element.style.width = `${maxX - minX}px`;
+            element.style.height = `${maxY - minY}px`;
+            element.style.left = `${minX}px`;
+            element.style.top = `${minY}px`;
 
-            const ctx = canvas.getContext('2d')!;
-            ctx.save();
+            // Set background image using stored source
+            element.style.backgroundImage = `url(${wallImageSrc})`;
+            element.style.backgroundPosition = `-${minX}px -${minY}px`;
 
-            // Draw the noisy path
-            ctx.beginPath();
-            ctx.moveTo(region[0].x - minX, region[0].y - minY);
-
-            for (let i = 1; i < region.length; i++) {
-                ctx.lineTo(region[i].x - minX, region[i].y - minY);
-            }
-
-            ctx.closePath();
-            ctx.clip();
-
-            // Draw the wall texture
-            ctx.drawImage(tempCanvas,
-                minX,
-                minY,
-                canvas.width,
-                canvas.height,
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-
-            ctx.restore();
+            // Create clip path from points
+            const clipPoints = region.map(p =>
+                `${p.x - minX}px ${p.y - minY}px`
+            ).join(', ');
+            element.style.clipPath = `polygon(${clipPoints})`;
 
             const centroid = {
                 x: region.reduce((sum, p) => sum + p.x, 0) / region.length,
@@ -243,87 +207,19 @@ const Wall: Component<WallProps> = (props) => {
             };
 
             const fragment: Fragment = {
-                element: canvas,
+                element,
                 points: region,
                 isActive: true,
                 hasDropped: false,
-                dx: 0,
-                dy: 0,
-                rotation: 0,
-                opacity: 1,
-                timeSinceDrop: 0,
                 centroid
             };
 
             fragments.push(fragment);
-            containerRef?.appendChild(canvas);
+            containerRef?.appendChild(element);
         });
 
-        // Clean up
-        tempCanvas.width = 0;
-        tempCanvas.height = 0;
-
-        console.log(`Container children after generation: ${containerRef.children.length}`);
         isGeneratingFragments = false;
         console.log("Finished fragment generation");
-    };
-
-    const updateFragments = () => {
-        const currentTime = performance.now();
-        const deltaTime = Math.min(currentTime - lastFrameTime, 32);
-        lastFrameTime = currentTime;
-
-        let hasActiveFragments = false;
-
-        fragments.forEach(fragment => {
-            if (!fragment.hasDropped) return;
-
-            fragment.timeSinceDrop += deltaTime;
-
-            if (fragment.timeSinceDrop >= FRAGMENT_LIFETIME) {
-                fragment.isActive = false;
-                fragment.element.remove();
-                return;
-            }
-
-            hasActiveFragments = true;
-
-            const timeScale = deltaTime / FRAME_TIME;
-
-            fragment.dy += GRAVITY * timeScale;
-            fragment.dx *= Math.pow(0.99, timeScale);
-
-            fragment.rotation += (fragment.dx * 0.1) * timeScale;
-
-            const fadeStartTime = FRAGMENT_LIFETIME * 0.7;
-            const opacity = fragment.timeSinceDrop < fadeStartTime
-                ? 1
-                : Math.max(0, 1 - ((fragment.timeSinceDrop - fadeStartTime) / (FRAGMENT_LIFETIME - fadeStartTime)));
-            fragment.opacity = opacity;
-
-            const currentLeft = parseFloat(fragment.element.style.left) || 0;
-            const currentTop = parseFloat(fragment.element.style.top) || 0;
-
-            const newLeft = currentLeft + (fragment.dx * timeScale);
-            const newTop = currentTop + (fragment.dy * timeScale);
-
-            fragment.element.style.left = `${newLeft}px`;
-            fragment.element.style.top = `${newTop}px`;
-
-            const scale = 1 - (fragment.timeSinceDrop / FRAGMENT_LIFETIME) * 0.1;
-            fragment.element.style.transform = `rotate(${fragment.rotation}deg) scale(${scale})`;
-            fragment.element.style.opacity = fragment.opacity.toString();
-        });
-
-        if (Math.floor(currentTime / 1000) > Math.floor(lastFrameTime / 1000)) {
-            fragments = fragments.filter(f => f.isActive);
-        }
-
-        if (hasActiveFragments) {
-            animationFrame = requestAnimationFrame(updateFragments);
-        } else {
-            animationFrame = 0;
-        }
     };
 
     const dropFragments = (percentToDrop: number) => {
@@ -336,20 +232,19 @@ const Wall: Component<WallProps> = (props) => {
 
             if (fragment) {
                 const sidewaysDirection = fragment.centroid.x > containerRef!.clientWidth / 2 ? 1 : -1;
+                const rotation = sidewaysDirection * (Math.random() * 45);
 
-                fragment.dx = sidewaysDirection * (Math.random() * 0.2);
-                fragment.dy = 0;
-                fragment.rotation = sidewaysDirection * (Math.random() * 45);
-                fragment.timeSinceDrop = 0;
                 fragment.hasDropped = true;
+                fragment.element.classList.add(fragmentDropAnimation(sidewaysDirection, rotation));
+
+                // Remove fragment after animation
+                fragment.element.addEventListener('transitionend', () => {
+                    fragment.isActive = false;
+                    fragment.element.remove();
+                }, { once: true });
             }
 
             availableFragments.splice(index, 1);
-        }
-
-        if (!animationFrame) {
-            lastFrameTime = performance.now();
-            updateFragments();
         }
     };
 
@@ -379,22 +274,7 @@ const Wall: Component<WallProps> = (props) => {
         <div class={wallContainerStyle} id="Outer-Wall" ref={containerRef}>
             <div class={backgroundStyle}></div>
             {/* Background image */}
-            <NTAwait func={() => props.context.backend.assets.getMetadata(7003)}>
-                {(asset) => (
-                    <div style={{ display: 'none' }}>
-                        <GraphicalAsset
-                            backend={props.context.backend}
-                            metadata={asset}
-                            onImageLoad={(img) => {
-                                if (containerRef) {
-                                    containerRef.style.backgroundImage = `url(${img.src})`;
-                                    containerRef.style.backgroundSize = 'cover';
-                                }
-                            }}
-                        />
-                    </div>
-                )}
-            </NTAwait>
+
             {/* Fragment texture image */}
             <NTAwait func={() => props.context.backend.assets.getMetadata(7003)}>
                 {(asset) => (
@@ -456,6 +336,17 @@ const gradientOverlayStyle = css`
     );
     pointer-events: none;
     z-index: 3;
+`;
+
+const fragmentStyle = css`
+    position: absolute;
+    background-repeat: no-repeat;
+    transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 1s ease-out;
+`;
+
+const fragmentDropAnimation = (sidewaysDirection: number, rotation: number) => css`
+    transform: translate(${sidewaysDirection * 100}px, 500px) rotate(${rotation}deg);
+    opacity: 0;
 `;
 
 export default Wall;
