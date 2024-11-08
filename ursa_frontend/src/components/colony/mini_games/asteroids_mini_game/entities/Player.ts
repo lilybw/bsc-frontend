@@ -73,22 +73,11 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
 
         // Update button state
         if (this.updateButtonState) {
-            console.log('Updating button state:', {
-                playerId: this.id,
-                isStunned: this._isStunned,
-                isDisabled: this._isDisabled,
-                resultingState: isDisabled,
-            });
             this.updateButtonState(isDisabled);
         }
 
         // Notify state change
         if (this.onStateChange) {
-            console.log('Notifying state change:', {
-                playerId: this.id,
-                isStunned: this._isStunned,
-                isDisabled: this._isDisabled,
-            });
             this.onStateChange(this._isStunned, this._isDisabled);
         }
     }
@@ -140,10 +129,8 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
 
         this._isStunned = true;
         this.updateState();
-        console.log(`Player ${this.id} stunned, duration: ${this.stunDuration}s`);
 
         this.stunTimer = setTimeout(() => {
-            console.log(`Player ${this.id} stun timer completed`);
             this.removeStun();
         }, this.stunDuration * 1000);
     }
@@ -174,10 +161,8 @@ export class Player extends BaseEntity implements Targetable, StatusEffectable {
         this._isDisabled = true;
         this.updateState();
         const penaltyDuration = this.friendlyFirePenalty * this.penaltyMultiplier;
-        console.log(`Player ${this.id} disabled, penalty duration: ${penaltyDuration}s`);
 
         this.disableTimer = setTimeout(() => {
-            console.log(`Player ${this.id} disable timer completed`);
             this.removeDisable();
         }, penaltyDuration * 1000);
     }

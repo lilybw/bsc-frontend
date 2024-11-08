@@ -31,7 +31,6 @@ const PlayerStunEffect: Component<PlayerStunEffectProps> = (props) => {
     createEffect(() => {
         const state = props.playerState();
         if (state?.isStunned) {
-            console.log(`[STUNPARTICLE] Player ${props.playerId} stunned - starting effect`);
             setHasStunEffect(true);
             let particleCount = 0;
 
@@ -56,7 +55,6 @@ const PlayerStunEffect: Component<PlayerStunEffectProps> = (props) => {
     });
 
     onCleanup(() => {
-        console.log(`[STUNPARTICLE] Final cleanup for player ${props.playerId}`);
         particleManager.clear();
     });
 

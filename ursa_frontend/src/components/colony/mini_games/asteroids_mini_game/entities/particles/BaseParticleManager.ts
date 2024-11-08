@@ -60,14 +60,12 @@ export abstract class BaseParticleManager<T extends BaseParticle = BaseParticle>
 
     public clear(): void {
         this.isCleaningUp = true;
-        console.log('[PARTICLE] Starting cleanup');
 
         // Allow current particles to finish their animations
         setTimeout(() => {
             this.particles.clear();
             this.notifyUpdate();
             this.isCleaningUp = false;
-            console.log('[PARTICLE] Cleanup complete');
         }, 50);
     }
 

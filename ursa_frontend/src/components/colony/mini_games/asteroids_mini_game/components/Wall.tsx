@@ -57,11 +57,6 @@ const Wall: Component<WallProps> = (props) => {
         const baseHeight = baseWidth * 3; // Making cells 3 times taller than wide
         const numRows = Math.ceil(height / baseHeight);
 
-        console.log(`Wall dimensions: ${width}x${height}`);
-        console.log(`Cell dimensions: ${baseWidth}x${baseHeight}`);
-        console.log(`Grid size: ${numColumns}x${numRows}`);
-        console.log(`Expected total cells: ${numColumns * numRows}`);
-
         // Store edge deformations so they can be shared
         const edgeDeformations: Map<string, number[]> = new Map();
 
@@ -158,18 +153,15 @@ const Wall: Component<WallProps> = (props) => {
             }
         }
 
-        console.log(`Final region count: ${regions.length}`);
         return regions;
     };
 
     const createFragments = () => {
         if (!containerRef || !wallImage || isGeneratingFragments) {
-            console.log("Skipping fragment generation - already in progress or missing dependencies");
             return;
         }
 
         isGeneratingFragments = true;
-        console.log("Starting fragment generation");
 
         const width = containerRef.clientWidth;
         const height = containerRef.clientHeight;
@@ -232,7 +224,6 @@ const Wall: Component<WallProps> = (props) => {
         });
 
         isGeneratingFragments = false;
-        console.log("Finished fragment generation");
     };
 
     const dropFragments = (percentToDrop: number, impactPosition?: Point) => {

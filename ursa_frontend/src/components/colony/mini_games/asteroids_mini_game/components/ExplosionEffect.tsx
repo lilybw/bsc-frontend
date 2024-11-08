@@ -30,7 +30,6 @@ const ExplosionEffect: Component<ExplosionEffectProps> = (props) => {
     );
 
     createEffect(() => {
-        console.log(`[EXPLOSION] Creating explosion for ${props.entityType} ${props.entityId}`);
 
         // Create explosion immediately
         particleManager.createExplosion({
@@ -44,7 +43,6 @@ const ExplosionEffect: Component<ExplosionEffectProps> = (props) => {
         }, 16);
 
         onCleanup(() => {
-            console.log(`[EXPLOSION] Cleaning up explosion for ${props.entityType} ${props.entityId}`);
             clearInterval(updateInterval);
             particleManager.clear();
         });
