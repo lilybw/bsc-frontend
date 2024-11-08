@@ -21,7 +21,7 @@ export type GenericGameLoopStartFunction = () => void;
  * Any function, that based on the provided ApplicationContext alone, can initialize all data needed
  * or return an error if something goes wrong during initialization.
  */
-export type SingleplayerGameLoopInitFunc = (context: ApplicationContext, difficulty: DifficultyConfirmedForMinigameMessageDTO) => Promise<ResErr<GenericGameLoopStartFunction>>;
+export type SingleplayerGameLoopInitFunc = (context: ApplicationContext, difficulty: DifficultyConfirmedForMinigameMessageDTO, colonyID: uint32) => Promise<ResErr<GenericGameLoopStartFunction>>;
 
 export enum KnownMinigames {
     ASTEROIDS = 1,
