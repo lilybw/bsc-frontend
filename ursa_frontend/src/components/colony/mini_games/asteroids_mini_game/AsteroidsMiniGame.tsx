@@ -75,6 +75,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     const playerParticleManagers = new Map<number, StunParticleManager>();
     const explosions = createArrayStore<ExplosionData>();
     let explosionCounter = 0;
+    const [wallImpactPosition, setWallImpactPosition] = createSignal({ x: 0, y: 0 });
 
     /**
      * Handles local player shooting at a specific character code
@@ -104,51 +105,35 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
      * Processes a player's shot
      */
     const handlePlayerShootAtCodeEvent = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
-        console.log('Shot event received:', data);
 
         const shooter = players.findFirst((p) => p.id === data.id);
         if (!shooter) {
-            console.error('No shooter found for ID:', data.id);
             return;
         }
 
         const playerRefKey = getEntityRefKey.player(shooter.id);
         const shooterRef = elementRefs.get(playerRefKey);
         if (!shooterRef || shooterRef.type !== 'player') {
-            console.error('Invalid shooter reference:', shooterRef);
             return;
         }
 
         const shooterPos = getTargetCenterPosition(playerRefKey, elementRefs);
         if (!shooterPos) {
-            console.error('Could not get shooter position for ID:', shooter.id);
             return;
         }
-        console.log('Shooter position:', shooterPos);
 
         let hitSomething = false;
 
         // Handle asteroid hits
         const hitAsteroids = asteroids.findAll((a) => a.charCode === data.code);
         const hitPlayers = players.findAll((p) => p.charCode === data.code);
-        console.log('Checking asteroids with code:', data.code, 'Found:', hitAsteroids.length);
-        console.log('Checking players with code:', data.code, 'Found:', hitPlayers.length);
 
         if (hitAsteroids.length) {
             hitSomething = true;
             hitAsteroids.forEach((asteroid) => {
-                console.log('Processing hit on asteroid:', asteroid.id);
                 const asteroidRefKey = getEntityRefKey.asteroid(asteroid.id);
                 const targetPos = getTargetCenterPosition(asteroidRefKey, elementRefs);
-                console.log('Target position for asteroid:', targetPos);
-
                 if (targetPos) {
-                    console.log('Creating beam for asteroid hit:', {
-                        from: shooterPos,
-                        to: targetPos,
-                        asteroidId: asteroid.id,
-                    });
-
                     createLazerBeam(shooterPos, targetPos);
 
                     // Create explosion effect
@@ -163,10 +148,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                         }
                     });
 
-                    console.log('Destroying asteroid:', asteroid.id);
                     handleAsteroidDestruction(asteroid.id, elementRefs, asteroidsRemoveFuncs);
-                } else {
-                    console.error('No target position found for asteroid:', asteroid.id);
                 }
             });
         }
@@ -174,18 +156,10 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
         if (hitPlayers.length) {
             hitSomething = true;
             hitPlayers.forEach((player) => {
-                console.log('Processing hit on player:', player.id);
                 const targetRefKey = getEntityRefKey.player(player.id);
                 const targetPos = getTargetCenterPosition(targetRefKey, elementRefs);
-                console.log('Target position for player:', targetPos);
 
                 if (targetPos) {
-                    console.log('Creating beam for player hit:', {
-                        from: shooterPos,
-                        to: targetPos,
-                        playerId: player.id,
-                    });
-
                     createLazerBeam(shooterPos, targetPos);
 
                     // Create explosion effect
@@ -197,25 +171,18 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
 
                     player.stun();
                     shooter.disable();
-                } else {
-                    console.error('No target position found for player:', player.id);
                 }
             });
         }
 
         // Handle misses
         if (!hitSomething) {
-            console.log('Shot missed, creating miss effect');
             const missAngle = Math.random() * Math.PI * 2;
             const missDistance = 0.5;
             const missPos = {
                 x: shooterPos.x + Math.cos(missAngle) * missDistance,
                 y: shooterPos.y + Math.sin(missAngle) * missDistance,
             };
-            console.log('Miss beam coordinates:', {
-                from: shooterPos,
-                to: missPos,
-            });
             createLazerBeam(shooterPos, missPos);
         }
     };
@@ -224,7 +191,6 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
      * Creates a new laser beam
      */
     const createLazerBeam = (start: Position, end: Position) => {
-        console.log('Creating lazer beam:', { id: lazerBeamCounter, start, end });
 
         const id = lazerBeamCounter++;
         const beam = new LazerBeam({
@@ -234,10 +200,8 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
             duration: 1000, // Fades out over 1000 ms
             fadeSpeed: 0.1,
             onComplete: () => {
-                console.log('Lazer beam complete:', id);
                 const remove = lazerBeamRemoveFuncs.get(id);
                 if (remove) {
-                    console.log('Removing lazer beam:', id);
                     remove();
                     lazerBeamRemoveFuncs.delete(id);
                 }
@@ -247,7 +211,6 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
         // Add the beam to the ArrayStore
         const removeFunc = lazerBeams.add(beam);
         lazerBeamRemoveFuncs.set(id, removeFunc);
-        console.log('Beam creation complete:', id);
     };
 
     // Component Lifecycle and Event Subscriptions
@@ -289,6 +252,16 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
             ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT,
             Object.assign(
                 (data: AsteroidsAsteroidImpactOnColonyMessageDTO) => {
+                    const asteroid = asteroids.findFirst(a => a.id === data.id);
+
+                    if (asteroid) {
+                        setWallImpactPosition({
+                            x: asteroid.endX * windowSize().width,
+                            y: asteroid.endY * windowSize().height
+                        });
+                    }
+
+                    // Original impact handling
                     setHealth(data.colonyHPLeft);
                     handleAsteroidDestruction(data.id, elementRefs, asteroidsRemoveFuncs);
                 },
@@ -310,7 +283,6 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                         penaltyMultiplier: props.settings.friendlyFirePenaltyMultiplier,
                         isLocal: data.id === props.context.backend.player.local.id,
                         onStateChange: (stunned, disabled) => {
-                            console.log(`Player ${data.id} state change:`, { stunned, disabled });
                             updatePlayerState(data.id, { isStunned: stunned, isDisabled: disabled });
                         },
                     });
@@ -359,7 +331,11 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     return (
         <div>
             <StarryBackground />
-            <Wall context={props.context} health={health} />
+            <Wall
+                context={props.context}
+                health={health}
+                position={wallImpactPosition}
+            />
             <div class={statusStyle}>{'❤'.repeat(health())}</div>
             <Countdown duration={props.settings.survivalTimeS} styleOverwrite={timeLeftStyle} />
             <div>
@@ -371,7 +347,6 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
                             class={asteroidStyle}
                             ref={(el) => {
                                 if (el) {
-                                    console.log('Setting element ref for asteroid:', asteroid.id);
                                     elementRefs.set(getEntityRefKey.asteroid(asteroid.id), {
                                         type: 'asteroid',
                                         element: el,

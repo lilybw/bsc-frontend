@@ -1,4 +1,4 @@
-import { Accessor, Component, createEffect, onCleanup } from 'solid-js';
+import { Accessor, Component, createEffect, createMemo, onCleanup } from 'solid-js';
 import { css } from '@emotion/css';
 import NTAwait from '@/components/util/NoThrowAwait';
 import GraphicalAsset from '@/components/base/GraphicalAsset';
@@ -8,6 +8,7 @@ interface WallProps {
     context: ApplicationContext;
     health: Accessor<number>;
     maxHealth?: number;
+    position: Accessor<{ x: number; y: number }>;
 }
 
 interface Point {
@@ -29,6 +30,25 @@ const Wall: Component<WallProps> = (props) => {
     let fragments: Fragment[] = [];
     let wallImage: HTMLImageElement | null = null;
     let isGeneratingFragments = false;
+
+    const nearestFragments = createMemo(() => {
+        const pos = props.position();
+        if (!fragments.length) return [];
+
+        // Calculate distances for all active fragments
+        const fragmentsWithDistance = fragments
+            .filter(f => f.isActive && !f.hasDropped)
+            .map(fragment => ({
+                fragment,
+                distance: Math.sqrt(
+                    Math.pow(fragment.centroid.x - pos.x, 2) +
+                    Math.pow(fragment.centroid.y - pos.y, 2)
+                )
+            }));
+
+        // Sort by distance
+        return fragmentsWithDistance.sort((a, b) => a.distance - b.distance);
+    });
 
     const generateGridFragments = (width: number, height: number): Point[][] => {
         const regions: Point[][] = [];
@@ -215,37 +235,91 @@ const Wall: Component<WallProps> = (props) => {
         console.log("Finished fragment generation");
     };
 
-    const dropFragments = (percentToDrop: number) => {
+    const dropFragments = (percentToDrop: number, impactPosition?: Point) => {
         const availableFragments = fragments.filter(f => f.isActive && !f.hasDropped);
         const numToDrop = Math.ceil(availableFragments.length * (percentToDrop / 100));
 
-        for (let i = 0; i < numToDrop && availableFragments.length > 0; i++) {
-            const index = Math.floor(Math.random() * availableFragments.length);
-            const fragment = availableFragments[index];
+        if (impactPosition) {
+            // Get the sorted fragments by distance
+            const sortedFragments = nearestFragments();
 
-            if (fragment) {
-                const sidewaysDirection = fragment.centroid.x > containerRef!.clientWidth / 2 ? 1 : -1;
-                const rotation = sidewaysDirection * (Math.random() * 45);
+            // Calculate how many fragments should drop based on proximity
+            const proximityDropCount = Math.ceil(numToDrop * (1 / 6)); // Two thirds of total drops
+            const randomDropCount = numToDrop - proximityDropCount;
 
-                fragment.hasDropped = true;
-                fragment.element.classList.add(fragmentDropAnimation(sidewaysDirection, rotation));
-
-                // Remove fragment after animation
-                fragment.element.addEventListener('transitionend', () => {
-                    fragment.isActive = false;
-                    fragment.element.remove();
-                }, { once: true });
+            // Drop nearest fragments first
+            for (let i = 0; i < proximityDropCount && i < sortedFragments.length; i++) {
+                const fragment = sortedFragments[i].fragment;
+                if (fragment && fragment.isActive && !fragment.hasDropped) {
+                    dropSingleFragment(fragment, impactPosition);
+                }
             }
 
-            availableFragments.splice(index, 1);
+            // Drop remaining fragments randomly
+            const remainingFragments = fragments.filter(
+                f => f.isActive && !f.hasDropped &&
+                    !sortedFragments.slice(0, proximityDropCount).find(sf => sf.fragment === f)
+            );
+
+            for (let i = 0; i < randomDropCount && remainingFragments.length > 0; i++) {
+                const index = Math.floor(Math.random() * remainingFragments.length);
+                const fragment = remainingFragments[index];
+                if (fragment) {
+                    dropSingleFragment(fragment, impactPosition);
+                }
+                remainingFragments.splice(index, 1);
+            }
+        } else {
+            // Fallback to original random dropping if no position provided
+            for (let i = 0; i < numToDrop && availableFragments.length > 0; i++) {
+                const index = Math.floor(Math.random() * availableFragments.length);
+                const fragment = availableFragments[index];
+                if (fragment) {
+                    dropSingleFragment(fragment);
+                }
+                availableFragments.splice(index, 1);
+            }
         }
+    };
+
+    const dropSingleFragment = (fragment: Fragment, impactPosition?: Point) => {
+        const containerWidth = containerRef?.clientWidth || 0;
+        let sidewaysDirection: number;
+        let rotation: number;
+
+        if (impactPosition) {
+            // Calculate direction based on impact position
+            const horizontalDistance = fragment.centroid.x - impactPosition.x;
+            sidewaysDirection = Math.sign(horizontalDistance) || (Math.random() > 0.5 ? 1 : -1);
+
+            // Rotation based on distance from impact
+            const distance = Math.sqrt(
+                Math.pow(fragment.centroid.x - impactPosition.x, 2) +
+                Math.pow(fragment.centroid.y - impactPosition.y, 2)
+            );
+            rotation = sidewaysDirection * (Math.random() * 45 + distance * 0.1);
+        } else {
+            // Original random behavior
+            sidewaysDirection = fragment.centroid.x > containerWidth / 2 ? 1 : -1;
+            rotation = sidewaysDirection * (Math.random() * 45);
+        }
+
+        fragment.hasDropped = true;
+        fragment.element.classList.add(fragmentDropAnimation(sidewaysDirection, rotation));
+
+        fragment.element.addEventListener('transitionend', () => {
+            fragment.isActive = false;
+            fragment.element.remove();
+        }, { once: true });
     };
 
     createEffect(() => {
         const currentHealth = props.health();
+        const currentPosition = props.position();
+
         if (currentHealth < lastHealth) {
             const percentLost = ((lastHealth - currentHealth) / lastHealth) * 100;
-            dropFragments(percentLost);
+            dropFragments(percentLost, currentPosition);
             lastHealth = currentHealth;
         }
     });
