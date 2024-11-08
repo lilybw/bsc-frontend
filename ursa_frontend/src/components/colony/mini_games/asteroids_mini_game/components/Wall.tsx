@@ -378,6 +378,24 @@ const Wall: Component<WallProps> = (props) => {
     return (
         <div class={wallContainerStyle} id="Outer-Wall" ref={containerRef}>
             <div class={backgroundStyle}></div>
+            {/* Background image */}
+            <NTAwait func={() => props.context.backend.assets.getMetadata(7003)}>
+                {(asset) => (
+                    <div style={{ display: 'none' }}>
+                        <GraphicalAsset
+                            backend={props.context.backend}
+                            metadata={asset}
+                            onImageLoad={(img) => {
+                                if (containerRef) {
+                                    containerRef.style.backgroundImage = `url(${img.src})`;
+                                    containerRef.style.backgroundSize = 'cover';
+                                }
+                            }}
+                        />
+                    </div>
+                )}
+            </NTAwait>
+            {/* Fragment texture image */}
             <NTAwait func={() => props.context.backend.assets.getMetadata(7003)}>
                 {(asset) => (
                     <div style={{ display: 'none' }}>
@@ -401,12 +419,17 @@ const wallContainerStyle = css`
     position: absolute;
     top: 0;
     left: 0;
-    width: 4vw;
+    width: 72px;    // Fixed width
     height: 100vh;
     overflow: hidden;
     transform-style: preserve-3d;
     perspective: 1000px;
-    background-color: red; // This is the only background we need
+    background: linear-gradient(
+        to right,
+        #333333,
+        #666666
+    );
+    background-size: cover;  // For the image we set later
 `;
 
 const backgroundStyle = css`
@@ -434,4 +457,5 @@ const gradientOverlayStyle = css`
     pointer-events: none;
     z-index: 3;
 `;
+
 export default Wall;
