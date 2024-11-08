@@ -53,6 +53,22 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const log = props.context.logger.copyFor('path graph');
     log.trace('initialized');
 
+    const getLocationEnabler = (colLocID: ColonyLocationID) => {
+        return createMemo(() => {
+            const currentLoc = currentLocationOfLocalPlayer();
+            if (!currentLoc) {
+                return false;
+            }
+
+            const path = pathMap.get(currentLoc.id);
+            if (!path) {
+                return false;
+            }
+
+            return path.includes(colLocID) || colLocID === currentLoc.id;
+        })
+    }
+
     createEffect(() => {
         const currentDNS = DNS();
         const currentGAS = GAS();
@@ -226,6 +242,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                                     text={props.context.text}
                                     register={props.bufferSubscribers.add}
                                     transform={transformMap.get(colonyLocation.id)!}
+                                    enable={getLocationEnabler(colonyLocation.id)}
                                 />
                             )}
                         </NTAwait>

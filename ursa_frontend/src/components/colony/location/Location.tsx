@@ -34,6 +34,7 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
      */
     gas: Accessor<number>;
     transform: WrappedSignal<TransformDTO>;
+    enable: Accessor<boolean>;
 }
 
 const calcNamePlatePosition = (y: number) => {
@@ -162,6 +163,8 @@ const Location: Component<LocationProps> = (props) => {
                 register={props.register}
                 charBaseStyleOverwrite={namePlateTextOverwrite}
                 setElementRef={setNamePlateRef}
+                enable={props.enable}
+                disabledStyleOverwrite={css`color: rgba(255, 255, 255, 0.5);`}
             />
             <AssetCollection
                 id={getCollectionForLevel(0, props.location).assetCollectionID}
