@@ -23,18 +23,11 @@ interface Fragment {
     centroid: Point;
 }
 
-const FRAME_TIME = 1000 / 60;
-const FRAGMENT_LIFETIME = 3000;
-const GRAVITY = 0.1;
-
 const Wall: Component<WallProps> = (props) => {
     let containerRef: HTMLDivElement | undefined;
     let lastHealth = props.maxHealth || 100;
     let fragments: Fragment[] = [];
-    let animationFrame: number;
     let wallImage: HTMLImageElement | null = null;
-    let lastFrameTime = performance.now();
-    let backgroundCanvas: HTMLCanvasElement | null = null;
     let isGeneratingFragments = false;
 
     const generateGridFragments = (width: number, height: number): Point[][] => {
@@ -261,13 +254,6 @@ const Wall: Component<WallProps> = (props) => {
         fragments.forEach(f => {
             if (f.element) f.element.remove();
         });
-        if (backgroundCanvas) {
-            backgroundCanvas.remove();
-            backgroundCanvas = null;
-        }
-        if (animationFrame) {
-            cancelAnimationFrame(animationFrame);
-        }
     });
 
     return (
@@ -342,11 +328,14 @@ const fragmentStyle = css`
     position: absolute;
     background-repeat: no-repeat;
     transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 1s ease-out;
+    z-index: 1;
 `;
 
 const fragmentDropAnimation = (sidewaysDirection: number, rotation: number) => css`
     transform: translate(${sidewaysDirection * 100}px, 500px) rotate(${rotation}deg);
+    filter: drop-shadow(0 0 0.5rem rgba(0, 0, 0, 0.5));
     opacity: 0;
+    z-index: 2;
 `;
 
 export default Wall;
