@@ -260,6 +260,24 @@ const Wall: Component<WallProps> = (props) => {
         <div class={wallContainerStyle} id="Outer-Wall" ref={containerRef}>
             <div class={backgroundStyle}></div>
             {/* Background image */}
+            <NTAwait func={() => props.context.backend.assets.getMetadata(7004)}>
+                {(asset) => (
+                    <div style={{ display: 'none' }}>
+                        <GraphicalAsset
+                            backend={props.context.backend}
+                            metadata={asset}
+                            onImageLoad={(img) => {
+                                if (containerRef) {
+                                    containerRef.style.backgroundImage = `url(${img.src})`;
+                                    containerRef.style.backgroundSize = '100% auto'; // 100% width, auto height
+                                    containerRef.style.backgroundPosition = 'center';
+                                    containerRef.style.backgroundRepeat = 'repeat-y'; // Only repeat vertically
+                                }
+                            }}
+                        />
+                    </div>
+                )}
+            </NTAwait>
 
             {/* Fragment texture image */}
             <NTAwait func={() => props.context.backend.assets.getMetadata(7003)}>
@@ -285,7 +303,7 @@ const wallContainerStyle = css`
     position: absolute;
     top: 0;
     left: 0;
-    width: 72px;    // Fixed width
+    width: 4vw;    // Fixed width
     height: 100vh;
     overflow: hidden;
     transform-style: preserve-3d;
@@ -295,7 +313,9 @@ const wallContainerStyle = css`
         #333333,
         #666666
     );
-    background-size: cover;  // For the image we set later
+    background-size: 100% auto;
+    background-position: center;
+    background-repeat: repeat-y;
 `;
 
 const backgroundStyle = css`
