@@ -8,6 +8,7 @@ export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IPar
     onActivation: () => void;
     /** Signal-based, inverted disable. Will show a small animation after being re-enabled. */
     enable?: Accessor<boolean>;
+    disabledStyleOverwrite?: string;
     /** Akin to onHover, however is active as long as the buffer input is a subset of the name and applied to the root level
      * container of the button */
     onHoverContainerStyle?: string;
@@ -18,6 +19,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     const [activated, setActivated] = createSignal(false);
     const [recentlyEnabled, setRecentlyEnabled] = createSignal(false);
     const [isHovered, setIsHovered] = createSignal(false);
+
     const disabledBuffer = createMemo(() => '');
     const onHoverBeginAppended = () => {
         setIsHovered(true);
@@ -31,7 +33,13 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     const isDisabled = createMemo(() => {
         return props.enable ? !props.enable() : false;
     });
-
+    const combinedCharBaseStyle = createMemo(() => {
+        return css`
+            ${props.charBaseStyleOverwrite || ''}
+            ${activated() ? onActivatedBaseNameStyleOverwrite : ''}
+            ${isDisabled() ? props.disabledStyleOverwrite || '' : ''}
+        `;
+    });
     const getNameValue = () => {
         return typeof props.name === 'function' ? props.name() : props.name;
     };
@@ -47,12 +55,6 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
         }
     });
 
-    const combinedCharBaseStyle = createMemo(() => {
-        return css`
-            ${props.charBaseStyleOverwrite || ''}
-            ${activated() ? onActivatedBaseNameStyleOverwrite : ''}
-        `;
-    });
 
     onMount(() => {
         const removeFunc = props.register((v) => {
