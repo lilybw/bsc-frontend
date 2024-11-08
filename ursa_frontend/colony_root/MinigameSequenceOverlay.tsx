@@ -116,7 +116,7 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
             setLocalSequencePhase(LocalSequencePhase.RESULT_SCREEN_ABORT);
         });
 
-        const gameWonSubId = subscribe(MINIGAME_WON_EVENT, (data) => {
+        const gameWonSubId = subscribe(MINIGAME_WON_EVENT, async (data) => {
             props.goBackToColony();
             setVictoryInformation(data);
             setLocalSequencePhase(LocalSequencePhase.RESULT_SCREEN_VICTORY);

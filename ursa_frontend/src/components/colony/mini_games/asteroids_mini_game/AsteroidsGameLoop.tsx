@@ -15,6 +15,8 @@ import {
     DifficultyConfirmedForMinigameMessageDTO,
     AsteroidsPlayerPenaltyMessageDTO,
     AsteroidsAsteroidImpactOnColonyMessageDTO,
+    LocationUpgradeMessageDTO,
+    LOCATION_UPGRADE_EVENT,
 } from '../../../../integrations/multiplayer_backend/EventSpecifications';
 import { CharCodeGenerator, SYMBOL_SET } from './charCodeGenerator';
 import { uint32 } from '../../../../integrations/main_backend/mainBackendDTOs';
@@ -39,6 +41,7 @@ class AsteroidsGameLoop {
         private readonly context: ApplicationContext,
         private readonly settings: AsteroidsSettingsDTO,
         private readonly difficulty: DifficultyConfirmedForMinigameMessageDTO,
+        private readonly colonyID: uint32,
     ) {
         this.charPool = new CharCodeGenerator(SYMBOL_SET, settings.charCodeLength);
         this.remainingHP = settings.colonyHealth;
@@ -209,6 +212,19 @@ class AsteroidsGameLoop {
             difficultyID: this.difficulty.difficultyID,
             difficultyName: this.difficulty.difficultyName,
         }, this.internalOrigin);
+        
+        this.context.backend.locations.upgrade(this.colonyID, this.difficulty.colonyLocationID).then((res) => {
+            if (res.err != null) {
+                this.log.error('Failed to upgrade location: ' + res.err);
+            } else {
+                this.events.emitRAW<LocationUpgradeMessageDTO>({
+                    senderID: MOCK_SERVER_ID,
+                    eventID: LOCATION_UPGRADE_EVENT.id,
+                    colonyLocationID: this.difficulty.colonyLocationID,
+                    level: res.res.level
+                }, this.internalOrigin);
+            }
+        })
         this.cleanup();
     };
 
@@ -224,12 +240,13 @@ class AsteroidsGameLoop {
 export const createAsteroidsGameLoop: SingleplayerGameLoopInitFunc = async (
     context: ApplicationContext,
     difficulty: DifficultyConfirmedForMinigameMessageDTO,
+    colonyID: uint32,
 ): Promise<ResErr<GenericGameLoopStartFunction>> => {
     const settings = await loadComputedSettings<AsteroidsSettingsDTO>(context.backend, KnownMinigames.ASTEROIDS, difficulty.difficultyID);
     if (settings.err !== null) {
         return { res: null, err: 'Error initializing gameloop: ' + settings.err };
     }
-    const loop = new AsteroidsGameLoop(context, settings.res, difficulty);
+    const loop = new AsteroidsGameLoop(context, settings.res, difficulty, colonyID);
 
     return { res: loop.start, err: null };
 };

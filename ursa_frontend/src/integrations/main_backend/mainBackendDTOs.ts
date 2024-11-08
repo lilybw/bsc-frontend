@@ -120,6 +120,11 @@ export type LocationInfoFullResponseDTO = {
     };
 };
 
+export type LocationUpgradeResponseDTO = {
+    id: uint32;
+    level: uint32;
+}
+
 export type AssetResponseDTO = {
     id: AssetID;
     useCase: AssetUseCase;

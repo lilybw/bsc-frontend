@@ -122,14 +122,15 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
             return connectAttempt.err;
         }
         const conn = connectAttempt.res;
-
+        
         const newMode = ownerOfColonyJoined === this.backend.player.local.id ? MultiplayerMode.AS_OWNER : MultiplayerMode.AS_GUEST;
-        this.log.trace(`Local player joined lobby as: ${newMode}`);
+        this.log.subtrace(`Local player joined lobby as: ${newMode}`);
         this.mode.set(newMode);
         this.state.set(ColonyState.OPEN);
         this.code.set(colonyCode);
         this.connectedLobbyID = lobbyID;
         this.serverAddress = address;
+        this.connection = conn;
 
         //Unsubscribe from all previous subscriptions, if any
         if (this.subscriptions && this.subscriptions.length > 0) {
@@ -161,6 +162,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
     public disconnect = async () => {
         this.log.info('disconnecting from lobby');
         this.connection?.close();
+        this.connection = null;
         this.state.set(ColonyState.CLOSED);
         this.code.set(null);
         //We do not have to overwrite mode, as it is tied to the current colony, not the lobby
@@ -175,52 +177,52 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
      * Exceptionally allowed to THROW
      */
     private send = async <T extends IMessage>(data: T, spec: EventSpecification<T>) => {
+        this.log.info(`Sending message with event id: ${spec.id} name: ${spec.name}`);
         this.connection?.send(createViewAndSerializeMessage(data, spec));
     };
 
+    /** From Socket */
+    private onMessageRecieved = async (ev: MessageEvent) => {
+        if (!ev.data || typeof ev.data.arrayBuffer != "function") {
+            this.log.error(`Received message without arrayBuffer function: ${ev.data}`);
+            return;
+        }
+
+        const buffer: ArrayBuffer = await ev.data.arrayBuffer();
+        if (buffer.byteLength < 8) {
+            this.log.error(`Received message with less than 8 bytes: ${buffer.byteLength}), origin: ${ev.origin}`);
+            return;
+        }
+       
+        const view = new DataView(buffer);
+
+        const { sourceID, eventID } = readSourceAndEventID(view);
+        const spec = EVENT_ID_MAP[eventID];
+
+        if (!spec || spec === null) {
+            this.log.error(`Received event with unknown ID: ${eventID}, source id: ${sourceID}, content as string: 
+                ${parseGoTypeAtOffsetInView(view, 0, GoType.STRING)}
+            `);
+            return;
+        }
+
+        const decoded = serializeTypeFromData(view, sourceID, spec);
+
+        this.multiplexer.emitRAW(decoded, this.internalOriginID); 
+    }
+
     private configureConnection = async (conn: WebSocket, onClose: (ev: CloseEvent) => void): Promise<Error | undefined> => {
-        conn.onopen = () => {
-            this.log.trace(`[multiplayer] Connection to server established: ${conn.url}`);
-            this.connection = conn;
-        };
         conn.onerror = (ev) => {
             this.log.error(`[multiplayer] Connection error: ${JSON.stringify(ev)}`);
             this.disconnect();
         };
-        conn.onmessage = (ev) =>
-            ev.data
-                .arrayBuffer()
-                .then((buffer: ArrayBuffer) => {
-                    const view = new DataView(buffer);
-                    if (view.byteLength < 8) {
-                        this.log.error(`Received message with less than 8 bytes: ${view.byteLength}, content as string: 
-                            ${parseGoTypeAtOffsetInView(view, 0, GoType.STRING)}
-                        `);
 
-                        return;
-                    }
-
-                    const { sourceID, eventID } = readSourceAndEventID(view);
-                    const spec = EVENT_ID_MAP[eventID];
-
-                    if (!spec || spec === null) {
-                        this.log.error(`Received event with unknown ID: ${eventID}, source id: ${sourceID}, content as string: 
-                            ${parseGoTypeAtOffsetInView(view, 0, GoType.STRING)}
-                        `);
-                        return;
-                    }
-
-                    const decoded = serializeTypeFromData(view, sourceID, spec);
-
-                    this.multiplexer.emitRAW(decoded, this.internalOriginID);
-                })
-                .catch((e: Error) => {
-                    this.log.error(`Error while processing message: ${e}`);
-                });
+        conn.onmessage = this.onMessageRecieved;
 
         conn.onclose = (ce: CloseEvent) => {
             onClose(ce);
             this.multiplexer.unsubscribe(...this.subscriptions);
+            this.disconnect();
         };
         return undefined;
     };

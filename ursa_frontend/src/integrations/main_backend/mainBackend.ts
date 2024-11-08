@@ -37,6 +37,7 @@ import {
     UpdateLatestVisitResponseDTO,
     GetColonyCodeResponseDTO,
     uint32,
+    LocationUpgradeResponseDTO,
 } from './mainBackendDTOs';
 import { LanguagePreference } from '../vitec/vitecDTOs';
 import { initializeObjectURLCache, IObjectURLCache } from './objectUrlCache';
@@ -110,6 +111,7 @@ export interface BackendIntegration extends BaseBackendIntegration {
     locations: {
         getInfo: (location: uint32) => Promise<ResCodeErr<LocationInfoResponseDTO>>;
         getFullInfo: (location: uint32) => Promise<ResCodeErr<LocationInfoFullResponseDTO>>;
+        upgrade: (colonyID: uint32, colLocID: uint32) => Promise<ResCodeErr<LocationUpgradeResponseDTO>>;
     };
 
     assets: {
@@ -241,6 +243,7 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
             getInfo: (location) => base.request<LocationInfoResponseDTO>(HTTPMethod.GET, `/api/v1/location/${location}`, ParseMethod.JSON),
             getFullInfo: (location) =>
                 base.request<LocationInfoFullResponseDTO>(HTTPMethod.GET, `/api/v1/location/${location}/full`, ParseMethod.JSON),
+            upgrade: (colony, colLoc) => base.request<LocationUpgradeResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/location/${colLoc}/upgrade`, ParseMethod.JSON),
         },
         assets: {
             getMetadata: (assetId) => base.request<AssetResponseDTO>(HTTPMethod.GET, `/api/v1/asset/${assetId}`, ParseMethod.JSON),

@@ -59,6 +59,8 @@ const Location: Component<LocationProps> = (props) => {
     const [showLocationCard, setShowLocationCard] = createSignal(false);
     const [idOfDiffSelected, setIdOfDiffSelected] = createSignal(-1);
     const [previousActionContext, setPreviousActionContext] = createSignal(ActionContext.NAVIGATION);
+    const log = props.backend.logger.copyFor('loc ' + props.colonyLocation.id);
+    const internalOrigin = "location-"+props.colonyLocation.id;
 
     const currentDisplayText = createMemo(() =>
         isUserHere() ? props.text.get('LOCATION.USER_ACTION.ENTER').get() : props.text.get(props.location.name).get(),
@@ -71,14 +73,14 @@ const Location: Component<LocationProps> = (props) => {
             props.actionContext.set(ActionContext.INTERACTION);
             props.plexer.emit(ENTER_LOCATION_EVENT, {
                 id: props.colonyLocation.id,
-            });
+            }, internalOrigin);
             return;
         }
 
         props.plexer.emit(PLAYER_MOVE_EVENT, {
             playerID: props.backend.player.local.id,
             colonyLocationID: props.colonyLocation.id,
-        });
+        }, internalOrigin);
     };
 
     onMount(() => {
@@ -141,8 +143,6 @@ const Location: Component<LocationProps> = (props) => {
         };
     });
 
-    const [namePlateRef, setNamePlateRef] = createSignal<HTMLButtonElement>();
-
     const computedNamePlateStyle = createMemo(() => {
         const transform = computedButtonTransform();
         return css`
@@ -162,7 +162,6 @@ const Location: Component<LocationProps> = (props) => {
                 buffer={props.buffer}
                 register={props.register}
                 charBaseStyleOverwrite={namePlateTextOverwrite}
-                setElementRef={setNamePlateRef}
                 enable={props.enable}
                 disabledStyleOverwrite={css`color: rgba(255, 255, 255, 0.5);`}
             />

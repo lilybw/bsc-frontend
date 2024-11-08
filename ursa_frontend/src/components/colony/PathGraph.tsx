@@ -8,7 +8,7 @@ import {
     uint32,
 } from '../../integrations/main_backend/mainBackendDTOs';
 import { css } from '@emotion/css';
-import { OriginType, PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from '../../integrations/multiplayer_backend/EventSpecifications';
+import { LOCATION_UPGRADE_EVENT, MINIGAME_WON_EVENT, OriginType, PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from '../../integrations/multiplayer_backend/EventSpecifications';
 import Location from '../colony/location/Location';
 import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
 import { ClientDTO } from '../../integrations/multiplayer_backend/multiplayerDTO';
@@ -175,11 +175,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         window.addEventListener('resize', calculateScalars);
         const playerMoveSubID = props.context.events.subscribe(PLAYER_MOVE_EVENT, handlePlayerMove);
 
-        onCleanup(() => {
-            window.removeEventListener('resize', calculateScalars);
-            props.context.events.unsubscribe(playerMoveSubID);
-        });
-
         let generalSpawnLocation;
         if (props.context.multiplayer.getState() === ColonyState.OPEN) {
             generalSpawnLocation = colonyLocations.findFirst((colLoc) => colLoc.locationID === KnownLocations.SpacePort)!;
@@ -201,10 +196,27 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             },
         );
 
+        const minigameWonSubID = props.context.events.subscribe(LOCATION_UPGRADE_EVENT, (e) => {
+            colonyLocations.mutateByPredicate(
+                loc => loc.id === e.colonyLocationID,
+                loc => {
+                    return {
+                        ...loc,
+                        level: e.level,
+                    }
+                }
+            )
+        })
+
         //Set initial camera position
         //Only works because the createEffect statement is evaluated before this onMount as of right now
         setCurrentLocationOfLocalPlayer(generalSpawnLocation);
         centerCameraOnPoint(generalSpawnLocation.transform.xOffset, generalSpawnLocation.transform.yOffset);
+
+        onCleanup(() => {
+            window.removeEventListener('resize', calculateScalars);
+            props.context.events.unsubscribe(playerMoveSubID, minigameWonSubID);
+        });
     });
 
     const computedCameraContainerStyles = createMemo(() => {

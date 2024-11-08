@@ -22,6 +22,7 @@ import {
 import { ApplicationContext } from '../meta/types';
 import { loadMinigameSingleplayerLoop, SingleplayerGameLoopInitFunc } from '../components/colony/mini_games/miniGame';
 import { Logger } from '../logging/filteredLogger';
+import { uint32 } from '@/integrations/main_backend/mainBackendDTOs';
 
 /**
  * Interface defining the basic operations of the MockServer.
@@ -66,7 +67,8 @@ export class MockServer implements IMockServer {
      * @param context The application context containing necessary dependencies.
      */
     constructor(
-        private context: ApplicationContext,
+        private readonly context: ApplicationContext,
+        private readonly colonyID: uint32,
         log: Logger,
     ) {
         this.events = context.events as IExpandedAccessMultiplexer;
@@ -169,7 +171,7 @@ export class MockServer implements IMockServer {
                         }
                         this.lobbyPhase = LobbyPhase.InMinigame;
                         this.log.info('Starting minigame game loop');
-                        const startFuncAttempt = await this.minigameLoopInitFunc(this.context, this.difficultyConfirmed!);
+                        const startFuncAttempt = await this.minigameLoopInitFunc(this.context, this.difficultyConfirmed!, this.colonyID);
                         if (startFuncAttempt.err !== null) {
                             this.sequenceErrorGenericAbort(MOCK_SERVER_ID, "Error starting game loop: " + startFuncAttempt.err);
                             return;
