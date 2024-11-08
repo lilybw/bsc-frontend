@@ -276,32 +276,64 @@ const Wall: Component<WallProps> = (props) => {
     const dropSingleFragment = (fragment: Fragment, impactPosition?: Point) => {
         const containerWidth = containerRef?.clientWidth || 0;
         let sidewaysDirection: number;
-        let rotation: number;
+        let distance: number;
 
         if (impactPosition) {
-            // Calculate direction based on impact position
             const horizontalDistance = fragment.centroid.x - impactPosition.x;
             sidewaysDirection = Math.sign(horizontalDistance) || (Math.random() > 0.5 ? 1 : -1);
-
-            // Rotation based on distance from impact
-            const distance = Math.sqrt(
-                Math.pow(fragment.centroid.x - impactPosition.x, 2) +
-                Math.pow(fragment.centroid.y - impactPosition.y, 2)
-            );
-            rotation = sidewaysDirection * (Math.random() * 45 + distance * 0.1);
+            distance = 50 + Math.random() * 100;
         } else {
-            // Original random behavior
             sidewaysDirection = fragment.centroid.x > containerWidth / 2 ? 1 : -1;
-            rotation = sidewaysDirection * (Math.random() * 45);
+            distance = 50 + Math.random() * 100;
         }
 
-        fragment.hasDropped = true;
-        fragment.element.classList.add(fragmentDropAnimation(sidewaysDirection, rotation));
+        // Create outer div for horizontal movement
+        const outerDiv = document.createElement('div');
+        outerDiv.className = fragmentOuterStyle(sidewaysDirection, distance);
 
-        fragment.element.addEventListener('transitionend', () => {
-            fragment.isActive = false;
-            fragment.element.remove();
-        }, { once: true });
+        // Position the outer div at the fragment's original position
+        outerDiv.style.left = fragment.element.style.left;
+        outerDiv.style.top = fragment.element.style.top;
+        outerDiv.style.transform = fragment.element.style.transform;
+
+        // Create inner div for vertical movement
+        const innerDiv = document.createElement('div');
+        innerDiv.className = fragmentInnerStyle;
+
+        // Move the original fragment element's properties to a new div
+        const fragmentDiv = document.createElement('div');
+        fragmentDiv.className = fragmentStyle;
+        fragmentDiv.style.backgroundImage = fragment.element.style.backgroundImage;
+        fragmentDiv.style.backgroundPosition = fragment.element.style.backgroundPosition;
+        fragmentDiv.style.clipPath = fragment.element.style.clipPath;
+        fragmentDiv.style.width = fragment.element.style.width;
+        fragmentDiv.style.height = fragment.element.style.height;
+        fragmentDiv.style.left = '0';
+        fragmentDiv.style.top = '0';
+
+        // Build the hierarchy
+        innerDiv.appendChild(fragmentDiv);
+        outerDiv.appendChild(innerDiv);
+
+        // Replace the original element with our new structure
+        fragment.element.parentNode?.replaceChild(outerDiv, fragment.element);
+        fragment.element = fragmentDiv;
+
+        fragment.hasDropped = true;
+
+        // Single event listener with counter
+        let animationsCompleted = 0;
+        const onAnimationEnd = () => {
+            animationsCompleted++;
+            if (animationsCompleted === 2) {
+                fragment.isActive = false;
+                outerDiv.remove();
+            }
+        };
+
+        // Add listeners that will auto-cleanup after firing once
+        outerDiv.addEventListener('animationend', onAnimationEnd, { once: true });
+        innerDiv.addEventListener('animationend', onAnimationEnd, { once: true });
     };
 
     createEffect(() => {
@@ -368,9 +400,9 @@ const wallContainerStyle = css`
     position: absolute;
     top: 0;
     left: 0;
-    width: 4vw;    // Fixed width
+    width: 72px;
     height: 100vh;
-    overflow: hidden;
+    overflow: visible;
     transform-style: preserve-3d;
     perspective: 1000px;
     background: linear-gradient(
@@ -412,15 +444,37 @@ const gradientOverlayStyle = css`
 const fragmentStyle = css`
     position: absolute;
     background-repeat: no-repeat;
-    transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 1s ease-out;
     z-index: 1;
 `;
 
-const fragmentDropAnimation = (sidewaysDirection: number, rotation: number) => css`
-    transform: translate(${sidewaysDirection * 100}px, 500px) rotate(${rotation}deg);
-    filter: drop-shadow(0 0 0.5rem rgba(0, 0, 0, 0.5));
-    opacity: 0;
-    z-index: 2;
+const fragmentOuterStyle = (sidewaysDirection: number, distance: number) => css`
+    position: absolute;
+    overflow: visible;
+    animation: slide-horizontal 1.5s ease-out forwards;
+
+    @keyframes slide-horizontal {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(${sidewaysDirection * distance}px);
+        }
+    }
+`;
+
+const fragmentInnerStyle = css`
+    position: relative;
+    overflow: visible;
+    animation: slide-vertical 1.5s ease-in forwards;
+
+    @keyframes slide-vertical {
+        from {
+            transform: translateY(0);
+        }
+        to {
+            transform: translateY(500px);
+        }
+    }
 `;
 
 export default Wall;
