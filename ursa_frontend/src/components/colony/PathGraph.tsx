@@ -19,7 +19,8 @@ import { ArrayStore, createArrayStore } from '../../ts/arrayStore';
 import ActionInput from './MainActionInput';
 import { ApplicationContext, ColonyState, MultiplayerMode } from '../../meta/types';
 import Player from './Player';
-import { arrayToMap, ColonyLocationID, ColonyLocationInfoWOriginalTransform, Line, loadPathMap, loadPathsFromInitial } from './PathGraphHelpers';
+import { arrayToMap, ColonyAssetWOriginalTransform, ColonyLocationID, ColonyLocationInfoWOriginalTransform, Line, loadPathMap, loadPathsFromInitial } from './PathGraphHelpers';
+import AssetCollection from './AssetCollection';
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -42,6 +43,12 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [GAS, setGAS] = createSignal(1);
     const colonyLocations = createArrayStore<ColonyLocationInfoWOriginalTransform>(
         props.colony.locations.map((loc) => ({ ...loc, originalTransform: loc.transform })),
+    );
+    const colonyAssets = createArrayStore<ColonyAssetWOriginalTransform>(
+        props.colony.assets.map(colAss => ({ ...colAss, 
+            originalTransform: colAss.transform, 
+            wrappedTransform: createWrappedSignal(colAss.transform) 
+        }))
     );
     const camera = createWrappedSignal({ x: 0, y: 0 });
     const [viewportDimensions, setViewportDimensions] = createSignal({ width: window.innerWidth, height: window.innerHeight });
@@ -74,6 +81,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         const currentGAS = GAS();
 
         untrack(() => {
+            //Updating transforms of locations and paths
             for (const colLoc of colonyLocations.get) {
                 //Issue here, we are taking from the previous transform, and not the initial
                 const computedTransform: TransformDTO = {
@@ -116,6 +124,18 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             const currentLocOfLocalPlayer = currentLocationOfLocalPlayer(); //Not tracked as we're inside untrack
             if (currentLocOfLocalPlayer) {
                 centerCameraOnPoint(currentLocOfLocalPlayer.transform.xOffset, currentLocOfLocalPlayer.transform.yOffset);
+            }
+
+            //Updating transforms of all colony assets
+            for (const colAss of colonyAssets.get) {
+                const og = colAss.originalTransform;
+                colAss.wrappedTransform.set({
+                    ...colAss.transform,
+                    xOffset: og.xOffset * currentDNS.x,
+                    yOffset: og.yOffset * currentDNS.y,
+                    xScale: og.xScale * currentGAS,
+                    yScale: og.yScale * currentGAS,
+                })
             }
         });
     });
@@ -196,7 +216,8 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             },
         );
 
-        const minigameWonSubID = props.context.events.subscribe(LOCATION_UPGRADE_EVENT, (e) => {
+        const locUpgradeSubID = props.context.events.subscribe(LOCATION_UPGRADE_EVENT, (e) => {
+            log.info(`Upgrading location: ${e.colonyLocationID} to level ${e.level}`);
             colonyLocations.mutateByPredicate(
                 loc => loc.id === e.colonyLocationID,
                 loc => {
@@ -215,7 +236,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
         onCleanup(() => {
             window.removeEventListener('resize', calculateScalars);
-            props.context.events.unsubscribe(playerMoveSubID, minigameWonSubID);
+            props.context.events.unsubscribe(playerMoveSubID, locUpgradeSubID);
         });
     });
 
@@ -264,6 +285,14 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 <For each={props.clients.get}>
                     {(client) => <Player GAS={GAS} client={client} transformMap={transformMap} backend={props.context.backend} showNamePlate />}
                 </For>
+
+                <For each={colonyAssets.get}>{asset => (
+                    <AssetCollection 
+                        backend={props.context.backend}
+                        id={asset.assetCollectionID}
+                        topLevelTransform={asset.wrappedTransform}
+                    />
+                )}</For>
             </div>
 
             <ActionInput

@@ -52,12 +52,14 @@ export type ColonyInfoResponseDTO = {
     accLevel: uint32;
     name: string;
     latestVisit: string;
-    assets: {
-        assetCollectionID: AssetCollectionID;
-        transform: TransformDTO;
-    }[];
+    assets: ColonyAssetResponseDTO[];
     locations: ColonyLocationInformation[];
 };
+
+export type ColonyAssetResponseDTO = {
+    assetCollectionID: AssetCollectionID;
+    transform: TransformDTO;
+}
 
 export type CreateColonyResponseDTO = {
     id: uint32;
