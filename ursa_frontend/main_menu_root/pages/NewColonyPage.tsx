@@ -80,7 +80,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
                     id="colonyName"
                     type="text"
                     value={colonyName()}
-                    placeholder="Pandora"
+                    placeholder="Nunaat"
                     onInput={(e) => setColonyName(e.currentTarget.value)}
                     class={Styles.MENU_INPUT}
                     onFocus={() => setInputEngaged(true)}

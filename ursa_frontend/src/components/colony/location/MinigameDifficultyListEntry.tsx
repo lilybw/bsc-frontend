@@ -1,22 +1,24 @@
-import { Accessor, Component, createMemo, createSignal, onCleanup } from 'solid-js';
+import { Accessor, Component, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 import { MinigameDifficultyResponseDTO } from '../../../integrations/main_backend/mainBackendDTOs';
 import { IBackendBased, IBufferBased, IEmitter, IInternationalized, IRegistering } from '../../../ts/types';
 import { css, keyframes } from '@emotion/css';
 import { DIFFICULTY_SELECT_FOR_MINIGAME_EVENT } from '../../../integrations/multiplayer_backend/EventSpecifications';
 import BufferBasedButton from '../../base/BufferBasedButton';
 import { Styles } from '../../../sharedCSS';
+import { on } from 'events';
+import { IEventMultiplexer } from '@/integrations/multiplayer_backend/eventMultiplexer';
 
 interface MinigameDifficultyListEntryProps extends IBackendBased, IBufferBased, IRegistering<string>, IEmitter, IInternationalized {
     difficulty: MinigameDifficultyResponseDTO;
     minigameID: number;
     enabled: Accessor<boolean>;
     colonyLocationID: number;
+    events: IEventMultiplexer;
 }
 
 const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> = (props: MinigameDifficultyListEntryProps) => {
     const [hasBeenActivated, setHasBeenActivated] = createSignal(false);
     const [isHovered, setIsHovered] = createSignal(false);
-    onCleanup(() => setHasBeenActivated(false));
 
     const computedContainerStyles = createMemo(() => {
         return css`
@@ -30,6 +32,21 @@ const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> =
             ${hasBeenActivated() ? highlightedOptionStyle : ''}
         `;
     });
+
+    onMount(() => {
+        const diffSelectSubID = props.events.subscribe(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, (data) => {
+            if (data.difficultyID === props.difficulty.id) {
+                setHasBeenActivated(true);
+            } else {
+                setHasBeenActivated(false);
+            }
+        });
+
+        onCleanup(() => {
+            props.events.unsubscribe(diffSelectSubID);
+            setHasBeenActivated(false);
+        });
+    })
 
     return (
         <div class={computedContainerStyles()}>

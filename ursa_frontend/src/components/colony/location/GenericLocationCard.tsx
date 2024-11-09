@@ -68,7 +68,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
         const diff = difficultySelected();
         if (diff !== null) {
             props.events.emit(DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, diff);
-            log.info('difficulty confirmed for minigame: ' + diff.minigameID + ' difficulty: ' + diff.difficultyID);
+            log.trace('difficulty confirmed for minigame: ' + diff.minigameID + ' difficulty: ' + diff.difficultyID);
         }
     };
 
@@ -99,6 +99,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                                     emit={props.events.emit}
                                     text={props.text}
                                     enabled={() => isDifficultyUnlocked(difficulty)}
+                                    events={props.events}
                                 />
                             )}
                         </For>
