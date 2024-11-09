@@ -1,16 +1,15 @@
 import { Accessor, Component, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
-import { MinigameDifficultyResponseDTO } from '../../../integrations/main_backend/mainBackendDTOs';
+import { MinigameDifficultyResponseDTO, MinigameInfoResponseDTO } from '../../../integrations/main_backend/mainBackendDTOs';
 import { IBackendBased, IBufferBased, IEmitter, IInternationalized, IRegistering } from '../../../ts/types';
 import { css, keyframes } from '@emotion/css';
 import { DIFFICULTY_SELECT_FOR_MINIGAME_EVENT } from '../../../integrations/multiplayer_backend/EventSpecifications';
 import BufferBasedButton from '../../base/BufferBasedButton';
 import { Styles } from '../../../sharedCSS';
-import { on } from 'events';
 import { IEventMultiplexer } from '@/integrations/multiplayer_backend/eventMultiplexer';
 
 interface MinigameDifficultyListEntryProps extends IBackendBased, IBufferBased, IRegistering<string>, IEmitter, IInternationalized {
     difficulty: MinigameDifficultyResponseDTO;
-    minigameID: number;
+    minigame: MinigameInfoResponseDTO;
     enabled: Accessor<boolean>;
     colonyLocationID: number;
     events: IEventMultiplexer;
@@ -58,16 +57,16 @@ const MinigameDifficultyListEntry: Component<MinigameDifficultyListEntryProps> =
                     setHasBeenActivated(true);
                     props.emit(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, {
                         colonyLocationID: props.colonyLocationID,
-                        minigameID: props.minigameID,
+                        minigameID: props.minigame.id,
                         difficultyID: props.difficulty.id,
                         difficultyName: props.difficulty.name,
                     });
                 }}
+                charBaseStyleOverwrite={css`font-size: 1.5rem;`}
                 enable={props.enabled}
                 onHoverBegin={() => setIsHovered(true)}
                 onHoverEnd={() => setIsHovered(false)}
             />
-            <div class={descriptionStyles}>{props.difficulty.description}</div>
         </div>
     );
 };
@@ -92,7 +91,7 @@ const containerStyles = css`
     padding: 1rem;
     box-sizing: border-box;
 
-    ${Styles.GLASS.FAINT_BACKGROUND}
+    ${Styles.GLASS.BACKGROUND}
     border-radius: 1rem;
     border: 0.25rem solid rgba(255, 255, 255, 0.5);
     border-left: 0px;
