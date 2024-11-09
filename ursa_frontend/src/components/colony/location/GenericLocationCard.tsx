@@ -1,10 +1,11 @@
 import { Component, createSignal, For, onCleanup, onMount, Show } from 'solid-js';
 import { css, keyframes } from '@emotion/css';
-import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from '../../../ts/types';
+import { IBackendBased, IBufferBased, IInternationalized, IRegistering, IStyleOverwritable } from '../../../ts/types';
 import {
     ColonyLocationInformation,
     LocationInfoResponseDTO,
     MinigameDifficultyResponseDTO,
+    MinigameInfoResponseDTO,
     uint32,
 } from '../../../integrations/main_backend/mainBackendDTOs';
 import NTAwait from '../../util/NoThrowAwait';
@@ -28,7 +29,7 @@ import {
 import { IMultiplayerIntegration } from '@/integrations/multiplayer_backend/multiplayerBackend';
 import { MultiplayerMode } from '@/meta/types';
 
-export interface GenericLocationCardProps extends IBufferBased, IBackendBased, IInternationalized, IRegistering<string> {
+export interface GenericLocationCardProps extends IBufferBased, IBackendBased, IInternationalized, IRegistering<string>, IStyleOverwritable {
     colonyLocation: ColonyLocationInformation;
     info: LocationInfoResponseDTO;
     events: IEventMultiplexer;
@@ -54,6 +55,7 @@ const getIdOfSplashArt = (
 
 const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
     const [difficultySelected, setDifficultySelected] = createSignal<DifficultySelectForMinigameMessageDTO | null>(null);
+    const [minigameInfo, setMinigameInfo] = createSignal<MinigameInfoResponseDTO | null>(null);
     const log = props.backend.logger.copyFor('gen loc card');
     onMount(() => {
         const diffSelectSubID = props.events.subscribe(DIFFICULTY_SELECT_FOR_MINIGAME_EVENT, (data) => {
@@ -85,37 +87,61 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                 func={() => props.backend.minigame.getInfo(props.info.minigameID)}
                 fallback={() => <UnderConstruction specialText={props.text.get('LOCATION.UNDER_CONSTRUCTION').get()} />}
             >
-                {(minigame) => (
-                    <div class={difficultyListStyle}>
-                        <For each={minigame.difficulties}>
-                            {(difficulty, index) => (
-                                <MinigameDifficultyListEntry
-                                    colonyLocationID={props.colonyLocation.id}
-                                    difficulty={difficulty}
-                                    minigameID={minigame.id}
-                                    buffer={props.buffer}
-                                    register={props.register}
-                                    backend={props.backend}
-                                    emit={props.events.emit}
-                                    text={props.text}
-                                    enabled={() => isDifficultyUnlocked(difficulty)}
-                                    events={props.events}
-                                />
-                            )}
-                        </For>
-                    </div>
-                )}
+                {(minigame) => {
+                    setMinigameInfo(minigame);
+                    return (
+                        <div class={difficultyListStyle}>
+                            <For each={minigame.difficulties}>
+                                {(difficulty, index) => (
+                                    <MinigameDifficultyListEntry
+                                        colonyLocationID={props.colonyLocation.id}
+                                        difficulty={difficulty}
+                                        minigame={minigame}
+                                        buffer={props.buffer}
+                                        register={props.register}
+                                        backend={props.backend}
+                                        emit={props.events.emit}
+                                        text={props.text}
+                                        enabled={() => isDifficultyUnlocked(difficulty)}
+                                        events={props.events}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    )}
+                }
             </NTAwait>
         );
     };
 
+    const appendMinigameDescriptionForSelectedDifficulty = () => {
+        const diff = difficultySelected();
+        const minigame = minigameInfo();
+        if (diff === null || minigame === null) {
+            return <></>;
+        }
+        const difficultyDescription = minigame.difficulties.find((d) => d.id === diff.difficultyID)?.description;
+        return (
+            <div class={minigameDisplayContainerStyle} id="minigame-display-container">
+                {props.text.SubTitle(minigame.name)({ styleOverwrite: minigameNameStyle })}
+                {difficultyDescription ? 
+                    props.text.SubTitle(difficultyDescription)({ styleOverwrite: minigameDescriptionStyle })
+                    :
+                    props.text.SubTitle(minigame.description)({ styleOverwrite: minigameDescriptionStyle })
+                }
+            </div>
+        )
+    }
+
     return (
-        <div class={cardContainerStyle} id={'location-card-' + props.info.name}>
+        <div class={css`${cardContainerStyle} ${props.styleOverwrite}`} id={'location-card-' + props.info.name}>
             <NTAwait func={() => props.backend.assets.getMetadata(getIdOfSplashArt(props.colonyLocation.level, props.info.appearances))}>
                 {(asset) => <GraphicalAsset styleOverwrite={STYLE_LOC_CARD_backgroundImageStyle} backend={props.backend} metadata={asset} />}
             </NTAwait>
             {props.text.Title(props.info.name)({ styleOverwrite: STYLE_LOC_CARD_titleStyleOverwrite })}
+            
             {getMinigameList()}
+            {appendMinigameDescriptionForSelectedDifficulty()}
 
             <div class={lowerThirdModifiedStyle}>
                 {props.text.SubTitle(props.info.description)({ styleOverwrite: STYLE_LOC_CARD_descriptionStyleOverwrite })}
@@ -139,6 +165,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
                         register={props.register}
                         onActivation={onDifficultyConfirmed}
                         enable={() => difficultySelected() !== null}
+                        disabledStyleOverwrite='color: rgba(255, 255, 255, .5)'
                     />}
                 </div>
             </div>
@@ -147,6 +174,36 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
 };
 
 export default GenericLocationCard;
+
+const minigameDescriptionStyle = css`
+    font-size: 1.2rem;
+    border-radius: 1rem;
+    padding: .5rem;
+    ${Styles.GLASS.FAINT_BACKGROUND}
+`
+
+const minigameNameStyle = css`
+    ${Styles.MINIGAME.TITLE}
+    font-size: 2rem;
+    text-align: center;
+    letter-spacing: 0.5rem;
+`
+
+const minigameDisplayContainerStyle = css`
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    
+    right: 1vw;
+    top: 11vh;
+    padding: 1vw;
+    width: calc(50% - 2vw);
+    z-index: 1;
+    border-radius: 1rem;
+    row-gap: .8vh;
+
+    ${Styles.GLASS.FAINT_BACKGROUND}
+`;
 
 const lowerThirdModifiedStyle = css`
     ${STYLE_LOC_CARD_lowerThirdWBackgroundStyle}
@@ -165,12 +222,9 @@ const difficultyListStyle = css`
 
     row-gap: 1rem;
     height: 45%;
-    width: 16%;
-    left: 1rem;
+    width: 18%;
+    left: 1vw;
     top: 40%;
-    padding: 1rem;
     transform: translateY(-50%);
     border-radius: 1rem;
-
-    ${Styles.GLASS.FAINT_BACKGROUND}
 `;

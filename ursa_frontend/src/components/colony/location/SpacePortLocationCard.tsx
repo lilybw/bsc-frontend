@@ -206,14 +206,13 @@ const errorMessageStyle = css`
 export const STYLE_LOC_CARD_lowerThirdWBackgroundStyle = css`
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
     position: absolute;
 
     z-index: 1;
     width: 100%;
     height: 15%;
-    row-gap: 1rem;
     bottom: 0;
     border-radius: 10px;
 
@@ -246,13 +245,12 @@ export const STYLE_LOC_CARD_titleStyleOverwrite = css`
 `;
 
 export const STYLE_LOC_CARD_descriptionContainerStyle = css`
-    font-size: 1.5rem;
     margin: 0;
     padding: 0;
 `;
 
 export const STYLE_LOC_CARD_descriptionStyleOverwrite = css`
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     text-shadow: none;
     text-align: center;
     filter: none;
