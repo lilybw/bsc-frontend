@@ -26,6 +26,7 @@ import { ExplosionData } from "./entities/particles/explosionParticles/Explosion
 import ExplosionEffect from "./components/ExplosionEffect";
 import { generateImpactPosition, getEntityRefKey, getRandomRotationSpeed, getTargetCenterPosition, handleAsteroidDestruction, translateSpawnPosition } from "./utils/gameUtils";
 import Wall from "./components/Wall";
+import Surface from "@/components/base/Surface";
 
 type PlayerState = {
     isStunned: boolean;
@@ -331,6 +332,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     return (
         <div>
             <StarryBackground />
+            <Surface context={props.context} />
             <Wall
                 context={props.context}
                 health={health}

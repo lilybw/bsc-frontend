@@ -1,84 +1,81 @@
-import { Component, createMemo } from 'solid-js';
+import { Component } from 'solid-js';
 import { css } from '@emotion/css';
-import Planet from './Planet';
-import { AssetID } from '../../integrations/main_backend/mainBackendDTOs';
-import { IBackendBased, IStyleOverwritable } from '../../ts/types';
-import NTAwait from '../util/NoThrowAwait';
 
-interface PlanetWithMoonProps extends IBackendBased, IStyleOverwritable {
-    moonAssetOverwrite?: AssetID;
-    planetAssetOverwrite?: AssetID;
-    size?: number;
-}
+const bodyStyle = css`
+  height: 100vh;
+  background: url('./images/space.jpg') center no-repeat;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+`;
 
-const PlanetWithMoon: Component<PlanetWithMoonProps> = (props) => {
-    const cssvars = css`
-        --pvm-size: ${props.size ?? 10}vh;
-    `;
+const planetStyle = css`
+  width: 20em;
+  height: 20em;
+  background: url('./images/venus.jpg');
+  border-radius: 50%;
+  background-size: 200% 100%;
+  background-repeat: repeat;
+  position: relative;
+  box-shadow: inset -2em -2em 2em #000,
+              -0.5em -0.5em 1em #f0d08b;
+  animation: rotate 10s linear infinite;
 
-    const computedStyles = createMemo(
-        () => css`
-            ${cssvars}
-            position: relative;
-            width: var(--pvm-size);
-            height: var(--pvm-size);
-            ${props.styleOverwrite}
-        `,
-    );
+  @keyframes rotate {
+    to {
+      background-position: -200% 0;
+    }
+  }
+`;
+
+const moonStyle = css`
+  width: 6em;
+  height: 6em;
+  background: url('./images/mercury.jpg');
+  border-radius: 50%;
+  background-size: 200% 100%;
+  position: absolute;
+  left: -11em;
+  top: 50%;
+  transform: translateY(-50%);
+  box-shadow: inset -1.5em -1.5em 1.5em #000,
+              -0.2em -0.2em 0.5em #ccc;
+  z-index: 1;
+  animation: rotate 5s linear infinite,
+             orbit 20s infinite ease-in-out;
+
+  @keyframes orbit {
+    0% {
+      z-index: 1;
+      left: 25em;
+    }
+    49% {
+      z-index: 1;
+    }
+    50% {
+      left: -11em;
+      z-index: -1;
+    }
+    99% {
+      z-index: -1;
+    }
+    100% {
+      left: 25em;
+      z-index: 1;
+    }
+  }
+`;
+
+const PlanetMoonSystem: Component = () => {
     return (
-        <div class={computedStyles()}>
-            <NTAwait func={() => props.backend.assets.getMetadata(props.planetAssetOverwrite ?? 3001)}>
-                {(asset) => (
-                    <Planet useShadow={true} styleOverwrite={planetStyle(cssvars)} metadata={asset} backend={props.backend}>
-                        <NTAwait func={() => props.backend.assets.getMetadata(props.moonAssetOverwrite ?? 3003)}>
-                            {(moonAsset) => (
-                                <Planet useShadow={false} styleOverwrite={moonOrbitStyle(cssvars)} metadata={moonAsset} backend={props.backend} />
-                            )}
-                        </NTAwait>
-                    </Planet>
-                )}
-            </NTAwait>
+        <div class={bodyStyle}>
+            <div class={planetStyle}>
+                <div class={moonStyle} />
+            </div>
         </div>
     );
 };
 
-export default PlanetWithMoon;
-
-const planetStyle = (cssvars: string) => css``;
-
-const moonOrbitStyle = (cssvars: string) => css`
-    top: 100%;
-`;
-
-const moonStyle = (cssvars: string) => css`
-    width: 6%;
-    height: 6%;
-    position: absolute;
-    --base-moon-left: 50%;
-
-    animation: orbit 6s infinite ease-in-out;
-
-    --orbit-radius: 50%;
-    @keyframes orbit {
-        0% {
-            z-index: 1;
-            left: calc(var(--orbit-radius) * -1 + var(--base-moon-left));
-        }
-        49% {
-            z-index: 1;
-            left: calc(var(--orbit-radius) + var(--base-moon-left));
-        }
-        50% {
-            z-index: -1;
-            left: calc(var(--orbit-radius) + var(--base-moon-left));
-        }
-        99% {
-            z-index: -1;
-            left: calc(var(--orbit-radius) * -1 + var(--base-moon-left));
-        }
-        100% {
-            left: calc(var(--orbit-radius) * -1 + var(--base-moon-left));
-            z-index: 1;
-        }
-    }
-`;
+export default PlanetMoonSystem;
