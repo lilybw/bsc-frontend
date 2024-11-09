@@ -8,6 +8,7 @@ import { Styles } from '../../src/sharedCSS';
 import Planet from '../../src/components/base/Planet';
 import SectionSubTitle from '../../src/components/base/SectionSubTitle';
 import StarryBackground from '../../src/components/base/StarryBackground';
+import PlanetMoonSystem from '@/components/base/PlanetWithMoon';
 
 const NewColonyPage: Component<MenuPageProps> = (props) => {
     const [colonyName, setColonyName] = createSignal('');
@@ -87,9 +88,7 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
                 />
             </div>
             {textError() && inputEngaged() && <SectionSubTitle styleOverwrite={errMsgStyle}>{textError()}</SectionSubTitle>}
-            <NTAwait func={() => props.context.backend.assets.getMetadata(3001)}>
-                {(asset) => <Planet metadata={asset} styleOverwrite={planetStyle} backend={props.context.backend} />}
-            </NTAwait>
+            <PlanetMoonSystem context={props.context} />
             <StarryBackground />
             <NavigationFooter
                 text={props.context.text}
