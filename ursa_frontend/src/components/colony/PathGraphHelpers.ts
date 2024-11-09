@@ -30,6 +30,7 @@ export interface ColonyLocationInfoWOriginalTransform extends ColonyLocationInfo
 }
 export interface ColonyAssetWOriginalTransform extends ColonyAssetResponseDTO {
     originalTransform: TransformDTO;
+    wrappedTransform: WrappedSignal<TransformDTO>;
 }
 export const loadPathsFromInitial = (paths: ColonyPathGraphResponseDTO['paths']): Line[] => {
     return paths.map((path) => ({
