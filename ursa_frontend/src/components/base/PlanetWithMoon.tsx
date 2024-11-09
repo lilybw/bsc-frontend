@@ -21,7 +21,37 @@ const systemContainerStyle = css`
   align-items: center;
 `;
 
-const getPlanetStyle = (rotationSpeed: number) => css`
+type PlanetColorScheme = {
+    hue: number;
+    name: 'red-orange' | 'blue' | 'golden' | 'purple' | 'turquoise';
+};
+
+type MoonColorScheme = {
+    hue: number;
+    name: 'rocky-brown' | 'pale-red' | 'sandy' | 'icy-blue' | 'dusty-purple';
+};
+
+const planetColorSchemes: PlanetColorScheme[] = [
+    { hue: 0, name: 'red-orange' },    // Jupiter-like
+    { hue: 220, name: 'blue' },        // Neptune-like
+    { hue: 45, name: 'golden' },       // Saturn-like
+    { hue: 280, name: 'purple' },      // Purple gas giant
+    { hue: 160, name: 'turquoise' },   // Uranus-like
+];
+
+const moonColorSchemes: MoonColorScheme[] = [
+    { hue: 30, name: 'rocky-brown' },
+    { hue: 0, name: 'pale-red' },
+    { hue: 60, name: 'sandy' },
+    { hue: 200, name: 'icy-blue' },
+    { hue: 270, name: 'dusty-purple' },
+];
+
+const getRandomColorScheme = <T extends PlanetColorScheme | MoonColorScheme>(schemes: T[]): T => {
+    return schemes[Math.floor(Math.random() * schemes.length)];
+};
+
+const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) => css`
   position: absolute;
   width: 100%;
   height: 100%;
@@ -29,6 +59,7 @@ const getPlanetStyle = (rotationSpeed: number) => css`
   box-shadow: inset -2em -2em 2em #000;
   background-size: 200% 100%;
   background-repeat: repeat;
+  filter: hue-rotate(${colorScheme.hue}deg) saturate(1.2) brightness(1.1);
   animation: rotate ${rotationSpeed}s linear infinite;
 
   @keyframes rotate {
@@ -69,7 +100,7 @@ const getMoonContainerStyle = (orbitSpeed: number) => css`
   }
 `;
 
-const getMoonStyle = (rotationSpeed: number) => css`
+const getMoonStyle = (rotationSpeed: number, colorScheme: MoonColorScheme) => css`
   position: absolute;
   width: 100%;
   height: 100%;
@@ -77,6 +108,7 @@ const getMoonStyle = (rotationSpeed: number) => css`
   box-shadow: inset -1.5em -1.5em 1.5em #000;
   background-size: 200% 100%;
   background-repeat: repeat;
+  filter: hue-rotate(${colorScheme.hue}deg) saturate(0.8) contrast(0.95);
   animation: rotate ${rotationSpeed}s linear infinite;
 
   @keyframes rotate {
@@ -114,11 +146,15 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const planetRotationSpeed = getRandomRotationSpeed();
     const moonRotationSpeed = getRandomRotationSpeed();
     const orbitSpeed = getRandomOrbitSpeed();
+    const planetColorScheme = getRandomColorScheme(planetColorSchemes);
+    const moonColorScheme = getRandomColorScheme(moonColorSchemes);
 
-    console.log('Speeds:', {
+    console.log('Configuration:', {
         planetRotation: planetRotationSpeed,
         moonRotation: moonRotationSpeed,
-        orbit: orbitSpeed
+        orbit: orbitSpeed,
+        planetColor: planetColorScheme.name,
+        moonColor: moonColorScheme.name
     });
 
     const handlePlanetLoad = (img: HTMLImageElement) => {
@@ -140,7 +176,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     return (
         <div class={containerStyle}>
             <div class={systemContainerStyle}>
-                <div class={getPlanetStyle(planetRotationSpeed)} ref={setPlanetDiv}>
+                <div class={getPlanetStyle(planetRotationSpeed, planetColorScheme)} ref={setPlanetDiv}>
                     <NTAwait func={() => props.context.backend.assets.getMetadata(3001)}>
                         {(asset) => (
                             <GraphicalAsset
@@ -155,7 +191,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                     </NTAwait>
                 </div>
                 <div class={getMoonContainerStyle(orbitSpeed)}>
-                    <div class={getMoonStyle(moonRotationSpeed)} ref={setMoonDiv}>
+                    <div class={getMoonStyle(moonRotationSpeed, moonColorScheme)} ref={setMoonDiv}>
                         <NTAwait func={() => props.context.backend.assets.getMetadata(3005)}>
                             {(asset) => (
                                 <GraphicalAsset
