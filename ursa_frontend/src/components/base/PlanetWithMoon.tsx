@@ -96,7 +96,7 @@ const getRandomColorScheme = <T extends ColorTransform>(schemes: T[]): T => {
     return schemes[Math.floor(Math.random() * schemes.length)];
 };
 
-const getRandomTiltAngle = () => Math.floor(Math.random() * 15) - 7; // generates number between -7 and 7
+const getRandomTiltAngle = () => Math.random() * 4 - 2; // generates number between -2 and 2
 
 const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) => css`
   position: absolute;
@@ -116,32 +116,32 @@ const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) =
   }
 `;
 
-const getMoonContainerStyle = (orbitSpeed: number) => css`
+const getMoonContainerStyle = (orbitSpeed: number, orbitTilt: number) => css`
   position: absolute;
   width: calc(min(66vh, 66vw) * 0.166);
   height: calc(min(66vh, 66vw) * 0.166);
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(${orbitTilt}deg);
   animation: orbit ${orbitSpeed}s infinite ease-in-out;
 
   @keyframes orbit {
     0% {
       z-index: 1;
-      transform: translate(-50%, -50%) translateX(450%);
+      transform: translate(-50%, -50%) rotate(${orbitTilt}deg) translateX(450%);
     }
     49% {
       z-index: 1;
     }
     50% {
-      transform: translate(-50%, -50%) translateX(-450%);
+      transform: translate(-50%, -50%) rotate(${orbitTilt}deg) translateX(-450%);
       z-index: -1;
     }
     99% {
       z-index: -1;
     }
     100% {
-      transform: translate(-50%, -50%) translateX(450%);
+      transform: translate(-50%, -50%) rotate(${orbitTilt}deg) translateX(450%);
       z-index: 1;
     }
   }
@@ -196,6 +196,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const planetColorScheme = getRandomColorScheme(planetColorSchemes);
     const moonColorScheme = getRandomColorScheme(moonColorSchemes);
     const systemTilt = getRandomTiltAngle();
+    const moonOrbitTilt = systemTilt * 2; // Moon orbit tilt is 2x the planet tilt
 
     console.log('Configuration:', {
         planetRotation: planetRotationSpeed,
@@ -203,7 +204,8 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         orbit: orbitSpeed,
         planetColor: planetColorScheme.name,
         moonColor: moonColorScheme.name,
-        systemTilt: systemTilt
+        systemTilt: systemTilt,
+        moonOrbitTilt: moonOrbitTilt
     });
 
     const handlePlanetLoad = (img: HTMLImageElement) => {
@@ -239,7 +241,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                         )}
                     </NTAwait>
                 </div>
-                <div class={getMoonContainerStyle(orbitSpeed)}>
+                <div class={getMoonContainerStyle(orbitSpeed, moonOrbitTilt)}>
                     <div class={getMoonStyle(moonRotationSpeed, moonColorScheme)} ref={setMoonDiv}>
                         <NTAwait func={() => props.context.backend.assets.getMetadata(3005)}>
                             {(asset) => (
