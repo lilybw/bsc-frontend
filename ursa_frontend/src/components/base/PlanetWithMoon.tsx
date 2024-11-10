@@ -12,44 +12,91 @@ const containerStyle = css`
   align-items: center;
 `;
 
-const systemContainerStyle = css`
+const getSystemContainerStyle = (tiltAngle: number) => css`
   position: relative;
   width: min(66vh, 66vw);
   height: min(66vh, 66vw);
   display: flex;
   justify-content: center;
   align-items: center;
+  transform: rotate(${tiltAngle}deg);
 `;
 
-type PlanetColorScheme = {
+type ColorTransform = {
     hue: number;
+    name: string;
+    filters: string;
+};
+
+type PlanetColorScheme = ColorTransform & {
     name: 'red-orange' | 'blue' | 'golden' | 'purple' | 'turquoise';
 };
 
-type MoonColorScheme = {
-    hue: number;
+type MoonColorScheme = ColorTransform & {
     name: 'rocky-brown' | 'pale-red' | 'sandy' | 'icy-blue' | 'dusty-purple';
 };
 
 const planetColorSchemes: PlanetColorScheme[] = [
-    { hue: 0, name: 'red-orange' },    // Jupiter-like
-    { hue: 220, name: 'blue' },        // Neptune-like
-    { hue: 45, name: 'golden' },       // Saturn-like
-    { hue: 280, name: 'purple' },      // Purple gas giant
-    { hue: 160, name: 'turquoise' },   // Uranus-like
+    {
+        hue: 0,
+        name: 'red-orange',
+        filters: 'sepia(0.5) hue-rotate(0deg) saturate(1.5) brightness(1.1)'  // Jupiter-like
+    },
+    {
+        hue: 220,
+        name: 'blue',
+        filters: 'sepia(0.5) hue-rotate(140deg) saturate(1.8) brightness(1)'  // Neptune-like
+    },
+    {
+        hue: 45,
+        name: 'golden',
+        filters: 'sepia(0.8) hue-rotate(320deg) saturate(1.4) brightness(1.2)'  // Saturn-like
+    },
+    {
+        hue: 280,
+        name: 'purple',
+        filters: 'sepia(0.4) hue-rotate(230deg) saturate(1.6) brightness(0.9)'  // Purple gas giant
+    },
+    {
+        hue: 160,
+        name: 'turquoise',
+        filters: 'sepia(0.3) hue-rotate(180deg) saturate(1.7) brightness(1.1)'  // Uranus-like
+    }
 ];
 
 const moonColorSchemes: MoonColorScheme[] = [
-    { hue: 30, name: 'rocky-brown' },
-    { hue: 0, name: 'pale-red' },
-    { hue: 60, name: 'sandy' },
-    { hue: 200, name: 'icy-blue' },
-    { hue: 270, name: 'dusty-purple' },
+    {
+        hue: 30,
+        name: 'rocky-brown',
+        filters: 'sepia(0.6) hue-rotate(350deg) saturate(0.8) brightness(0.9) contrast(1.1)'
+    },
+    {
+        hue: 0,
+        name: 'pale-red',
+        filters: 'sepia(0.3) hue-rotate(320deg) saturate(0.7) brightness(1) contrast(1)'
+    },
+    {
+        hue: 60,
+        name: 'sandy',
+        filters: 'sepia(0.8) hue-rotate(330deg) saturate(0.6) brightness(1.1) contrast(1)'
+    },
+    {
+        hue: 200,
+        name: 'icy-blue',
+        filters: 'sepia(0.2) hue-rotate(160deg) saturate(0.7) brightness(1.2) contrast(0.9)'
+    },
+    {
+        hue: 270,
+        name: 'dusty-purple',
+        filters: 'sepia(0.4) hue-rotate(220deg) saturate(0.6) brightness(0.9) contrast(1.1)'
+    }
 ];
 
-const getRandomColorScheme = <T extends PlanetColorScheme | MoonColorScheme>(schemes: T[]): T => {
+const getRandomColorScheme = <T extends ColorTransform>(schemes: T[]): T => {
     return schemes[Math.floor(Math.random() * schemes.length)];
 };
+
+const getRandomTiltAngle = () => Math.floor(Math.random() * 15) - 7; // generates number between -7 and 7
 
 const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) => css`
   position: absolute;
@@ -59,7 +106,7 @@ const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) =
   box-shadow: inset -2em -2em 2em #000;
   background-size: 200% 100%;
   background-repeat: repeat;
-  filter: hue-rotate(${colorScheme.hue}deg) saturate(1.2) brightness(1.1);
+  filter: ${colorScheme.filters};
   animation: rotate ${rotationSpeed}s linear infinite;
 
   @keyframes rotate {
@@ -108,7 +155,7 @@ const getMoonStyle = (rotationSpeed: number, colorScheme: MoonColorScheme) => cs
   box-shadow: inset -1.5em -1.5em 1.5em #000;
   background-size: 200% 100%;
   background-repeat: repeat;
-  filter: hue-rotate(${colorScheme.hue}deg) saturate(0.8) contrast(0.95);
+  filter: ${colorScheme.filters};
   animation: rotate ${rotationSpeed}s linear infinite;
 
   @keyframes rotate {
@@ -118,8 +165,8 @@ const getMoonStyle = (rotationSpeed: number, colorScheme: MoonColorScheme) => cs
   }
 `;
 
-const getRandomRotationSpeed = () => Math.floor(Math.random() * 45) + 45; // 45-90s
-const getRandomOrbitSpeed = () => Math.floor(Math.random() * 30) + 30;    // 30-60s
+const getRandomRotationSpeed = () => Math.floor(Math.random() * 120) + 120; // 120-240s
+const getRandomOrbitSpeed = () => Math.floor(Math.random() * 80) + 80;    // 80-160s
 
 const getDominantColor = (img: HTMLImageElement): string => {
     const canvas = document.createElement('canvas');
@@ -148,13 +195,15 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const orbitSpeed = getRandomOrbitSpeed();
     const planetColorScheme = getRandomColorScheme(planetColorSchemes);
     const moonColorScheme = getRandomColorScheme(moonColorSchemes);
+    const systemTilt = getRandomTiltAngle();
 
     console.log('Configuration:', {
         planetRotation: planetRotationSpeed,
         moonRotation: moonRotationSpeed,
         orbit: orbitSpeed,
         planetColor: planetColorScheme.name,
-        moonColor: moonColorScheme.name
+        moonColor: moonColorScheme.name,
+        systemTilt: systemTilt
     });
 
     const handlePlanetLoad = (img: HTMLImageElement) => {
@@ -175,7 +224,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
 
     return (
         <div class={containerStyle}>
-            <div class={systemContainerStyle}>
+            <div class={getSystemContainerStyle(systemTilt)}>
                 <div class={getPlanetStyle(planetRotationSpeed, planetColorScheme)} ref={setPlanetDiv}>
                     <NTAwait func={() => props.context.backend.assets.getMetadata(3001)}>
                         {(asset) => (
