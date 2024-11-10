@@ -191,7 +191,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const [moonDiv, setMoonDiv] = createSignal<HTMLDivElement | null>(null);
 
     const planetRotationSpeed = getRandomRotationSpeed();
-    const moonRotationSpeed = getRandomRotationSpeed();
+    const moonRotationSpeed = getRandomRotationSpeed() / 2;
     const orbitSpeed = getRandomOrbitSpeed();
     const planetColorScheme = getRandomColorScheme(planetColorSchemes);
     const moonColorScheme = getRandomColorScheme(moonColorSchemes);

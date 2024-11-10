@@ -88,8 +88,10 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
                 />
             </div>
             {textError() && inputEngaged() && <SectionSubTitle styleOverwrite={errMsgStyle}>{textError()}</SectionSubTitle>}
-            <PlanetMoonSystem context={props.context} />
             <StarryBackground />
+            <div class={planetContainerStyle}>
+                <PlanetMoonSystem context={props.context} />
+            </div>
             <NavigationFooter
                 text={props.context.text}
                 goBack={{ name: 'MENU.NAVIGATION.BACK', func: props.goBack }}
@@ -111,14 +113,16 @@ const errMsgStyle = css`
     top: 58%;
 `;
 
-const planetStyle = css`
-    position: absolute;
-    bottom: 0;
+const planetContainerStyle = css`
+    position: fixed;
     right: 0;
-    --size: 40vw;
-    width: var(--size);
-    height: var(--size);
-    transform: rotate(-12deg);
+    top: 0;
+    width: 50vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
 `;
 
 const pageStyle = css`
