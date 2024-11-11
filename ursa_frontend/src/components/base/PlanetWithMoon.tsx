@@ -4,15 +4,6 @@ import GraphicalAsset from './GraphicalAsset';
 import NTAwait from '../util/NoThrowAwait';
 import { ApplicationContext } from '@/meta/types';
 
-// Root level styles with CSS variables
-const rootStyles = css`
-  :root {
-    --moon-back-z: 0;
-    --planet-z: 1;
-    --moon-front-z: 2;
-  }
-`;
-
 const containerStyle = css`
   height: 100vh;
   width: 100vw;
@@ -22,7 +13,7 @@ const containerStyle = css`
 `;
 
 const getSystemContainerStyle = (tiltAngle: number) => css`
-  position: relative;  // Establishes stacking context
+  position: relative;
   width: min(66vh, 66vw);
   height: min(66vh, 66vw);
   display: flex;
@@ -49,27 +40,27 @@ const planetColorSchemes: PlanetColorScheme[] = [
     {
         hue: 0,
         name: 'red-orange',
-        filters: 'sepia(0.5) hue-rotate(0deg) saturate(1.5) brightness(1.1)'  // Jupiter-like
+        filters: 'sepia(0.5) hue-rotate(0deg) saturate(1.5) brightness(1.1)'
     },
     {
         hue: 220,
         name: 'blue',
-        filters: 'sepia(0.5) hue-rotate(140deg) saturate(1.8) brightness(1)'  // Neptune-like
+        filters: 'sepia(0.5) hue-rotate(140deg) saturate(1.8) brightness(1)'
     },
     {
         hue: 45,
         name: 'golden',
-        filters: 'sepia(0.8) hue-rotate(320deg) saturate(1.4) brightness(1.2)'  // Saturn-like
+        filters: 'sepia(0.8) hue-rotate(320deg) saturate(1.4) brightness(1.2)'
     },
     {
         hue: 280,
         name: 'purple',
-        filters: 'sepia(0.4) hue-rotate(230deg) saturate(1.6) brightness(0.9)'  // Purple gas giant
+        filters: 'sepia(0.4) hue-rotate(230deg) saturate(1.6) brightness(0.9)'
     },
     {
         hue: 160,
         name: 'turquoise',
-        filters: 'sepia(0.3) hue-rotate(180deg) saturate(1.7) brightness(1.1)'  // Uranus-like
+        filters: 'sepia(0.3) hue-rotate(180deg) saturate(1.7) brightness(1.1)'
     }
 ];
 
@@ -107,91 +98,45 @@ type Moon = {
     orbitSpeed: number;
     orbitTilt: number;
     colorScheme: MoonColorScheme;
+    size: number;
+    orbitDistance: number;
 };
 
 const getRandomColorScheme = <T extends ColorTransform>(schemes: T[]): T => {
     return schemes[Math.floor(Math.random() * schemes.length)];
 };
 
-const getRandomTiltAngle = (range: number = 2) => Math.random() * (2 * range) - range;
-const getRandomRotationSpeed = () => Math.floor(Math.random() * 120) + 120; // 120-240s
-const getRandomOrbitSpeed = () => Math.floor(Math.random() * 80) + 80;    // 80-160s
-const getRandomMoonCount = () => Math.floor(Math.random() * 5) + 1; // 1-5 moons
+const getRandomTiltAngle = (range: number = 5) => Math.random() * (2 * range) - range;
+const getRandomRotationSpeed = () => Math.floor(Math.random() * 120) + 120;
+const getRandomOrbitSpeed = () => Math.floor(Math.random() * 80) + 80;
+const getRandomMoonCount = () => Math.floor(Math.random() * 5) + 1;
+const getRandomMoonSize = () => (1 / 12) + Math.random() * ((1 / 8) - (1 / 12));; // Between 1/12 and 1/8 of planet
+const getRandomOrbitDistance = () => 0.6 + (Math.random() * 0.1); // Between 60% and 70% of planet size
 
-const getTiltWrapperStyle = (tiltAngle: number, orbitSpeed: number) => css`
+const getTiltWrapperStyle = (tiltAngle: number, orbitSpeed: number, moonId: number) => css`
   position: absolute;
   width: 100%;
   height: 100%;
   transform: rotate(${tiltAngle}deg);
-  animation: orbit${orbitSpeed} ${orbitSpeed}s infinite ease-in-out;
+  animation: zindex${orbitSpeed}_${moonId} ${orbitSpeed}s infinite ease-in-out;
 
-  @keyframes orbit${orbitSpeed} {
+  @keyframes zindex${orbitSpeed}_${moonId} {
     0% {
-      z-index: 0;
+      z-index: ${-((moonId + 1) * 5)};
     }
     49.99% {
-      z-index: 0;
+      z-index: ${-((moonId + 1) * 5)};
     }
     50% {
-      z-index: 2;
+      z-index: ${25 - (moonId * 5)};
     }
     99.99% {
-      z-index: 2;
+      z-index: ${25 - (moonId * 5)};
     }
   }
 `;
 
-const getOrbitContainerStyle = (orbitSpeed: number) => css`
-  position: absolute;
-  width: calc(min(66vh, 66vw) * 0.166);
-  height: calc(min(66vh, 66vw) * 0.166);
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  animation: move${orbitSpeed} ${orbitSpeed}s infinite ease-in-out;
 
-  @keyframes move${orbitSpeed} {
-    0% {
-      transform: translate(-50%, -50%) translateX(450%);
-    }
-    50% {
-      transform: translate(-50%, -50%) translateX(-450%);
-    }
-    100% {
-      transform: translate(-50%, -50%) translateX(450%);
-    }
-  }
-`;
-
-const getOrbitAnimationStyle = (orbitSpeed: number, tiltAngle: number) => css`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  animation: orbit${orbitSpeed} ${orbitSpeed}s infinite ease-in-out;
-  z-index: var(--moon-back-z);
-  transform: rotate(${tiltAngle}deg);
-
-  @keyframes orbit${orbitSpeed} {
-    0% {
-      transform: rotate(${tiltAngle}deg) translate(450%);
-      z-index: var(--moon-back-z);
-    }
-    49.99% {
-      z-index: var(--moon-back-z);
-    }
-    50% {
-      transform: rotate(${tiltAngle}deg) translate(-450%);
-      z-index: var(--moon-front-z);
-    }
-    99.99% {
-      z-index: var(--moon-front-z);
-    }
-    100% {
-      transform: rotate(${tiltAngle}deg) translate(450%);
-      z-index: var(--moon-back-z);
-    }
-  }
-`;
 
 const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) => css`
   position: absolute;
@@ -206,7 +151,7 @@ const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) =
   background-repeat: repeat;
   filter: ${colorScheme.filters};
   animation: rotate ${rotationSpeed}s linear infinite;
-  z-index: 1;  // Direct child of stacking context
+  z-index: 10;
 
   @keyframes rotate {
     to {
@@ -254,6 +199,29 @@ interface PlanetMoonSystemProps {
 const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const [planetDiv, setPlanetDiv] = createSignal<HTMLDivElement | null>(null);
     const [moonDivs, setMoonDivs] = createSignal<Map<number, HTMLDivElement | null>>(new Map());
+    const [planetSize, setPlanetSize] = createSignal<number>(0);
+
+    const getOrbitContainerStyle = (orbitSpeed: number, size: number, orbitDistance: number) => css`
+        position: absolute;
+        width: ${planetSize() * size}px;
+        height: ${planetSize() * size}px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        animation: move${orbitSpeed} ${orbitSpeed}s infinite ease-in-out;
+
+        @keyframes move${orbitSpeed} {
+            0% {
+                transform: translate(-50%, -50%) translateX(${planetSize() * orbitDistance}px);
+            }
+            50% {
+                transform: translate(-50%, -50%) translateX(${-planetSize() * orbitDistance}px);
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(${planetSize() * orbitDistance}px);
+            }
+        }
+    `;
 
     const planetRotationSpeed = getRandomRotationSpeed();
     const planetColorScheme = getRandomColorScheme(planetColorSchemes);
@@ -265,8 +233,10 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
             id: index,
             rotationSpeed: getRandomRotationSpeed() / 2,
             orbitSpeed: getRandomOrbitSpeed(),
-            orbitTilt: getRandomTiltAngle(4),
-            colorScheme: getRandomColorScheme(moonColorSchemes)
+            orbitTilt: getRandomTiltAngle(20),
+            colorScheme: getRandomColorScheme(moonColorSchemes),
+            size: getRandomMoonSize(),
+            orbitDistance: getRandomOrbitDistance()
         })
     );
 
@@ -279,7 +249,9 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
             rotation: moon.rotationSpeed,
             orbit: moon.orbitSpeed,
             color: moon.colorScheme.name,
-            tilt: moon.orbitTilt
+            tilt: moon.orbitTilt,
+            size: moon.size,
+            orbitDistance: moon.orbitDistance
         }))
     });
 
@@ -288,6 +260,8 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
             const dominantColor = getDominantColor(img);
             planetDiv()!.style.backgroundImage = `url(${img.src})`;
             planetDiv()!.style.boxShadow = `inset -2em -2em 2em #000, -0.5em -0.5em 1em ${dominantColor}`;
+            // Store actual planet width
+            setPlanetSize(planetDiv()!.offsetWidth);
         }
     };
 
@@ -311,7 +285,6 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     return (
         <div class={containerStyle}>
             <div class={getSystemContainerStyle(planetTilt)}>
-                {/* Planet as direct child of stacking context */}
                 <div class={getPlanetStyle(planetRotationSpeed, planetColorScheme)} ref={setPlanetDiv}>
                     <NTAwait func={() => props.context.backend.assets.getMetadata(3001)}>
                         {(asset) => (
@@ -327,11 +300,10 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                     </NTAwait>
                 </div>
 
-                {/* Moons as direct children of same stacking context */}
                 <For each={moons}>
                     {(moon) => (
-                        <div class={getTiltWrapperStyle(moon.orbitTilt, moon.orbitSpeed)}>
-                            <div class={getOrbitContainerStyle(moon.orbitSpeed)}>
+                        <div class={getTiltWrapperStyle(moon.orbitTilt, moon.orbitSpeed, moon.id)}>
+                            <div class={getOrbitContainerStyle(moon.orbitSpeed, moon.size, moon.orbitDistance * (1 + Math.random() * 0.5))}>
                                 <div
                                     class={getMoonStyle(moon.rotationSpeed, moon.colorScheme)}
                                     ref={(div) => setMoonDiv(moon.id, div)}
