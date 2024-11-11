@@ -59,8 +59,8 @@ class AsteroidsGameLoop {
     private selfHitCounts = 1;
 
     private spawnAsteroid = () => {
-        const startX = Math.random() * 0.9 + 0.1; // Start somewhere on the right side
-        const startY = Math.random() * 0.9 + 0.1; // Start somewhere random vertically
+        const startX = Math.random() * 0.7 + 0.3; // Start somewhere on the right side
+        const startY = Math.random() * 0.7 + 0.3; // Start somewhere random vertically
         const id = this.nextAsteroidID++;
         const charCode = this.charPool.generateCode();
         const timeTillImpactMS =
