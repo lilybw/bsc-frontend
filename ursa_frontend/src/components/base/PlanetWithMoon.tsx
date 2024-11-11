@@ -135,9 +135,6 @@ const getTiltWrapperStyle = (tiltAngle: number, orbitSpeed: number, moonId: numb
     }
   }
 `;
-
-
-
 const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) => css`
   position: absolute;
   width: 100%;
@@ -200,6 +197,8 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const [planetDiv, setPlanetDiv] = createSignal<HTMLDivElement | null>(null);
     const [moonDivs, setMoonDivs] = createSignal<Map<number, HTMLDivElement | null>>(new Map());
     const [planetSize, setPlanetSize] = createSignal<number>(0);
+    const planetAssets = [3001]
+    const moonAssets = [3005, 3002, 3006, 3007]
 
     const getOrbitContainerStyle = (orbitSpeed: number, size: number, orbitDistance: number) => css`
         position: absolute;
@@ -255,6 +254,11 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         }))
     });
 
+    function getRandomAsset<T>(array: T[]): T {
+        const randomIndex = Math.floor(Math.random() * array.length);
+        return array[randomIndex];
+    }
+
     const handlePlanetLoad = (img: HTMLImageElement) => {
         if (planetDiv()) {
             const dominantColor = getDominantColor(img);
@@ -286,7 +290,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         <div class={containerStyle}>
             <div class={getSystemContainerStyle(planetTilt)}>
                 <div class={getPlanetStyle(planetRotationSpeed, planetColorScheme)} ref={setPlanetDiv}>
-                    <NTAwait func={() => props.context.backend.assets.getMetadata(3001)}>
+                    <NTAwait func={() => props.context.backend.assets.getMetadata(getRandomAsset(planetAssets))}>
                         {(asset) => (
                             <GraphicalAsset
                                 metadata={asset}
@@ -308,7 +312,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                                     class={getMoonStyle(moon.rotationSpeed, moon.colorScheme)}
                                     ref={(div) => setMoonDiv(moon.id, div)}
                                 >
-                                    <NTAwait func={() => props.context.backend.assets.getMetadata(3005)}>
+                                    <NTAwait func={() => props.context.backend.assets.getMetadata(getRandomAsset(moonAssets))}>
                                         {(asset) => (
                                             <GraphicalAsset
                                                 metadata={asset}
