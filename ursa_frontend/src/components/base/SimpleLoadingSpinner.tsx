@@ -11,11 +11,11 @@ const spin = keyframes`
 
 const Spinner: Component<SpinnerProps> = (props) => {
     return (
+        <div class={props.styleOverwrite}>
         <div
-            class={css`
-                ${spinnerStyle} ${props.styleOverwrite} aspect-ratio: 1/1;
-            `}
+            class={css`${spinnerStyle}`}
         />
+        </div>
     );
 };
 export default Spinner;
@@ -27,5 +27,7 @@ const spinnerStyle = css`
     border-radius: 50%;
     border-style: solid;
     border-left-color: ${defaultColor};
+    width: 100%;
+    height: 100%;
     animation: ${spin} 1s linear infinite;
 `;

@@ -5,7 +5,7 @@ import NTAwait from '../../util/NoThrowAwait';
 import { ColonyCode, ColonyInfoResponseDTO, OpenColonyRequestDTO } from '../../../integrations/main_backend/mainBackendDTOs';
 import { PLAYER_MOVE_EVENT } from '../../../integrations/multiplayer_backend/EventSpecifications';
 import { IMultiplayerIntegration } from '../../../integrations/multiplayer_backend/multiplayerBackend';
-import { MultiplayerMode } from '../../../meta/types';
+import { Error, MultiplayerMode } from '../../../meta/types';
 import { Styles } from '../../../sharedCSS';
 import BufferBasedButton from '../../base/BufferBasedButton';
 import GraphicalAsset from '../../base/GraphicalAsset';
@@ -49,8 +49,8 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
             setIsConnecting(false);
             return openResponse.err;
         }
-
         const err = await props.multiplayer.connect(openResponse.res.code, () => {});
+
         if (err) {
             log.error('Failed to connect to multiplayer: ' + err);
             setIsConnecting(false);
@@ -176,7 +176,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
             {connectErr() && 
                 <div class={errorMessageStyle}>connectErr()</div>}
             {isConnecting() && 
-                <Spinner styleOverwrite={codeDisplayStyle}/>}
+                <Spinner styleOverwrite={spinnerStyle}/>}
         </div>
     );
 };
@@ -196,6 +196,16 @@ const codeDisplayStyle = css`
     text-align: center;
     ${Styles.GLASS.BACKGROUND}
 `;
+const spinnerStyle = css`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10vw;
+    height: 10vw;
+    transform: translate(-50%, -50%);
+    ${Styles.GLASS.BACKGROUND}
+`
+
 const errorMessageStyle = css`
     ${codeDisplayStyle}; 
     font-size: 1.5rem; 
