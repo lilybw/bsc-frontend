@@ -148,7 +148,7 @@ const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) =
   background-repeat: repeat;
   filter: ${colorScheme.filters};
   animation: rotate ${rotationSpeed}s linear infinite;
-  z-index: 10;
+  z-index: 0;
 
   @keyframes rotate {
     to {
@@ -306,7 +306,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
 
                 <For each={moons}>
                     {(moon) => (
-                        <div class={getTiltWrapperStyle(moon.orbitTilt, moon.orbitSpeed, moon.id)}>
+                        <div class={getTiltWrapperStyle(moon.orbitTilt, moon.orbitSpeed, moon.id + 1)}>
                             <div class={getOrbitContainerStyle(moon.orbitSpeed, moon.size, moon.orbitDistance * (1 + Math.random() * 0.5))}>
                                 <div
                                     class={getMoonStyle(moon.rotationSpeed, moon.colorScheme)}
