@@ -1,8 +1,17 @@
-import { Component, createSignal } from 'solid-js';
+import { Component, createSignal, For } from 'solid-js';
 import { css } from '@emotion/css';
 import GraphicalAsset from './GraphicalAsset';
 import NTAwait from '../util/NoThrowAwait';
 import { ApplicationContext } from '@/meta/types';
+
+// Root level styles with CSS variables
+const rootStyles = css`
+  :root {
+    --moon-back-z: 0;
+    --planet-z: 1;
+    --moon-front-z: 2;
+  }
+`;
 
 const containerStyle = css`
   height: 100vh;
@@ -13,7 +22,7 @@ const containerStyle = css`
 `;
 
 const getSystemContainerStyle = (tiltAngle: number) => css`
-  position: relative;
+  position: relative;  // Establishes stacking context
   width: min(66vh, 66vw);
   height: min(66vh, 66vw);
   display: flex;
@@ -92,57 +101,116 @@ const moonColorSchemes: MoonColorScheme[] = [
     }
 ];
 
+type Moon = {
+    id: number;
+    rotationSpeed: number;
+    orbitSpeed: number;
+    orbitTilt: number;
+    colorScheme: MoonColorScheme;
+};
+
 const getRandomColorScheme = <T extends ColorTransform>(schemes: T[]): T => {
     return schemes[Math.floor(Math.random() * schemes.length)];
 };
 
-const getRandomTiltAngle = () => Math.random() * 4 - 2; // generates number between -2 and 2
+const getRandomTiltAngle = (range: number = 2) => Math.random() * (2 * range) - range;
+const getRandomRotationSpeed = () => Math.floor(Math.random() * 120) + 120; // 120-240s
+const getRandomOrbitSpeed = () => Math.floor(Math.random() * 80) + 80;    // 80-160s
+const getRandomMoonCount = () => Math.floor(Math.random() * 5) + 1; // 1-5 moons
+
+const getTiltWrapperStyle = (tiltAngle: number, orbitSpeed: number) => css`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: rotate(${tiltAngle}deg);
+  animation: orbit${orbitSpeed} ${orbitSpeed}s infinite ease-in-out;
+
+  @keyframes orbit${orbitSpeed} {
+    0% {
+      z-index: 0;
+    }
+    49.99% {
+      z-index: 0;
+    }
+    50% {
+      z-index: 2;
+    }
+    99.99% {
+      z-index: 2;
+    }
+  }
+`;
+
+const getOrbitContainerStyle = (orbitSpeed: number) => css`
+  position: absolute;
+  width: calc(min(66vh, 66vw) * 0.166);
+  height: calc(min(66vh, 66vw) * 0.166);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  animation: move${orbitSpeed} ${orbitSpeed}s infinite ease-in-out;
+
+  @keyframes move${orbitSpeed} {
+    0% {
+      transform: translate(-50%, -50%) translateX(450%);
+    }
+    50% {
+      transform: translate(-50%, -50%) translateX(-450%);
+    }
+    100% {
+      transform: translate(-50%, -50%) translateX(450%);
+    }
+  }
+`;
+
+const getOrbitAnimationStyle = (orbitSpeed: number, tiltAngle: number) => css`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  animation: orbit${orbitSpeed} ${orbitSpeed}s infinite ease-in-out;
+  z-index: var(--moon-back-z);
+  transform: rotate(${tiltAngle}deg);
+
+  @keyframes orbit${orbitSpeed} {
+    0% {
+      transform: rotate(${tiltAngle}deg) translate(450%);
+      z-index: var(--moon-back-z);
+    }
+    49.99% {
+      z-index: var(--moon-back-z);
+    }
+    50% {
+      transform: rotate(${tiltAngle}deg) translate(-450%);
+      z-index: var(--moon-front-z);
+    }
+    99.99% {
+      z-index: var(--moon-front-z);
+    }
+    100% {
+      transform: rotate(${tiltAngle}deg) translate(450%);
+      z-index: var(--moon-back-z);
+    }
+  }
+`;
 
 const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) => css`
   position: absolute;
   width: 100%;
   height: 100%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   box-shadow: inset -2em -2em 2em #000;
   background-size: 200% 100%;
   background-repeat: repeat;
   filter: ${colorScheme.filters};
   animation: rotate ${rotationSpeed}s linear infinite;
+  z-index: 1;  // Direct child of stacking context
 
   @keyframes rotate {
     to {
       background-position: -200% 0;
-    }
-  }
-`;
-
-const getMoonContainerStyle = (orbitSpeed: number, orbitTilt: number) => css`
-  position: absolute;
-  width: calc(min(66vh, 66vw) * 0.166);
-  height: calc(min(66vh, 66vw) * 0.166);
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(${orbitTilt}deg);
-  animation: orbit ${orbitSpeed}s infinite ease-in-out;
-
-  @keyframes orbit {
-    0% {
-      z-index: 1;
-      transform: translate(-50%, -50%) rotate(${orbitTilt}deg) translateX(450%);
-    }
-    49% {
-      z-index: 1;
-    }
-    50% {
-      transform: translate(-50%, -50%) rotate(${orbitTilt}deg) translateX(-450%);
-      z-index: -1;
-    }
-    99% {
-      z-index: -1;
-    }
-    100% {
-      transform: translate(-50%, -50%) rotate(${orbitTilt}deg) translateX(450%);
-      z-index: 1;
     }
   }
 `;
@@ -165,9 +233,6 @@ const getMoonStyle = (rotationSpeed: number, colorScheme: MoonColorScheme) => cs
   }
 `;
 
-const getRandomRotationSpeed = () => Math.floor(Math.random() * 120) + 120; // 120-240s
-const getRandomOrbitSpeed = () => Math.floor(Math.random() * 80) + 80;    // 80-160s
-
 const getDominantColor = (img: HTMLImageElement): string => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -183,29 +248,39 @@ const getDominantColor = (img: HTMLImageElement): string => {
 };
 
 interface PlanetMoonSystemProps {
-    context: ApplicationContext
+    context: ApplicationContext;
 }
 
 const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const [planetDiv, setPlanetDiv] = createSignal<HTMLDivElement | null>(null);
-    const [moonDiv, setMoonDiv] = createSignal<HTMLDivElement | null>(null);
+    const [moonDivs, setMoonDivs] = createSignal<Map<number, HTMLDivElement | null>>(new Map());
 
     const planetRotationSpeed = getRandomRotationSpeed();
-    const moonRotationSpeed = getRandomRotationSpeed() / 2;
-    const orbitSpeed = getRandomOrbitSpeed();
     const planetColorScheme = getRandomColorScheme(planetColorSchemes);
-    const moonColorScheme = getRandomColorScheme(moonColorSchemes);
-    const systemTilt = getRandomTiltAngle();
-    const moonOrbitTilt = systemTilt * 2; // Moon orbit tilt is 2x the planet tilt
+    const planetTilt = getRandomTiltAngle();
+
+    const moons: Moon[] = Array.from(
+        { length: getRandomMoonCount() },
+        (_, index) => ({
+            id: index,
+            rotationSpeed: getRandomRotationSpeed() / 2,
+            orbitSpeed: getRandomOrbitSpeed(),
+            orbitTilt: getRandomTiltAngle(4),
+            colorScheme: getRandomColorScheme(moonColorSchemes)
+        })
+    );
 
     console.log('Configuration:', {
         planetRotation: planetRotationSpeed,
-        moonRotation: moonRotationSpeed,
-        orbit: orbitSpeed,
         planetColor: planetColorScheme.name,
-        moonColor: moonColorScheme.name,
-        systemTilt: systemTilt,
-        moonOrbitTilt: moonOrbitTilt
+        planetTilt,
+        moons: moons.map(moon => ({
+            id: moon.id,
+            rotation: moon.rotationSpeed,
+            orbit: moon.orbitSpeed,
+            color: moon.colorScheme.name,
+            tilt: moon.orbitTilt
+        }))
     });
 
     const handlePlanetLoad = (img: HTMLImageElement) => {
@@ -216,17 +291,27 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         }
     };
 
-    const handleMoonLoad = (img: HTMLImageElement) => {
-        if (moonDiv()) {
+    const handleMoonLoad = (img: HTMLImageElement, moonId: number) => {
+        const moonDiv = moonDivs().get(moonId);
+        if (moonDiv) {
             const dominantColor = getDominantColor(img);
-            moonDiv()!.style.backgroundImage = `url(${img.src})`;
-            moonDiv()!.style.boxShadow = `inset -1.5em -1.5em 1.5em #000, -0.2em -0.2em 0.5em ${dominantColor}`;
+            moonDiv.style.backgroundImage = `url(${img.src})`;
+            moonDiv.style.boxShadow = `inset -1.5em -1.5em 1.5em #000, -0.2em -0.2em 0.5em ${dominantColor}`;
         }
+    };
+
+    const setMoonDiv = (moonId: number, div: HTMLDivElement | null) => {
+        setMoonDivs(prev => {
+            const next = new Map(prev);
+            next.set(moonId, div);
+            return next;
+        });
     };
 
     return (
         <div class={containerStyle}>
-            <div class={getSystemContainerStyle(systemTilt)}>
+            <div class={getSystemContainerStyle(planetTilt)}>
+                {/* Planet as direct child of stacking context */}
                 <div class={getPlanetStyle(planetRotationSpeed, planetColorScheme)} ref={setPlanetDiv}>
                     <NTAwait func={() => props.context.backend.assets.getMetadata(3001)}>
                         {(asset) => (
@@ -241,22 +326,33 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                         )}
                     </NTAwait>
                 </div>
-                <div class={getMoonContainerStyle(orbitSpeed, moonOrbitTilt)}>
-                    <div class={getMoonStyle(moonRotationSpeed, moonColorScheme)} ref={setMoonDiv}>
-                        <NTAwait func={() => props.context.backend.assets.getMetadata(3005)}>
-                            {(asset) => (
-                                <GraphicalAsset
-                                    metadata={asset}
-                                    backend={props.context.backend}
-                                    onImageLoad={handleMoonLoad}
-                                    styleOverwrite={css`
-                                        display: none;
-                                    `}
-                                />
-                            )}
-                        </NTAwait>
-                    </div>
-                </div>
+
+                {/* Moons as direct children of same stacking context */}
+                <For each={moons}>
+                    {(moon) => (
+                        <div class={getTiltWrapperStyle(moon.orbitTilt, moon.orbitSpeed)}>
+                            <div class={getOrbitContainerStyle(moon.orbitSpeed)}>
+                                <div
+                                    class={getMoonStyle(moon.rotationSpeed, moon.colorScheme)}
+                                    ref={(div) => setMoonDiv(moon.id, div)}
+                                >
+                                    <NTAwait func={() => props.context.backend.assets.getMetadata(3005)}>
+                                        {(asset) => (
+                                            <GraphicalAsset
+                                                metadata={asset}
+                                                backend={props.context.backend}
+                                                onImageLoad={(img) => handleMoonLoad(img, moon.id)}
+                                                styleOverwrite={css`
+                                                    display: none;
+                                                `}
+                                            />
+                                        )}
+                                    </NTAwait>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </For>
             </div>
         </div>
     );
