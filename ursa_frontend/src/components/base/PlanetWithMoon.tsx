@@ -2,7 +2,7 @@ import { Component, createSignal, For, onMount, onCleanup } from 'solid-js';
 import { css } from '@emotion/css';
 import GraphicalAsset from './GraphicalAsset';
 import NTAwait from '../util/NoThrowAwait';
-import { ApplicationContext } from '@/meta/types';
+import { ApplicationContext, RuntimeMode } from '@/meta/types';
 
 const containerStyle = css`
   position: relative;
@@ -219,6 +219,67 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const planetColorScheme = getRandomColorScheme(planetColorSchemes);
     const planetTilt = getRandomTiltAngle();
 
+    const log = props.context.backend.logger.copyFor('planet-moon-system');
+
+    const isDebugMode = props.context.env.runtimeMode === RuntimeMode.TEST
+
+    const getDebugStyle = () => {
+        return isDebugMode ? {
+            outline: '2px solid red',
+            'background-color': 'rgba(255, 0, 0, 0.1)'
+        } : {};
+    };
+
+    const getDebugSystemStyle = () => {
+        return isDebugMode ? {
+            outline: '2px solid blue',
+            'background-color': 'rgba(0, 255, 0, 0.1)'
+        } : {};
+    };
+
+    const getDebugPlanetStyle = () => {
+        return isDebugMode ? {
+            outline: '2px solid green'
+        } : {};
+    };
+
+    const getDebugMoonStyle = (moonId: number) => css`
+        outline: 2px solid orange;
+        &::after {
+            content: "Moon ${moonId}";
+            position: absolute;
+            top: -1.2em;
+            left: 50%;
+            transform: translateX(-50%);
+            color: orange;
+            font-size: 0.8em;
+            white-space: nowrap;
+        }
+    `;
+
+    const getDebugOrbitPathStyle = (orbitDistance: number, tiltAngle: number, planetSize: number) => css`
+        &::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: ${planetSize * orbitDistance * 2}px;
+            height: 2px;
+            background: rgba(255, 255, 0, 0.5);
+            transform: translate(-50%, -50%) rotate(${tiltAngle}deg);
+            pointer-events: none;
+        }
+        &::after {
+            content: "${tiltAngle.toFixed(1)}°";
+            position: absolute;
+            left: 100%;
+            top: 0;
+            color: yellow;
+            font-size: 0.8em;
+            pointer-events: none;
+        }
+    `;
+
     const moons: Moon[] = Array.from(
         { length: getRandomMoonCount() },
         (_, index) => ({
@@ -232,42 +293,68 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         })
     );
 
+    log.trace(`Initial configuration - planetRotationSpeed: ${planetRotationSpeed}, planetTilt: ${planetTilt}, moonCount: ${moons.length}`);
+
     const handleContainerRef = (element: HTMLDivElement | null) => {
-        console.log('Container ref callback:', {
-            element: !!element,
-            parentElement: element?.parentElement
-        });
+        log.trace(`Container ref callback - element exists: ${!!element}, has parent: ${!!element?.parentElement}`);
 
         setContainerRef(element);
 
-        // If we don't have a parent element, use viewport dimensions
-        const vpWidth = window.innerWidth;
-        const vpHeight = window.innerHeight;
-        const minDimension = Math.min(vpWidth * 0.5, vpHeight * 0.5); // 50% of viewport
-        const initialSize = minDimension * 0.66;
+        if (element && element.parentElement) {
+            const parentRect = element.parentElement.getBoundingClientRect();
+            const width = parentRect.width;
+            const height = parentRect.height;
+            const minDimension = Math.min(width, height);
+            const initialSize = minDimension * 0.66;
 
-        console.log('Setting size from viewport:', {
-            vpWidth,
-            vpHeight,
-            minDimension,
-            initialSize
-        });
+            log.trace(`Setting initial size from parent - width: ${width}, height: ${height}, minDimension: ${minDimension}, initialSize: ${initialSize}`);
 
-        setParentSize(initialSize);
+            setParentSize(initialSize);
+        } else if (element) {
+            // Use the element's own size if parent is not available
+            const rect = element.getBoundingClientRect();
+            const minDimension = Math.min(rect.width, rect.height);
+            const initialSize = minDimension * 0.66;
+
+            log.trace(`Setting size from element - width: ${rect.width}, height: ${rect.height}, initialSize: ${initialSize}`);
+
+            setParentSize(initialSize);
+        }
     };
 
     onMount(() => {
-        const handleResize = () => {
-            const vpWidth = window.innerWidth;
-            const vpHeight = window.innerHeight;
-            const minDimension = Math.min(vpWidth * 0.5, vpHeight * 0.5);
-            setParentSize(minDimension * 0.66);
-        };
+        const container = containerRef();
+        log.trace(`Component mounted - container exists: ${!!container}, has parent: ${!!container?.parentElement}`);
 
-        window.addEventListener('resize', handleResize);
+        if (!container || !container.parentElement) {
+            if (container) {
+                const rect = container.getBoundingClientRect();
+                const minDimension = Math.min(rect.width, rect.height);
+                const newSize = minDimension * 0.66;
+                setParentSize(newSize);
+                log.trace(`Using container dimensions - width: ${rect.width}, height: ${rect.height}, calculatedSize: ${newSize}`);
+            } else {
+                log.trace('No container found on mount');
+            }
+            return;
+        }
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const rect = (entry.target as HTMLElement).getBoundingClientRect();
+                const minDimension = Math.min(rect.width, rect.height);
+                const newSize = minDimension * 0.66;
+                setParentSize(newSize);
+                log.trace(`Resize observed - width: ${rect.width}, height: ${rect.height}, newSize: ${newSize}`);
+            }
+        });
+
+        resizeObserver.observe(container.parentElement);
+        log.trace('ResizeObserver attached to parent');
 
         onCleanup(() => {
-            window.removeEventListener('resize', handleResize);
+            resizeObserver.disconnect();
+            log.trace('ResizeObserver disconnected');
         });
     });
 
@@ -278,6 +365,10 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
             planetDiv()!.style.boxShadow = `inset -2em -2em 2em #000, -0.5em -0.5em 1em ${dominantColor}`;
             const newPlanetSize = planetDiv()!.offsetWidth;
             setPlanetSize(newPlanetSize);
+
+            log.trace(`Planet image loaded - size: ${newPlanetSize}, dominantColor: ${dominantColor}`);
+        } else {
+            log.trace('Planet div not found during image load');
         }
     };
 
@@ -287,6 +378,9 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
             const dominantColor = getDominantColor(img);
             moonDiv.style.backgroundImage = `url(${img.src})`;
             moonDiv.style.boxShadow = `inset -1.5em -1.5em 1.5em #000, -0.2em -0.2em 0.5em ${dominantColor}`;
+            log.trace(`Moon ${moonId} image loaded - dominantColor: ${dominantColor}`);
+        } else {
+            log.trace(`Moon ${moonId} div not found during image load`);
         }
     };
 
@@ -294,6 +388,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         setMoonDivs(prev => {
             const next = new Map(prev);
             next.set(moonId, div);
+            log.trace(`Moon ${moonId} div ${div ? 'set' : 'unset'}`);
             return next;
         });
     };
@@ -308,19 +403,19 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                 position: 'relative',
                 display: 'flex',
                 'justify-content': 'center',
-                'align-items': 'center'
+                'align-items': 'center',
+                ...getDebugStyle()
             }}
         >
             {parentSize() > 0 ? (
                 <div
                     class={getSystemContainerStyle(planetTilt, parentSize())}
+                    style={getDebugSystemStyle()}
                 >
                     <div
                         class={getPlanetStyle(planetRotationSpeed, planetColorScheme)}
                         ref={setPlanetDiv}
-                        style={{
-                            outline: '2px solid green'
-                        }}
+                        style={getDebugPlanetStyle()}
                     >
                         <NTAwait func={() => props.context.backend.assets.getMetadata(getRandomAsset(planetAssets))}>
                             {(asset) => (
@@ -338,10 +433,17 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
 
                     <For each={moons}>
                         {(moon) => (
-                            <div class={getTiltWrapperStyle(moon.orbitTilt, moon.orbitSpeed, moon.id + 1)}>
-                                <div class={getOrbitContainerStyle(moon.orbitSpeed, moon.size, moon.orbitDistance, planetSize())}>
+                            <div
+                                class={`${getTiltWrapperStyle(moon.orbitTilt, moon.orbitSpeed, moon.id + 1)} 
+                                       ${isDebugMode ? getDebugOrbitPathStyle(moon.orbitDistance, moon.orbitTilt, planetSize()) : ''}`}
+                            >
+                                <div
+                                    class={getOrbitContainerStyle(moon.orbitSpeed, moon.size, moon.orbitDistance, planetSize())}
+                                    style={isDebugMode ? { outline: '1px dotted rgba(255, 255, 0, 0.3)' } : {}}
+                                >
                                     <div
-                                        class={getMoonStyle(moon.rotationSpeed, moon.colorScheme)}
+                                        class={`${getMoonStyle(moon.rotationSpeed, moon.colorScheme)} 
+                                               ${isDebugMode ? getDebugMoonStyle(moon.id) : ''}`}
                                         ref={(div) => setMoonDiv(moon.id, div)}
                                     >
                                         <NTAwait func={() => props.context.backend.assets.getMetadata(getRandomAsset(moonAssets))}>

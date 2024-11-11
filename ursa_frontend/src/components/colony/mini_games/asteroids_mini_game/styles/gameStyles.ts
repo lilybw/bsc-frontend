@@ -176,11 +176,11 @@ export const planetWrapperStyle = css`
     position: fixed;
     top: 0;
     right: 0;
-    width: 50vw;
+    width: 75vw;
     height: 75vh;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: visible;
-    z-index: 1;
+    z-index: 0;
 `;
