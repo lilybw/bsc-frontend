@@ -10,7 +10,7 @@ import {
 import { css } from '@emotion/css';
 import { LOCATION_UPGRADE_EVENT, MINIGAME_WON_EVENT, OriginType, PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from '../../integrations/multiplayer_backend/EventSpecifications';
 import Location from '../colony/location/Location';
-import { createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
+import { createDelayedSignal, createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
 import { ClientDTO } from '../../integrations/multiplayer_backend/multiplayerDTO';
 import NTAwait from '../util/NoThrowAwait';
 import { KnownLocations } from '../../integrations/main_backend/constants';
@@ -39,8 +39,8 @@ interface PathGraphProps {
 }
 
 const PathGraph: Component<PathGraphProps> = (props) => {
-    const [DNS, setDNS] = createSignal({ x: 1, y: 1 });
-    const [GAS, setGAS] = createSignal(1);
+    const DNS = createDelayedSignal({ x: 1, y: 1 });
+    const GAS = createDelayedSignal(1);
     const colonyLocations = createArrayStore<ColonyLocationInfoWOriginalTransform>(
         props.colony.locations.map((loc) => ({ ...loc, originalTransform: loc.transform })),
     );
@@ -77,8 +77,8 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     }
 
     createEffect(() => {
-        const currentDNS = DNS();
-        const currentGAS = GAS();
+        const currentDNS = DNS.get();
+        const currentGAS = GAS.get();
 
         untrack(() => {
             //Updating transforms of locations and paths
@@ -172,22 +172,16 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         }
     };
 
-    let deferRecalculateDNSGASTimeout: NodeJS.Timeout | undefined;
     const calculateScalars = () => {
-        if (deferRecalculateDNSGASTimeout) {
-            clearTimeout(deferRecalculateDNSGASTimeout);
-        }
-        deferRecalculateDNSGASTimeout = setTimeout(() => {
-            const newWidth = window.innerWidth;
-            const newHeight = window.innerHeight;
-            setViewportDimensions({ width: newWidth, height: newHeight });
-            const dns = {
-                x: newWidth / EXPECTED_WIDTH,
-                y: newHeight / EXPECTED_HEIGHT,
-            };
-            setDNS(dns);
-            setGAS(Math.sqrt(Math.min(dns.x, dns.y)));
-        }, 500);
+        const newWidth = window.innerWidth;
+        const newHeight = window.innerHeight;
+        setViewportDimensions({ width: newWidth, height: newHeight });
+        const dns = {
+            x: newWidth / EXPECTED_WIDTH,
+            y: newHeight / EXPECTED_HEIGHT,
+        };
+        DNS.set(dns);
+        GAS.set(Math.sqrt(Math.min(dns.x, dns.y)));
     };
 
     onMount(() => {
@@ -267,7 +261,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                                     colony={props.colony}
                                     colonyLocation={colonyLocation}
                                     location={locationInfo}
-                                    gas={GAS}
+                                    gas={GAS.get}
                                     plexer={props.context.events}
                                     backend={props.context.backend}
                                     buffer={props.buffer.get}
@@ -283,7 +277,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 </For>
 
                 <For each={props.clients.get}>
-                    {(client) => <Player GAS={GAS} client={client} transformMap={transformMap} backend={props.context.backend} showNamePlate />}
+                    {(client) => <Player GAS={GAS.get} client={client} transformMap={transformMap} backend={props.context.backend} showNamePlate />}
                 </For>
 
                 <For each={colonyAssets.get}>{asset => (
@@ -313,7 +307,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         msOfLastMessage: 0,
                     },
                 }}
-                GAS={GAS}
+                GAS={GAS.get}
                 transformMap={new Map()}
                 backend={props.context.backend}
                 styleOverwrite={localPlayerStyle}

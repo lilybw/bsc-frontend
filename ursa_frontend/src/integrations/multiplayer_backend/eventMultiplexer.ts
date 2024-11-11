@@ -5,7 +5,6 @@ import { DEBUG_INFO_EVENT, EventSpecification, EventType, IMessage, PLAYERS_DECL
 export type OnEventCallback<T> = ((data: T) => void | Promise<void>) & { internalOrigin?: string };
 export type SubscriptionID = number;
 export type EventID = number;
-
 /** Internal Event Broker decoupling WebSocket connection */
 export interface IEventMultiplexer {
     /**

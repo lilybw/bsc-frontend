@@ -46,12 +46,9 @@ export const loadMinigameSingleplayerLoop = (minigameID: number): ResErr<Singlep
             gameLoopInitFunc = createAsteroidsGameLoop;
             break;
         }
+        default: return { res: null, err: 'Could not load minigame gameloop, no loop found for minigame id: ' + minigameID };
     }
-
-    if (gameLoopInitFunc === null) {
-        return { res: null, err: 'Could not load minigame gameloop, no loop found for minigame id: ' + minigameID };
-    }
-
+    
     return { res: gameLoopInitFunc, err: null };
 };
 
