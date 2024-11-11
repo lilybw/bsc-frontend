@@ -172,3 +172,15 @@ export const playerIdStyle = css`
     white-space: nowrap;
 `;
 
+export const planetWrapperStyle = css`
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 50vw;
+    height: 75vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+    z-index: 1;
+`;

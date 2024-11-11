@@ -19,7 +19,7 @@ import Asteroid from "./entities/Asteroid";
 import { Position } from "./entities/BaseEntity";
 import LazerBeam from "./entities/LazerBeam";
 import Player from "./entities/Player";
-import { statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle, playerNamePlateStyle } from "./styles/gameStyles";
+import { statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle, playerNamePlateStyle, planetWrapperStyle } from "./styles/gameStyles";
 import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes"
 import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
 import { ExplosionData } from "./entities/particles/explosionParticles/ExplosionParticleManager";
@@ -27,6 +27,7 @@ import ExplosionEffect from "./components/ExplosionEffect";
 import { generateImpactPosition, getEntityRefKey, getRandomRotationSpeed, getTargetCenterPosition, handleAsteroidDestruction, translateSpawnPosition } from "./utils/gameUtils";
 import Wall from "./components/Wall";
 import Surface from "@/components/base/Surface";
+import PlanetMoonSystem from "@/components/base/PlanetWithMoon";
 
 type PlayerState = {
     isStunned: boolean;
@@ -332,6 +333,18 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     return (
         <div>
             <StarryBackground />
+            <div class={planetWrapperStyle}>
+                <div style={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'relative',
+                    display: 'flex',
+                    'justify-content': 'center',
+                    'align-items': 'center'
+                }}>
+                    <PlanetMoonSystem context={props.context} />
+                </div>
+            </div>
             <Surface context={props.context} />
             <Wall
                 context={props.context}
