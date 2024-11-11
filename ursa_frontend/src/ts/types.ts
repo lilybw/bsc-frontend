@@ -31,7 +31,7 @@ export interface IParenting {
  * Has children, but is an img tag, so tries its best
  */
 export interface IParentingImages {
-    children?: Component<IStyleOverwritable>[];
+    children?: Component<IStyleOverwritable> | Component<IStyleOverwritable>[];
 }
 /**
  * Any component that needs access to the InternationalizationService

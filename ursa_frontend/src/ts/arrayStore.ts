@@ -133,7 +133,8 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
         },
         cullByPredicate: (predicate: (element: T) => boolean): number => {
             let originalLength = proxy.length;
-            setStore(produce((s) => s.filter((element) => !predicate(element))));
+            const newArray = proxy.filter(element => !predicate(element));
+            setStore(newArray);
             return originalLength - proxy.length;
         },
         removeAtIndex: (index: number): boolean => {

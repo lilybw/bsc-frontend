@@ -19,7 +19,7 @@ import { ArrayStore, createArrayStore } from '../../ts/arrayStore';
 import ActionInput from './MainActionInput';
 import { ApplicationContext, ColonyState, MultiplayerMode } from '../../meta/types';
 import Player from './Player';
-import { arrayToMap, ColonyAssetWOriginalTransform, ColonyLocationID, ColonyLocationInfoWOriginalTransform, Line, loadPathMap, loadPathsFromInitial } from './PathGraphHelpers';
+import { arrayToMap, ColonyAssetWOriginalTransform, ColonyLocationID, ColonyLocationInfoWOriginalTransform, LocLine, loadPathMap, loadPathsFromInitial } from './PathGraphHelpers';
 import AssetCollection from './AssetCollection';
 
 export const EXPECTED_WIDTH = 1920;
@@ -54,7 +54,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     const [viewportDimensions, setViewportDimensions] = createSignal({ width: window.innerWidth, height: window.innerHeight });
     const [currentLocationOfLocalPlayer, setCurrentLocationOfLocalPlayer] = createSignal<ColonyLocationInfoWOriginalTransform>();
 
-    const computedPaths = createArrayStore<Line>(loadPathsFromInitial(props.graph.paths));
+    const computedPaths = createArrayStore<LocLine>(loadPathsFromInitial(props.graph.paths));
     const transformMap = new Map<ColonyLocationID, WrappedSignal<TransformDTO>>(arrayToMap(props.colony.locations));
     const pathMap = new Map<ColonyLocationID, ColonyLocationID[]>(loadPathMap(props.graph.paths));
     const log = props.context.logger.copyFor('path graph');

@@ -35,6 +35,13 @@ export const Styles = {
     NO_SHOW: css({
         display: "none",
     }),
+    FULL_SCREEN: css({
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+    }),
     OVERLAY: {
         CENTERED_QUARTER: css({
             position: "absolute",

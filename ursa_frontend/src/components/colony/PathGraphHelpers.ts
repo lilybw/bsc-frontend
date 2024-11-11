@@ -1,3 +1,4 @@
+import { Line } from "@/ts/geometry";
 import { ColonyAssetResponseDTO, ColonyLocationInformation, ColonyPathGraphResponseDTO, TransformDTO, uint32 } from "../../integrations/main_backend/mainBackendDTOs";
 import { BufferSubscriber } from "../../ts/actionContext";
 import { createWrappedSignal, WrappedSignal } from "../../ts/wrappedSignal";
@@ -24,7 +25,7 @@ export const loadPathMap = (paths: ColonyPathGraphResponseDTO['paths']): Map<Col
     return pathMap;
 };
 
-export type Line = { from: ColonyLocationID; to: ColonyLocationID; x1: number; y1: number; x2: number; y2: number };
+export interface LocLine extends Line { from: ColonyLocationID; to: ColonyLocationID; };
 export interface ColonyLocationInfoWOriginalTransform extends ColonyLocationInformation {
     originalTransform: TransformDTO;
 }
@@ -32,7 +33,7 @@ export interface ColonyAssetWOriginalTransform extends ColonyAssetResponseDTO {
     originalTransform: TransformDTO;
     wrappedTransform: WrappedSignal<TransformDTO>;
 }
-export const loadPathsFromInitial = (paths: ColonyPathGraphResponseDTO['paths']): Line[] => {
+export const loadPathsFromInitial = (paths: ColonyPathGraphResponseDTO['paths']): LocLine[] => {
     return paths.map((path) => ({
         from: path.from,
         to: path.to,

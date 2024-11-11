@@ -102,7 +102,8 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
     );
 
     const appendChildren = () => {
-        if (props.children) {
+        if (!props.children) return;
+        if (Array.isArray(props.children)) {
             return (
                 <For each={props.children}>
                     {(child, index) => {
@@ -110,6 +111,8 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
                     }}
                 </For>
             );
+        } else {
+            return props.children({ styleOverwrite: computedStyles() });
         }
     };
 
