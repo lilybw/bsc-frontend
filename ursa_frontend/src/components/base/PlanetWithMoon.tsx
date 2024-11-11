@@ -11,7 +11,6 @@ const containerStyle = css`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(255, 0, 0, 0.1);
 `;
 
 const getSystemContainerStyle = (tiltAngle: number, parentSize: number) => css`
@@ -22,7 +21,6 @@ const getSystemContainerStyle = (tiltAngle: number, parentSize: number) => css`
   justify-content: center;
   align-items: center;
   transform: rotate(${tiltAngle}deg);
-  background-color: rgba(0, 255, 0, 0.1);
 `;
 
 type ColorTransform = {
@@ -242,6 +240,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         log.trace(`Component mounted - container exists: ${!!container}`);
 
         let intervalId: number | null = null;
+        let resizeObserver: ResizeObserver | null = null;
 
         const attemptParentDetection = () => {
             const currentContainer = containerRef();
@@ -260,7 +259,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
             updateSizeFromParent(parent);
 
             // Set up resize observer
-            const resizeObserver = new ResizeObserver((entries) => {
+            resizeObserver = new ResizeObserver((entries) => {
                 for (const entry of entries) {
                     updateSizeFromParent(entry.target as HTMLElement);
                 }
@@ -274,24 +273,26 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                 window.clearInterval(intervalId);
                 log.trace('Parent detection interval cleared');
             }
-
-            // Set up cleanup
-            onCleanup(() => {
-                resizeObserver.disconnect();
-                log.trace('ResizeObserver disconnected');
-                if (intervalId !== null) {
-                    window.clearInterval(intervalId);
-                    log.trace('Interval cleared during cleanup');
-                }
-            });
         };
 
         // Start the interval
-        intervalId = window.setInterval(attemptParentDetection, 100);
+        intervalId = window.setInterval(attemptParentDetection, 50);
         log.trace('Parent detection interval started');
 
         // Try immediately as well
         attemptParentDetection();
+
+        // Set up cleanup at mount level
+        onCleanup(() => {
+            if (resizeObserver) {
+                resizeObserver.disconnect();
+                log.trace('ResizeObserver disconnected');
+            }
+            if (intervalId !== null) {
+                window.clearInterval(intervalId);
+                log.trace('Interval cleared during cleanup');
+            }
+        });
     });
 
     const getDebugStyle = () => {

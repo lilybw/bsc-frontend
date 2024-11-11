@@ -171,3 +171,15 @@ export const playerIdStyle = css`
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     white-space: nowrap;
 `;
+
+export const planetContainerStyle = css`
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 75vw;
+    height: 75vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+`;
