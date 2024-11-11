@@ -19,7 +19,7 @@ import Asteroid from "./entities/Asteroid";
 import { Position } from "./entities/BaseEntity";
 import LazerBeam from "./entities/LazerBeam";
 import Player from "./entities/Player";
-import { statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle, playerNamePlateStyle, planetWrapperStyle } from "./styles/gameStyles";
+import { statusStyle, timeLeftStyle, asteroidStyle, asteroidImageContainerStyle, rotatingStyle, asteroidButtonStyle, lazerBeamStyle, impactCircleStyle, buttonStyleOverwrite, playerContainerStyle, playerNamePlateStyle } from "./styles/gameStyles";
 import { AsteroidsSettingsDTO, EntityRef } from "./types/gameTypes"
 import StunParticleManager from "./entities/particles/stunparticles/StunParticleManager";
 import { ExplosionData } from "./entities/particles/explosionParticles/ExplosionParticleManager";
@@ -333,17 +333,8 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
     return (
         <div>
             <StarryBackground />
-            <div class={planetWrapperStyle}>
-                <div style={{
-                    width: '100%',
-                    height: '100%',
-                    position: 'relative',
-                    display: 'flex',
-                    'justify-content': 'center',
-                    'align-items': 'center'
-                }}>
-                    <PlanetMoonSystem context={props.context} />
-                </div>
+            <div class={planetContainerStyle}>
+                <PlanetMoonSystem context={props.context} />
             </div>
             <Surface context={props.context} />
             <Wall
@@ -515,3 +506,15 @@ export const initAsteroidsComponent: MinigameComponentInitFunc = async (
 
     return { res: <AsteroidsMiniGame context={context} settings={asteroidSettings} />, err: null };
 };
+
+const planetContainerStyle = css`
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 75vw;
+    height: 75vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+`;

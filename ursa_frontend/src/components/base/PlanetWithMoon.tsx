@@ -221,7 +221,78 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
 
     const log = props.context.backend.logger.copyFor('planet-moon-system');
 
-    const isDebugMode = props.context.env.runtimeMode === RuntimeMode.TEST
+    const isDebugMode = props.context.env.runtimeMode === RuntimeMode.TEST;
+
+    const updateSizeFromParent = (element: HTMLElement) => {
+        const parentRect = element.getBoundingClientRect();
+        const minDimension = Math.min(parentRect.width, parentRect.height);
+        const newSize = minDimension * 0.66;
+        setParentSize(newSize);
+        log.trace(`Size updated from parent - width: ${parentRect.width}, height: ${parentRect.height}, newSize: ${newSize}`);
+        return true;
+    };
+
+    const handleContainerRef = (element: HTMLDivElement | null) => {
+        log.trace(`Container ref callback - element exists: ${!!element}`);
+        setContainerRef(element);
+    };
+
+    onMount(() => {
+        const container = containerRef();
+        log.trace(`Component mounted - container exists: ${!!container}`);
+
+        let intervalId: number | null = null;
+
+        const attemptParentDetection = () => {
+            const currentContainer = containerRef();
+            if (!currentContainer) {
+                log.trace('No container found during interval check');
+                return;
+            }
+
+            const parent = currentContainer.parentElement;
+            if (!parent) {
+                log.trace('No parent element found during interval check');
+                return;
+            }
+
+            // Update size from parent
+            updateSizeFromParent(parent);
+
+            // Set up resize observer
+            const resizeObserver = new ResizeObserver((entries) => {
+                for (const entry of entries) {
+                    updateSizeFromParent(entry.target as HTMLElement);
+                }
+            });
+
+            resizeObserver.observe(parent);
+            log.trace('ResizeObserver attached to parent');
+
+            // Clear the interval since we've found the parent
+            if (intervalId !== null) {
+                window.clearInterval(intervalId);
+                log.trace('Parent detection interval cleared');
+            }
+
+            // Set up cleanup
+            onCleanup(() => {
+                resizeObserver.disconnect();
+                log.trace('ResizeObserver disconnected');
+                if (intervalId !== null) {
+                    window.clearInterval(intervalId);
+                    log.trace('Interval cleared during cleanup');
+                }
+            });
+        };
+
+        // Start the interval
+        intervalId = window.setInterval(attemptParentDetection, 100);
+        log.trace('Parent detection interval started');
+
+        // Try immediately as well
+        attemptParentDetection();
+    });
 
     const getDebugStyle = () => {
         return isDebugMode ? {
@@ -293,71 +364,6 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         })
     );
 
-    log.trace(`Initial configuration - planetRotationSpeed: ${planetRotationSpeed}, planetTilt: ${planetTilt}, moonCount: ${moons.length}`);
-
-    const handleContainerRef = (element: HTMLDivElement | null) => {
-        log.trace(`Container ref callback - element exists: ${!!element}, has parent: ${!!element?.parentElement}`);
-
-        setContainerRef(element);
-
-        if (element && element.parentElement) {
-            const parentRect = element.parentElement.getBoundingClientRect();
-            const width = parentRect.width;
-            const height = parentRect.height;
-            const minDimension = Math.min(width, height);
-            const initialSize = minDimension * 0.66;
-
-            log.trace(`Setting initial size from parent - width: ${width}, height: ${height}, minDimension: ${minDimension}, initialSize: ${initialSize}`);
-
-            setParentSize(initialSize);
-        } else if (element) {
-            // Use the element's own size if parent is not available
-            const rect = element.getBoundingClientRect();
-            const minDimension = Math.min(rect.width, rect.height);
-            const initialSize = minDimension * 0.66;
-
-            log.trace(`Setting size from element - width: ${rect.width}, height: ${rect.height}, initialSize: ${initialSize}`);
-
-            setParentSize(initialSize);
-        }
-    };
-
-    onMount(() => {
-        const container = containerRef();
-        log.trace(`Component mounted - container exists: ${!!container}, has parent: ${!!container?.parentElement}`);
-
-        if (!container || !container.parentElement) {
-            if (container) {
-                const rect = container.getBoundingClientRect();
-                const minDimension = Math.min(rect.width, rect.height);
-                const newSize = minDimension * 0.66;
-                setParentSize(newSize);
-                log.trace(`Using container dimensions - width: ${rect.width}, height: ${rect.height}, calculatedSize: ${newSize}`);
-            } else {
-                log.trace('No container found on mount');
-            }
-            return;
-        }
-
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                const rect = (entry.target as HTMLElement).getBoundingClientRect();
-                const minDimension = Math.min(rect.width, rect.height);
-                const newSize = minDimension * 0.66;
-                setParentSize(newSize);
-                log.trace(`Resize observed - width: ${rect.width}, height: ${rect.height}, newSize: ${newSize}`);
-            }
-        });
-
-        resizeObserver.observe(container.parentElement);
-        log.trace('ResizeObserver attached to parent');
-
-        onCleanup(() => {
-            resizeObserver.disconnect();
-            log.trace('ResizeObserver disconnected');
-        });
-    });
-
     const handlePlanetLoad = (img: HTMLImageElement) => {
         if (planetDiv()) {
             const dominantColor = getDominantColor(img);
@@ -365,7 +371,6 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
             planetDiv()!.style.boxShadow = `inset -2em -2em 2em #000, -0.5em -0.5em 1em ${dominantColor}`;
             const newPlanetSize = planetDiv()!.offsetWidth;
             setPlanetSize(newPlanetSize);
-
             log.trace(`Planet image loaded - size: ${newPlanetSize}, dominantColor: ${dominantColor}`);
         } else {
             log.trace('Planet div not found during image load');
