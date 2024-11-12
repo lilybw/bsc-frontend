@@ -26,7 +26,7 @@ import { ExplosionData } from "./entities/particles/explosionParticles/Explosion
 import ExplosionEffect from "./components/ExplosionEffect";
 import { generateImpactPosition, getEntityRefKey, getRandomRotationSpeed, getTargetCenterPosition, handleAsteroidDestruction, translateSpawnPosition } from "./utils/gameUtils";
 import Wall from "./components/Wall";
-import Surface from "@/components/base/Surface";
+import Surface from "@/components/base/PlanetSurface";
 import PlanetMoonSystem from "@/components/base/PlanetWithMoon";
 
 type PlayerState = {
@@ -336,7 +336,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
             <div class={planetContainerStyle}>
                 <PlanetMoonSystem context={props.context} />
             </div>
-            <Surface context={props.context} />
+            <Surface backend={props.context.backend} />
             <Wall
                 context={props.context}
                 health={health}

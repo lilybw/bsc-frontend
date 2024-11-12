@@ -17,7 +17,7 @@ export interface DelayedSignalOptions<T> extends SignalOptions<T> {
     /** In milliseconds */
     delay: number;
 }
-export interface DelayedSignal<T> {
+export interface SimpleWrappedSignal<T> {
     get: Accessor<T>;
     set: (newValue: T) => void;
 }
@@ -28,7 +28,7 @@ export interface DelayedSignal<T> {
  * 
  * @author GustavBW
  */
-export const createDelayedSignal = <T>(value: T, options?: DelayedSignalOptions<T>): DelayedSignal<T> => {
+export const createDelayedSignal = <T>(value: T, options?: DelayedSignalOptions<T>): SimpleWrappedSignal<T> => {
     const wrapped = createWrappedSignal(value, options);
     let timeout: NodeJS.Timeout | undefined;
     return {
@@ -38,4 +38,33 @@ export const createDelayedSignal = <T>(value: T, options?: DelayedSignalOptions<
             timeout = setTimeout(() => wrapped.set(() => newValue), options?.delay ?? 500);
         },
     };
+}
+export interface CooldownSignalOptions<T> extends SignalOptions<T> {
+    /** In milliseconds */
+    cooldown: number;
+}
+/**
+ * Standard wrapped signal, however, upon any mutation, a cooldown period is initiated, during which
+ * no new mutations will be accepted. The cooldown period is reset upon each mutation.
+ * 
+ * Default cooldown is 500ms
+ * 
+ * @author GustavBW
+ */
+export const createCooldownSignal = <T>(value: T, options?: CooldownSignalOptions<T>): SimpleWrappedSignal<T> => {
+    const wrapped = createWrappedSignal(value);
+    let timeout: NodeJS.Timeout | undefined;
+    let isAvailable = true;
+    return {
+        get: wrapped.get,
+        set: (newValue: T) => {
+            if (!isAvailable) return;
+            wrapped.set(() => newValue);
+            isAvailable = false;
+            timeout = setTimeout(() => {
+                isAvailable = true;
+            }, options?.cooldown ?? 500);
+        },
+    };
+
 }

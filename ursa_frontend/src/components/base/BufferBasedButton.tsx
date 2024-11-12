@@ -13,6 +13,11 @@ export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IPar
      * container of the button */
     onHoverContainerStyle?: string;
     setElementRef?: Setter<HTMLButtonElement | undefined>;
+    /** Delay for the input confirmation / rejection animation in milliseoncds.
+     * Does not change the animation itself.
+     * @default 500
+     */
+    activationDelay?: number;
 }
 
 const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
@@ -63,7 +68,7 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
                 setTimeout(() => {
                     props.onActivation();
                     setActivated(false);
-                }, shimmerTimeS * 1000);
+                }, props.activationDelay ? props.activationDelay : shimmerTimeS * 1000);
                 return { consumed: true };
             }
             return { consumed: false };

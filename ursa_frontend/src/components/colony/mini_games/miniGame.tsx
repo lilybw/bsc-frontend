@@ -5,6 +5,7 @@ import { createAsteroidsGameLoop } from './asteroids_mini_game/AsteroidsGameLoop
 import { uint32 } from '../../../integrations/main_backend/mainBackendDTOs';
 import { BackendIntegration } from '../../../integrations/main_backend/mainBackend';
 import { DifficultyConfirmedForMinigameMessageDTO } from '@/integrations/multiplayer_backend/EventSpecifications';
+import { initAsteroidsDisplayComponent } from './asteroids_mini_game/AsteroidsDisplayComponent';
 
 /**
  * Any function, that based on the provided ApplicationContext alone, can initialize all data needed
@@ -48,7 +49,7 @@ export const loadMinigameSingleplayerLoop = (minigameID: number): ResErr<Singlep
         }
         default: return { res: null, err: 'Could not load minigame gameloop, no loop found for minigame id: ' + minigameID };
     }
-    
+
     return { res: gameLoopInitFunc, err: null };
 };
 
@@ -57,13 +58,11 @@ export const getMinigameComponentInitFunction = (minigameID: number): ResErr<Min
 
     switch (minigameID) {
         case KnownMinigames.ASTEROIDS: {
-            initFunc = initAsteroidsComponent;
+            initFunc = initAsteroidsDisplayComponent;
             break;
         }
-    }
-
-    if (!initFunc || initFunc === null) {
-        return { res: null, err: 'Could not find minigame component init function for minigame id: ' + minigameID };
+        default:
+            return { res: null, err: 'Could not find minigame component init function for minigame id: ' + minigameID };
     }
 
     return { res: initFunc, err: null };

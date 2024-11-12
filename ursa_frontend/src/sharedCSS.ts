@@ -1,5 +1,6 @@
 import { css } from '@emotion/css';
 import { TransformDTO } from './integrations/main_backend/mainBackendDTOs';
+import { getRandHash } from './ts/ursaMath';
 
 const titleBase = css({
     fontFamily: "'Orbitron', sans-serif",
@@ -164,22 +165,26 @@ export const Styles = {
             `,
     }),
     ANIM:{
-        FADE_OUT: (seconds: number, interpolation: string = "linear") => css`
-            opacity: 1;
-            animation: fadeOut ${seconds}s ${interpolation};
-            @keyframes fadeOut {
-                from {
-                    opacity: 1;
+        FADE_OUT: (seconds: number, interpolation: string = "linear") => {
+            const randHash = getRandHash();
+            return css`
+                opacity: 1;
+                animation: fadeOut-${randHash} ${seconds}s ${interpolation};
+                @keyframes fadeOut-${randHash} {
+                    from {
+                        opacity: 1;
+                    }
+                    to {
+                        opacity: 0;
+                    }
                 }
-                to {
-                    opacity: 0;
-                }
-            }
-        `,
-        FADE_IN: (seconds: number, interpolation: string = "linear") => css`
+        `},
+        FADE_IN: (seconds: number, interpolation: string = "linear") => {
+            const randHash = getRandHash();
+            return css`
             opacity: 0;
-            animation: fadeIn ${seconds}s ${interpolation};
-            @keyframes fadeIn {
+            animation: fadeIn-${randHash} ${seconds}s ${interpolation};
+            @keyframes fadeIn-${randHash} {
                 from {
                     opacity: 0;
                 }
@@ -187,7 +192,51 @@ export const Styles = {
                     opacity: 1;
                 }
             }
-        `,
+        `},
+        /**
+         * @param transformProperties overwrites the transform field, so include any previous properties.
+         */
+        SHAKE: (seconds: number, interpolation: string = "linear", transformProperties: string = "") => {
+            const randHash = getRandHash();
+            return css`
+                animation: shake-${randHash} ${seconds}s ${interpolation};
+                transform:  ${transformProperties} translate3d(0, 0, 0);
+                --color-shadow-offset: -0.5rem;
+                --color-shadow-size: 0.1rem;
+                --color-shadow-color-2: hsla(360, 100%, 54%, 1);
+                --color-shadow-color-1: hsla(198, 100%, 50%, 0.7);
+                --color-shadow-color-3: hsla(36, 100%, 50%, 0.7);
+                --color-shadow-color-4: hsla(26, 100%, 50%, 0.7);
+
+                @keyframes shake-${randHash} {
+                    10%,
+                    90% {
+                        transform: ${transformProperties} translate3d(-1px, 0, 0);
+                        filter: drop-shadow(calc(-1 * var(--color-shadow-offset)) 0 var(--color-shadow-size) var(--color-shadow-color-1));
+                    }
+                    20%,
+                    80%,
+                    100% {
+                        transform: ${transformProperties} translate3d(2px, 0, 0);
+                        filter: drop-shadow(var(--color-shadow-offset) 0 var(--color-shadow-size) var(--color-shadow-color-2));
+                    }
+                    30%,
+                    50%,
+                    70% {
+                        transform: ${transformProperties} translate3d(-4px, 0, 0);
+                        filter: drop-shadow(
+                            calc(-1 * var(--color-shadow-offset)) calc(-1 * var(--color-shadow-offset)) var(--color-shadow-size) var(--color-shadow-color-4)
+                        );
+                    }
+                    40%,
+                    60%,
+                    0% {
+                        transform: ${transformProperties} translate3d(4px, 0, 0);
+                        filter: drop-shadow(var(--color-shadow-offset) var(--color-shadow-offset) var(--color-shadow-size) var(--color-shadow-color-3));
+                    }
+                }
+            `;
+        }
     },
     GLASS: {
         FAINT_BACKGROUND: css({

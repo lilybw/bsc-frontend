@@ -5,6 +5,7 @@ import { IBackendBased, IInternationalized, IStyleOverwritable } from '../../ts/
 import { ArrayStore } from '../../ts/arrayStore';
 import NTAwait from '../util/NoThrowAwait';
 import GraphicalAsset from '../base/GraphicalAsset';
+import { Styles } from '@/sharedCSS';
 
 interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternationalized {
     actionContext: Accessor<TypeIconTuple>;
@@ -127,7 +128,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             </svg>
             <div
                 class={css`
-                    ${inputContainerStyle} ${isShaking() ? shakeAnimation : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}
+                    ${inputContainerStyle} ${isShaking() ? Styles.ANIM.SHAKE(shakeTimeS, "linear", "translate(-50%, 50%)") : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}
                 `}
                 id="main-input-container"
             >
@@ -189,45 +190,6 @@ const enterAnimation = css`
         }
         to {
             filter: drop-shadow(0 0 0.5rem var(--color-1));
-        }
-    }
-`;
-
-const shakeAnimation = css`
-    animation: shake ${shakeTimeS}s ease-in-out;
-    transform: translate(-50%, 50%) translate3d(0, 0, 0);
-    --color-shadow-offset: -0.5rem;
-    --color-shadow-size: 0.1rem;
-    --color-shadow-color-2: hsla(360, 100%, 54%, 1);
-    --color-shadow-color-1: hsla(198, 100%, 50%, 0.7);
-    --color-shadow-color-3: hsla(36, 100%, 50%, 0.7);
-    --color-shadow-color-4: hsla(26, 100%, 50%, 0.7);
-
-    @keyframes shake {
-        10%,
-        90% {
-            transform: translate(-50%, 50%) translate3d(-1px, 0, 0);
-            filter: drop-shadow(calc(-1 * var(--color-shadow-offset)) 0 var(--color-shadow-size) var(--color-shadow-color-1));
-        }
-        20%,
-        80%,
-        100% {
-            transform: translate(-50%, 50%) translate3d(2px, 0, 0);
-            filter: drop-shadow(var(--color-shadow-offset) 0 var(--color-shadow-size) var(--color-shadow-color-2));
-        }
-        30%,
-        50%,
-        70% {
-            transform: translate(-50%, 50%) translate3d(-4px, 0, 0);
-            filter: drop-shadow(
-                calc(-1 * var(--color-shadow-offset)) calc(-1 * var(--color-shadow-offset)) var(--color-shadow-size) var(--color-shadow-color-4)
-            );
-        }
-        40%,
-        60%,
-        0% {
-            transform: translate(-50%, 50%) translate3d(4px, 0, 0);
-            filter: drop-shadow(var(--color-shadow-offset) var(--color-shadow-offset) var(--color-shadow-size) var(--color-shadow-color-3));
         }
     }
 `;
