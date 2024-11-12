@@ -32,6 +32,18 @@ export interface ArrayStore<T> {
      * @returns the first element that satisfies the predicate, or undefined if none do
      */
     findAll: (predicate: (element: T) => boolean) => T[];
+    /** 
+     * NB: NOT REACTIVE
+     * 
+     * Same as Array.forEach 
+     */
+    forEach: Array<T>['forEach'];
+    /** 
+     * NB: NOT REACTIVE
+     * 
+     * Same as Array.forEach, but only for elements where the predicate passes 
+     */
+    forAny: (predicate: (element: T) => boolean, func: (element: T) => void) => void;
     /**
      * Change the value of some element in the store reactively.
      *
@@ -109,6 +121,14 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
         },
         findFirst: (predicate: (element: T) => boolean) => proxy.find(predicate),
         findAll: (predicate: (element: T) => boolean) => proxy.filter(predicate),
+        forEach: proxy.forEach,
+        forAny: (predicate: (element: T) => boolean, func: (element: T) => void) => {
+            for (let i = 0; i < proxy.length; i++) {
+                if (predicate(proxy[i])) {
+                    func(proxy[i]);
+                }
+            }
+        },
         mutateByPredicate: (predicate: (element: T) => boolean, mutator: (element: T) => T) => {
             let mutationCount = 0;
             batch(() => {

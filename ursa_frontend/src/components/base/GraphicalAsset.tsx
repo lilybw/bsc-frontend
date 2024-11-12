@@ -26,7 +26,6 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
     const [loading, setLoading] = createSignal(true);
     const [error, setError] = createSignal<string | undefined>(undefined);
     const [currentLODLevel, setCurrentLODLevel] = createSignal(9001);
-    const [imageElement, setImageElement] = createSignal<HTMLImageElement | null>(null);
 
     createEffect(() => {
         let mounted = true;
@@ -127,7 +126,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
                         src={currentSrc()!}
                         alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
                         class={computedStyles()}
-                        ref={setImageElement}
+                        ref={props.onImageLoad ?? (() => {})}
                     />
                     {appendChildren()}
                 </>

@@ -69,10 +69,21 @@ export const Styles = {
             textTransform: "uppercase",
         }])
     },
-    TRANSFORM_CENTER: css({
+    TRANSFORM_CENTER_X: css({
         position: "absolute",
         left: "50%",
         transform: "translateX(-50%)",
+    }),
+    TRANSFORM_CENTER_Y: css({
+        position: "absolute",
+        top: "50%",
+        transform: "translateY(-50%)",
+    }),
+    TRANSFORM_CENTER: css({
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
     }),
     TITLE: titleBase,
     SUB_TITLE: subTitleBase,
@@ -152,18 +163,32 @@ export const Styles = {
             0 0 1rem black
             `,
     }),
-    ANIM_FADE_OUT: (seconds: number) => css`
-        opacity: 1;
-        animation: fadeOut ${seconds}s linear;
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
+    ANIM:{
+        FADE_OUT: (seconds: number, interpolation: string = "linear") => css`
+            opacity: 1;
+            animation: fadeOut ${seconds}s ${interpolation};
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                }
+                to {
+                    opacity: 0;
+                }
             }
-            to {
-                opacity: 0;
+        `,
+        FADE_IN: (seconds: number, interpolation: string = "linear") => css`
+            opacity: 0;
+            animation: fadeIn ${seconds}s ${interpolation};
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
             }
-        }
-    `,
+        `,
+    },
     GLASS: {
         FAINT_BACKGROUND: css({
             backgroundColor: "rgba(0, 0, 0, 0.3)",

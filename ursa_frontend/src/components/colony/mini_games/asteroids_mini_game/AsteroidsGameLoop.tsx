@@ -18,7 +18,7 @@ import {
     LocationUpgradeMessageDTO,
     LOCATION_UPGRADE_EVENT,
 } from '../../../../integrations/multiplayer_backend/EventSpecifications';
-import { CharCodeGenerator, SYMBOL_SET } from './charCodeGenerator';
+import { CharCodeGenerator, SYMBOL_SET } from '../utils/charCodeGenerator';
 import { uint32 } from '../../../../integrations/main_backend/mainBackendDTOs';
 import { GenericGameLoopStartFunction, KnownMinigames, loadComputedSettings, SingleplayerGameLoopInitFunc } from '../miniGame';
 import { ApplicationContext, ResErr } from '../../../../meta/types';

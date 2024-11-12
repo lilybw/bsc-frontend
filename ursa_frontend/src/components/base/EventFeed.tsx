@@ -126,7 +126,7 @@ const eventFeedMessageStyle = css`
     ${Styles.FANCY_BORDER}
     background-color: rgba(0, 0, 0, 0.7);
     border-color: rgba(255, 255, 255, 0.5);
-    ${Styles.ANIM_FADE_OUT(eventFeedMessageDurationMS / 1000)}
+    ${Styles.ANIM.FADE_OUT(eventFeedMessageDurationMS / 1000)}
 `;
 
 const eventFeedContainerStyle = css`
