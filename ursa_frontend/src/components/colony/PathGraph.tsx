@@ -1,14 +1,12 @@
 import { Component, onMount, onCleanup, createSignal, For, createMemo, createEffect, untrack } from 'solid-js';
 import {
     ColonyInfoResponseDTO,
-    ColonyLocationInformation,
     ColonyPathGraphResponseDTO,
     PlayerID,
     TransformDTO,
-    uint32,
 } from '../../integrations/main_backend/mainBackendDTOs';
 import { css } from '@emotion/css';
-import { LOCATION_UPGRADE_EVENT, MINIGAME_WON_EVENT, OriginType, PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from '../../integrations/multiplayer_backend/EventSpecifications';
+import { LOCATION_UPGRADE_EVENT, OriginType, PLAYER_MOVE_EVENT, PlayerMoveMessageDTO } from '../../integrations/multiplayer_backend/EventSpecifications';
 import Location from '../colony/location/Location';
 import { createDelayedSignal, createWrappedSignal, WrappedSignal } from '../../ts/wrappedSignal';
 import { ClientDTO } from '../../integrations/multiplayer_backend/multiplayerDTO';
@@ -45,9 +43,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
         props.colony.locations.map((loc) => ({ ...loc, originalTransform: loc.transform })),
     );
     const colonyAssets = createArrayStore<ColonyAssetWOriginalTransform>(
-        props.colony.assets.map(colAss => ({ ...colAss, 
-            originalTransform: colAss.transform, 
-            wrappedTransform: createWrappedSignal(colAss.transform) 
+        props.colony.assets.map(colAss => ({
+            ...colAss,
+            originalTransform: colAss.transform,
+            wrappedTransform: createWrappedSignal(colAss.transform)
         }))
     );
     const camera = createWrappedSignal({ x: 0, y: 0 });
@@ -281,7 +280,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 </For>
 
                 <For each={colonyAssets.get}>{asset => (
-                    <AssetCollection 
+                    <AssetCollection
                         backend={props.context.backend}
                         id={asset.assetCollectionID}
                         topLevelTransform={asset.wrappedTransform}
