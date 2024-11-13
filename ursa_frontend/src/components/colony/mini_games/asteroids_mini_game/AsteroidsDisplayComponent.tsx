@@ -15,7 +15,7 @@ import GraphicalAsset from "@/components/base/GraphicalAsset";
 import NTAwait from "@/components/util/NoThrowAwait";
 import BufferBasedButton from "@/components/base/BufferBasedButton";
 import { StrictJSX } from "@colony/ColonyApp";
-import { Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
+import { lerp, Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
 import { Styles } from "@/sharedCSS";
 import Countdown from "@/components/util/Countdown";
 import SimpleExplosion, { SimpleExplosionProps } from "../utils/SimpleExplosion";
@@ -407,11 +407,21 @@ const timeLeftStyle = css`
 
 const generateAnimatedSVGLine = (line: Line) => {
     return (
-    <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="white" fill="white" stroke-width={10}>
-        <animate attributeName="stroke" values="red; white" dur={LASER_DURATION_MS + "ms"} />
-        <animate attributeName="stroke-width" values="10;7;0" dur={LASER_DURATION_MS + "ms"} />
-        <animate attributeName="x2" from={line.x1} to={line.x2} dur={LASER_DURATION_MS + "ms"} />   
-        <animate attributeName="y2" from={line.y1} to={line.y2} dur={LASER_DURATION_MS + "ms"} />
+    <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="white" stroke-width="10">
+        <animate 
+            attributeName="stroke"
+            values="white;red"
+            dur={LASER_DURATION_MS + "ms"}
+            fill="freeze"
+        />
+        <animate 
+            attributeName="stroke-width"
+            values="10;0"
+            dur={LASER_DURATION_MS + "ms"}
+            calcMode="spline"
+            keySplines="0.1 0.8 0.2 1"
+            fill="freeze"
+        />
     </line>)
 }
 
@@ -421,16 +431,20 @@ const getAsteroidStyles = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => css`
     ${computeAsteroidAnimation(asteroid, dim)}
 `
 
-const computeAsteroidAnimation = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => css`
-    animation: asteroid-${asteroid.id} ${asteroid.timeUntilImpact / 1000}s forwards linear;
-    @keyframes asteroid-${asteroid.id} {
-        0% { 
-            top: ${asteroid.startPosition.yOffset}px;
-            left: ${asteroid.startPosition.xOffset}px;
-        }
-        100% { 
-            top: ${((1 - asteroid.y) + .1) * dim.y}px;
-            left: ${dim.x - (dim.x * 1.05)}px;
-        }
-    }
-`
+const computeAsteroidAnimation = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => {
+    let endPositionY = dim.y - asteroid.startPosition.yOffset
+    endPositionY = lerp(endPositionY, dim.y * .6, dim.y);
+
+    return css`
+        animation: asteroid-${asteroid.id} ${asteroid.timeUntilImpact / 1000}s forwards linear;
+        @keyframes asteroid-${asteroid.id} {
+            0% { 
+                top: ${asteroid.startPosition.yOffset}px;
+                left: ${asteroid.startPosition.xOffset}px;
+            }
+            100% { 
+                top: ${endPositionY}px;
+                left: ${dim.x - (dim.x * 1.05)}px;
+            }
+        }`
+}

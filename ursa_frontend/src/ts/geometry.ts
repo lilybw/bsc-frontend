@@ -9,3 +9,6 @@ export function normalizeVec2(vec: Vec2): Vec2 {
 }
 
 export type Line = { x1: number; y1: number; x2: number; y2: number };
+export const lerp = (observed: number, rangeA: number, rangeB: number): number => {
+    return rangeA + (rangeB - rangeA) * observed;
+}

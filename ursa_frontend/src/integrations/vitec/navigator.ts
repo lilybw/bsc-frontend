@@ -28,13 +28,7 @@ export type URSANav = {
      * Only data passed to this function will be retained.
      */
     goToMenu: () => void;
-    /**
-     * When called, the content is removed from storage solution to avoid state management issues.
-     */
     getRetainedUserInfo: () => ResErr<PlayerInfoResponseDTO>;
-    /**
-     * When called, the content is removed from storage solution to avoid state management issues.
-     */
     getRetainedColonyInfo: () => ResErr<RetainedColonyInfoForPageSwap>;
 };
 
@@ -108,7 +102,6 @@ class UrsaNavImpl implements URSANav {
     };
     getRetainedUserInfo = () => {
         const data = sessionStorage.getItem(pageSwitchUserInfoKey);
-        sessionStorage.removeItem(pageSwitchUserInfoKey);
         const parseAttempt = parseAsJSON(data);
         if (parseAttempt.err) {
             return { res: null, err: 'Error retrieving retained user info: ' + parseAttempt.err };
@@ -117,7 +110,6 @@ class UrsaNavImpl implements URSANav {
     };
     getRetainedColonyInfo = () => {
         const data = sessionStorage.getItem(pageSwitchColonyInfoKey);
-        sessionStorage.removeItem(pageSwitchColonyInfoKey);
         const parseAttempt = parseAsJSON(data);
         if (parseAttempt.err) {
             return { res: null, err: 'Error retrieving retained colony info: ' + parseAttempt.err };
