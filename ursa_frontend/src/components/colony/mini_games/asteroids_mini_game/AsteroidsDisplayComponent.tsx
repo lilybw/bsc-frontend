@@ -296,11 +296,16 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     <div id="asteroids-display-component" 
         class={computedContainerStyles()}
     >
-        <StarryBackground />
+        <StarryBackground blur={0} />
         <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
             zIndex: -1, position: "absolute",
-            width: "50vw", height: "50vw",
+            width: "30vw", height: "30vw",
             right: "1vw"
+        })} />
+        <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
+            zIndex: -1, position: "absolute",
+            width: "20vw", height: "20vw",
+            right: "-1vw", top: "20vh"
         })} />
 
         <PlanetSurface backend={context.backend} />

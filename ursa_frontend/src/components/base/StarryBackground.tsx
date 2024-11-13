@@ -4,21 +4,24 @@ import { IStyleOverwritable } from '../../ts/types';
 
 interface StarryBackgroundProps extends IStyleOverwritable {
     children?: JSX.Element;
+    blur?: number;
 }
 
-export default function StarryBackground(props: StarryBackgroundProps): JSX.Element {
+export default function StarryBackground({
+    children, blur = 2, styleOverwrite
+}: StarryBackgroundProps): JSX.Element {
     return (
         <div
             class={css`
-                ${starBackground} ${props.styleOverwrite}
+                ${starBackground(blur)} ${styleOverwrite}
             `}
             id="starry-background"
         >
-            {props.children}
+            {children}
         </div>
     );
 }
-const starBackground = css`
+const starBackground = (blur: number) => css`
     z-index: -10000000;
     position: fixed;
     top: -1px;
@@ -29,6 +32,6 @@ const starBackground = css`
     background-size: cover;
     background-repeat: no-repeat;
     transition: all 1.5s ease-out;
-    filter: blur(2px);
+    filter: blur(${blur}px);
     overflow: clip;
 `;

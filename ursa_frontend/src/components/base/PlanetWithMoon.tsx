@@ -101,7 +101,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         if (div) {
             const dominantColor = getDominantColor(url);
             div.style.backgroundImage = `url(${url})`;
-            div.style.boxShadow = `inset -2em -2em 2em #000, -0.5em -0.5em 1em ${dominantColor}`;
+            div.style.boxShadow = `inset -2em -2em 2em black, -0.5rem -0.5em 1em ${dominantColor}`;
             const newPlanetSize = div.offsetWidth;
             setPlanetSize(newPlanetSize);
             log.subtrace(`Planet image loaded - size: ${newPlanetSize}, dominantColor: ${dominantColor}`);
@@ -152,7 +152,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                 class={css([getSystemContainerStyle(planetTilt), getDebugSystemStyle()])}
             >
                 <div
-                    class={css([getPlanetStyle(planetRotationSpeed, planetColorScheme), getDebugPlanetStyle()])}
+                    class={css([getPlanetStyle(planetRotationSpeed, planetColorScheme, 5), getDebugPlanetStyle()])}
                     ref={setPlanetDiv}
                 />
                 <For each={moons}>
@@ -317,12 +317,14 @@ const getTiltWrapperStyle = (tiltAngle: number, orbitSpeed: number, moonId: numb
   }
 `;
 
-const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme) => css`
+const getPlanetStyle = (rotationSpeed: number, colorScheme: PlanetColorScheme, shadowDepth: number) => css`
   position: absolute;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  box-shadow: inset -2em -2em 2em #000;
+  box-shadow: inset -${shadowDepth}rem -${shadowDepth}rem ${shadowDepth}rem black, 
+    -0.5rem -0.5rem 1em rgba(255, 255, 255, 0.5),
+    inset 0.2rem 0.2rem 2rem white;
   background-size: 200% 100%;
   background-repeat: repeat;
   filter: ${colorScheme.filters};
@@ -382,7 +384,7 @@ const getDominantColor = async (url: ObjectURL): Promise<string> => {
             const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
             resolve(`rgb(${r}, ${g}, ${b})`);
         };
-        img.onerror = () => reject('Failed to load image');
+        img.onerror = () => resolve('white');
     });
     img.src = url;
     return await promise;
