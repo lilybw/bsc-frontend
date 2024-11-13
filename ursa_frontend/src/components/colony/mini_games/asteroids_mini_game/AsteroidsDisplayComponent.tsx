@@ -296,7 +296,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     <div id="asteroids-display-component" 
         class={computedContainerStyles()}
     >
-        <StarryBackground blur={0} />
+        <StarryBackground blur={1} />
         <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
             zIndex: -1, position: "absolute",
             width: "30vw", height: "30vw",
@@ -305,7 +305,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
             zIndex: -1, position: "absolute",
             width: "20vw", height: "20vw",
-            right: "-1vw", top: "20vh"
+            right: "-1vw", top: "25vh"
         })} />
 
         <PlanetSurface backend={context.backend} />

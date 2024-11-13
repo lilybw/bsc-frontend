@@ -57,7 +57,6 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign(
             <div class={mainMenuAppStyle} id="the-main-menu-app">
                 <LanguageSelectInlay text={props.context.text} backend={props.context.backend} />
                 {CurrentPage()({ context: props.context, goToPage: goToPage, goBack: goBack })}
-                <AsteroidsDisplayComponent context={props.context} settings={NULL_ASTEROIDS_SETTINGS}/>
             </div>
         );
     },
