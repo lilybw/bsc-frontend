@@ -101,6 +101,10 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     const explosions = createArrayStore<SimpleExplosionProps>();
     const cameraShake = createCooldownSignal(false, { cooldown: CAMERA_SHAKE_DURATION_MS });
     const impactPositions = createArrayStore<Vec2>();
+    // Inputs
+    const buffer = createWrappedSignal<string>('');
+    const subscribers = createArrayStore<BufferSubscriber<string>>();
+    const [focusPull, triggerFocusPull] = createSignal(0);
 
     const actionContext = createMemo(() => {
         let fromLocalPlayerState = ActionContext.ASTEROIDS;
@@ -185,6 +189,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             { x: window.innerWidth, y: window.innerHeight }
         );
         window.addEventListener('resize', onWindowResize);
+        setInterval(() => triggerFocusPull(k => k + 1), 100);
 
         onCleanup(() => {
             context.events.unsubscribe(
@@ -199,24 +204,26 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     })
 
     /** The explosion will occur after LASER_DURATION_MS has passed */
-    const queueAsteroidExplosion = (asteroid: ExtendedAsteroidDTO, theBigOne = false, incoming?: Vec2) => {
-        const element = elements.get(mapKeyOfAsteroid(asteroid.id));
-        if (!element) {
-            log.warn(`Could not find element for asteroid ${asteroid.id}. Cannot make explosion`);
-            return;
-        };
-        const rect = element.getBoundingClientRect();
-
+    const queueAsteroidExplosion = (asteroid: ExtendedAsteroidDTO, theBigOne = false, incoming?: Vec2, center?: Vec2) => {
         const duration = theBigOne ? 1000 : 500;
+        const colorOfParticle = (index: number) => { switch (index % 4) {
+                case 0: return "red"; case 1: return "orange";
+                case 3: return "white"; case 4: return "black";
+            }
+        }
         const removeFunc = explosions.add({
-            coords: { x: rect.left - rect.width / 2, y: rect.top - rect.height / 2 },
+            coords: center ?? getComputedCenter(asteroid.id, "asteroid"),
             durationMS: duration,
             particleCount: theBigOne ? 50 : 20,
             spread: theBigOne ? 100 : 50,
             incomingNormalized: incoming,
             incomingWeight: theBigOne ? 0 : .6,
             spreadVariance: .5,
-            preTransformStyleOverwrite: css({ zIndex: 10 }),
+            particleGeneratorFunc: (index, animation, children) => <div class={css([{ 
+                width: "100%", height: "100%",
+                backgroundImage: `radial-gradient(circle, ${colorOfParticle(index)}, transparent)` 
+            }, animation])}>{children}</div>,
+            preTransformStyleOverwrite: css({ zIndex: 120 }),
         })
         setTimeout(removeFunc, duration);
     }
@@ -268,7 +275,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             const normalized = normalizeVec2(incomingVector);
 
             const isDead = asteroid.health <= 0;
-            queueAsteroidExplosion(asteroid, isDead, normalized);
+            queueAsteroidExplosion(asteroid, isDead, normalized, asteroidCenter);
             if (isDead) asteroidsDestroyed.push(asteroid.id);
         }
         asteroids.cullByPredicate(a => asteroidsDestroyed.includes(a.id));
@@ -288,9 +295,6 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         ]);
     })
 
-    // Inputs
-    const buffer = createWrappedSignal<string>('');
-    const subscribers = createArrayStore<BufferSubscriber<string>>();
 
     return (
     <div id="asteroids-display-component" 
@@ -338,7 +342,13 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         }</For>
 
         <For each={asteroids.get}>{ asteroid => 
-            <div class={getAsteroidStyles(asteroid, viewportDim.get())}
+            <div class={css([
+                    getAsteroidStyles(asteroid, viewportDim.get()),
+                    css({ 
+                        filter: `brightness(${1 - (asteroid.health * 0.2)})`,
+                        transform: `scale(${0.5 + (asteroid.health * 0.3)})`
+                    })
+                ])}
                 ref={e => elements.set(mapKeyOfAsteroid(asteroid.id), e)}
             >
                 <NTAwait func={() => context.backend.assets.getMetadata(7001)}>{(asset) =>
@@ -371,6 +381,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             actionContext={actionContext}
             setInputBuffer={buffer.set}
             inputBuffer={buffer.get}
+            manTriggerFocusPull={focusPull}
         />
         <div class={healthStyle}>{'❤'.repeat(health())}</div>
         <Countdown duration={settings.survivalTimeS} styleOverwrite={timeLeftStyle} />
@@ -407,21 +418,8 @@ const timeLeftStyle = css`
 
 const generateAnimatedSVGLine = (line: Line) => {
     return (
-    <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="white" stroke-width="10">
-        <animate 
-            attributeName="stroke"
-            values="white;red"
-            dur={LASER_DURATION_MS + "ms"}
-            fill="freeze"
-        />
-        <animate 
-            attributeName="stroke-width"
-            values="10;0"
-            dur={LASER_DURATION_MS + "ms"}
-            calcMode="spline"
-            keySplines="0.1 0.8 0.2 1"
-            fill="freeze"
-        />
+    <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="white" stroke-width="6">
+        <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="red" stroke-width="2" />
     </line>)
 }
 
@@ -433,7 +431,7 @@ const getAsteroidStyles = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => css`
 
 const computeAsteroidAnimation = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => {
     let endPositionY = dim.y - asteroid.startPosition.yOffset
-    endPositionY = lerp(endPositionY, dim.y * .6, dim.y);
+    endPositionY = lerp(endPositionY, dim.y * .6, dim.y * .95);
 
     return css`
         animation: asteroid-${asteroid.id} ${asteroid.timeUntilImpact / 1000}s forwards linear;

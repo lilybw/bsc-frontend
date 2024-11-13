@@ -19,7 +19,7 @@ export default function ColonyWall({
 }: ColonyWallProps) {
     const log = backend.logger.copyFor("col wall");
 
-    const wallHeight = "60%";
+    const wallHeight = "60vh";
     const wallWidth = "10vw";
     return (
         <div id="colony-wall" 
@@ -31,7 +31,7 @@ export default function ColonyWall({
                 />
             }</NTAwait>
             <For each={impactPositions.get}>{ (pos, index) => 
-               <div id="crack-decal-wrapper" class={css({ position: "absolute", top: `calc(${pos.y}px - ${wallHeight})`, left: wallWidth })}>
+               <div id="crack-decal-wrapper" class={css({ position: "absolute", top: `calc(${pos.y}px - 40vh)`, left: wallWidth })}>
                 <NTAwait func={() => backend.assets.getMetadata(9001)}>{metadata =>
                     <GraphicalAsset backend={backend} metadata={metadata} 
                         styleOverwrite={css({

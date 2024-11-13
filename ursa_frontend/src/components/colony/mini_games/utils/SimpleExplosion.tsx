@@ -17,6 +17,8 @@ export interface SimpleExplosionProps {
      * @default 10
     */
     particleCount?: number;
+    /** A reduction in scale by up to the given variance @default .5 */
+    particleSizeVariance?: number;
     /** As percent of parent size. How far the particles should spread from the center
      * @default 50%
     */
@@ -40,7 +42,7 @@ export interface SimpleExplosionProps {
      *  (animation, children) => <div class={animation}>{children}</div>
      * ```
      * */
-    particleGeneratorFunc?: (computedAnimationStyle: string, children: JSX.Element) => JSX.Element;
+    particleGeneratorFunc?: (index: number, computedAnimationStyle: string, children: JSX.Element) => JSX.Element;
     /** Additional content to include for each child particle */
     additionalChildContent?: () => JSX.Element;
 }
@@ -57,13 +59,14 @@ export default function SimpleExplosion(
         coords, 
         durationMS = 500, 
         particleCount = 10, 
+        particleSizeVariance = .5,
         preTransformStyleOverwrite, 
         spread = 50, 
         spreadVariance = .3,
         incomingNormalized = Vec2_ZERO,
         incomingWeight = 1,
         additionalChildContent = () => <></>,
-        particleGeneratorFunc = (a, c) => <div class={a}>{c}</div> 
+        particleGeneratorFunc = (i, a, c) => <div class={a}>{c}</div> 
     }: SimpleExplosionProps) 
 {
     const children: JSX.Element[] = [];
@@ -76,15 +79,20 @@ export default function SimpleExplosion(
         const endState = {
             x: normalizedRandomDirection.x * variedSpread,
             y: normalizedRandomDirection.y * variedSpread,
-            scale: .5,
+            scale: 1 - Math.random() * particleSizeVariance,
             randHash: getRandHash(),
         }
-        children.push(particleGeneratorFunc(computeChildStyle(endState, durationMS), additionalChildContent()));
+        children.push(particleGeneratorFunc(i, computeParticleAnimation(endState, durationMS), additionalChildContent()));
     }
     return (
         <div
             class={css([
-                css({ width: "20vw", height: "20vw", backgroundImage: "radial-gradient(circle, rbga(0,0,0,.5), transparent)", display: "flex" }),
+                css({ 
+                    width: "20vw", height: "20vw", 
+                    backgroundImage: "radial-gradient(circle, rbga(0,0,0,.5), transparent)", 
+                    display: "flex",
+                    transform: "translate(-50%, -50%)",
+                }),
                 preTransformStyleOverwrite,
                 css({ position: "absolute", top: coords.y, left: coords.x }),
                 Styles.ANIM.FADE_OUT(durationMS / 1000, "ease-out"),
@@ -93,15 +101,15 @@ export default function SimpleExplosion(
     );
 }
 
-const computeChildStyle = (endState: ParticleEndState, durationMS: number) => css`
+const computeParticleAnimation = (endState: ParticleEndState, durationMS: number) => css`
     width: 20%;
     height: 20%;
     ${Styles.TRANSFORM_CENTER}
-    transform: scale(1);
+    transform: scale(${endState.scale}) translate(-50%, -50%);
     animation: particleMove-${endState.randHash} ${durationMS / 1000}s ease-out;
     @keyframes particleMove-${endState.randHash} {
         from {
-            transform: scale(1) translate(-50%, -50%);
+            transform: scale(${endState.scale}) translate(-50%, -50%);
             left: 50%;
             top: 50%;
         }

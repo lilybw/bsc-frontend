@@ -24,6 +24,7 @@ interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternati
     manTriggerEnter?: Accessor<number>;
     manTriggerEnterAnimation?: Accessor<number>;
     manTriggerShake?: Accessor<number>;
+    manTriggerFocusPull?: Accessor<number>;
 }
 
 const ActionInput: Component<ActionInputProps> = (props) => {
@@ -38,6 +39,13 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             inputRef?.focus();
         }
     });
+
+    if (props.manTriggerFocusPull) {
+        createEffect(() => {
+            if (props.manTriggerFocusPull!() === 0) return;
+            inputRef?.focus();
+        });
+    }
 
     if (props.manTriggerShake) {
         createEffect(() => {
