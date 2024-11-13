@@ -23,6 +23,7 @@ import { get } from "http";
 import PlanetSurface from "@/components/base/PlanetSurface";
 import ColonyWall from "../utils/ColonyWall";
 import { AsteroidsSettingsDTO } from "./AsteroidsGameLoop";
+import PlanetMoonSystem from "@/components/base/PlanetWithMoon";
 
 interface AsteroidsDisplayComponentProps {
     context: ApplicationContext;
@@ -296,6 +297,9 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         class={computedContainerStyles()}
     >
         <StarryBackground />
+        <PlanetMoonSystem backend={context.backend} moonCount={10} styleOverwrite={css({
+        })} />
+
         <PlanetSurface backend={context.backend} />
         <ColonyWall backend={context.backend} impactPositions={impactPositions} health={health} />
 
