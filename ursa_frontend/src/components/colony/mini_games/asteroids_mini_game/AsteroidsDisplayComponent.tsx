@@ -2,7 +2,6 @@ import { TransformDTO, uint32 } from "@/integrations/main_backend/mainBackendDTO
 import { ApplicationContext, ResErr } from "@/meta/types";
 import { JSX } from "solid-js/jsx-runtime";
 import { KnownMinigames, loadComputedSettings, MinigameComponentInitFunc } from "../miniGame";
-import { AsteroidsSettingsDTO } from "./types/gameTypes";
 import { Accessor, createEffect, createMemo, createSignal, For, onCleanup, onMount, untrack } from "solid-js";
 import { ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, ASTEROIDS_ASTEROID_IMPACT_ON_COLONY_EVENT, ASTEROIDS_ASTEROID_SPAWN_EVENT, ASTEROIDS_PLAYER_PENALTY_EVENT, ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, AsteroidsAssignPlayerDataMessageDTO, AsteroidsAsteroidSpawnMessageDTO } from "@/integrations/multiplayer_backend/EventSpecifications";
 import { createArrayStore } from "@/ts/arrayStore";
@@ -23,6 +22,7 @@ import SimpleExplosion, { SimpleExplosionProps } from "../utils/SimpleExplosion"
 import { get } from "http";
 import PlanetSurface from "@/components/base/PlanetSurface";
 import ColonyWall from "../utils/ColonyWall";
+import { AsteroidsSettingsDTO } from "./AsteroidsGameLoop";
 
 interface AsteroidsDisplayComponentProps {
     context: ApplicationContext;

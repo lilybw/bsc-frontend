@@ -1,6 +1,6 @@
 // src/utils/navigationUtils.ts
+import { Vec2 } from '@/ts/geometry';
 import { Accessor } from 'solid-js';
-import { Position } from '@/components/colony/mini_games/asteroids_mini_game/entities/BaseEntity';
 
 export interface LocationTransform {
     xOffset: number;
@@ -29,8 +29,8 @@ export interface ScaledLocation extends Location {
 }
 
 export type RenderablePath = {
-    fromPos: Position;
-    toPos: Position;
+    fromPos: Vec2;
+    toPos: Vec2;
     length: number;
     angle: number;
 };
@@ -54,7 +54,7 @@ export const getTargetCenterPosition = (
     locationId: string,
     locations: Location[],
     scaledLocations: ScaledLocation[]
-): Position | null => {
+): Vec2 | null => {
     const scaledLocation = scaledLocations.find(loc => loc.id.toString() === locationId);
     if (!scaledLocation) return null;
 
@@ -66,7 +66,7 @@ export const getTargetCenterPosition = (
 
 export const calculateRenderablePaths = (
     paths: Path[],
-    getPosition: (id: string) => Position | null
+    getPosition: (id: string) => Vec2 | null
 ): RenderablePath[] => {
     return paths.map(path => {
         const fromPosition = getPosition(path.from.toString());

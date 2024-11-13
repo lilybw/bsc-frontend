@@ -1,6 +1,5 @@
 import { JSX } from 'solid-js';
 import { ApplicationContext, ResErr } from '../../../meta/types';
-import { initAsteroidsComponent } from './asteroids_mini_game/AsteroidsMiniGame';
 import { createAsteroidsGameLoop } from './asteroids_mini_game/AsteroidsGameLoop';
 import { uint32 } from '../../../integrations/main_backend/mainBackendDTOs';
 import { BackendIntegration } from '../../../integrations/main_backend/mainBackend';

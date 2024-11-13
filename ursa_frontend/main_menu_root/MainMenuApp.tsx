@@ -9,7 +9,7 @@ import { ApplicationContext, BundleComponent, Bundle } from '@/meta/types';
 import { Styles } from '@/sharedCSS';
 import { ApplicationProps } from '@/ts/types';
 import AsteroidsDisplayComponent from '@/components/colony/mini_games/asteroids_mini_game/AsteroidsDisplayComponent';
-import { NULL_ASTEROIDS_SETTINGS } from '@/components/colony/mini_games/asteroids_mini_game/types/gameTypes';
+import { NULL_ASTEROIDS_SETTINGS } from '@/components/colony/mini_games/asteroids_mini_game/AsteroidsGameLoop';
 
 export enum MenuPages {
     LANDING_PAGE = 'landing',

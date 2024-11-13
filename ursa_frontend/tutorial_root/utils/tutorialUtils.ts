@@ -1,12 +1,12 @@
 // src/utils/tutorialUtils.ts
 
 import { css } from '@emotion/css';
-import { Position } from '@/components/colony/mini_games/asteroids_mini_game/entities/BaseEntity';
 import { MultiplayerMode, ColonyState } from '@/meta/types';
 import { KnownLocations } from '@/integrations/main_backend/constants';
 import { IMultiplayerIntegration } from '@/integrations/multiplayer_backend/multiplayerBackend';
 import { IEventMultiplexer } from '@/integrations/multiplayer_backend/eventMultiplexer';
 import { Location, LocationTransform } from './navigationUtils';
+import { Vec2 } from '@/ts/geometry';
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -95,7 +95,7 @@ export const generateLocationStyle = (
     transition: all 0.3s ease-in-out;
 `;
 
-export const generateLineStyle = (path: { length: number; angle: number; fromPos: Position }) => css`
+export const generateLineStyle = (path: { length: number; angle: number; fromPos: Vec2 }) => css`
     position: absolute;
     width: ${path.length}px;
     height: 12px;
@@ -117,7 +117,7 @@ export const generateLineStyle = (path: { length: number; angle: number; fromPos
     border-radius: 6px;
 `;
 
-export const generateLineGlowStyle = (path: { length: number; angle: number; fromPos: Position }) => css`
+export const generateLineGlowStyle = (path: { length: number; angle: number; fromPos: Vec2 }) => css`
     ${generateLineStyle(path)}
     opacity: 0.3;
     filter: blur(4px);
@@ -200,7 +200,7 @@ export const calculateScaledPositions = (
 
 export const calculatePaths = (
     paths: Array<{ from: number; to: number }>,
-    getTargetCenterPosition: (id: string) => Position | null
+    getTargetCenterPosition: (id: string) => Vec2 | null
 ) => {
     return paths.map(path => {
         const fromPosition = getTargetCenterPosition(path.from.toString());

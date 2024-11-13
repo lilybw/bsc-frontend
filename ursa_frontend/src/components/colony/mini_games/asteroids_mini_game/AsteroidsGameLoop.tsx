@@ -24,7 +24,42 @@ import { GenericGameLoopStartFunction, KnownMinigames, loadComputedSettings, Sin
 import { ApplicationContext, ResErr } from '../../../../meta/types';
 import { MOCK_SERVER_ID } from '../../../../ts/mockServer';
 import { Logger } from '../../../../logging/filteredLogger';
-import { AsteroidsSettingsDTO } from './types/gameTypes';
+
+/**
+ * Settings DTO for the Asteroids minigame
+ * All time values are in seconds unless specified otherwise
+ */
+export interface AsteroidsSettingsDTO {
+    minTimeTillImpactS: number; // Minimum time for asteroid to reach impact point
+    maxTimeTillImpactS: number; // Maximum time for asteroid to reach impact point
+    charCodeLength: uint32; // Length of character codes for shooting
+    asteroidsPerSecondAtStart: number; // Initial spawn rate
+    asteroidsPerSecondAt80Percent: number; // Spawn rate at 80% game completion
+    colonyHealth: uint32; // Starting health of the colony
+    asteroidMaxHealth: uint32; // Maximum possible health of asteroids
+    stunDurationS: number; // How long players remain stunned
+    friendlyFirePenaltyS: number; // Base friendly fire penalty duration
+    friendlyFirePenaltyMultiplier: number; // Multiplier for consecutive friendly fire
+    timeBetweenShotsS: number; // Cooldown between shots
+    survivalTimeS: number; // Total game duration
+    spawnRateCoopModifier: number; // Modifier for spawn rate in cooperative mode
+}
+
+export const NULL_ASTEROIDS_SETTINGS: Readonly<AsteroidsSettingsDTO> = {
+    minTimeTillImpactS: 0,
+    maxTimeTillImpactS: 0,
+    charCodeLength: 0,
+    asteroidsPerSecondAtStart: 0,
+    asteroidsPerSecondAt80Percent: 0,
+    colonyHealth: 0,
+    asteroidMaxHealth: 0,
+    stunDurationS: 0,
+    friendlyFirePenaltyS: 0,
+    friendlyFirePenaltyMultiplier: 0,
+    timeBetweenShotsS: 0,
+    survivalTimeS: 0,
+    spawnRateCoopModifier: 0,
+};
 
 class AsteroidsGameLoop {
     public static readonly LOOP_FREQUENCY_MS = 1000 / 10; //10 updates per second
