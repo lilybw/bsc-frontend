@@ -88,7 +88,9 @@ const NewColonyPage: Component<MenuPageProps> = (props) => {
             {textError() && inputEngaged() && <SectionSubTitle styleOverwrite={errMsgStyle}>{textError()}</SectionSubTitle>}
             <StarryBackground />
             <div class={planetContainerStyle}>
-                <PlanetMoonSystem backend={props.context.backend} />
+                <PlanetMoonSystem backend={props.context.backend}
+                    styleOverwrite={css({ width: '50vw', height: '50vw' })}
+                />
             </div>
             <NavigationFooter
                 text={props.context.text}
