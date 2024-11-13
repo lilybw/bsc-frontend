@@ -2,12 +2,8 @@ import { Component, createSignal, For, onMount, onCleanup } from 'solid-js';
 import { css } from '@emotion/css';
 import GraphicalAsset from './GraphicalAsset';
 import NTAwait from '../util/NoThrowAwait';
-import { ApplicationContext, RuntimeMode } from '@/meta/types';
 import { IBackendBased, IStyleOverwritable } from '@/ts/types';
-import { url } from 'inspector';
 import { ObjectURL } from '@/integrations/main_backend/objectUrlCache';
-
-
 
 interface PlanetMoonSystemProps extends IBackendBased, IStyleOverwritable {
     debugMode?: boolean;
@@ -15,11 +11,9 @@ interface PlanetMoonSystemProps extends IBackendBased, IStyleOverwritable {
 }
 
 const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
-    const [containerRef, setContainerRef] = createSignal<HTMLDivElement | null>(null);
     const [planetDiv, setPlanetDiv] = createSignal<HTMLDivElement | null>(null);
     const [moonDivs, setMoonDivs] = createSignal<Map<number, HTMLDivElement | null>>(new Map());
     const [planetSize, setPlanetSize] = createSignal<number>(0);
-    const [parentSize, setParentSize] = createSignal<number>(0);
     const planetAssets = [3001];
     const moonAssets = [3005, 3002, 3006, 3007];
 
@@ -30,80 +24,6 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const log = props.backend.logger.copyFor('planet-moon-system');
 
     const isDebugMode = props.debugMode ?? false;
-
-    const updateSizeFromParent = (element: HTMLElement) => {
-        const parentRect = element.getBoundingClientRect();
-        const minDimension = Math.min(parentRect.width, parentRect.height);
-        const newSize = minDimension * 0.66;
-        setParentSize(newSize);
-        log.subtrace(`Size updated from parent - width: ${parentRect.width}, height: ${parentRect.height}, newSize: ${newSize}`);
-        return true;
-    };
-
-    const handleContainerRef = (element: HTMLDivElement | null) => {
-        log.subtrace(`Container ref callback - element exists: ${!!element}`);
-        setContainerRef(element);
-    };
-
-    onMount(() => {
-        const container = containerRef();
-        log.subtrace(`Component mounted - container exists: ${!!container}`);
-
-        let intervalId: number | null = null;
-        let resizeObserver: ResizeObserver | null = null;
-
-        const attemptParentDetection = () => {
-            const currentContainer = containerRef();
-            if (!currentContainer) {
-                log.subtrace('No container found during interval check');
-                return;
-            }
-
-            const parent = currentContainer.parentElement;
-            if (!parent) {
-                log.subtrace('No parent element found during interval check');
-                return;
-            }
-
-            // Update size from parent
-            updateSizeFromParent(parent);
-
-            // Set up resize observer
-            resizeObserver = new ResizeObserver((entries) => {
-                for (const entry of entries) {
-                    updateSizeFromParent(entry.target as HTMLElement);
-                }
-            });
-
-            resizeObserver.observe(parent);
-            log.subtrace('ResizeObserver attached to parent');
-
-            // Clear the interval since we've found the parent
-            if (intervalId !== null) {
-                window.clearInterval(intervalId);
-                log.subtrace('Parent detection interval cleared');
-            }
-        };
-
-        // Start the interval
-        intervalId = window.setInterval(attemptParentDetection, 50);
-        log.subtrace('Parent detection interval started');
-
-        // Try immediately as well
-        attemptParentDetection();
-
-        // Set up cleanup at mount level
-        onCleanup(() => {
-            if (resizeObserver) {
-                resizeObserver.disconnect();
-                log.subtrace('ResizeObserver disconnected');
-            }
-            if (intervalId !== null) {
-                window.clearInterval(intervalId);
-                log.subtrace('Interval cleared during cleanup');
-            }
-        });
-    });
 
     const getDebugStyle = () => {
         return isDebugMode ? {
@@ -199,6 +119,8 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
         const url = urlAttempt.res;
         await handlePlanetLoad(url);
         url.release();
+
+        //Also do moon stuff here
     })
 
     const handleMoonLoad = async (img: HTMLImageElement, moonId: number) => {
@@ -225,10 +147,9 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     return (
         <div
             class={css([containerStyle, getDebugStyle(), props.styleOverwrite])}
-            ref={handleContainerRef}
         >
             <div
-                class={css([getSystemContainerStyle(planetTilt, parentSize()), getDebugSystemStyle()])}
+                class={css([getSystemContainerStyle(planetTilt), getDebugSystemStyle()])}
             >
                 <div
                     class={css([getPlanetStyle(planetRotationSpeed, planetColorScheme), getDebugPlanetStyle()])}
@@ -282,13 +203,10 @@ const containerStyle = css`
   align-items: center;
 `;
 
-const getSystemContainerStyle = (tiltAngle: number, parentSize: number) => css`
+const getSystemContainerStyle = (tiltAngle: number) => css`
   position: relative;
-  width: ${parentSize}px;
-  height: ${parentSize}px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100%;
+  height: 100%;
   transform: rotate(${tiltAngle}deg);
 `;
 

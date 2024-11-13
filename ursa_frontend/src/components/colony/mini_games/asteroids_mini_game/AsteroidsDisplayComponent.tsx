@@ -298,6 +298,8 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     >
         <StarryBackground />
         <PlanetMoonSystem backend={context.backend} moonCount={10} styleOverwrite={css({
+            zIndex: 1,
+            width: "50vw", height: "50vw"
         })} />
 
         <PlanetSurface backend={context.backend} />
