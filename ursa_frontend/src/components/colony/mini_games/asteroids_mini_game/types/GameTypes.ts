@@ -20,6 +20,22 @@ export interface AsteroidsSettingsDTO {
     spawnRateCoopModifier: number; // Modifier for spawn rate in cooperative mode
 }
 
+export const NULL_ASTEROIDS_SETTINGS: Readonly<AsteroidsSettingsDTO> = {
+    minTimeTillImpactS: 0,
+    maxTimeTillImpactS: 0,
+    charCodeLength: 0,
+    asteroidsPerSecondAtStart: 0,
+    asteroidsPerSecondAt80Percent: 0,
+    colonyHealth: 0,
+    asteroidMaxHealth: 0,
+    stunDurationS: 0,
+    friendlyFirePenaltyS: 0,
+    friendlyFirePenaltyMultiplier: 0,
+    timeBetweenShotsS: 0,
+    survivalTimeS: 0,
+    spawnRateCoopModifier: 0,
+};
+
 /**
  * Entity reference types for DOM elements
  */
