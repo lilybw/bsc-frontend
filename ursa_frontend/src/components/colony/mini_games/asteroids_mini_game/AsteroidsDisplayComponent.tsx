@@ -397,7 +397,7 @@ const generateAnimatedSVGLine = (line: Line) => {
     return (
     <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="white" fill="white" stroke-width={10}>
         <animate attributeName="stroke" values="red; white" dur={LASER_DURATION_MS + "ms"} />
-        <animate attributeName="stroke-width" values="10;8;0" dur={LASER_DURATION_MS + "ms"} />
+        <animate attributeName="stroke-width" values="10;7;0" dur={LASER_DURATION_MS + "ms"} />
         <animate attributeName="x2" from={line.x1} to={line.x2} dur={LASER_DURATION_MS + "ms"} />   
         <animate attributeName="y2" from={line.y1} to={line.y2} dur={LASER_DURATION_MS + "ms"} />
     </line>)
@@ -414,13 +414,11 @@ const computeAsteroidAnimation = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => c
     @keyframes asteroid-${asteroid.id} {
         0% { 
             top: ${asteroid.startPosition.yOffset}px;
-            left: ${asteroid.startPosition.xOffset}px; 
-            transform: scale(.5);
+            left: ${asteroid.startPosition.xOffset}px;
         }
         100% { 
             top: ${((1 - asteroid.y) + .1) * dim.y}px;
             left: ${dim.x - (dim.x * 1.05)}px;
-            transform: scale(1);
         }
     }
 `

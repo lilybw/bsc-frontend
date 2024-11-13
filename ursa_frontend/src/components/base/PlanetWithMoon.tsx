@@ -3,6 +3,7 @@ import { css } from '@emotion/css';
 import GraphicalAsset from './GraphicalAsset';
 import NTAwait from '../util/NoThrowAwait';
 import { ApplicationContext, RuntimeMode } from '@/meta/types';
+import { IBackendBased } from '@/ts/types';
 
 const containerStyle = css`
   position: relative;
@@ -200,8 +201,8 @@ function getRandomAsset<T>(array: T[]): T {
     return array[randomIndex];
 }
 
-interface PlanetMoonSystemProps {
-    context: ApplicationContext;
+interface PlanetMoonSystemProps extends IBackendBased {
+    debugMode?: boolean;
 }
 
 const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
@@ -217,9 +218,9 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const planetColorScheme = getRandomColorScheme(planetColorSchemes);
     const planetTilt = getRandomTiltAngle();
 
-    const log = props.context.backend.logger.copyFor('planet-moon-system');
+    const log = props.backend.logger.copyFor('planet-moon-system');
 
-    const isDebugMode = props.context.env.runtimeMode === RuntimeMode.TEST;
+    const isDebugMode = props.debugMode ?? false;
 
     const updateSizeFromParent = (element: HTMLElement) => {
         const parentRect = element.getBoundingClientRect();
@@ -386,7 +387,7 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
             moonDiv.style.boxShadow = `inset -1.5em -1.5em 1.5em #000, -0.2em -0.2em 0.5em ${dominantColor}`;
             log.trace(`Moon ${moonId} image loaded - dominantColor: ${dominantColor}`);
         } else {
-            log.trace(`Moon ${moonId} div not found during image load`);
+            log.warn(`Moon ${moonId} div not found during image load`);
         }
     };
 
@@ -423,11 +424,11 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                         ref={setPlanetDiv}
                         style={getDebugPlanetStyle()}
                     >
-                        <NTAwait func={() => props.context.backend.assets.getMetadata(getRandomAsset(planetAssets))}>
+                        <NTAwait func={() => props.backend.assets.getMetadata(getRandomAsset(planetAssets))}>
                             {(asset) => (
                                 <GraphicalAsset
                                     metadata={asset}
-                                    backend={props.context.backend}
+                                    backend={props.backend}
                                     onImageLoad={handlePlanetLoad}
                                     styleOverwrite={css`
                                         display: none;
@@ -452,11 +453,11 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
                                                ${isDebugMode ? getDebugMoonStyle(moon.id) : ''}`}
                                         ref={(div) => setMoonDiv(moon.id, div)}
                                     >
-                                        <NTAwait func={() => props.context.backend.assets.getMetadata(getRandomAsset(moonAssets))}>
+                                        <NTAwait func={() => props.backend.assets.getMetadata(getRandomAsset(moonAssets))}>
                                             {(asset) => (
                                                 <GraphicalAsset
                                                     metadata={asset}
-                                                    backend={props.context.backend}
+                                                    backend={props.backend}
                                                     onImageLoad={(img) => handleMoonLoad(img, moon.id)}
                                                     styleOverwrite={css`
                                                         display: none;

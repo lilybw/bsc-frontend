@@ -36,13 +36,17 @@ const getRandomFilter = () => {
 const containerStyle = css({
     position: "absolute",
     width: "100%",
-    height: "65%",
+    height: "55%",
     bottom: 0,
+    //Fog / dust effect
+    backgroundImage: "linear-gradient(transparent 0%, rgba(255, 255, 255, 0.5) 5%, transparent 40%)"
 })
 
 const imageStyle = css({
     filter: getRandomFilter(),
     objectFit: "cover",
+    top: "5%",
     width: "100%",
     height: "100%",
+    zIndex: -1,
 });

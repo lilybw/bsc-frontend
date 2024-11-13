@@ -251,6 +251,14 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     </For>
                 </svg>
 
+                <For each={colonyAssets.get}>{asset => (
+                    <AssetCollection
+                        backend={props.context.backend}
+                        id={asset.assetCollectionID}
+                        topLevelTransform={asset.wrappedTransform}
+                    />
+                )}</For>
+
                 <For each={colonyLocations.get}>
                     {(colonyLocation) => (
                         <NTAwait func={() => props.context.backend.locations.getInfo(colonyLocation.locationID)}>
@@ -278,14 +286,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 <For each={props.clients.get}>
                     {(client) => <Player GAS={GAS.get} client={client} transformMap={transformMap} backend={props.context.backend} showNamePlate />}
                 </For>
-
-                <For each={colonyAssets.get}>{asset => (
-                    <AssetCollection
-                        backend={props.context.backend}
-                        id={asset.assetCollectionID}
-                        topLevelTransform={asset.wrappedTransform}
-                    />
-                )}</For>
             </div>
 
             <ActionInput

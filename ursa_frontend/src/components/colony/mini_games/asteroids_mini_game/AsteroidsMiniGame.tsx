@@ -334,7 +334,7 @@ const AsteroidsMiniGame: Component<AsteroidsProps> = (props) => {
         <div>
             <StarryBackground />
             <div class={planetContainerStyle}>
-                <PlanetMoonSystem context={props.context} />
+                <PlanetMoonSystem backend={props.context.backend} />
             </div>
             <Surface backend={props.context.backend} />
             <Wall

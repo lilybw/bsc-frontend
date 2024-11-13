@@ -8,6 +8,8 @@ import LanguageSelectInlay from '../src/components/base/LanguageSelectInlay';
 import { ApplicationContext, BundleComponent, Bundle } from '@/meta/types';
 import { Styles } from '@/sharedCSS';
 import { ApplicationProps } from '@/ts/types';
+import AsteroidsDisplayComponent from '@/components/colony/mini_games/asteroids_mini_game/AsteroidsDisplayComponent';
+import { NULL_ASTEROIDS_SETTINGS } from '@/components/colony/mini_games/asteroids_mini_game/types/gameTypes';
 
 export enum MenuPages {
     LANDING_PAGE = 'landing',
@@ -55,6 +57,7 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign(
             <div class={mainMenuAppStyle} id="the-main-menu-app">
                 <LanguageSelectInlay text={props.context.text} backend={props.context.backend} />
                 {CurrentPage()({ context: props.context, goToPage: goToPage, goBack: goBack })}
+                <AsteroidsDisplayComponent context={props.context} settings={NULL_ASTEROIDS_SETTINGS}/>
             </div>
         );
     },

@@ -40,9 +40,9 @@ export interface SimpleExplosionProps {
      *  (animation, children) => <div class={animation}>{children}</div>
      * ```
      * */
-    childGeneratorFunc?: (computedAnimationStyle: string, children: JSX.Element) => JSX.Element;
+    particleGeneratorFunc?: (computedAnimationStyle: string, children: JSX.Element) => JSX.Element;
     /** Additional content to include for each child particle */
-    additionalChildContent?: JSX.Element;
+    additionalChildContent?: () => JSX.Element;
 }
 interface ParticleEndState {
     x: number,
@@ -62,8 +62,8 @@ export default function SimpleExplosion(
         spreadVariance = .3,
         incomingNormalized = Vec2_ZERO,
         incomingWeight = 1,
-        additionalChildContent,
-        childGeneratorFunc = (a, c) => <div class={a}>{c}</div> 
+        additionalChildContent = () => <></>,
+        particleGeneratorFunc = (a, c) => <div class={a}>{c}</div> 
     }: SimpleExplosionProps) 
 {
     const children: JSX.Element[] = [];
@@ -79,7 +79,7 @@ export default function SimpleExplosion(
             scale: .5,
             randHash: getRandHash(),
         }
-        children.push(childGeneratorFunc(computeChildStyle(endState, durationMS), additionalChildContent));
+        children.push(particleGeneratorFunc(computeChildStyle(endState, durationMS), additionalChildContent()));
     }
     return (
         <div
@@ -97,7 +97,6 @@ const computeChildStyle = (endState: ParticleEndState, durationMS: number) => cs
     width: 20%;
     height: 20%;
     ${Styles.TRANSFORM_CENTER}
-    background-image: radial-gradient(circle, white, transparent);
     transform: scale(1);
     animation: particleMove-${endState.randHash} ${durationMS / 1000}s ease-out;
     @keyframes particleMove-${endState.randHash} {
