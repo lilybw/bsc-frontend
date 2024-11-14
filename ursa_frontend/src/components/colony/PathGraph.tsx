@@ -77,14 +77,16 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
     createEffect(() => {
         const currentDNS = DNS.get();
-        const currentGAS = GAS.get();
 
         untrack(() => {
+            //Derived from DNS, no need to track this too
+            const currentGAS = GAS.get();
+
             //Updating transforms of locations and paths
             for (const colLoc of colonyLocations.get) {
                 //Issue here, we are taking from the previous transform, and not the initial
                 const computedTransform: TransformDTO = {
-                    ...colLoc.originalTransform,
+                    zIndex: colLoc.originalTransform.zIndex,
                     // Camera is applied to the parent (camera-container). Not here.
                     xOffset: colLoc.originalTransform.xOffset * currentDNS.x,
                     yOffset: colLoc.originalTransform.yOffset * currentDNS.y,
@@ -123,14 +125,16 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             if (currentLocOfLocalPlayer) {
                 centerCameraOnPoint(currentLocOfLocalPlayer.transform.xOffset, currentLocOfLocalPlayer.transform.yOffset);
             }
-
+            log.trace("dns: " + JSON.stringify(currentDNS));
             //Updating transforms of all colony assets
             for (const colAss of colonyAssets.get) {
                 const og = colAss.originalTransform;
                 colAss.wrappedTransform.set({
-                    ...colAss.transform,
+                    zIndex: og.zIndex,
                     xOffset: og.xOffset * currentDNS.x,
                     yOffset: og.yOffset * currentDNS.y,
+                    //DNS increases as the viewport becomes larger, and is 0 when the viewport is size is 0 (which can never happen)
+                    //Thus, to assure assets main the relative size expected for tiling, we must multiply by the DNS
                     xScale: og.xScale * currentDNS.x,
                     yScale: og.yScale * currentDNS.y,
                 })
@@ -178,8 +182,11 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             x: newWidth / EXPECTED_WIDTH,
             y: newHeight / EXPECTED_HEIGHT,
         };
-        DNS.set(dns);
         GAS.set(Math.sqrt(Math.min(dns.x, dns.y)));
+        //DNS triggers re-positioning of all elements, which also uses GAS
+        //but doesn't depend on GAS as to not run everything twice.
+        //Thus, GAS is set first (not triggering re-position), then DNS
+        DNS.set(dns);
     };
 
     onMount(() => {

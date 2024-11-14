@@ -39,12 +39,12 @@ const containerStyle = css({
     height: "55%",
     bottom: 0,
     //Fog / dust effect
-    backgroundImage: "linear-gradient(transparent 0%, rgba(255, 255, 255, 0.5) 5%, transparent 40%)"
+    backgroundImage: "linear-gradient(transparent 10%, rgba(255, 255, 255, 0.5) 13%, transparent 55%)"
 })
 
 const imageStyle = css({
     filter: getRandomFilter(),
-    objectFit: "cover",
+    objectFit: "fill",
     top: "5%",
     width: "100%",
     height: "100%",
