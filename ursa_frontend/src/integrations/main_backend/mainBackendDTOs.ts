@@ -35,6 +35,37 @@ export type PlayerPreferencesResponseDTO = {
 
 export type InternationalizationCatalogueResponseDTO = { [key: string]: string };
 
+export type IntermediaryColonyInfoResponseDTO = {
+    id: uint32;
+    accLevel: uint32;
+    name: string;
+    latestVisit: string;
+    assets: IntermediaryColonyAssetResponseDTO[];
+    locations: IntermediaryColonyLocationInformation[];
+}
+export type ColonyInfoResponseDTO = {
+    id: uint32;
+    accLevel: uint32;
+    name: string;
+    latestVisit: string;
+    assets: ColonyAssetResponseDTO[];
+    locations: ColonyLocationInformation[];
+};
+export type IntermediaryColonyLocationInformation = {
+    /**
+     * ID of ColonyLocation
+     */
+    id: uint32;
+    level: uint32;
+    /**
+     * ID of Location
+     */
+    locationID: LocationID;
+    /**
+     * CLI shortHand: "xOff yOff zIndex, xScale yScale"
+     */
+    transform: string;
+}
 export type ColonyLocationInformation = {
     /**
      * ID of ColonyLocation
@@ -47,15 +78,13 @@ export type ColonyLocationInformation = {
     locationID: LocationID;
     transform: TransformDTO;
 };
-export type ColonyInfoResponseDTO = {
-    id: uint32;
-    accLevel: uint32;
-    name: string;
-    latestVisit: string;
-    assets: ColonyAssetResponseDTO[];
-    locations: ColonyLocationInformation[];
-};
-
+export type IntermediaryColonyAssetResponseDTO = {
+    assetCollectionID: AssetCollectionID;
+    /**
+     * CLI shortHand: "xOff yOff zIndex, xScale yScale"
+     */
+    transform: string;
+}
 export type ColonyAssetResponseDTO = {
     assetCollectionID: AssetCollectionID;
     transform: TransformDTO;

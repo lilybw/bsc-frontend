@@ -38,10 +38,13 @@ import {
     GetColonyCodeResponseDTO,
     uint32,
     LocationUpgradeResponseDTO,
+    IntermediaryColonyInfoResponseDTO,
+    TransformDTO,
 } from './mainBackendDTOs';
 import { LanguagePreference } from '../vitec/vitecDTOs';
 import { initializeObjectURLCache, IObjectURLCache } from './objectUrlCache';
 import { LobbyStateResponseDTO } from '../multiplayer_backend/multiplayerDTO';
+import { UNIT_TRANSFORM } from '@/ts/geometry';
 /**
  * @since 0.0.1
  * @author GustavBW
@@ -225,8 +228,7 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
         getAvailableLanguages: () => base.request<AvailableLanguagesResponseDTO>(HTTPMethod.GET, `/api/v1/catalog/languages`, ParseMethod.JSON),
 
         colony: {
-            get: (player, colony) =>
-                base.request<ColonyInfoResponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/colony/${colony}`, ParseMethod.JSON),
+            get: (player, colony) => getColonyInfoParseToExpectedFormat(player, colony, base),
             updateLatestVisit: (dto, colony) =>
                 base.request<UpdateLatestVisitResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/update-last-visit`, ParseMethod.JSON, dto),
             getOverview: (player) => base.request<ColonyOverviewReponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/colonies`, ParseMethod.JSON),
@@ -246,13 +248,12 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
             upgrade: (colony, colLoc) => base.request<LocationUpgradeResponseDTO>(HTTPMethod.POST, `/api/v1/colony/${colony}/location/${colLoc}/upgrade`, ParseMethod.JSON),
         },
         assets: {
-            getMetadata: (assetId) => base.request<AssetResponseDTO>(HTTPMethod.GET, `/api/v1/asset/${assetId}`, ParseMethod.JSON),
+            getMetadata: (assetId) => cachedGetAssetMetadata(assetId, base),
             getMetadataOfMultiple: (assets) =>
                 base.request<AssetResponseDTO[]>(HTTPMethod.GET, `/api/v1/assets?ids=${assets.join(',')}`, ParseMethod.JSON),
             getAssetLOD: (asset, lod) => base.request<ResponseBlob>(HTTPMethod.GET, `/api/v1/asset/${asset}/lod/${lod}`, ParseMethod.BLOB),
             getLOD: (lod: LODID) => base.request<ResponseBlob>(HTTPMethod.GET, `/api/v1/lod/${lod}`, ParseMethod.BLOB),
-            getCollection: (collection) =>
-                base.request<AssetCollectionResponseDTO>(HTTPMethod.GET, `/api/v1/collection/${collection}`, ParseMethod.JSON),
+            getCollection: (id) => cachedGetCollectionMetadata(id, base),
         },
         objectUrlCache: null as any, //Field initialized in initializeBackendIntegration
         minigame: {
@@ -273,6 +274,88 @@ const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: Pl
         },
     };
 };
+
+const getColonyInfoParseToExpectedFormat = async (player: number, colony: number, base: BaseBackendIntegration)
+: Promise<ResCodeErr<ColonyInfoResponseDTO>> => {
+    const resp = await base.request<IntermediaryColonyInfoResponseDTO>(HTTPMethod.GET, `/api/v1/player/${player}/colony/${colony}`, ParseMethod.JSON)
+    if (resp.err != null) {
+        return resp;
+    }
+    const expectedFormat: ColonyInfoResponseDTO = {
+        id: resp.res.id,
+        accLevel: resp.res.accLevel,
+        name: resp.res.name,
+        latestVisit: resp.res.latestVisit,
+        assets: resp.res.assets
+            .map(asset => ({...asset, transform: parseShortCLITransformNotation(asset.transform, base.logger)})),
+        locations: resp.res.locations
+            .map(location => ({...location, transform: parseShortCLITransformNotation(location.transform, base.logger)})),
+    }
+    return {res: expectedFormat, code: resp.code, err: null};
+}
+const parseShortCLITransformNotation = (transform: string, log: Logger): TransformDTO => {
+    const [xyzStr, scaleStr] = transform.split(',');
+    const xyz = xyzStr.trim().split(' ');
+    
+    if (xyz.length !== 3) {
+        log.error('Invalid transform xyz component');
+        return UNIT_TRANSFORM;
+    }
+    const scale = scaleStr.trim().split(' ');
+    if (scale.length !== 2) {
+        log.error('Invalid transform xyz component');
+        return UNIT_TRANSFORM;
+    }
+    const xOffset = Number(xyz[0]);
+    const yOffset = Number(xyz[1]);
+    const zIndex = parseInt(xyz[2]);
+
+    const xScale = Number(scale[0]);
+    const yScale = Number(scale[1]);
+    return {
+        xOffset,
+        yOffset,
+        zIndex,
+        xScale,
+        yScale,
+    };
+}
+
+const assetMetadataCache = new Map<AssetID, Promise<ResCodeErr<AssetResponseDTO>>>();
+const assetMetadataPromiseCache = new Map<AssetID, Promise<ResCodeErr<AssetResponseDTO>>>();
+const cachedGetAssetMetadata = async (id: AssetID, base: BaseBackendIntegration): Promise<ResCodeErr<AssetResponseDTO>> => {
+    const existing = assetMetadataCache.get(id);
+    if (existing) {
+        return await existing;
+    }
+    const existingPromise = assetMetadataPromiseCache.get(id);
+    if (existingPromise) {
+        return await existingPromise;
+    }
+    const promise = base.request<AssetResponseDTO>(HTTPMethod.GET, `/api/v1/asset/${id}`, ParseMethod.JSON);
+    assetMetadataPromiseCache.set(id, promise);
+    const resp = await promise;
+    assetMetadataCache.set(id, promise);
+    return resp;
+}
+
+const collectionCache = new Map<AssetCollectionID, ResCodeErr<AssetCollectionResponseDTO>>();
+const collectionPromiseCache = new Map<AssetCollectionID, Promise<ResCodeErr<AssetCollectionResponseDTO>>>();
+const cachedGetCollectionMetadata = async (id: uint32, base: BaseBackendIntegration): Promise<ResCodeErr<AssetCollectionResponseDTO>> => {
+    const existing = collectionCache.get(id);
+    if (existing) {
+        return existing;
+    }
+    const existingPromise = collectionPromiseCache.get(id);
+    if (existingPromise) {
+        return await existingPromise;
+    }
+    const promise = base.request<AssetCollectionResponseDTO>(HTTPMethod.GET, `/api/v1/collection/${id}`, ParseMethod.JSON);
+    collectionPromiseCache.set(id, promise);
+    const resp = await promise;
+    collectionCache.set(id, resp);
+    return resp;
+} 
 /**
  * @since 0.0.1
  * @author GustavBW

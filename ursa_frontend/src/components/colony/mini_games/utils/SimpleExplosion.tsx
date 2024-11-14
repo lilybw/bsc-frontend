@@ -12,15 +12,18 @@ export interface SimpleExplosionProps {
      * @default 500
     */
     durationMS?: number;
-    /** Number of particles 
-     * @default 10
-    */
+    /** Number of particles @default 10 */
     particleCount?: number;
+    /** Base size of particle in percent of parent size as a range from 0 to 1 @default .1 */
+    particleSize?: number;
     /** A reduction in scale by up to the given variance @default .5 */
     particleSizeVariance?: number;
-    /** As percent of parent size. How far the particles should spread from the center
-     * @default 50%
-    */
+    /** Overall size of explosion, calculated in amounts of view width (vw) */
+    size?: number;
+    /** As percent of parent size (0-1). How far the particles should spread from the center.
+     * Where 1 (100%) is to the edge of the parent element.
+     * @default .5
+     */
     spread?: number;
     /** Up to how much to randomly reduce the spread for each child. Given here as a 0-1 value which corresponds to
      * reducing final spread by up to 100%.
@@ -29,7 +32,7 @@ export interface SimpleExplosionProps {
     spreadVariance?: number;
     /** Direction from which to generally spread away from
      * @default { x: 0, y: 0 } 
-    */
+     */
     incomingNormalized?: Vec2;
     /** How much the incoming vector should influence the direction of child particles
      * @default 1
@@ -45,9 +48,13 @@ export interface SimpleExplosionProps {
     particleGeneratorFunc?: (index: number, computedAnimationStyle: string, children: JSX.Element) => JSX.Element;
     /** Additional content to include for each child particle */
     additionalChildContent?: () => JSX.Element;
+    /** Show parent outline */
+    showParentOutline?: boolean;
 }
 interface ParticleEndState {
+    /** In pre-formatted % (0-100) */
     x: number,
+    /** In pre-formatted % (0-100) */
     y: number,
     scale: number,
     randHash: string;
@@ -58,11 +65,14 @@ const defaults: Omit<Required<SimpleExplosionProps>, 'preComputedParticles'> & P
     coords: Vec2_ZERO,
     durationMS: 500,
     particleCount: 10,
+    particleSize: .1,
     particleSizeVariance: .5,
+    size: 20,
     spread: 50,
     spreadVariance: .3,
     incomingNormalized: Vec2_ZERO,
     incomingWeight: 1,
+    showParentOutline: false,
     additionalChildContent: (() => NULL_JSX) as () => JSX.Element,
     particleGeneratorFunc: (i, a, c) => <div class={a}>{c}</div>,
 }
@@ -73,6 +83,7 @@ export default function SimpleExplosion(
 {
     const props = { ...defaults, ...rawProps };
     const generateParticles = () => {
+        //Takes 8ms for 50 particles on good hardware, i.e. not the bottleneck
         const particles: JSX.Element[] = [];
         for (let i = 0; i < props.particleCount; i++) {
             const normalizedRandomDirection = normalizeVec2({ 
@@ -81,9 +92,9 @@ export default function SimpleExplosion(
             });
             const variedSpread = props.spread * (1 - GlobalRandom.next() * props.spreadVariance);
             const endState = {
-                x: normalizedRandomDirection.x * variedSpread,
-                y: normalizedRandomDirection.y * variedSpread,
-                scale: 1 - GlobalRandom.next() * props.particleSizeVariance,
+                x: 50 + (normalizedRandomDirection.x * variedSpread * 100),
+                y: 50 + (normalizedRandomDirection.y * variedSpread * 100),
+                scale: props.particleSize * ( 1 - GlobalRandom.next() * props.particleSizeVariance ),
                 randHash: GlobalHashPool.next(),
             }
             particles.push(
@@ -99,7 +110,11 @@ export default function SimpleExplosion(
     return (
         <div
             class={css`${baseContainerStyle}
-                top: ${props.coords.y}; left: ${props.coords.x};
+                width: ${props.size}vw; 
+                height: ${props.size}vw; 
+                top: ${props.coords.y}px; 
+                left: ${props.coords.x}px;
+                ${props.showParentOutline ? "border: 1px solid red;" : ""}
                 ${Styles.ANIM.FADE_OUT(props.durationMS / 1000, "ease-out")}`
             }
         >{children}</div>
@@ -108,30 +123,30 @@ export default function SimpleExplosion(
 
 const baseContainerStyle = css`
     position: absolute;
-    display: flex;
-    width: 20vw; height: 20vw; 
-    background-image: radial-gradient(circle, rbga(0,0,0,.5), transparent);
     contain: paint;
+    background: radial-gradient(circle, rgba(0,0,0,1), transparent 70%);
+    will-change: contents;
     transform: translate(-50%, -50%);
 `;
 
 const computeParticleAnimation = (endState: ParticleEndState, durationMS: number) => css`
-    width: 20%;
-    height: 20%;
+    position: absolute;
+    will-change: left, top;
+    top: 50%;
+    left: 50%;
+    width: ${endState.scale * 100}%;
+    height: ${endState.scale * 100}%;
     ${Styles.TRANSFORM_CENTER}
-    transform: scale(${endState.scale}) translate(-50%, -50%);
-    will-change: transform, left, top;
+    transform: translate(-50%, -50%);
     animation: particleMove-${endState.randHash} ${durationMS / 1000}s ease-out;
     @keyframes particleMove-${endState.randHash} {
         from {
-            transform: scale(${endState.scale}) translate(-50%, -50%);
             left: 50%;
             top: 50%;
         }
         to {
-            transform: scale(${endState.scale}) translate(-50%, -50%);
-            left: calc(50% + ${endState.x}%);
-            top: calc(50% + ${endState.y}%);
+            left: ${endState.x}%;
+            top: ${endState.y}%;
         }
     }
 `;

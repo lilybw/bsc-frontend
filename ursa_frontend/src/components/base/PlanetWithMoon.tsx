@@ -376,6 +376,7 @@ const getDominantColor = async (url: ObjectURL): Promise<string> => {
     if (!ctx) return '#ffffff';
     
     const img = new Image();
+    img.src = url;
     const promise = new Promise<string>((resolve, reject) => {
         img.onload = () => {
             canvas.width = 1;
@@ -386,7 +387,6 @@ const getDominantColor = async (url: ObjectURL): Promise<string> => {
         };
         img.onerror = () => resolve('white');
     });
-    img.src = url;
     return await promise;
 };
 

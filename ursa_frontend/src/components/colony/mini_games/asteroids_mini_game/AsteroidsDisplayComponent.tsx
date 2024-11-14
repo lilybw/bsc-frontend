@@ -213,19 +213,19 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             default: return "white"; 
         }
     })
-    const queueAsteroidExplosion = (asteroid: ExtendedAsteroidDTO, theBigOne = false, incoming?: Vec2, center?: Vec2) => {
+    const queueAsteroidExplosion = (asteroid: ExtendedAsteroidDTO, theBigOne = false, incomingNormalized?: Vec2, center?: Vec2) => {
         const duration = theBigOne ? 1000 : 500;
         const removeFunc = explosions.add({
             coords: center ?? getComputedCenter(asteroid.id, "asteroid"),
             durationMS: duration,
             particleCount: theBigOne ? maxParticleCount : 20,
-            spread: theBigOne ? 100 : 50,
-            incomingNormalized: incoming,
+            size: theBigOne ? 35 : 20,
+            incomingNormalized,
             incomingWeight: theBigOne ? 0 : .6,
-            spreadVariance: .5,
             particleGeneratorFunc: (index, animation, children) => <div class={css`
                 background-image: radial-gradient(circle, ${explosionColors[index]}, transparent);
-            ${animation}`}>{children}</div>,
+                ${animation}
+            `}>{children}</div>,
         })
         setTimeout(removeFunc, duration);
     }

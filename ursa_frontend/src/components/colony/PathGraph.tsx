@@ -100,7 +100,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         transform: computedTransform,
                     }),
                 );
-
                 computedPaths.mutateByPredicate(
                     (l) => l.from === colLoc.id,
                     (l) => ({
@@ -132,8 +131,8 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     ...colAss.transform,
                     xOffset: og.xOffset * currentDNS.x,
                     yOffset: og.yOffset * currentDNS.y,
-                    xScale: og.xScale * currentGAS,
-                    yScale: og.yScale * currentGAS,
+                    xScale: og.xScale * currentDNS.x,
+                    yScale: og.yScale * currentDNS.y,
                 })
             }
         });
