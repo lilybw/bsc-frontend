@@ -8,7 +8,6 @@ import { For, JSX } from "solid-js";
 export interface SimpleExplosionProps {
     /** Where to show the explosion */
     coords: Vec2;
-    preTransformStyleOverwrite?: string;
     /** Duration of the explosion in milliseconds 
      * @default 500
     */
@@ -36,6 +35,7 @@ export interface SimpleExplosionProps {
      * @default 1
      */
     incomingWeight?: number;
+    preComputedParticles?: JSX.Element[];
     /** Function to generate the child elements. 
      * @param computedAnimationStyle The computed style for the child element, including the animation
      * @default ```tsx
@@ -52,60 +52,75 @@ interface ParticleEndState {
     scale: number,
     randHash: string;
 }
+
+export const NULL_JSX: Readonly<JSX.Element> = <></>;
+const defaults: Omit<Required<SimpleExplosionProps>, 'preComputedParticles'> & Partial<Pick<SimpleExplosionProps, 'preComputedParticles'>> = {
+    coords: Vec2_ZERO,
+    durationMS: 500,
+    particleCount: 10,
+    particleSizeVariance: .5,
+    spread: 50,
+    spreadVariance: .3,
+    incomingNormalized: Vec2_ZERO,
+    incomingWeight: 1,
+    additionalChildContent: (() => NULL_JSX) as () => JSX.Element,
+    particleGeneratorFunc: (i, a, c) => <div class={a}>{c}</div>,
+}
 /** Simple explosion-like effect */
 export default function SimpleExplosion(
     // these props are destructured and thus not reactive. They are not meant to be reactive any way.
-    { 
-        coords, 
-        durationMS = 500, 
-        particleCount = 10, 
-        particleSizeVariance = .5,
-        preTransformStyleOverwrite, 
-        spread = 50, 
-        spreadVariance = .3,
-        incomingNormalized = Vec2_ZERO,
-        incomingWeight = 1,
-        additionalChildContent = () => <></>,
-        particleGeneratorFunc = (i, a, c) => <div class={a}>{c}</div> 
-    }: SimpleExplosionProps) 
+    rawProps: SimpleExplosionProps) 
 {
-    const children: JSX.Element[] = [];
-    for (let i = 0; i < particleCount; i++) {
-        const normalizedRandomDirection = normalizeVec2({ 
-            x: (GlobalRandom.next() - .5) + (incomingNormalized.x * incomingWeight), 
-            y: (GlobalRandom.next() - .5) + (incomingNormalized.y * incomingWeight)
-        });
-        const variedSpread = spread * (1 - GlobalRandom.next() * spreadVariance);
-        const endState = {
-            x: normalizedRandomDirection.x * variedSpread,
-            y: normalizedRandomDirection.y * variedSpread,
-            scale: 1 - GlobalRandom.next() * particleSizeVariance,
-            randHash: GlobalHashPool.next(),
+    const props = { ...defaults, ...rawProps };
+    const generateParticles = () => {
+        const particles: JSX.Element[] = [];
+        for (let i = 0; i < props.particleCount; i++) {
+            const normalizedRandomDirection = normalizeVec2({ 
+                x: (GlobalRandom.next() - .5) + (props.incomingNormalized.x * props.incomingWeight), 
+                y: (GlobalRandom.next() - .5) + (props.incomingNormalized.y * props.incomingWeight)
+            });
+            const variedSpread = props.spread * (1 - GlobalRandom.next() * props.spreadVariance);
+            const endState = {
+                x: normalizedRandomDirection.x * variedSpread,
+                y: normalizedRandomDirection.y * variedSpread,
+                scale: 1 - GlobalRandom.next() * props.particleSizeVariance,
+                randHash: GlobalHashPool.next(),
+            }
+            particles.push(
+                props.particleGeneratorFunc(i, 
+                    computeParticleAnimation(endState, props.durationMS), props.additionalChildContent()
+                )
+            );
         }
-        children.push(particleGeneratorFunc(i, computeParticleAnimation(endState, durationMS), additionalChildContent()));
+        return particles;
     }
+    const children: JSX.Element[] = props.preComputedParticles ?? generateParticles();
+
     return (
         <div
-            class={css([
-                css({ 
-                    width: "20vw", height: "20vw", 
-                    backgroundImage: "radial-gradient(circle, rbga(0,0,0,.5), transparent)", 
-                    display: "flex",
-                    transform: "translate(-50%, -50%)",
-                }),
-                preTransformStyleOverwrite,
-                css({ position: "absolute", top: coords.y, left: coords.x }),
-                Styles.ANIM.FADE_OUT(durationMS / 1000, "ease-out"),
-            ])}
+            class={css`${baseContainerStyle}
+                top: ${props.coords.y}; left: ${props.coords.x};
+                ${Styles.ANIM.FADE_OUT(props.durationMS / 1000, "ease-out")}`
+            }
         >{children}</div>
     );
 }
+
+const baseContainerStyle = css`
+    position: absolute;
+    display: flex;
+    width: 20vw; height: 20vw; 
+    background-image: radial-gradient(circle, rbga(0,0,0,.5), transparent);
+    contain: paint;
+    transform: translate(-50%, -50%);
+`;
 
 const computeParticleAnimation = (endState: ParticleEndState, durationMS: number) => css`
     width: 20%;
     height: 20%;
     ${Styles.TRANSFORM_CENTER}
     transform: scale(${endState.scale}) translate(-50%, -50%);
+    will-change: transform, left, top;
     animation: particleMove-${endState.randHash} ${durationMS / 1000}s ease-out;
     @keyframes particleMove-${endState.randHash} {
         from {

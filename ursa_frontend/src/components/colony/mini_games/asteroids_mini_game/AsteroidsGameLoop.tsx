@@ -24,6 +24,7 @@ import { GenericGameLoopStartFunction, KnownMinigames, loadComputedSettings, Sin
 import { ApplicationContext, ResErr } from '../../../../meta/types';
 import { MOCK_SERVER_ID } from '../../../../ts/mockServer';
 import { Logger } from '../../../../logging/filteredLogger';
+import { GlobalRandom } from '@/ts/ursaMath';
 
 /**
  * Settings DTO for the Asteroids minigame
@@ -94,21 +95,19 @@ class AsteroidsGameLoop {
     private selfHitCounts = 1;
 
     private spawnAsteroid = () => {
-        const startX = Math.random() * 0.7 + 0.3; // Start somewhere on the right side
-        const startY = Math.random() * 0.7 + 0.3; // Start somewhere random vertically
+        const startX = GlobalRandom.next() * 0.6 + 0.4; // Start somewhere on the right side
+        const startY = GlobalRandom.next() * 0.6 + 0.4; // Start somewhere random vertically
         const id = this.nextAsteroidID++;
         const charCode = this.charPool.generateCode();
         const timeTillImpactMS =
-            (Math.random() * (this.settings.maxTimeTillImpactS - this.settings.minTimeTillImpactS) +
+            (GlobalRandom.next() * (this.settings.maxTimeTillImpactS - this.settings.minTimeTillImpactS) +
             this.settings.minTimeTillImpactS) * 1000;
-        const health = Math.ceil(this.settings.asteroidMaxHealth * Math.random());
+        const health = Math.ceil(this.settings.asteroidMaxHealth * GlobalRandom.next());
 
-        const data = {
+        const data: AsteroidsAsteroidSpawnMessageDTO = {
             id,
             x: startX,
             y: startY,
-            endX: Math.random() * 0.5, // Impact at left edge
-            endY: Math.random() * 0.5, // Impact at vertical center
             health,
             timeUntilImpact: timeTillImpactMS,
             type: 0,

@@ -204,27 +204,28 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         })
     })
 
-    /** The explosion will occur after LASER_DURATION_MS has passed */
+    const maxParticleCount = 50;
+    const explosionColors: string[] = Array.from({ length: maxParticleCount }, (_, i) => {
+        switch (i % 4) {
+            case 0: return "red"; 
+            case 1: return "orange";
+            case 2: return "black";
+            default: return "white"; 
+        }
+    })
     const queueAsteroidExplosion = (asteroid: ExtendedAsteroidDTO, theBigOne = false, incoming?: Vec2, center?: Vec2) => {
         const duration = theBigOne ? 1000 : 500;
-        const colorOfParticle = (index: number) => { switch (index % 4) {
-                case 0: return "red"; case 1: return "orange";
-                case 3: return "white"; case 4: return "black";
-            }
-        }
         const removeFunc = explosions.add({
             coords: center ?? getComputedCenter(asteroid.id, "asteroid"),
             durationMS: duration,
-            particleCount: theBigOne ? 50 : 20,
+            particleCount: theBigOne ? maxParticleCount : 20,
             spread: theBigOne ? 100 : 50,
             incomingNormalized: incoming,
             incomingWeight: theBigOne ? 0 : .6,
             spreadVariance: .5,
-            particleGeneratorFunc: (index, animation, children) => <div class={css([{ 
-                width: "100%", height: "100%",
-                backgroundImage: `radial-gradient(circle, ${colorOfParticle(index)}, transparent)` 
-            }, animation])}>{children}</div>,
-            preTransformStyleOverwrite: css({ zIndex: 120 }),
+            particleGeneratorFunc: (index, animation, children) => <div class={css`
+                background-image: radial-gradient(circle, ${explosionColors[index]}, transparent);
+            ${animation}`}>{children}</div>,
         })
         setTimeout(removeFunc, duration);
     }
@@ -345,10 +346,6 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         <For each={asteroids.get}>{ asteroid => 
             <div class={css([
                     getAsteroidStyles(asteroid, viewportDim.get()),
-                    css({ 
-                        filter: `brightness(${1 - (asteroid.health * 0.2)})`,
-                        transform: `scale(${0.5 + (asteroid.health * 0.3)})`
-                    })
                 ])}
                 ref={e => elements.set(mapKeyOfAsteroid(asteroid.id), e)}
             >
@@ -356,6 +353,10 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                     <GraphicalAsset
                         metadata={asset}
                         backend={context.backend}
+                        styleOverwrite={css({ 
+                                filter: `brightness(${1 - (asteroid.health * 0.2)})`,
+                                transform: `scale(${0.5 + (asteroid.health * 0.3)})`
+                        })}
                     />
                 }</NTAwait>    
                 <BufferBasedButton 
