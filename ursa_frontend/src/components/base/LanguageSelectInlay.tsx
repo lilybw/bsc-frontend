@@ -3,7 +3,7 @@ import { IBackendBased, IInternationalized } from '../../ts/types';
 import { css } from '@emotion/css';
 import NTAwait from '../util/NoThrowAwait';
 import BigMenuButton from './BigMenuButton';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 import { assureUniformLanguageCode } from '../../integrations/vitec/vitecIntegration';
 import { PreferenceKeys } from '../../integrations/main_backend/mainBackendDTOs';
 import GraphicalAsset from './GraphicalAsset';

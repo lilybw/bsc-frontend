@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
-import { TransformDTO } from './integrations/main_backend/mainBackendDTOs';
-import { GlobalHashPool } from './ts/ursaMath';
+import { TransformDTO } from '../integrations/main_backend/mainBackendDTOs';
+import { GlobalHashPool } from '../ts/ursaMath';
 
 const titleBase = css({
     fontFamily: "'Orbitron', sans-serif",

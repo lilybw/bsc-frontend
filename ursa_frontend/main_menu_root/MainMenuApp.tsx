@@ -6,7 +6,7 @@ import NewColonyPage from './pages/NewColonyPage';
 import JoinColonyPage from './pages/JoinColony';
 import LanguageSelectInlay from '../src/components/base/LanguageSelectInlay';
 import { ApplicationContext, BundleComponent, Bundle } from '@/meta/types';
-import { Styles } from '@/sharedCSS';
+import { Styles } from '@/styles/sharedCSS';
 import { ApplicationProps } from '@/ts/types';
 
 export enum MenuPages {

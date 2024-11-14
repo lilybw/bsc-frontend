@@ -4,7 +4,7 @@ import { IBackendBased, IStyleOverwritable } from '../../ts/types';
 import { css } from '@emotion/css';
 import NTAwait from '../util/NoThrowAwait';
 import { combineTransforms, GlobalHashPool } from '../../ts/ursaMath';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 import { WrappedSignal } from '../../ts/wrappedSignal';
 import GraphicalAsset from '../base/GraphicalAsset';
 

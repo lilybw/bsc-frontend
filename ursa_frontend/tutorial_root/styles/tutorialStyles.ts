@@ -1,7 +1,7 @@
 // src/styles/tutorialStyles.ts
 
 import { css } from '@emotion/css';
-import { Styles } from '@/sharedCSS';
+import { Styles } from '@/styles/sharedCSS';
 
 export const tutorialStyles = {
     layout: {

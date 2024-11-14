@@ -16,7 +16,7 @@ import NTAwait from "@/components/util/NoThrowAwait";
 import BufferBasedButton from "@/components/base/BufferBasedButton";
 import { StrictJSX } from "@colony/ColonyApp";
 import { Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
-import { Styles } from "@/sharedCSS";
+import { Styles } from "@/styles/sharedCSS";
 import Countdown from "@/components/util/Countdown";
 import SimpleExplosion, { SimpleExplosionProps } from "../utils/SimpleExplosion";
 import { get } from "http";

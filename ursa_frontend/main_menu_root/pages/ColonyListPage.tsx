@@ -6,7 +6,7 @@ import ColonyListEntry from './ColonyListEntry';
 import NavigationFooter from '../NavigationFooter';
 import NTAwait from '../../src/components/util/NoThrowAwait';
 import BigMenuButton from '../../src/components/base/BigMenuButton';
-import { Styles } from '../../src/sharedCSS';
+import { Styles } from '../../src/styles/sharedCSS';
 import StarryBackground from '../../src/components/base/StarryBackground';
 
 const ColonyListPage: Component<MenuPageProps> = (props) => {

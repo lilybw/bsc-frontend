@@ -6,7 +6,7 @@ import { ColonyCode, ColonyInfoResponseDTO, OpenColonyRequestDTO } from '../../.
 import { PLAYER_MOVE_EVENT } from '../../../integrations/multiplayer_backend/EventSpecifications';
 import { IMultiplayerIntegration } from '../../../integrations/multiplayer_backend/multiplayerBackend';
 import { Error, MultiplayerMode } from '../../../meta/types';
-import { Styles } from '../../../sharedCSS';
+import { Styles } from '../../../styles/sharedCSS';
 import BufferBasedButton from '../../base/BufferBasedButton';
 import GraphicalAsset from '../../base/GraphicalAsset';
 import Spinner from '@/components/base/SimpleLoadingSpinner';

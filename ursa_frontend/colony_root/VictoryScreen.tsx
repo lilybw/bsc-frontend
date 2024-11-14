@@ -1,7 +1,7 @@
 import BufferBasedButton from "@/components/base/BufferBasedButton";
 import { getMinigameName } from "@/components/colony/mini_games/miniGame";
 import { MinigameWonMessageDTO } from "@/integrations/multiplayer_backend/EventSpecifications";
-import { Styles } from "@/sharedCSS";
+import { Styles } from "@/styles/sharedCSS";
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from "@/ts/types";
 import { css } from "@emotion/css";
 import { Component } from "solid-js";

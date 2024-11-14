@@ -1,4 +1,4 @@
-import { Styles } from "@/sharedCSS";
+import { Styles } from "@/styles/sharedCSS";
 import { IBufferBased, IInternationalized, IParenting, IRegistering, IStyleOverwritable } from "@/ts/types";
 import { css } from "@emotion/css";
 import { Component } from "solid-js";

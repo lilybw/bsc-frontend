@@ -2,7 +2,7 @@ import { css } from '@emotion/css';
 import { createSignal, createEffect, onCleanup, Component, createMemo, For } from 'solid-js';
 import { AssetResponseDTO, MinimizedAssetDTO, TransformDTO } from '../../integrations/main_backend/mainBackendDTOs';
 import { ObjectURL } from '../../integrations/main_backend/objectUrlCache';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 import { IStyleOverwritable, IParentingImages, IBackendBased } from '../../ts/types';
 import { GlobalHashPool } from '../../ts/ursaMath';
 import Spinner from './SimpleLoadingSpinner';

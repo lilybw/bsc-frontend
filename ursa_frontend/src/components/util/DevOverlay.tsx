@@ -1,7 +1,7 @@
 import { Component } from 'solid-js';
 import { ApplicationContext } from '../../meta/types';
 import { css } from '@emotion/css';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 import BigMenuButton from '../base/BigMenuButton';
 import ExpandingHeader from '../base/ExpandingHeader';
 

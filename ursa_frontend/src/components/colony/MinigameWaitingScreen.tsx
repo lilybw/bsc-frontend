@@ -1,5 +1,5 @@
 import { Component, createMemo, For } from 'solid-js';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 import { css } from '@emotion/css';
 import { ArrayStore } from '../../ts/arrayStore';
 import { PlayerParticipation, TrackedClient } from './mini_games/ClientTracker';

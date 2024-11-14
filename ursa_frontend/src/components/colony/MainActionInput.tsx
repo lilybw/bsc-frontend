@@ -5,7 +5,7 @@ import { IBackendBased, IInternationalized, IStyleOverwritable } from '../../ts/
 import { ArrayStore } from '../../ts/arrayStore';
 import NTAwait from '../util/NoThrowAwait';
 import GraphicalAsset from '../base/GraphicalAsset';
-import { Styles } from '@/sharedCSS';
+import { Styles } from '@/styles/sharedCSS';
 
 interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternationalized {
     actionContext: Accessor<TypeIconTuple>;

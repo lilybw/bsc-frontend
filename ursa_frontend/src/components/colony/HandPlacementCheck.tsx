@@ -9,7 +9,7 @@ import {
 } from '../../integrations/multiplayer_backend/EventSpecifications';
 import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from '../../ts/types';
 import BufferBasedButton from '../base/BufferBasedButton';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 import { createArrayStore } from '../../ts/arrayStore';
 import ActionInput from './MainActionInput';
 import OnScreenKeyboard from '../base/OnScreenKeyboard';

@@ -3,7 +3,7 @@ import { css } from '@emotion/css';
 import { MenuPageProps } from '../MainMenuApp';
 import NavigationFooter from '../NavigationFooter';
 import { CreateColonyRequestDTO } from '../../src/integrations/main_backend/mainBackendDTOs';
-import { Styles } from '../../src/sharedCSS';
+import { Styles } from '../../src/styles/sharedCSS';
 import SectionSubTitle from '../../src/components/base/SectionSubTitle';
 import StarryBackground from '../../src/components/base/StarryBackground';
 import PlanetMoonSystem from '@/components/base/PlanetWithMoon';

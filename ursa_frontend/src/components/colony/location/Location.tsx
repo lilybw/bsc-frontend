@@ -15,7 +15,7 @@ import {
     PLAYER_MOVE_EVENT,
 } from '../../../integrations/multiplayer_backend/EventSpecifications';
 import AssetCollection from '../AssetCollection';
-import { Styles } from '../../../sharedCSS';
+import { Styles } from '../../../styles/sharedCSS';
 import LocationCard from './LocationCard';
 import { WrappedSignal } from '../../../ts/wrappedSignal';
 import { ActionContext, TypeIconTuple } from '../../../ts/actionContext';

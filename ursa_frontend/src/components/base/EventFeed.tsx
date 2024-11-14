@@ -8,7 +8,7 @@ import {
     SERVER_CLOSING_EVENT,
     LOBBY_CLOSING_EVENT,
 } from '../../integrations/multiplayer_backend/EventSpecifications';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 import { createArrayStore } from '../../ts/arrayStore';
 import { IBackendBased, IInternationalized } from '../../ts/types';
 

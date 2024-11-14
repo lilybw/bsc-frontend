@@ -12,7 +12,7 @@ import VictoryScreen from "./VictoryScreen";
 import DefeatScreen from "./DefeatScreen";
 import BufferBasedPopUp from "@/components/base/BufferBasedPopUp";
 import { css } from "@emotion/css";
-import { Styles } from "@/sharedCSS";
+import { Styles } from "@/styles/sharedCSS";
 
 interface MinigameInitiationSequenceProps extends IRegistering<string>, IBufferBased {
     context: ApplicationContext;

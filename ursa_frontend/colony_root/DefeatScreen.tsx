@@ -1,6 +1,6 @@
 import BufferBasedButton from "@/components/base/BufferBasedButton";
 import { MinigameLostMessageDTO } from "@/integrations/multiplayer_backend/EventSpecifications";
-import { Styles } from "@/sharedCSS";
+import { Styles } from "@/styles/sharedCSS";
 import { IBackendBased, IRegistering, IInternationalized, IBufferBased } from "@/ts/types";
 import { css } from "@emotion/css";
 import { Component } from "solid-js";

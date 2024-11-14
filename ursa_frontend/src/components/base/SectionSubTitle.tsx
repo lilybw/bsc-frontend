@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
 import { JSX } from 'solid-js/jsx-runtime';
 import { SectionTitleProps } from './SectionTitle';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 
 export interface SubSectionTitleProps extends SectionTitleProps {}
 

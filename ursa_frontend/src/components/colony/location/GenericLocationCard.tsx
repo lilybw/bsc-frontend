@@ -19,7 +19,7 @@ import {
 import BufferBasedButton from '../../base/BufferBasedButton';
 import GraphicalAsset from '../../base/GraphicalAsset';
 import UnderConstruction from '../../base/UnderConstruction';
-import { Styles } from '../../../sharedCSS';
+import { Styles } from '../../../styles/sharedCSS';
 import {
     STYLE_LOC_CARD_backgroundImageStyle,
     STYLE_LOC_CARD_descriptionStyleOverwrite,

@@ -1,6 +1,6 @@
 import BigMenuButton from '@/components/base/BigMenuButton';
 import Countdown from '@/components/util/Countdown';
-import { Styles } from '@/sharedCSS';
+import { Styles } from '@/styles/sharedCSS';
 import { IInternationalized, IParenting } from '@/ts/types';
 import { css } from '@emotion/css';
 import { Component } from 'solid-js';

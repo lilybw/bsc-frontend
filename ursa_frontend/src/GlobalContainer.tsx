@@ -3,7 +3,7 @@ import { Component, createSignal } from 'solid-js';
 import { RuntimeMode } from './meta/types';
 import { initContext } from './setup';
 import ErrorPage from './ErrorPage';
-import { Styles } from './sharedCSS';
+import { Styles } from './styles/sharedCSS';
 import { VitecIntegrationInformation } from './integrations/vitec/vitecDTOs';
 import { ApplicationProps } from './ts/types';
 import { BundleComponent } from './meta/types';

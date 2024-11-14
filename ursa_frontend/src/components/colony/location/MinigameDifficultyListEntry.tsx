@@ -4,7 +4,7 @@ import { IBackendBased, IBufferBased, IEmitter, IInternationalized, IRegistering
 import { css, keyframes } from '@emotion/css';
 import { DIFFICULTY_SELECT_FOR_MINIGAME_EVENT } from '../../../integrations/multiplayer_backend/EventSpecifications';
 import BufferBasedButton from '../../base/BufferBasedButton';
-import { Styles } from '../../../sharedCSS';
+import { Styles } from '../../../styles/sharedCSS';
 import { IEventMultiplexer } from '@/integrations/multiplayer_backend/eventMultiplexer';
 
 interface MinigameDifficultyListEntryProps extends IBackendBased, IBufferBased, IRegistering<string>, IEmitter, IInternationalized {

@@ -1,5 +1,5 @@
 import { TransformDTO } from "@/integrations/main_backend/mainBackendDTOs";
-import { Styles } from "@/sharedCSS";
+import { Styles } from "@/styles/sharedCSS";
 import { normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
 import { GlobalHashPool, GlobalRandom } from "@/ts/ursaMath";
 import { css } from "@emotion/css";

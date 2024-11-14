@@ -2,7 +2,7 @@ import { Component } from 'solid-js';
 import { ColonyInfoResponseDTO } from '../../src/integrations/main_backend/mainBackendDTOs';
 import { css } from '@emotion/css';
 import { IInternationalized } from '../../src/ts/types';
-import { Styles } from '../../src/sharedCSS';
+import { Styles } from '../../src/styles/sharedCSS';
 
 interface ColonyListEntryProps extends IInternationalized {
     colony: ColonyInfoResponseDTO;

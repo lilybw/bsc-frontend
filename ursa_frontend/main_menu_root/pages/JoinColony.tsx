@@ -2,7 +2,7 @@ import { Component, createMemo, createSignal, Show } from 'solid-js';
 import { MenuPageProps } from '../MainMenuApp';
 import NavigationFooter from '../NavigationFooter';
 import { css } from '@emotion/css';
-import { Styles } from '../../src/sharedCSS';
+import { Styles } from '../../src/styles/sharedCSS';
 import NTAwait from '../../src/components/util/NoThrowAwait';
 import { Error } from '../../src/meta/types';
 import StarryBackground from '../../src/components/base/StarryBackground';

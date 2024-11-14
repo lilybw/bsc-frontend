@@ -17,7 +17,7 @@ import MNTAwait from '@/components/util/MultiNoThrowAwait';
 import Unwrap from '@/components/util/Unwrap';
 import ErrorPage from '@/ErrorPage';
 import { ColonyCode } from '@/integrations/main_backend/mainBackendDTOs';
-import { Styles } from '@/sharedCSS';
+import { Styles } from '@/styles/sharedCSS';
 import { createArrayStore } from '@/ts/arrayStore';
 import { MockServer } from '@/ts/mockServer';
 import TimedFullScreenNotification from './TimedFullScreenNotification';

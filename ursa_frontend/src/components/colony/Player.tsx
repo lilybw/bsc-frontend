@@ -1,7 +1,7 @@
 import { Accessor, Component, createEffect, createMemo, createSignal } from 'solid-js';
 import { TransformDTO, uint32 } from '../../integrations/main_backend/mainBackendDTOs';
 import { css } from '@emotion/css';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 import { ClientDTO } from '../../integrations/multiplayer_backend/multiplayerDTO';
 import { WrappedSignal } from '../../ts/wrappedSignal';
 import { IBackendBased, IStyleOverwritable } from '../../ts/types';

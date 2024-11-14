@@ -5,7 +5,7 @@ import NTAwait from '../../../src/components/util/NoThrowAwait';
 import ActionInput from '../../../src/components/colony/MainActionInput';
 import { ActionContext, BufferSubscriber, TypeIconTuple } from '../../../src/ts/actionContext';
 import { createArrayStore } from '../../../src/ts/arrayStore';
-import { BigButtonStyle } from '../../../src/sharedCSS';
+import { BigButtonStyle } from '../../../src/styles/sharedCSS';
 import BufferBasedButton from '../../../src/components/base/BufferBasedButton';
 import GraphicalAsset from '../../../src/components/base/GraphicalAsset';
 

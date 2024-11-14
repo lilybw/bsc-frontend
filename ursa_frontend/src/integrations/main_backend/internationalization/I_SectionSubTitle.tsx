@@ -2,7 +2,7 @@ import { css } from '@emotion/css';
 import { JSX } from 'solid-js/jsx-runtime';
 import { Accessor } from 'solid-js';
 import { SubSectionTitleProps } from '../../../components/base/SectionSubTitle';
-import { Styles } from '../../../sharedCSS';
+import { Styles } from '../../../styles/sharedCSS';
 
 export default function SectionSubTitle(props: SubSectionTitleProps, text: Accessor<string>): JSX.Element {
     return (

@@ -1,7 +1,7 @@
 import { Accessor, Component, createSignal, onCleanup, onMount, createMemo, createEffect, Setter } from 'solid-js';
 import { css } from '@emotion/css';
 import BufferHighlightedName, { BufferHighlightedNameProps } from './BufferHighlightedName';
-import { Styles } from '../../sharedCSS';
+import { Styles } from '../../styles/sharedCSS';
 import { IParenting, IRegistering, IStyleOverwritable } from '../../ts/types';
 
 export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IParenting, IRegistering<string> {

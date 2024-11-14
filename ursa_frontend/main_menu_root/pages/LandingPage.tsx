@@ -7,7 +7,7 @@ import SectionTitle from '../../src/components/base/SectionTitle';
 import StarryBackground from '../../src/components/base/StarryBackground';
 import GraphicalAsset from '@/components/base/GraphicalAsset';
 import NTAwait from '@/components/util/NoThrowAwait';
-import { Styles } from '@/sharedCSS';
+import { Styles } from '@/styles/sharedCSS';
 
 const LandingPage: Component<MenuPageProps> = (props) => {
     const tutorialOnly = createMemo(() => {
