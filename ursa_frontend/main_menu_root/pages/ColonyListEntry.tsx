@@ -78,7 +78,8 @@ const listEntryStyles = css`
     border: 1px solid white;
     border-radius: 1rem;
     width: 100%;
-    height: 5vh;
+    padding-top: 1vh;
+    padding-bottom: 1vh;
 
     cursor: pointer;
     transition: all 0.3s ease;

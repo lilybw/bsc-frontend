@@ -55,6 +55,15 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
     }
 
     const getContent = (overview: ColonyOverviewReponseDTO) => {
+        const placeholder = Array.from({ length: 25 }, (_, i) => ({
+            id: i, 
+            accLevel: i,
+            name: `Colony ${i}`,
+            latestVisit: new Date().toISOString(),
+            assets: [],
+            locations: [],
+        }))
+        overview.colonies = placeholder;
         if (overview.colonies.length > 0) {
             return (
                 <>
@@ -126,15 +135,17 @@ const pageTitleStyle = css`
     position: absolute;
 `;
 
+const backgroundTopVh = 14;
+const backgroundHeightVh = 65; 
 const colonyListBackgroundStyle = css`
     display: flex;
     flex-direction: column;
 
     position: absolute;
     width: 66%;
-    height: 65vh;
+    height: ${backgroundHeightVh}vh;
     left: 50%;
-    top: 10vh;
+    top: ${backgroundTopVh}vh;
     transform: translateX(-50%);
     padding: 1rem;
     gap: 1rem;
@@ -147,9 +158,9 @@ const colonyListStyle = css`
     justify-content: flex-start;
     align-items: center;
 
-    top: 10.5rem;
+    top: calc(${backgroundTopVh}vh + 2vh);
     border: none;
-    height: 31rem;
+    height: calc(${backgroundHeightVh}vh - 4vh);
     width: 64%;
     transform: translateX(-50%);
 

@@ -15,8 +15,6 @@ const LandingPage: Component<MenuPageProps> = (props) => {
     });
 
     //Lunar Truck id: 5001
-    const color1 = "rgba(0,0,0,0.3)";
-    const color2 = "rgba(0,0,0,0.5)";
     return (
         <>  
             <div class={css([{
@@ -24,7 +22,7 @@ const LandingPage: Component<MenuPageProps> = (props) => {
                     top: '50%', left: '50%',
                     transform: 'translate(-50%, -50%)',
                     width: '101%', height: '101%',
-                    backgroundImage: `linear-gradient(-45deg, ${color1}, ${color2}, ${color1}, ${color2}, ${color1}, ${color2}, ${color1}, ${color2}, ${color1}, ${color2}, ${color1}, ${color2})`,
+                    backgroundImage: `linear-gradient(-45deg, transparent, black)`,
                 }])}
             />
             <NTAwait func={() => props.context.backend.assets.getMetadata(5001)}>{(asset) => 
@@ -41,7 +39,7 @@ const LandingPage: Component<MenuPageProps> = (props) => {
             <SectionTitle
                 styleOverwrite={css`
                     position: absolute;
-                    left: 1vh;
+                    left: 2rem;
                 `}
             >
                 U.R.S.A.
@@ -67,7 +65,7 @@ const menuOptionsListStyle = css({
     display: "flex",
     flexDirection: "column",
     top: "50%",
-    left: "5vw",
-    width: "20vw",
+    left: "9rem",
+    width: "24rem",
     transform: "translateY(-50%)",
 });

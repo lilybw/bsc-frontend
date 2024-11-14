@@ -118,6 +118,8 @@ export const BigButtonStyle = css`
     text-shadow: none;
     scale: 1;
     transition: all 0.3s ease-out;
+    font-family: 'Be Vietnam Pro', sans-serif;
+
 
     &:not(:disabled) {
         &:hover {

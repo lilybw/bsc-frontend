@@ -93,6 +93,7 @@ const BufferHighlightedName: Component<BufferHighlightedNameProps> = (props) => 
 export default BufferHighlightedName;
 
 const singleCharStyle = css`
+    font-family: 'JetBrains Mono', sans-serif;
     text-transform: none;
     margin: 0;
     font-size: 2rem;
