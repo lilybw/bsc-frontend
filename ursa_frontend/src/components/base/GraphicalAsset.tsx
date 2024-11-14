@@ -4,7 +4,7 @@ import { AssetResponseDTO, MinimizedAssetDTO, TransformDTO } from '../../integra
 import { ObjectURL } from '../../integrations/main_backend/objectUrlCache';
 import { Styles } from '../../sharedCSS';
 import { IStyleOverwritable, IParentingImages, IBackendBased } from '../../ts/types';
-import { getRandHash } from '../../ts/ursaMath';
+import { GlobalHashPool } from '../../ts/ursaMath';
 import Spinner from './SimpleLoadingSpinner';
 import SomethingWentWrongIcon from './SomethingWentWrongIcon';
 
@@ -122,7 +122,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
             {currentSrc() && (
                 <>
                     <img
-                        id={props.metadata.alias + '-' + getRandHash()}
+                        id={props.metadata.alias + '-' + GlobalHashPool.next()}
                         src={currentSrc()!}
                         alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
                         class={computedStyles()}

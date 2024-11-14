@@ -1,13 +1,10 @@
 import GraphicalAsset from "@/components/base/GraphicalAsset";
 import NTAwait from "@/components/util/NoThrowAwait";
-import { Styles } from "@/sharedCSS";
-import { ArrayStore, createArrayStore } from "@/ts/arrayStore";
+import { ArrayStore } from "@/ts/arrayStore";
 import { Vec2 } from "@/ts/geometry";
 import { IBackendBased } from "@/ts/types";
-import { getRandHash } from "@/ts/ursaMath";
-import { createWrappedSignal } from "@/ts/wrappedSignal";
 import { css } from "@emotion/css";
-import { Accessor, createEffect, createMemo, createSignal, For, untrack } from "solid-js";
+import { Accessor, For } from "solid-js";
 
 interface ColonyWallProps extends IBackendBased {
     health: Accessor<number>;

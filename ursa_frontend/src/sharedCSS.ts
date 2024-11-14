@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { TransformDTO } from './integrations/main_backend/mainBackendDTOs';
-import { getRandHash } from './ts/ursaMath';
+import { GlobalHashPool } from './ts/ursaMath';
 
 const titleBase = css({
     fontFamily: "'Orbitron', sans-serif",
@@ -166,7 +166,7 @@ export const Styles = {
     }),
     ANIM:{
         FADE_OUT: (seconds: number, interpolation: string = "linear") => {
-            const randHash = getRandHash();
+            const randHash = GlobalHashPool.next();
             return css`
                 opacity: 1;
                 animation: fadeOut-${randHash} ${seconds}s ${interpolation};
@@ -180,7 +180,7 @@ export const Styles = {
                 }
         `},
         FADE_IN: (seconds: number, interpolation: string = "linear") => {
-            const randHash = getRandHash();
+            const randHash = GlobalHashPool.next();
             return css`
             opacity: 0;
             animation: fadeIn-${randHash} ${seconds}s ${interpolation};
@@ -197,7 +197,7 @@ export const Styles = {
          * @param transformProperties overwrites the transform field, so include any previous properties.
          */
         SHAKE: (seconds: number, interpolation: string = "linear", transformProperties: string = "") => {
-            const randHash = getRandHash();
+            const randHash = GlobalHashPool.next();
             return css`
                 animation: shake-${randHash} ${seconds}s ${interpolation};
                 transform:  ${transformProperties} translate3d(0, 0, 0);

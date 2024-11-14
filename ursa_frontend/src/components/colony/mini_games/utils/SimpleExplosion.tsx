@@ -1,7 +1,7 @@
 import { TransformDTO } from "@/integrations/main_backend/mainBackendDTOs";
 import { Styles } from "@/sharedCSS";
 import { normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
-import { getRandHash } from "@/ts/ursaMath";
+import { GlobalHashPool, GlobalRandom } from "@/ts/ursaMath";
 import { css } from "@emotion/css";
 import { For, JSX } from "solid-js";
 
@@ -72,15 +72,15 @@ export default function SimpleExplosion(
     const children: JSX.Element[] = [];
     for (let i = 0; i < particleCount; i++) {
         const normalizedRandomDirection = normalizeVec2({ 
-            x: (Math.random() - .5) + (incomingNormalized.x * incomingWeight), 
-            y: (Math.random() - .5) + (incomingNormalized.y * incomingWeight)
+            x: (GlobalRandom.next() - .5) + (incomingNormalized.x * incomingWeight), 
+            y: (GlobalRandom.next() - .5) + (incomingNormalized.y * incomingWeight)
         });
-        const variedSpread = spread * (1 - Math.random() * spreadVariance);
+        const variedSpread = spread * (1 - GlobalRandom.next() * spreadVariance);
         const endState = {
             x: normalizedRandomDirection.x * variedSpread,
             y: normalizedRandomDirection.y * variedSpread,
-            scale: 1 - Math.random() * particleSizeVariance,
-            randHash: getRandHash(),
+            scale: 1 - GlobalRandom.next() * particleSizeVariance,
+            randHash: GlobalHashPool.next(),
         }
         children.push(particleGeneratorFunc(i, computeParticleAnimation(endState, durationMS), additionalChildContent()));
     }

@@ -3,7 +3,7 @@ import { AssetCollectionID, TransformDTO } from '../../integrations/main_backend
 import { IBackendBased, IStyleOverwritable } from '../../ts/types';
 import { css } from '@emotion/css';
 import NTAwait from '../util/NoThrowAwait';
-import { combineTransforms, getRandHash } from '../../ts/ursaMath';
+import { combineTransforms, GlobalHashPool } from '../../ts/ursaMath';
 import { Styles } from '../../sharedCSS';
 import { WrappedSignal } from '../../ts/wrappedSignal';
 import GraphicalAsset from '../base/GraphicalAsset';
@@ -27,7 +27,7 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
         <div class={computedContainerStyle(props.topLevelTransform?.get())} id={collectionName()}>
             <NTAwait func={() => props.backend.assets.getCollection(props.id)}>
                 {(collection) => {
-                    setCollectionName(collection.name + ' - ' + getRandHash());
+                    setCollectionName(collection.name + ' - ' + GlobalHashPool.next());
                     return (
                         <For each={collection.entries}>
                             {(entry) => (

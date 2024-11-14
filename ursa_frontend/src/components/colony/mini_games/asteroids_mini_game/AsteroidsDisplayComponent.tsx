@@ -15,7 +15,7 @@ import GraphicalAsset from "@/components/base/GraphicalAsset";
 import NTAwait from "@/components/util/NoThrowAwait";
 import BufferBasedButton from "@/components/base/BufferBasedButton";
 import { StrictJSX } from "@colony/ColonyApp";
-import { lerp, Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
+import { Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
 import { Styles } from "@/sharedCSS";
 import Countdown from "@/components/util/Countdown";
 import SimpleExplosion, { SimpleExplosionProps } from "../utils/SimpleExplosion";
@@ -24,6 +24,7 @@ import PlanetSurface from "@/components/base/PlanetSurface";
 import ColonyWall from "../utils/ColonyWall";
 import { AsteroidsSettingsDTO } from "./AsteroidsGameLoop";
 import PlanetMoonSystem from "@/components/base/PlanetWithMoon";
+import { lerp } from "@/ts/ursaMath";
 
 interface AsteroidsDisplayComponentProps {
     context: ApplicationContext;
