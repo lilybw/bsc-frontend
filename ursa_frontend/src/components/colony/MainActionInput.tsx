@@ -136,7 +136,9 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             </svg>
             <div
                 class={css`
-                    ${inputContainerStyle} ${isShaking() ? Styles.ANIM.SHAKE(shakeTimeS, "linear", "translate(-50%, 50%)") : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}
+                    ${inputContainerStyle} ${isShaking() ? Styles.ANIM.COLOR_SHAKE({
+                        seconds: shakeTimeS, interpolation: "linear", retainedProperties: { transform: "translate(-50%, 50%)" }
+                    }) : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}
                 `}
                 id="main-input-container"
             >

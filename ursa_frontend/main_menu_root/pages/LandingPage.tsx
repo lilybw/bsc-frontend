@@ -5,14 +5,39 @@ import BigMenuButton from '../../src/components/base/BigMenuButton';
 import { RuntimeMode } from '../../src/meta/types';
 import SectionTitle from '../../src/components/base/SectionTitle';
 import StarryBackground from '../../src/components/base/StarryBackground';
+import GraphicalAsset from '@/components/base/GraphicalAsset';
+import NTAwait from '@/components/util/NoThrowAwait';
+import { Styles } from '@/sharedCSS';
 
 const LandingPage: Component<MenuPageProps> = (props) => {
     const tutorialOnly = createMemo(() => {
         return !(props.context.env.runtimeMode === RuntimeMode.PRODUCTION && props.context.backend.player.local.hasCompletedTutorial);
     });
 
+    //Lunar Truck id: 5001
+    const color1 = "rgba(0,0,0,0.3)";
+    const color2 = "rgba(0,0,0,0.5)";
     return (
-        <>
+        <>  
+            <div class={css([{
+                    position: 'absolute',
+                    top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '101%', height: '101%',
+                    backgroundImage: `linear-gradient(-45deg, ${color1}, ${color2}, ${color1}, ${color2}, ${color1}, ${color2}, ${color1}, ${color2}, ${color1}, ${color2}, ${color1}, ${color2})`,
+                }])}
+            />
+            <NTAwait func={() => props.context.backend.assets.getMetadata(5001)}>{(asset) => 
+                <GraphicalAsset metadata={asset} backend={props.context.backend} styleOverwrite={css({
+                    position: 'absolute',
+                    top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '101%', height: '101%',
+                    objectFit: 'cover',
+                    filter: 'contrast(1.3) blur(2px)',
+                    zIndex: -10,
+                })}/>
+            }</NTAwait>
             <SectionTitle
                 styleOverwrite={css`
                     position: absolute;
@@ -33,18 +58,16 @@ const LandingPage: Component<MenuPageProps> = (props) => {
                 </BigMenuButton>
                 <BigMenuButton onClick={() => props.context.nav.goToTutorial()}>{props.context.text.get('MENU.OPTION.TUTORIAL').get()}</BigMenuButton>
             </div>
-            <StarryBackground />
         </>
     );
 };
 export default LandingPage;
-const menuOptionsListStyle = css`
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    position: absolute;
-    top: 55%;
-    left: 50%;
-    width: 33%;
-    transform: translate(-50%, -50%);
-`;
+const menuOptionsListStyle = css({
+    position: "absolute",
+    display: "flex",
+    flexDirection: "column",
+    top: "50%",
+    left: "5vw",
+    width: "20vw",
+    transform: "translateY(-50%)",
+});

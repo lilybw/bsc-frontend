@@ -290,18 +290,14 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         });
     }
 
-    const computedContainerStyles = createMemo(() => {
-        return css([
-            { position: "absolute", width: "100%", height: "100%" }, 
-            cameraShake.get() ? Styles.ANIM.SHAKE(0.5) : ""
+    const computedCameraShakeStyles = createMemo(() => {
+        return css([ { position: "absolute", width: "100%", height: "100%" },
+            cameraShake.get() ? Styles.ANIM.SHAKE({seconds: CAMERA_SHAKE_DURATION_MS / 1000, strength: 2}) : ""
         ]);
     })
 
-
     return (
-    <div id="asteroids-display-component" 
-        class={computedContainerStyles()}
-    >
+    <div id="asteroids-display-component" class={css({ position: "absolute", width: "100%", height: "100%" })}>
         <StarryBackground blur={1} />
         <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
             zIndex: -1, position: "absolute",
@@ -314,68 +310,6 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             right: "-1vw", top: "25vh"
         })} />
 
-        <PlanetSurface backend={context.backend} />
-        <ColonyWall backend={context.backend} impactPositions={impactPositions} health={health} />
-
-        <For each={players.get}>{ player => 
-            <div class={css([
-                    { width: "10vw", height: "10vw" },
-                    Styles.transformToCSSVariables(player.transform.get()),
-                    Styles.TRANSFORM_APPLICATOR
-                ])}
-                ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
-            >
-                <NTAwait func={() => context.backend.assets.getMetadata(7002)}>{(asset) =>
-                    <GraphicalAsset
-                        metadata={asset}
-                        backend={context.backend}
-                        styleOverwrite={css({ width: "100%", height: "100%" })}
-                    />
-                }</NTAwait>
-                <BufferBasedButton 
-                    register={subscribers.add}
-                    buffer={buffer.get}
-                    onActivation={() => onPlayerFire(player.code)}
-                    name={player.code}
-                    styleOverwrite={css([Styles.TRANSFORM_CENTER_X, { top: 0 }])}
-                    activationDelay={100}
-                />
-            </div>
-        }</For>
-
-        <For each={asteroids.get}>{ asteroid => 
-            <div class={css([
-                    getAsteroidStyles(asteroid, viewportDim.get()),
-                ])}
-                ref={e => elements.set(mapKeyOfAsteroid(asteroid.id), e)}
-            >
-                <NTAwait func={() => context.backend.assets.getMetadata(7001)}>{(asset) =>
-                    <GraphicalAsset
-                        metadata={asset}
-                        backend={context.backend}
-                        styleOverwrite={css({ 
-                                filter: `brightness(${1 - (asteroid.health * 0.2)})`,
-                                transform: `scale(${0.5 + (asteroid.health * 0.3)})`
-                        })}
-                    />
-                }</NTAwait>    
-                <BufferBasedButton 
-                    register={subscribers.add}
-                    buffer={buffer.get}
-                    onActivation={() => onPlayerFire(asteroid.charCode)}
-                    name={asteroid.charCode}
-                    styleOverwrite={css([Styles.TRANSFORM_CENTER_X, { bottom: 0 }])}
-                    activationDelay={100}
-                />
-            </div>
-        }</For>
-
-        <svg class={css([Styles.FULL_SCREEN, { filter: "drop-shadow(0 0 .5rem red)", zIndex: 10}])}>
-            <For each={laserBeams.get}>{generateAnimatedSVGLine}</For>
-        </svg>
-
-        <For each={explosions.get}>{props => <SimpleExplosion {...props} />}</For>
-
         <ActionInput
             subscribers={subscribers}
             text={context.text}
@@ -385,9 +319,75 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             inputBuffer={buffer.get}
             manTriggerFocusPull={focusPull}
         />
-        <div class={healthStyle}>{'❤'.repeat(health())}</div>
         <Countdown duration={settings.survivalTimeS} styleOverwrite={timeLeftStyle} />
-    </div>);
+
+        <div id="camera-shake-container" class={computedCameraShakeStyles()}>
+            <div class={healthStyle}>{'❤'.repeat(health())}</div>
+
+            <PlanetSurface backend={context.backend} />
+            <ColonyWall backend={context.backend} impactPositions={impactPositions} health={health} />
+
+            <For each={players.get}>{ player => 
+                <div class={css([
+                        { width: "10vw", height: "10vw" },
+                        Styles.transformToCSSVariables(player.transform.get()),
+                        Styles.TRANSFORM_APPLICATOR
+                    ])}
+                    ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
+                >
+                    <NTAwait func={() => context.backend.assets.getMetadata(7002)}>{(asset) =>
+                        <GraphicalAsset
+                            metadata={asset}
+                            backend={context.backend}
+                            styleOverwrite={css({ width: "100%", height: "100%" })}
+                        />
+                    }</NTAwait>
+                    <BufferBasedButton 
+                        register={subscribers.add}
+                        buffer={buffer.get}
+                        onActivation={() => onPlayerFire(player.code)}
+                        name={player.code}
+                        styleOverwrite={css([Styles.TRANSFORM_CENTER_X, { top: 0 }])}
+                        activationDelay={100}
+                    />
+                </div>
+            }</For>
+
+            <For each={asteroids.get}>{ asteroid => 
+                <div class={css([
+                        getAsteroidStyles(asteroid, viewportDim.get()),
+                    ])}
+                    ref={e => elements.set(mapKeyOfAsteroid(asteroid.id), e)}
+                >
+                    <NTAwait func={() => context.backend.assets.getMetadata(7001)}>{(asset) =>
+                        <GraphicalAsset
+                            metadata={asset}
+                            backend={context.backend}
+                            styleOverwrite={css({ 
+                                    filter: `brightness(${1 - (asteroid.health * 0.2)})`,
+                                    transform: `scale(${0.5 + (asteroid.health * 0.3)})`
+                            })}
+                        />
+                    }</NTAwait>    
+                    <BufferBasedButton 
+                        register={subscribers.add}
+                        buffer={buffer.get}
+                        onActivation={() => onPlayerFire(asteroid.charCode)}
+                        name={asteroid.charCode}
+                        styleOverwrite={css([Styles.TRANSFORM_CENTER_X, { bottom: 0 }])}
+                        activationDelay={100}
+                    />
+                </div>
+            }</For>
+
+            <svg class={css([Styles.FULL_SCREEN, { filter: "drop-shadow(0 0 .5rem red)", zIndex: 10}])}>
+                <For each={laserBeams.get}>{generateAnimatedSVGLine}</For>
+            </svg>
+
+            <For each={explosions.get}>{props => <SimpleExplosion {...props} />}</For>
+        </div>
+    </div>
+    );
 }
 
 export const initAsteroidsDisplayComponent: MinigameComponentInitFunc = async (

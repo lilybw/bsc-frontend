@@ -68,7 +68,7 @@ const defaults: Omit<Required<SimpleExplosionProps>, 'preComputedParticles'> & P
     particleSize: .1,
     particleSizeVariance: .5,
     size: 20,
-    spread: 50,
+    spread: .5,
     spreadVariance: .3,
     incomingNormalized: Vec2_ZERO,
     incomingWeight: 1,
@@ -115,7 +115,7 @@ export default function SimpleExplosion(
                 top: ${props.coords.y}px; 
                 left: ${props.coords.x}px;
                 ${props.showParentOutline ? "border: 1px solid red;" : ""}
-                ${Styles.ANIM.FADE_OUT(props.durationMS / 1000, "ease-out")}`
+                ${Styles.ANIM.FADE_OUT(props.durationMS / 900, "ease-out")}` //Slightly slower than duration
             }
         >{children}</div>
     );
@@ -138,6 +138,7 @@ const computeParticleAnimation = (endState: ParticleEndState, durationMS: number
     height: ${endState.scale * 100}%;
     ${Styles.TRANSFORM_CENTER}
     transform: translate(-50%, -50%);
+    z-index: 1;
     animation: particleMove-${endState.randHash} ${durationMS / 1000}s ease-out;
     @keyframes particleMove-${endState.randHash} {
         from {

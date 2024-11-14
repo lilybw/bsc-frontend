@@ -9,6 +9,7 @@ const titleBase = css({
     textTransform: "uppercase",
     color: "white",
     fontSize: "8rem",
+    pointerEvents: "none",
     textShadow: "0.75rem 0.3rem 0.3rem rgba(255, 255, 255, 0.3)",
     filter: "drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5))",
 })
@@ -25,6 +26,19 @@ const subTitleBase = css({
     textShadow: "0.15rem 0.15rem 0.3rem rgba(255, 255, 255, 0.3)",
     filter: "drop-shadow(-0.1rem -0.2rem 0.2rem rgba(255, 255, 255, 0.5))",
 })
+
+/** Properties to apply to all fields otherwise overwritten by the generated style */
+interface RetainedProperties {
+    [key: string]: string;
+}
+
+interface ShakeOptions {
+    seconds?: number;
+    strength?: number;
+    interpolation?: string;
+    /** To be retained when animation is active */
+    retainedProperties?: RetainedProperties;
+}
 
 /**
  * Small style fragments
@@ -193,14 +207,52 @@ export const Styles = {
                 }
             }
         `},
-        /**
-         * @param transformProperties overwrites the transform field, so include any previous properties.
-         */
-        SHAKE: (seconds: number, interpolation: string = "linear", transformProperties: string = "") => {
+        SHAKE: ({
+            seconds = .5, 
+            interpolation = "linear", 
+            strength = 1,
+            retainedProperties = { transform: "" }
+        }: ShakeOptions) => {
             const randHash = GlobalHashPool.next();
             return css`
                 animation: shake-${randHash} ${seconds}s ${interpolation};
-                transform:  ${transformProperties} translate3d(0, 0, 0);
+                transform:  ${retainedProperties.transform} translate3d(0, 0, 0);
+                @keyframes shake-${randHash} {
+                    10%,
+                    90% {
+                        transform: ${retainedProperties.transform} translate3d(-${strength}px, 0, 0);
+                    }
+                    20%,
+                    80%,
+                    100% {
+                        transform: ${retainedProperties.transform} translate3d(${2 * strength}px, 0, 0);
+                    }
+                    30%,
+                    50%,
+                    70% {
+                        transform: ${retainedProperties.transform} translate3d(-${4 * strength}px, 0, 0);
+                    }
+                    40%,
+                    60%,
+                    0% {
+                        transform: ${retainedProperties.transform} translate3d(${4 * strength}px, 0, 0);
+                    }
+                }
+            `;
+        },
+        /**
+         * @param transformProperties overwrites the transform field, so include any previous properties.
+         */
+        COLOR_SHAKE: ({
+                seconds = .5, 
+                interpolation = "linear", 
+                strength = 1,
+                retainedProperties = { transform: "", filter: "" }
+            }: ShakeOptions) => {
+            const randHash = GlobalHashPool.next();
+            return css`
+                animation: shake-${randHash} ${seconds}s ${interpolation};
+                transform:  ${retainedProperties.transform} translate3d(0, 0, 0);
                 --color-shadow-offset: -0.5rem;
                 --color-shadow-size: 0.1rem;
                 --color-shadow-color-2: hsla(360, 100%, 54%, 1);
@@ -211,28 +263,28 @@ export const Styles = {
                 @keyframes shake-${randHash} {
                     10%,
                     90% {
-                        transform: ${transformProperties} translate3d(-1px, 0, 0);
-                        filter: drop-shadow(calc(-1 * var(--color-shadow-offset)) 0 var(--color-shadow-size) var(--color-shadow-color-1));
+                        transform: ${retainedProperties.transform} translate3d(-${strength}px, 0, 0);
+                        filter: ${retainedProperties.filter} drop-shadow(calc(-1 * var(--color-shadow-offset)) 0 var(--color-shadow-size) var(--color-shadow-color-1));
                     }
                     20%,
                     80%,
                     100% {
-                        transform: ${transformProperties} translate3d(2px, 0, 0);
-                        filter: drop-shadow(var(--color-shadow-offset) 0 var(--color-shadow-size) var(--color-shadow-color-2));
+                        transform: ${retainedProperties.transform} translate3d(${2 * strength}px, 0, 0);
+                        filter: ${retainedProperties.filter} drop-shadow(var(--color-shadow-offset) 0 var(--color-shadow-size) var(--color-shadow-color-2));
                     }
                     30%,
                     50%,
                     70% {
-                        transform: ${transformProperties} translate3d(-4px, 0, 0);
-                        filter: drop-shadow(
+                        transform: ${retainedProperties.transform} translate3d(-${4 * strength}px, 0, 0);
+                        filter: ${retainedProperties.filter} drop-shadow(
                             calc(-1 * var(--color-shadow-offset)) calc(-1 * var(--color-shadow-offset)) var(--color-shadow-size) var(--color-shadow-color-4)
                         );
                     }
                     40%,
                     60%,
                     0% {
-                        transform: ${transformProperties} translate3d(4px, 0, 0);
-                        filter: drop-shadow(var(--color-shadow-offset) var(--color-shadow-offset) var(--color-shadow-size) var(--color-shadow-color-3));
+                        transform: ${retainedProperties.transform} translate3d(${4 * strength}px, 0, 0);
+                        filter: ${retainedProperties.filter} drop-shadow(var(--color-shadow-offset) var(--color-shadow-offset) var(--color-shadow-size) var(--color-shadow-color-3));
                     }
                 }
             `;
