@@ -92,10 +92,10 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
     const computedStyles = createMemo(
         () => css`
             ${baseStyles}
-            ${Styles.transformToCSSVariables(props.transform)}
+            ${Styles.POSITION.transformToCSSVariables(props.transform)}
             width: calc(${props.metadata.width}px * var(--transform-xScale));
             height: calc(${props.metadata.height}px * var(--transform-yScale));
-            ${props.transform ? Styles.TRANSFORM_APPLICATOR : ''}
+            ${props.transform ? Styles.POSITION.TRANSFORM_APPLICATOR : ''}
             ${props.styleOverwrite}
         `,
     );

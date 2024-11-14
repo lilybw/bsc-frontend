@@ -147,8 +147,8 @@ const Location: Component<LocationProps> = (props) => {
         const transform = computedButtonTransform();
         return css`
             ${namePlateStyle}
-            ${Styles.transformToCSSVariables(transform)}
-            ${Styles.TRANSFORM_APPLICATOR}
+            ${Styles.POSITION.transformToCSSVariables(transform)}
+            ${Styles.POSITION.TRANSFORM_APPLICATOR}
             top: ${calcNamePlatePosition(transform.yOffset)}px;
         `;
     });

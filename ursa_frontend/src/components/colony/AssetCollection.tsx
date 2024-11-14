@@ -17,8 +17,8 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
     const [collectionName, setCollectionName] = createSignal<string>('unknown-collection...');
 
     const computedContainerStyle = (transform?: TransformDTO) => css`
-        ${Styles.transformToCSSVariables(transform)}
-        ${props.topLevelTransform ? Styles.TRANSFORM_APPLICATOR : ''}
+        ${Styles.POSITION.transformToCSSVariables(transform)}
+        ${props.topLevelTransform ? Styles.POSITION.TRANSFORM_APPLICATOR : ''}
         ${props.styleOverwrite}
         width: fit-content;
         height: fit-content;

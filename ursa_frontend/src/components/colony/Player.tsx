@@ -33,8 +33,8 @@ const Player: Component<PlayerProps> = (props) => {
             --GAS: ${props.GAS()};
             ${playerContainer}
             ${props.isLocalPlayer ? localPlayerStyleOverwrite : ''}
-            ${Styles.transformToCSSVariables(currentTransform())}
-            ${Styles.TRANSFORM_APPLICATOR}
+            ${Styles.POSITION.transformToCSSVariables(currentTransform())}
+            ${Styles.POSITION.TRANSFORM_APPLICATOR}
             ${props.styleOverwrite}
         `,
     );

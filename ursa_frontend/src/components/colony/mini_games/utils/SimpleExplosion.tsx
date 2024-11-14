@@ -136,7 +136,7 @@ const computeParticleAnimation = (endState: ParticleEndState, durationMS: number
     left: 50%;
     width: ${endState.scale * 100}%;
     height: ${endState.scale * 100}%;
-    ${Styles.TRANSFORM_CENTER}
+    ${Styles.POSITION.TRANSFORM_CENTER}
     transform: translate(-50%, -50%);
     z-index: 1;
     animation: particleMove-${endState.randHash} ${durationMS / 1000}s ease-out;

@@ -330,8 +330,8 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             <For each={players.get}>{ player => 
                 <div class={css([
                         { width: "10vw", height: "10vw" },
-                        Styles.transformToCSSVariables(player.transform.get()),
-                        Styles.TRANSFORM_APPLICATOR
+                        Styles.POSITION.transformToCSSVariables(player.transform.get()),
+                        Styles.POSITION.TRANSFORM_APPLICATOR
                     ])}
                     ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
                 >
@@ -347,7 +347,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                         buffer={buffer.get}
                         onActivation={() => onPlayerFire(player.code)}
                         name={player.code}
-                        styleOverwrite={css([Styles.TRANSFORM_CENTER_X, { top: 0 }])}
+                        styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, { top: 0 }])}
                         activationDelay={100}
                     />
                 </div>
@@ -374,13 +374,13 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                         buffer={buffer.get}
                         onActivation={() => onPlayerFire(asteroid.charCode)}
                         name={asteroid.charCode}
-                        styleOverwrite={css([Styles.TRANSFORM_CENTER_X, { bottom: 0 }])}
+                        styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, { bottom: 0 }])}
                         activationDelay={100}
                     />
                 </div>
             }</For>
 
-            <svg class={css([Styles.FULL_SCREEN, { filter: "drop-shadow(0 0 .5rem red)", zIndex: 10}])}>
+            <svg class={css([Styles.POSITION.FULL_SCREEN, { filter: "drop-shadow(0 0 .5rem red)", zIndex: 10}])}>
                 <For each={laserBeams.get}>{generateAnimatedSVGLine}</For>
             </svg>
 
@@ -426,8 +426,8 @@ const generateAnimatedSVGLine = (line: Line) => {
 }
 
 const getAsteroidStyles = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => css`
-    ${Styles.transformToCSSVariables(asteroid.startPosition)}
-    ${Styles.TRANSFORM_APPLICATOR}
+    ${Styles.POSITION.transformToCSSVariables(asteroid.startPosition)}
+    ${Styles.POSITION.TRANSFORM_APPLICATOR}
     ${computeAsteroidAnimation(asteroid, dim)}
 `
 
