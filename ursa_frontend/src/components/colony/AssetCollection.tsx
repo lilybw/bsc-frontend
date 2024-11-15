@@ -1,4 +1,4 @@
-import { Component, createSignal, For } from 'solid-js';
+import { Accessor, Component, createSignal, For } from 'solid-js';
 import { AssetCollectionID, TransformDTO } from '../../integrations/main_backend/mainBackendDTOs';
 import { IBackendBased, IStyleOverwritable } from '../../ts/types';
 import { css } from '@emotion/css';
@@ -18,13 +18,13 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
 
     const computedContainerStyle = (transform?: TransformDTO) => css`
         ${Styles.POSITION.transformToCSSVariables(transform)}
-        ${props.topLevelTransform ? Styles.POSITION.TRANSFORM_APPLICATOR : ''}
+        ${props.topLevelTransform ? Styles.POSITION.TRANSFORM_APPLICATOR : 'position: absolute;'}
         ${props.styleOverwrite}
         width: fit-content;
         height: fit-content;
     `;
     return (
-        <div class={computedContainerStyle(props.topLevelTransform?.get())} id={collectionName()}>
+        <div class={computedContainerStyle(props.topLevelTransform?.get())} id={"collection-" + collectionName()}>
             <NTAwait func={() => props.backend.assets.getCollection(props.id)}>
                 {(collection) => {
                     setCollectionName(collection.name + ' - ' + GlobalHashPool.next());

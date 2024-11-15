@@ -131,32 +131,19 @@ const Location: Component<LocationProps> = (props) => {
 
     const computedContainerStyle = createMemo(
         () => css`
-            ${locationContainerStyle} 
-            top: calc(-10vh * ${props.gas()});
+            ${Styles.POSITION.transformToCSSVariables(props.transform.get())}
+            ${Styles.POSITION.TRANSFORM_APPLICATOR}
             ${props.styleOverwrite}
         `,
     );
-    const computedButtonTransform = createMemo<TransformDTO>(() => {
-        return {
-            ...props.transform.get(),
-            zIndex: props.transform.get().zIndex + 10, // adjust zIndex to be on top of other graphical assets
-        };
-    });
-
-    const computedNamePlateStyle = createMemo(() => {
-        const transform = computedButtonTransform();
-        return css`
-            ${namePlateStyle}
-            ${Styles.POSITION.transformToCSSVariables(transform)}
-            ${Styles.POSITION.TRANSFORM_APPLICATOR}
-            top: ${calcNamePlatePosition(transform.yOffset)}px;
-        `;
-    });
-
     return (
         <div class={computedContainerStyle()} id={'location-' + props.location.name + '-level-' + props.colonyLocation.level}>
+            <AssetCollection
+                id={getCollectionForLevel(0, props.location).assetCollectionID}
+                backend={props.backend}
+            />
             <BufferBasedButton
-                styleOverwrite={css`${computedNamePlateStyle()}`}
+                styleOverwrite={namePlateStyle}
                 onActivation={onButtonActivation}
                 name={currentDisplayText}
                 buffer={props.buffer}
@@ -165,11 +152,6 @@ const Location: Component<LocationProps> = (props) => {
                 enable={props.enable}
                 disabledStyleOverwrite={css`color: rgba(255, 255, 255, 0.5);`}
             />
-            <AssetCollection
-                id={getCollectionForLevel(0, props.location).assetCollectionID}
-                backend={props.backend}
-                topLevelTransform={props.transform}
-            />
             {appendCard()}
         </div>
     );
@@ -177,18 +159,10 @@ const Location: Component<LocationProps> = (props) => {
 
 export default Location;
 
-const locationContainerStyle = css`
-    position: absolute;
-    left: 0;
-    top: 0;
-`;
-
 const namePlateStyle = css`
-    position: absolute;
-    left: 0;
-    top: 0;
     border-radius: 1rem;
     padding: .5rem;
+    z-index: 10;
     ${Styles.GLASS.FAINT_BACKGROUND}
 `;
 const namePlateTextOverwrite = css`
