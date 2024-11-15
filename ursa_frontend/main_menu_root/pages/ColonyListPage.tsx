@@ -55,15 +55,6 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
     }
 
     const getContent = (overview: ColonyOverviewReponseDTO) => {
-        const placeholder = Array.from({ length: 25 }, (_, i) => ({
-            id: i, 
-            accLevel: i,
-            name: `Colony ${i}`,
-            latestVisit: new Date().toISOString(),
-            assets: [],
-            locations: [],
-        }))
-        overview.colonies = placeholder;
         if (overview.colonies.length > 0) {
             return (
                 <>

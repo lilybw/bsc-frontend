@@ -249,7 +249,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
     });
 
     return (
-        <div class={pathGraphContainerStyle} id={props.colony.name + '-path-graph'}>
+        <div id={props.colony.name + '-path-graph'} class={pathGraphContainerStyle}>
             <div class={computedCameraContainerStyles()} id="camera-container">
                 <svg id="paths" class={svgContainerStyle}>
                     <For each={computedPaths.get}>
