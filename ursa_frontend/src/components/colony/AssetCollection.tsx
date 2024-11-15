@@ -51,6 +51,4 @@ export default AssetCollection;
 
 const entryStyleOverwrite = css`
     position: absolute;
-    top: 0;
-    left: 0;
 `;

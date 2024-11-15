@@ -86,7 +86,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                                 buffer={inputBuffer.get}
                                 onActivation={() => props.context.nav.goToMenu()}
                                 register={bufferSubscribers.add}
-                                styleOverwrite="position: absolute; top: 8vh; left: 1vh;"
+                                styleOverwrite="position: absolute; top: 8vh; left: 1vh; z-index: 100000;"
                                 charBaseStyleOverwrite="font-size: 1.5rem;"
                             />
                             <MNTAwait
