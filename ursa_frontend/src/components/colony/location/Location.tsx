@@ -131,6 +131,7 @@ const Location: Component<LocationProps> = (props) => {
 
     const computedContainerStyle = createMemo(
         () => css`
+            display: flex;
             ${Styles.POSITION.transformToCSSVariables(props.transform.get())}
             ${Styles.POSITION.TRANSFORM_APPLICATOR}
             ${props.styleOverwrite}
@@ -162,8 +163,9 @@ export default Location;
 const namePlateStyle = css`
     border-radius: 1rem;
     padding: .5rem;
-    z-index: 10;
+    z-index: 100;
     ${Styles.GLASS.FAINT_BACKGROUND}
+    transform: translate(-50%, -200%);
 `;
 const namePlateTextOverwrite = css`
     text-shadow: 5px 5px 10px black;

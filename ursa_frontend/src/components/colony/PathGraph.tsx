@@ -338,7 +338,7 @@ const svgContainerStyle = css`
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 10;
+    z-index: 0;
     overflow: visible !important;
 
     filter: drop-shadow(0 0 10px black) drop-shadow(0 10px 10px grey);
