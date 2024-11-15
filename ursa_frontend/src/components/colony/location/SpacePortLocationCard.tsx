@@ -268,7 +268,7 @@ export const STYLE_LOC_CARD_descriptionContainerStyle = css`
 `;
 
 export const STYLE_LOC_CARD_descriptionStyleOverwrite = css`
-    font-size: 2vh;
+    font-size: 2.5vh;
     text-shadow: none;
     text-align: center;
     filter: none;
