@@ -21,6 +21,7 @@ import { WrappedSignal } from '../../../ts/wrappedSignal';
 import { ActionContext, TypeIconTuple } from '../../../ts/actionContext';
 import { IMultiplayerIntegration } from '../../../integrations/multiplayer_backend/multiplayerBackend';
 import BufferBasedButton from '../../base/BufferBasedButton';
+import { Portal } from 'solid-js/web';
 
 interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colony: ColonyInfoResponseDTO;
@@ -113,6 +114,7 @@ const Location: Component<LocationProps> = (props) => {
     const appendCard = () => {
         if (showLocationCard()) {
             return (
+                <Portal>
                 <LocationCard
                     multiplayer={props.multiplayer}
                     colony={props.colony}
@@ -125,6 +127,7 @@ const Location: Component<LocationProps> = (props) => {
                     register={props.register}
                     onClose={onLocationCardClose}
                 />
+                </Portal>
             );
         }
     };

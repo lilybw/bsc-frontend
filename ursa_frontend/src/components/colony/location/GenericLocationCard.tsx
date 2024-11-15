@@ -22,6 +22,7 @@ import UnderConstruction from '../../base/UnderConstruction';
 import { Styles } from '../../../styles/sharedCSS';
 import {
     STYLE_LOC_CARD_backgroundImageStyle,
+    STYLE_LOC_CARD_cardContainerStyle,
     STYLE_LOC_CARD_descriptionStyleOverwrite,
     STYLE_LOC_CARD_lowerThirdWBackgroundStyle,
     STYLE_LOC_CARD_titleStyleOverwrite,
@@ -134,7 +135,7 @@ const GenericLocationCard: Component<GenericLocationCardProps> = (props) => {
     }
 
     return (
-        <div class={css`${cardContainerStyle} ${props.styleOverwrite}`} id={'location-card-' + props.info.name}>
+        <div class={css`${STYLE_LOC_CARD_cardContainerStyle} ${props.styleOverwrite}`} id={'location-card-' + props.info.name}>
             <NTAwait func={() => props.backend.assets.getMetadata(getIdOfSplashArt(props.colonyLocation.level, props.info.appearances))}>
                 {(asset) => <GraphicalAsset styleOverwrite={STYLE_LOC_CARD_backgroundImageStyle} backend={props.backend} metadata={asset} />}
             </NTAwait>
@@ -209,16 +210,10 @@ const lowerThirdModifiedStyle = css`
     ${STYLE_LOC_CARD_lowerThirdWBackgroundStyle}
     height: 20%;
 `;
-
-const cardContainerStyle = css`
-    display: flex;
-    flex-direction: column;
-`;
-
 const difficultyListStyle = css`
+    position: absolute;
     display: flex;
     flex-direction: column;
-    position: absolute;
 
     row-gap: 1rem;
     height: 45%;

@@ -161,7 +161,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
     });
 
     return (
-        <div class={cardContainerStyle} id={'location-card-space-port'}>
+        <div class={STYLE_LOC_CARD_cardContainerStyle} id={'location-card-space-port'}>
             <NTAwait func={() => props.backend.assets.getMetadata(props.info.appearances[0].splashArt)}>
                 {(asset) => (
                     <>
@@ -214,22 +214,26 @@ const errorMessageStyle = css`
 `
 
 export const STYLE_LOC_CARD_lowerThirdWBackgroundStyle = css`
+    position: absolute;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    position: absolute;
 
     z-index: 1;
     width: 100%;
     height: 15%;
     bottom: 0;
+    left: 0;
     border-radius: 10px;
 
     ${Styles.GLASS.BACKGROUND}
 `;
 
-const cardContainerStyle = css`
+export const STYLE_LOC_CARD_cardContainerStyle = css`
+    position: absolute;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
 `;
@@ -238,6 +242,8 @@ export const STYLE_LOC_CARD_backgroundImageStyle = css`
     position: absolute;
     width: 100%;
     height: 100%;
+    top: 0;
+    left: 0;
     object-fit: cover;
     border-radius: 1rem;
     box-shadow: 0 0 1rem 0.5rem inset rgba(255, 255, 255, 1);
@@ -246,11 +252,13 @@ export const STYLE_LOC_CARD_backgroundImageStyle = css`
 export const STYLE_LOC_CARD_titleStyleOverwrite = css`
     position: absolute;
     top: 2rem;
+    left: 0;
     width: 100%;
-    font-size: 2rem;
+    font-size: 2.5rem;
     text-align: center;
     z-index: 1;
     margin: 0;
+    filter: drop-shadow(0 0 10px black);
     ${Styles.GLASS.FAINT_BACKGROUND}
 `;
 
@@ -260,7 +268,7 @@ export const STYLE_LOC_CARD_descriptionContainerStyle = css`
 `;
 
 export const STYLE_LOC_CARD_descriptionStyleOverwrite = css`
-    font-size: 1.2rem;
+    font-size: 2vh;
     text-shadow: none;
     text-align: center;
     filter: none;

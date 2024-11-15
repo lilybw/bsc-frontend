@@ -8,6 +8,7 @@ import SpacePortLocationCard from './SpacePortLocationCard';
 import HomeLocationCard from './HomeLocationCard';
 import { IEventMultiplexer } from '../../../integrations/multiplayer_backend/eventMultiplexer';
 import { IMultiplayerIntegration } from '../../../integrations/multiplayer_backend/multiplayerBackend';
+import { Styles } from '@/styles/sharedCSS';
 
 export interface LocationCardProps extends IBackendBased, IBufferBased, IStyleOverwritable, IRegistering<string>, IInternationalized {
     colony: ColonyInfoResponseDTO;
@@ -72,22 +73,22 @@ const LocationCard: Component<LocationCardProps> = (props) => {
             ${locationCardContainerStyle} ${props.styleOverwrite}
         `,
     );
-    return <div class={computedContainerStyle()}>{renderCardOfType(props.location)}</div>;
+    return <div id="location-card-container" class={computedContainerStyle()}>{renderCardOfType(props.location)}</div>;
 };
 export default LocationCard;
 
 const locationCardContainerStyle = css`
-    z-index: 10000;
     position: fixed;
-    display: flex;
-
-    width: 50%;
-    height: 66%;
-
+    z-index: 10000;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-
+    width: 50vw;
+    height: 66vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
     background-color: transparent;
     border-radius: 1rem;
     box-shadow: 0 0 1rem 0.5rem rgba(0, 0, 0, 0.5);
