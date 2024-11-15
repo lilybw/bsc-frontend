@@ -257,7 +257,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     </For>
                 </svg>
 
-                <div id="colony-assets">
                 <For each={colonyAssets.get}>{asset => (
                     <AssetCollection
                         backend={props.context.backend}
@@ -265,7 +264,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                         topLevelTransform={asset.wrappedTransform}
                     />
                 )}</For>
-                </div>
 
                 <For each={colonyLocations.get}>
                     {(colonyLocation) => (
@@ -338,7 +336,7 @@ const svgContainerStyle = css`
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 0;
+    z-index: 1;
     overflow: visible !important;
 
     filter: drop-shadow(0 0 10px black) drop-shadow(0 10px 10px grey);

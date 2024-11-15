@@ -169,6 +169,6 @@ const namePlateStyle = css`
 `;
 const namePlateTextOverwrite = css`
     text-shadow: 5px 5px 10px black;
-    font-size: 2.5rem;
+    font-size: 3.5rem;
     filter: none;
 `;

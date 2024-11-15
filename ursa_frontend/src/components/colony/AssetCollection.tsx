@@ -17,11 +17,10 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
     const [collectionName, setCollectionName] = createSignal<string>('unknown-collection...');
 
     const computedContainerStyle = (transform?: TransformDTO) => css`
+        display: flex;
         ${Styles.POSITION.transformToCSSVariables(transform)}
         ${props.topLevelTransform ? Styles.POSITION.TRANSFORM_APPLICATOR : 'position: absolute;'}
         ${props.styleOverwrite}
-        width: fit-content;
-        height: fit-content;
     `;
     return (
         <div class={computedContainerStyle(props.topLevelTransform?.get())} id={"collection-" + collectionName()}>
@@ -34,9 +33,7 @@ const AssetCollection: Component<AssetCollectionProps> = (props) => {
                                 <GraphicalAsset
                                     backend={props.backend}
                                     metadata={entry.asset}
-                                    transform={
-                                        props.topLevelTransform ? combineTransforms(props.topLevelTransform.get(), entry.transform) : entry.transform
-                                    }
+                                    transform={entry.transform}
                                     styleOverwrite={entryStyleOverwrite}
                                 />
                             )}
