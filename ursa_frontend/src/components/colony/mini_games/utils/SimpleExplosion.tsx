@@ -30,19 +30,29 @@ export interface SimpleExplosionProps {
      * @default 0.3
      */
     spreadVariance?: number;
-    /** Direction from which to generally spread away from
+    /** Direction from which to generally spread away from. Must be normalized (or results may be unpredictable)
      * @default { x: 0, y: 0 } 
      */
     incomingNormalized?: Vec2;
-    /** How much the incoming vector should influence the direction of child particles
+    /** How much the incoming vector (if provided) should influence the direction of child particles
      * @default 1
      */
     incomingWeight?: number;
+    /** How much to delay the animation of each particle in milliseconds @default 0 */
+    staggerMS?: number;
+    /** Up to how much to randomly reduce the stagger for each particle in percent (0-1)
+     * Duly note that stagger is "additive" in terms of time, and by default, the entire thing 
+     * (parent, particles, ...) will fade out. 
+     *  @default 0 */
+    staggerVariance?: number;
+    /** For providing precomputed / cached / pooled particles.
+     * Completely circumvents anything else. So if youre unsure how to use it. Dont.
+    */
     preComputedParticles?: JSX.Element[];
     /** Function to generate the child elements. 
      * @param computedAnimationStyle The computed style for the child element, including the animation
      * @default ```tsx
-     *  (animation, children) => <div class={animation}>{children}</div>
+     *  (index, animation, children) => <div class={animation}>{children}</div>
      * ```
      * */
     particleGeneratorFunc?: (index: number, computedAnimationStyle: string, children: JSX.Element) => JSX.Element;
@@ -51,16 +61,19 @@ export interface SimpleExplosionProps {
     /** Show parent outline */
     showParentOutline?: boolean;
 }
-interface ParticleEndState {
+
+interface ParticleData {
     /** In pre-formatted % (0-100) */
-    x: number,
+    x: number;
     /** In pre-formatted % (0-100) */
-    y: number,
-    scale: number,
+    y: number;
+    computedDelayMS: number;
+    scale: number;
     randHash: string;
 }
 
-export const NULL_JSX: Readonly<JSX.Element> = <></>;
+export const NULL_JSX: JSX.Element = <></>;
+const defaultGenerator: Required<SimpleExplosionProps>["particleGeneratorFunc"] = (i, a, c) => <div class={a}>{c}</div>;
 const defaults: Omit<Required<SimpleExplosionProps>, 'preComputedParticles'> & Partial<Pick<SimpleExplosionProps, 'preComputedParticles'>> = {
     coords: Vec2_ZERO,
     durationMS: 500,
@@ -72,9 +85,11 @@ const defaults: Omit<Required<SimpleExplosionProps>, 'preComputedParticles'> & P
     spreadVariance: .3,
     incomingNormalized: Vec2_ZERO,
     incomingWeight: 1,
+    staggerMS: 0,
+    staggerVariance: 0,
     showParentOutline: false,
-    additionalChildContent: (() => NULL_JSX) as () => JSX.Element,
-    particleGeneratorFunc: (i, a, c) => <div class={a}>{c}</div>,
+    additionalChildContent: () => NULL_JSX,
+    particleGeneratorFunc: defaultGenerator,
 }
 /** Simple explosion-like effect */
 export default function SimpleExplosion(
@@ -91,15 +106,18 @@ export default function SimpleExplosion(
                 y: (GlobalRandom.next() - .5) + (props.incomingNormalized.y * props.incomingWeight)
             });
             const variedSpread = props.spread * (1 - GlobalRandom.next() * props.spreadVariance);
-            const endState = {
+            const endState: ParticleData = {
                 x: 50 + (normalizedRandomDirection.x * variedSpread * 100),
                 y: 50 + (normalizedRandomDirection.y * variedSpread * 100),
                 scale: props.particleSize * ( 1 - GlobalRandom.next() * props.particleSizeVariance ),
+                computedDelayMS: props.staggerMS * (1 - GlobalRandom.next() * props.staggerVariance ),
                 randHash: GlobalHashPool.next(),
             }
             particles.push(
-                props.particleGeneratorFunc(i, 
-                    computeParticleAnimation(endState, props.durationMS), props.additionalChildContent()
+                props.particleGeneratorFunc(
+                    i, 
+                    computeParticleAnimation(endState, props.durationMS), 
+                    props.additionalChildContent()
                 )
             );
         }
@@ -129,25 +147,26 @@ const baseContainerStyle = css`
     transform: translate(-50%, -50%);
 `;
 
-const computeParticleAnimation = (endState: ParticleEndState, durationMS: number) => css`
+const computeParticleAnimation = (data: ParticleData, durationMS: number) => css`
     position: absolute;
     will-change: left, top;
     top: 50%;
     left: 50%;
-    width: ${endState.scale * 100}%;
-    height: ${endState.scale * 100}%;
+    width: ${data.scale * 100}%;
+    height: ${data.scale * 100}%;
     ${Styles.POSITION.TRANSFORM_CENTER}
     transform: translate(-50%, -50%);
     z-index: 1;
-    animation: particleMove-${endState.randHash} ${durationMS / 1000}s ease-out;
-    @keyframes particleMove-${endState.randHash} {
+    animation: particleMove-${data.randHash} ${durationMS / 1000}s ease-out;
+    animation-delay: ${data.computedDelayMS}ms;
+    @keyframes particleMove-${data.randHash} {
         from {
             left: 50%;
             top: 50%;
         }
         to {
-            left: ${endState.x}%;
-            top: ${endState.y}%;
+            left: ${data.x}%;
+            top: ${data.y}%;
         }
     }
 `;
