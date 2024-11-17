@@ -25,6 +25,7 @@ import ColonyWall from "../utils/ColonyWall";
 import { AsteroidsSettingsDTO } from "./AsteroidsGameLoop";
 import PlanetMoonSystem from "@/components/base/PlanetWithMoon";
 import { lerp } from "@/ts/ursaMath";
+import { fireParticleStyle } from "./entities/particles/fireParticleStyle";
 
 interface AsteroidsDisplayComponentProps {
     context: ApplicationContext;
@@ -49,7 +50,7 @@ function assignOrigin<T>(handler: OnEventCallback<T>): OnEventCallback<T> {
     return handler;
 }
 
-const toTransformPlayer = (data: AsteroidsAssignPlayerDataMessageDTO, viewport: Accessor<Vec2>) => {  
+const toTransformPlayer = (data: AsteroidsAssignPlayerDataMessageDTO, viewport: Accessor<Vec2>) => {
     //Draws from original x and y relative values from server, so doesn't need to carry the
     //"original" transform to assure consistency
     return {
@@ -65,9 +66,9 @@ const toTransformAsteroid = (data: AsteroidsAsteroidSpawnMessageDTO, viewport: A
     const height = viewport().y;
 
     // Default values are slightly offset off-screen
-    let computedX = width * 1.05; 
+    let computedX = width * 1.05;
     let computedY = height - (height * 1.05);
-    
+
     // Deterministic randomness by using modulus on ID
     // (all clients should come to the same result)
     if (data.id % 2 === 0) {
@@ -119,12 +120,12 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
 
     createEffect(() => {
         // Accessor invoked, statement is now reactive
-        const dim = viewportDim.get; 
-        
+        const dim = viewportDim.get;
+
         // Untrack lets this ignore any updates to the array store
         untrack(() => {
             for (const player of players.get) {
-                player.transform.set(toTransformPlayer(player, dim)); 
+                player.transform.set(toTransformPlayer(player, dim));
             }
         })
     });
@@ -156,7 +157,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         }));
         const asteroidSpawnSubID = subscribe(ASTEROIDS_ASTEROID_SPAWN_EVENT, assignOrigin((data) => {
             const instance = {
-                ...data, 
+                ...data,
                 startPosition: toTransformAsteroid(data, viewportDim.get),
             }
             asteroids.add(instance);
@@ -181,7 +182,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         }));
         const playerPenaltySubID = subscribe(ASTEROIDS_PLAYER_PENALTY_EVENT, assignOrigin((data) => {
             disablePlayer(
-                players.findFirst(p => p.id === data.playerID)!, 
+                players.findFirst(p => p.id === data.playerID)!,
                 data.timeoutDurationS * 1000, data.type as any
             );
         }));
@@ -207,10 +208,10 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     const maxParticleCount = 50;
     const explosionColors: string[] = Array.from({ length: maxParticleCount }, (_, i) => {
         switch (i % 4) {
-            case 0: return "red"; 
+            case 0: return "red";
             case 1: return "orange";
             case 2: return "black";
-            default: return "white"; 
+            default: return "white";
         }
     })
     const queueAsteroidExplosion = (asteroid: ExtendedAsteroidDTO, theBigOne = false, incomingNormalized?: Vec2, center?: Vec2) => {
@@ -223,10 +224,10 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             incomingNormalized,
             incomingWeight: theBigOne ? 0 : .6,
             particleGeneratorFunc: (index, animation, children) => <div class={css`
-                background-image: radial-gradient(circle, ${explosionColors[index]}, transparent);
+                ${fireParticleStyle}
                 ${animation}
             `}>{children}</div>,
-        })
+        });
         setTimeout(removeFunc, duration);
     }
 
@@ -252,8 +253,8 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     const onPlayerFire = (charCode: string, player: ExtendedPlayerDTO = localPlayer!) => {
         // Events are never replicated back to sender (not counting mock server)
         // so if this is the local player, the event must be emitted
-        if ( player.id === context.backend.player.local.id ) {
-            context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, { 
+        if (player.id === context.backend.player.local.id) {
+            context.events.emit(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, {
                 code: charCode,
                 id: context.backend.player.local.id,
             }, INTERNAL_ORIGIN);
@@ -291,105 +292,105 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     }
 
     const computedCameraShakeStyles = createMemo(() => {
-        return css([ { position: "absolute", width: "100%", height: "100%" },
-            cameraShake.get() ? Styles.ANIM.SHAKE({seconds: CAMERA_SHAKE_DURATION_MS / 1000, strength: 2}) : ""
+        return css([{ position: "absolute", width: "100%", height: "100%" },
+        cameraShake.get() ? Styles.ANIM.SHAKE({ seconds: CAMERA_SHAKE_DURATION_MS / 1000, strength: 2 }) : ""
         ]);
     })
 
     return (
-    <div id="asteroids-display-component" class={css({ position: "absolute", width: "100%", height: "100%" })}>
-        <StarryBackground blur={1} />
-        <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
-            zIndex: -1, position: "absolute",
-            width: "30vw", height: "30vw",
-            right: "1vw"
-        })} />
-        <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
-            zIndex: -1, position: "absolute",
-            width: "20vw", height: "20vw",
-            right: "-1vw", top: "25vh"
-        })} />
+        <div id="asteroids-display-component" class={css({ position: "absolute", width: "100%", height: "100%" })}>
+            <StarryBackground blur={1} />
+            <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
+                zIndex: -1, position: "absolute",
+                width: "30vw", height: "30vw",
+                right: "1vw"
+            })} />
+            <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
+                zIndex: -1, position: "absolute",
+                width: "20vw", height: "20vw",
+                right: "-1vw", top: "25vh"
+            })} />
 
-        <ActionInput
-            subscribers={subscribers}
-            text={context.text}
-            backend={context.backend}
-            actionContext={actionContext}
-            setInputBuffer={buffer.set}
-            inputBuffer={buffer.get}
-            manTriggerFocusPull={focusPull}
-        />
-        <Countdown duration={settings.survivalTimeS} styleOverwrite={timeLeftStyle} />
+            <ActionInput
+                subscribers={subscribers}
+                text={context.text}
+                backend={context.backend}
+                actionContext={actionContext}
+                setInputBuffer={buffer.set}
+                inputBuffer={buffer.get}
+                manTriggerFocusPull={focusPull}
+            />
+            <Countdown duration={settings.survivalTimeS} styleOverwrite={timeLeftStyle} />
 
-        <div id="camera-shake-container" class={computedCameraShakeStyles()}>
-            <div class={healthStyle}>{'❤'.repeat(health())}</div>
+            <div id="camera-shake-container" class={computedCameraShakeStyles()}>
+                <div class={healthStyle}>{'❤'.repeat(health())}</div>
 
-            <PlanetSurface backend={context.backend} />
-            <ColonyWall backend={context.backend} impactPositions={impactPositions} health={health} />
+                <PlanetSurface backend={context.backend} />
+                <ColonyWall backend={context.backend} impactPositions={impactPositions} health={health} />
 
-            <For each={players.get}>{ player => 
-                <div class={css([
+                <For each={players.get}>{player =>
+                    <div class={css([
                         { width: "10vw", height: "10vw" },
                         Styles.POSITION.transformToCSSVariables(player.transform.get()),
                         Styles.POSITION.TRANSFORM_APPLICATOR
                     ])}
-                    ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
-                >
-                    <NTAwait func={() => context.backend.assets.getMetadata(7002)}>{(asset) =>
-                        <GraphicalAsset
-                            metadata={asset}
-                            backend={context.backend}
-                            styleOverwrite={css({ width: "100%", height: "100%" })}
+                        ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
+                    >
+                        <NTAwait func={() => context.backend.assets.getMetadata(7002)}>{(asset) =>
+                            <GraphicalAsset
+                                metadata={asset}
+                                backend={context.backend}
+                                styleOverwrite={css({ width: "100%", height: "100%" })}
+                            />
+                        }</NTAwait>
+                        <BufferBasedButton
+                            register={subscribers.add}
+                            buffer={buffer.get}
+                            onActivation={() => onPlayerFire(player.code)}
+                            name={player.code}
+                            styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, { top: 0 }])}
+                            activationDelay={100}
                         />
-                    }</NTAwait>
-                    <BufferBasedButton 
-                        register={subscribers.add}
-                        buffer={buffer.get}
-                        onActivation={() => onPlayerFire(player.code)}
-                        name={player.code}
-                        styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, { top: 0 }])}
-                        activationDelay={100}
-                    />
-                </div>
-            }</For>
+                    </div>
+                }</For>
 
-            <For each={asteroids.get}>{ asteroid => 
-                <div class={css([
+                <For each={asteroids.get}>{asteroid =>
+                    <div class={css([
                         getAsteroidStyles(asteroid, viewportDim.get()),
                     ])}
-                    ref={e => elements.set(mapKeyOfAsteroid(asteroid.id), e)}
-                >
-                    <NTAwait func={() => context.backend.assets.getMetadata(7001)}>{(asset) =>
-                        <GraphicalAsset
-                            metadata={asset}
-                            backend={context.backend}
-                            styleOverwrite={css({ 
+                        ref={e => elements.set(mapKeyOfAsteroid(asteroid.id), e)}
+                    >
+                        <NTAwait func={() => context.backend.assets.getMetadata(7001)}>{(asset) =>
+                            <GraphicalAsset
+                                metadata={asset}
+                                backend={context.backend}
+                                styleOverwrite={css({
                                     filter: `brightness(${1 - (asteroid.health * 0.2)})`,
                                     transform: `scale(${0.5 + (asteroid.health * 0.3)})`
-                            })}
+                                })}
+                            />
+                        }</NTAwait>
+                        <BufferBasedButton
+                            register={subscribers.add}
+                            buffer={buffer.get}
+                            onActivation={() => onPlayerFire(asteroid.charCode)}
+                            name={asteroid.charCode}
+                            styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, {
+                                bottom: 0,
+                                filter: "drop-shadow(0 0 0.5rem black)"
+                            }])}
+                            activationDelay={100}
                         />
-                    }</NTAwait>    
-                    <BufferBasedButton 
-                        register={subscribers.add}
-                        buffer={buffer.get}
-                        onActivation={() => onPlayerFire(asteroid.charCode)}
-                        name={asteroid.charCode}
-                        styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, { 
-                            bottom: 0,
-                            filter: "drop-shadow(0 0 0.5rem black)" 
-                        }])}
-                        activationDelay={100}
-                    />
-                </div>
-            }</For>
+                    </div>
+                }</For>
 
-            <svg class={css([Styles.POSITION.FULL_SCREEN, { filter: "drop-shadow(0 0 .5rem red)", zIndex: 10}])}>
-                <For each={laserBeams.get}>{generateAnimatedSVGLine}</For>
-            </svg>
+                <svg class={css([Styles.POSITION.FULL_SCREEN, { filter: "drop-shadow(0 0 .5rem red)", zIndex: 10 }])}>
+                    <For each={laserBeams.get}>{generateAnimatedSVGLine}</For>
+                </svg>
 
-            <For each={explosions.get}>{props => <BurstEmitter {...props} />}</For>
+                <For each={explosions.get}>{props => <BurstEmitter {...props} />}</For>
+            </div>
         </div>
-    </div>
     );
 }
 
@@ -423,9 +424,9 @@ const timeLeftStyle = css`
 
 const generateAnimatedSVGLine = (line: Line) => {
     return (
-    <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="white" stroke-width="6">
-        <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="red" stroke-width="2" />
-    </line>)
+        <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="white" stroke-width="6">
+            <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="red" stroke-width="2" />
+        </line>)
 }
 
 const getAsteroidStyles = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => css`
