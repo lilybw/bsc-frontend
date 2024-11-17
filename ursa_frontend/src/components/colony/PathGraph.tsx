@@ -19,6 +19,7 @@ import { ApplicationContext, ColonyState, MultiplayerMode } from '../../meta/typ
 import Player from './Player';
 import { arrayToMap, ColonyAssetWOriginalTransform, ColonyLocationID, ColonyLocationInfoWOriginalTransform, LocLine, loadPathMap, loadPathsFromInitial } from './PathGraphHelpers';
 import AssetCollection from './AssetCollection';
+import PlanetMoonSystem from '../base/PlanetWithMoon';
 
 export const EXPECTED_WIDTH = 1920;
 export const EXPECTED_HEIGHT = 1080;
@@ -265,6 +266,10 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                     />
                 )}</For>
 
+                <div class={planetCornerStyle} id='Planetwithmooncontainer'>
+                    <PlanetMoonSystem backend={props.context.backend} />
+                </div>
+
                 <For each={colonyLocations.get}>
                     {(colonyLocation) => (
                         <NTAwait func={() => props.context.backend.locations.getInfo(colonyLocation.locationID)}>
@@ -360,3 +365,12 @@ const pathGraphContainerStyle = css`
     height: 100vh;
     overflow: visible;
 `;
+
+const planetCornerStyle = css`
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 33vh;
+  height: 33vh;
+  z-index: -1;
+`
