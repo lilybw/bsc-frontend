@@ -14,14 +14,14 @@ export interface BurstEmitterProps {
     durationMS?: number;
     /** Number of particles @default 10 */
     particleCount?: number;
-    /** Base size of particle in percent of parent size as a range from 0 to 1 @default .1 */
+    /** Base size of particle in percent of emitter size as a range from 0 to 1 @default .1 */
     particleSize?: number;
     /** A reduction in scale by up to the given variance @default .5 */
     particleSizeVariance?: number;
     /** Overall size of explosion, calculated in amounts of view width (vw) */
     size?: number;
-    /** As percent of parent size (0-1). How far the particles should spread from the center.
-     * Where 1 (100%) is to the edge of the parent element.
+    /** As percent of emitter size (0-1). How far the particles should spread from the center.
+     * Where 1 (100%) is to the edge of the emitter element.
      * @default .5
      */
     spread?: number;
@@ -42,7 +42,7 @@ export interface BurstEmitterProps {
     staggerMS?: number;
     /** Up to how much to randomly reduce the stagger for each particle in percent (0-1)
      * Duly note that stagger is "additive" in terms of time, and by default, the entire thing 
-     * (parent, particles, ...) will fade out. 
+     * (emitter, particles, ...) will fade out. 
      *  @default 0 */
     staggerVariance?: number;
     /** For providing precomputed / cached / pooled particles.
@@ -58,8 +58,8 @@ export interface BurstEmitterProps {
     particleGeneratorFunc?: (index: number, computedAnimationStyle: string, children: JSX.Element) => JSX.Element;
     /** Additional content to include for each child particle */
     additionalChildContent?: () => JSX.Element;
-    /** Show parent outline */
-    showParentOutline?: boolean;
+    /** Show emitter outline */
+    showEmitterOutline?: boolean;
 }
 
 interface ParticleData {
@@ -87,7 +87,7 @@ const defaults: Omit<Required<BurstEmitterProps>, 'preComputedParticles'> & Part
     incomingWeight: 1,
     staggerMS: 0,
     staggerVariance: 0,
-    showParentOutline: false,
+    showEmitterOutline: false,
     additionalChildContent: () => NULL_JSX,
     particleGeneratorFunc: defaultGenerator,
 }
@@ -133,7 +133,7 @@ export default function BurstEmitter(
                 height: ${props.size}vw; 
                 top: ${props.coords.y}px; 
                 left: ${props.coords.x}px;
-                ${props.showParentOutline ? "border: 1px solid red;" : ""}
+                ${props.showEmitterOutline ? "border: 1px solid red;" : ""}
                 ${Styles.ANIM.FADE_OUT(props.durationMS / 900, "ease-out")}` //Slightly slower than duration
             }
         >{children}</div>
