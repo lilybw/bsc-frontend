@@ -96,7 +96,8 @@ export default function SimpleExplosion(
     // these props are destructured and thus not reactive. They are not meant to be reactive any way.
     rawProps: SimpleExplosionProps) 
 {
-    const props = { ...defaults, ...rawProps };
+    // According to Claude, this is more performant than "{...defaults, ...rawProps}"
+    const props = Object.assign({}, defaults, rawProps);
     const generateParticles = () => {
         //Takes 8ms for 50 particles on good hardware, i.e. not the bottleneck
         const particles: JSX.Element[] = [];
