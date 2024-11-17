@@ -18,7 +18,7 @@ import { StrictJSX } from "@colony/ColonyApp";
 import { Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
 import { Styles } from "@/styles/sharedCSS";
 import Countdown from "@/components/util/Countdown";
-import SimpleExplosion, { SimpleExplosionProps } from "../utils/SimpleExplosion";
+import BurstEmitter, { BurstEmitterProps } from "../utils/BurstEmitter";
 import { get } from "http";
 import PlanetSurface from "@/components/base/PlanetSurface";
 import ColonyWall from "../utils/ColonyWall";
@@ -99,7 +99,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     const viewportDim = createDelayedSignal<Vec2>({ x: window.innerWidth, y: window.innerHeight });
     const laserBeams = createArrayStore<Line>();
     const elements = new Map<ComputedMapKey, HTMLElement>();
-    const explosions = createArrayStore<SimpleExplosionProps>();
+    const explosions = createArrayStore<BurstEmitterProps>();
     const cameraShake = createCooldownSignal(false, { cooldown: CAMERA_SHAKE_DURATION_MS });
     const impactPositions = createArrayStore<Vec2>();
     // Inputs
@@ -387,7 +387,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 <For each={laserBeams.get}>{generateAnimatedSVGLine}</For>
             </svg>
 
-            <For each={explosions.get}>{props => <SimpleExplosion {...props} />}</For>
+            <For each={explosions.get}>{props => <BurstEmitter {...props} />}</For>
         </div>
     </div>
     );

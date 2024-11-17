@@ -5,7 +5,7 @@ import { GlobalHashPool, GlobalRandom } from "@/ts/ursaMath";
 import { css } from "@emotion/css";
 import { For, JSX } from "solid-js";
 
-export interface SimpleExplosionProps {
+export interface BurstEmitterProps {
     /** Where to show the explosion */
     coords: Vec2;
     /** Duration of the explosion in milliseconds 
@@ -73,8 +73,8 @@ interface ParticleData {
 }
 
 export const NULL_JSX: JSX.Element = <></>;
-const defaultGenerator: Required<SimpleExplosionProps>["particleGeneratorFunc"] = (i, a, c) => <div class={a}>{c}</div>;
-const defaults: Omit<Required<SimpleExplosionProps>, 'preComputedParticles'> & Partial<Pick<SimpleExplosionProps, 'preComputedParticles'>> = {
+const defaultGenerator: Required<BurstEmitterProps>["particleGeneratorFunc"] = (i, a, c) => <div class={a}>{c}</div>;
+const defaults: Omit<Required<BurstEmitterProps>, 'preComputedParticles'> & Partial<Pick<BurstEmitterProps, 'preComputedParticles'>> = {
     coords: Vec2_ZERO,
     durationMS: 500,
     particleCount: 10,
@@ -92,9 +92,9 @@ const defaults: Omit<Required<SimpleExplosionProps>, 'preComputedParticles'> & P
     particleGeneratorFunc: defaultGenerator,
 }
 /** Simple explosion-like effect */
-export default function SimpleExplosion(
+export default function BurstEmitter(
     // these props are destructured and thus not reactive. They are not meant to be reactive any way.
-    rawProps: SimpleExplosionProps) 
+    rawProps: BurstEmitterProps) 
 {
     // According to Claude, this is more performant than "{...defaults, ...rawProps}"
     const props = Object.assign({}, defaults, rawProps);
