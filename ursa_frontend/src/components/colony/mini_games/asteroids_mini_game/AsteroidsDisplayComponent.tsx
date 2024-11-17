@@ -374,7 +374,10 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                         buffer={buffer.get}
                         onActivation={() => onPlayerFire(asteroid.charCode)}
                         name={asteroid.charCode}
-                        styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, { bottom: 0 }])}
+                        styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, { 
+                            bottom: 0,
+                            filter: "drop-shadow(0 0 0.5rem black)" 
+                        }])}
                         activationDelay={100}
                     />
                 </div>
