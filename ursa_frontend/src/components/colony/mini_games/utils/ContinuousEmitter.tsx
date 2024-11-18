@@ -107,29 +107,40 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
     const props = Object.assign({}, defaults, rawProps);
     const particles = createArrayStore<ParticleData>([]);
 
-    // As memo so that direction can be reactive in the future
-    const orthogonal = createMemo(() => ({
-        x: -1 * props.direction.y,
-        y: props.direction.x
+    // Mapped into 0-1 range to adhere to CSS percent
+    // Where negative before was "backwards", now anything less than .5 is.
+    const direction = createMemo(() => ({
+        x: .5 + (props.direction.x * .5),
+        y: .5 + (props.direction.y * .5)
     }))
 
+    // As memo so that direction can be reactive in the future
+    const orthogonal = createMemo(() => {
+        const dir = direction();
+        return {
+            x: 1 - dir.y,
+            y: dir.x
+        }
+    })
+
     const generateParticle = () => {
-        const lengthPercentOfParent = props.travelLength * (1 - GlobalRandom.next() * props.travelLengthVariance);
+        const lengthPercentOfParent = props.travelLength * (1 - GlobalRandom.next() * props.travelLengthVariance) - .5;
         const travelSpeedS = props.travelTime * (1 - GlobalRandom.next() * props.travelTimeVariance);
         const sizePercentOfParent = props.particleSize * (1 - GlobalRandom.next() * props.particleSizeVariance);
         const fadeoutStartPercentOfTime = props.fadeoutStart * (1 - GlobalRandom.next() * props.fadeoutStartVariance);
+        const dir = direction();
         const computedDirection = normalizeVec2({
-            x: props.direction.x + (GlobalRandom.next() - .5) * props.spread,
-            y: props.direction.y + (GlobalRandom.next() - .5) * props.spread
+            x: dir.x + (1 - GlobalRandom.next() * props.spread),
+            y: dir.y + (1 - GlobalRandom.next() * props.spread)
         })
         const orth = orthogonal();
         const spawnOffsetRelative = { //Intentionally not normalized
             x: orth.x * (1 - GlobalRandom.next() * props.spawnOffsetVariance),
             y: orth.y * (1 - GlobalRandom.next() * props.spawnOffsetVariance)
         }
-        const endPositionAbsoluteRelativeToParentVW = {
-            x: spawnOffsetRelative.x + computedDirection.x * lengthPercentOfParent * props.size.x,
-            y: spawnOffsetRelative.y + computedDirection.y * lengthPercentOfParent * props.size.y
+        const endPositionPercent = {
+            x: computedDirection.x * lengthPercentOfParent,
+            y: computedDirection.y * lengthPercentOfParent
         }
 
         const computeData: ComputeData = {
@@ -137,9 +148,10 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
             sizePercentOfParent,
             fadeoutStartPercentOfTime,
             startPercent: spawnOffsetRelative,
-            endPercent: endPositionAbsoluteRelativeToParentVW,
+            endPercent: endPositionPercent,
             randHash: GlobalHashPool.next()
         }
+        console.log(computeData);
 
         const animation = computeParticleStyles(computeData);
         const particle: ParticleData = {

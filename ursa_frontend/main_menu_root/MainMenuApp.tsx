@@ -57,8 +57,10 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign(
                 <LanguageSelectInlay text={props.context.text} backend={props.context.backend} />
                 {CurrentPage()({ context: props.context, goToPage: goToPage, goBack: goBack })}
                 <ContinuousEmitter 
-                    coords={{ x: 500, y: 500 }}
-                    spawnOffsetVariance={.5}
+                    coords={{ x: 1000, y: 500 }}
+                    size={{ x: 50, y: 50 }}
+                    spread={0}
+                    spawnOffsetVariance={0}
                     showEmitterOutline
                 />
             </div>
