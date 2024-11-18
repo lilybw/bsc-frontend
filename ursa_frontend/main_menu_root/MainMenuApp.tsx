@@ -8,7 +8,6 @@ import LanguageSelectInlay from '../src/components/base/LanguageSelectInlay';
 import { ApplicationContext, BundleComponent, Bundle } from '@/meta/types';
 import { Styles } from '@/styles/sharedCSS';
 import { ApplicationProps } from '@/ts/types';
-import ContinuousEmitter from '@/components/colony/mini_games/utils/ContinuousEmitter';
 
 export enum MenuPages {
     LANDING_PAGE = 'landing',
@@ -56,13 +55,6 @@ const MainMenuApp: BundleComponent<ApplicationProps> = Object.assign(
             <div class={mainMenuAppStyle} id="the-main-menu-app">
                 <LanguageSelectInlay text={props.context.text} backend={props.context.backend} />
                 {CurrentPage()({ context: props.context, goToPage: goToPage, goBack: goBack })}
-                <ContinuousEmitter 
-                    coords={{ x: 1000, y: 500 }}
-                    size={{ x: 50, y: 50 }}
-                    spread={0}
-                    spawnOffsetVariance={0}
-                    showEmitterOutline
-                />
             </div>
         );
     },
