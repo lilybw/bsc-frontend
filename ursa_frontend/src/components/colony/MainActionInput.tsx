@@ -137,8 +137,8 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             <div
                 class={css`
                     ${inputContainerStyle} ${isShaking() ? Styles.ANIM.COLOR_SHAKE({
-                        seconds: shakeTimeS, interpolation: "linear", retainedProperties: { transform: "translate(-50%, 50%)" }
-                    }) : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}
+                    seconds: shakeTimeS, interpolation: "linear", retainedProperties: { transform: "translate(-50%, 50%)" }
+                }) : ''} ${enterSuccessfullyPressed() ? enterAnimation : ''}
                 `}
                 id="main-input-container"
             >
@@ -155,6 +155,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                     autofocus={!props.demoMode}
                     ref={inputRef}
                     id="main-input-field"
+                    autocomplete="off"
                 />
             </div>
         </div>
