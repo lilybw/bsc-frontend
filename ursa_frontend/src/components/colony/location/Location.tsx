@@ -61,7 +61,7 @@ const Location: Component<LocationProps> = (props) => {
     const [idOfDiffSelected, setIdOfDiffSelected] = createSignal(-1);
     const [previousActionContext, setPreviousActionContext] = createSignal(ActionContext.NAVIGATION);
     const log = props.backend.logger.copyFor('loc ' + props.colonyLocation.id);
-    const internalOrigin = "location-"+props.colonyLocation.id;
+    const internalOrigin = "location-" + props.colonyLocation.id;
 
     const currentDisplayText = createMemo(() =>
         isUserHere() ? props.text.get('LOCATION.USER_ACTION.ENTER').get() : props.text.get(props.location.name).get(),
@@ -115,18 +115,18 @@ const Location: Component<LocationProps> = (props) => {
         if (showLocationCard()) {
             return (
                 <Portal>
-                <LocationCard
-                    multiplayer={props.multiplayer}
-                    colony={props.colony}
-                    events={props.plexer}
-                    colonyLocation={props.colonyLocation}
-                    location={props.location}
-                    buffer={props.buffer}
-                    backend={props.backend}
-                    text={props.text}
-                    register={props.register}
-                    onClose={onLocationCardClose}
-                />
+                    <LocationCard
+                        multiplayer={props.multiplayer}
+                        colony={props.colony}
+                        events={props.plexer}
+                        colonyLocation={props.colonyLocation}
+                        location={props.location}
+                        buffer={props.buffer}
+                        backend={props.backend}
+                        text={props.text}
+                        register={props.register}
+                        onClose={onLocationCardClose}
+                    />
                 </Portal>
             );
         }
@@ -143,7 +143,7 @@ const Location: Component<LocationProps> = (props) => {
     return (
         <div class={computedContainerStyle()} id={'location-' + props.location.name + '-level-' + props.colonyLocation.level}>
             <AssetCollection
-                id={getCollectionForLevel(0, props.location).assetCollectionID}
+                id={getCollectionForLevel(props.colonyLocation.level, props.location).assetCollectionID}
                 backend={props.backend}
             />
             <BufferBasedButton
