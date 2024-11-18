@@ -11,7 +11,7 @@ import { STYLE_LOC_CARD_backgroundImageStyle, STYLE_LOC_CARD_cardContainerStyle,
 
 interface PostGameScreenProps extends IBackendBased, IRegistering<string>, IInternationalized, IBufferBased {
     title: string;
-    titleColor: string;
+    titleColor?: string;
     minigameID: number;
     minigameName: string;
     difficultyName: string;
@@ -28,6 +28,34 @@ const getBackgroundAssetId = (minigameID: number): number => {
 };
 
 const PostGameScreen: Component<PostGameScreenProps> = (props) => {
+    const getTitleStyles = () => {
+        const isVictory = props.title.includes("VICTORY");
+
+        if (props.titleColor) {
+            return {
+                color: props.titleColor,
+                shadow: `0 0 10px ${props.titleColor}`
+            };
+        }
+
+        // Default softer colors
+        return isVictory ? {
+            color: 'rgba(255, 180, 100, 0.9)',
+            shadow: `
+                0 0 10px rgba(255, 165, 0, 0.5),
+                0 0 20px rgba(255, 165, 0, 0.3)
+            `
+        } : {
+            color: 'rgba(255, 100, 100, 0.9)',
+            shadow: `
+                0 0 10px rgba(255, 0, 0, 0.5),
+                0 0 20px rgba(255, 0, 0, 0.3)
+            `
+        };
+    };
+
+    const titleStyles = getTitleStyles();
+
     return (
         <div class={locationCardContainerStyle}>
             <div class={STYLE_LOC_CARD_cardContainerStyle} id={`post-game-screen-${props.minigameName}`}>
@@ -44,7 +72,8 @@ const PostGameScreen: Component<PostGameScreenProps> = (props) => {
                 {props.text.Title(props.title)({
                     styleOverwrite: css`
                         ${STYLE_LOC_CARD_titleStyleOverwrite}
-                        color: ${props.titleColor};
+                        color: ${titleStyles.color};
+                        text-shadow: ${titleStyles.shadow};
                         font-size: 5rem;
                     `
                 })}
