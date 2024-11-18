@@ -1,11 +1,8 @@
-import BufferBasedButton from "@/components/base/BufferBasedButton";
-import { MinigameLostMessageDTO } from "@/integrations/multiplayer_backend/EventSpecifications";
-import { Styles } from "@/styles/sharedCSS";
-import { IBackendBased, IRegistering, IInternationalized, IBufferBased } from "@/ts/types";
-import { css } from "@emotion/css";
 import { Component } from "solid-js";
-import { postGameScreenContainerStyles } from "./VictoryScreen";
+import { MinigameLostMessageDTO } from "@/integrations/multiplayer_backend/EventSpecifications";
+import { IBackendBased, IBufferBased, IInternationalized, IRegistering } from "@/ts/types";
 import { getMinigameName } from "@/components/colony/mini_games/miniGame";
+import PostGameScreen from "./PostGameScreen";
 
 interface DefeatScreenProps extends IBackendBased, IRegistering<string>, IInternationalized, IBufferBased {
     data: MinigameLostMessageDTO;
@@ -14,28 +11,19 @@ interface DefeatScreenProps extends IBackendBased, IRegistering<string>, IIntern
 
 const DefeatScreen: Component<DefeatScreenProps> = (props) => {
     return (
-        <div class={postGameScreenContainerStyles}>
-            {props.text.Title("MINIGAME.DEFEAT")({styleOverwrite: css`color: red; position: absolute; top: 1vh; font-size: 5rem;`})}
-            <div class={Styles.MINIGAME.TITLE}>{getMinigameName(props.data.minigameID)}</div>
-            <div class={difficultySubsection}>
-                <div>{props.text.SubTitle("MINIGAME.DIFFICULTY")({})}</div>
-                <div>{props.text.SubTitle(props.data.difficultyName)({styleOverwrite: Styles.MINIGAME.DIFFICULTY_NAME})}</div>
-            </div>
-            <BufferBasedButton 
-                onActivation={props.clearSelf}
-                name={props.text.get("COLONY.UI_BUTTON.CLOSE").get}
-                buffer={props.buffer}
-                register={props.register}
-                styleOverwrite={css`position: absolute; bottom: 1vh;`}
-            />
-        </div>
+        <PostGameScreen
+            title="MINIGAME.DEFEAT"
+            titleColor="red"
+            minigameID={props.data.minigameID}
+            minigameName={getMinigameName(props.data.minigameID)}
+            difficultyName={props.data.difficultyName}
+            clearSelf={props.clearSelf}
+            text={props.text}
+            buffer={props.buffer}
+            register={props.register}
+            backend={props.backend}
+        />
     );
 };
-export default DefeatScreen;
 
-const difficultySubsection = css`
-display: flex; 
-flex-direction: row; 
-justify-content: space-evenly;
-width: 50%;
-`
+export default DefeatScreen;
