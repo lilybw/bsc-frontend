@@ -156,7 +156,6 @@ const computeParticleAnimation = (data: ParticleData, durationMS: number) => css
     width: ${data.scale * 100}%;
     height: ${data.scale * 100}%;
     ${Styles.POSITION.TRANSFORM_CENTER}
-    transform: translate(-50%, -50%);
     z-index: 1;
     animation: particleMove-${data.randHash} ${durationMS / 1000}s ease-out;
     animation-delay: ${data.computedDelayMS}ms;
