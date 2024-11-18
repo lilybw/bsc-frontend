@@ -9,6 +9,8 @@ import { JSX } from "solid-js/jsx-runtime";
 interface ContinuousEmitterProps {
     /** Where on the screen to place the emitter */
     coords: Vec2;
+    /** Turns emitter placement coords from being intepreted in "px" to "vw" & "vh" respectively */
+    relativePositioning?: boolean;
     /** Whether or not the emitter is on. Reactive. If not provided, the emitter is on. 
      * When turned off, any remaining particles will finish their animation and then be removed.
     */
@@ -37,6 +39,8 @@ interface ContinuousEmitterProps {
     travelLength?: number;
     /** Up to how much to randomly reduce travelLength in percent (0-1) per particle @default .3 */
     travelLengthVariance?: number;
+    /** What interpolation to use for moving each particle @default "linear" */
+    movementIntepolation?: "linear" | "ease-in" | "ease-out" | "ease-in-out";
     /** In percent of travel time: When to begin fading out the individual particle. @default .3 */
     fadeoutStart?: number;
     /** Up to how much to randomly vary fadeoutStart @default .1 */
@@ -71,6 +75,7 @@ interface ComputeData {
     travelTimeS: number;
     sizePercentOfParent: number;
     fadeoutStartPercentOfTime: number;
+    movementInterpolation: string;
     startPercent: Vec2;
     endPercent: Vec2;
     randHash: string;
@@ -84,6 +89,7 @@ interface ParticleData {
 export const NULL_JSX: JSX.Element = <></>;
 const defaults: Omit<Required<ContinuousEmitterProps>, 'particleModulator'> & Partial<Pick<ContinuousEmitterProps, 'particleModulator'>> = {
     coords: Vec2_ZERO,
+    relativePositioning: false,
     active: () => true,
     size: Vec2_TWENTY,
     spawnRate: 10,
@@ -98,6 +104,7 @@ const defaults: Omit<Required<ContinuousEmitterProps>, 'particleModulator'> & Pa
     fadeoutStart: .3,
     fadeoutStartVariance: .1,
     spawnOffsetVariance: 0,
+    movementIntepolation: "linear",
     showEmitterOutline: false,
     particlePoolSize: 0,
     additionalParticleContent: () => NULL_JSX,
@@ -143,6 +150,7 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
             travelTimeS: travelSpeedS,
             sizePercentOfParent,
             fadeoutStartPercentOfTime,
+            movementInterpolation: props.movementIntepolation,
             startPercent: mapToCSSPercentSpace(spawnOffsetRelative),
             endPercent: mapToCSSPercentSpace(endPositionPercent),
             randHash: GlobalHashPool.next()
@@ -173,8 +181,8 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
         <div class={css`${baseContainerStyle}
             width: ${props.size.x}vw; 
             height: ${props.size.y}vw; 
-            top: ${props.coords.y}px; 
-            left: ${props.coords.x}px;
+            top: ${props.coords.y}${props.relativePositioning ? "vh" : "px"}; 
+            left: ${props.coords.x}${props.relativePositioning ? "vw" : "px"};
             ${props.showEmitterOutline ? "border: 1px solid red;" : ""}` //Slightly slower than duration
         }>
             <For each={particles.get}>{ particle => 
@@ -199,6 +207,7 @@ const computeParticleStyles = (data: ComputeData) => css`
     animation-name: particleMove-${data.randHash}, particleFade-${data.randHash};
     animation-delay: 0s, ${data.travelTimeS * data.fadeoutStartPercentOfTime}s;
     animation-duration: ${data.travelTimeS}s, ${data.travelTimeS * (1 - data.fadeoutStartPercentOfTime)}s;
+    animation-timing-function: ${data.movementInterpolation}, linear;
     @keyframes particleMove-${data.randHash} {
         from {
             left: ${data.startPercent.x * 100}%;

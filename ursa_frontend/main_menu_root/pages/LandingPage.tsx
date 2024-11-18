@@ -8,6 +8,7 @@ import StarryBackground from '../../src/components/base/StarryBackground';
 import GraphicalAsset from '@/components/base/GraphicalAsset';
 import NTAwait from '@/components/util/NoThrowAwait';
 import { Styles } from '@/styles/sharedCSS';
+import ContinuousEmitter from '@/components/colony/mini_games/utils/ContinuousEmitter';
 
 const LandingPage: Component<MenuPageProps> = (props) => {
     const tutorialOnly = createMemo(() => {
@@ -17,14 +18,6 @@ const LandingPage: Component<MenuPageProps> = (props) => {
     //Lunar Truck id: 5001
     return (
         <>  
-            <div class={css([{
-                    position: 'absolute',
-                    top: '50%', left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '101%', height: '101%',
-                    backgroundImage: `linear-gradient(-45deg, transparent, black)`,
-                }])}
-            />
             <NTAwait func={() => props.context.backend.assets.getMetadata(5001)}>{(asset) => 
                 <GraphicalAsset metadata={asset} backend={props.context.backend} styleOverwrite={css({
                     position: 'absolute',
@@ -33,9 +26,30 @@ const LandingPage: Component<MenuPageProps> = (props) => {
                     width: '101%', height: '101%',
                     objectFit: 'cover',
                     filter: 'contrast(1.3) blur(2px)',
-                    zIndex: -10,
                 })}/>
             }</NTAwait>
+            <ContinuousEmitter 
+                coords={{x: 0, y: 50}}
+                relativePositioning
+                size={{x: 200, y: 100}}
+                direction={() => ({x: 1, y: 0})}
+                spawnOffsetVariance={.5}
+                spread={0}
+                spawnRate={1}
+                travelLength={1.2}
+                fadeoutStart={1}
+                travelTime={10}
+                particleSize={0.005}
+                additionalParticleContent={() => <div class={speedParticleSize}/>}
+            />
+            <div class={css([{
+                    position: 'absolute',
+                    top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '101%', height: '101%',
+                    backgroundImage: `linear-gradient(-45deg, transparent, black)`,
+                }])}
+            />
             <SectionTitle
                 styleOverwrite={css`
                     position: absolute;
@@ -60,6 +74,13 @@ const LandingPage: Component<MenuPageProps> = (props) => {
     );
 };
 export default LandingPage;
+
+const speedParticleSize = css`
+width: 100%;
+height: 100%;
+background: rgba(255, 255, 255, .5);
+`
+
 const menuOptionsListStyle = css({
     position: "absolute",
     display: "flex",
