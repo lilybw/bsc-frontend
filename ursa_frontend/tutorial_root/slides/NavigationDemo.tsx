@@ -49,7 +49,7 @@ export default function NavigationDemo(props: NavigationDemoProps): JSX.Element 
 
     return (
         <div class={tutorialStyles.layout.container}>
-            <StarryBackground />
+            <StarryBackground backend={props.backend} />
             {props.text.SubTitle('TUTORIAL.NAVIGATION_DEMO.DESCRIPTION')({
                 styleOverwrite: tutorialStyles.typography.subtitle
             })}

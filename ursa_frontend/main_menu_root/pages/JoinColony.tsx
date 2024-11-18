@@ -146,7 +146,7 @@ const JoinColonyPage: Component<MenuPageProps> = (props) => {
                 goNext={{ name: 'MENU.OPTION.JOIN_COLONY', func: handleJoin }}
                 goNextEnabled={createMemo(() => checkInput() && inputEngaged())}
             />
-            <StarryBackground />
+            <StarryBackground backend={props.context.backend} />
         </div>
     );
 };

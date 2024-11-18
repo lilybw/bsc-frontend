@@ -98,7 +98,7 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
 
     return (
         <div class={tutorialStyles.layout.container}>
-            <StarryBackground />
+            <StarryBackground backend={props.backend} />
             {props.text.SubTitle(
                 demoPhase.phase() === 'navigation'
                     ? 'TUTORIAL.NAVIGATION_DEMO.DESCRIPTION'

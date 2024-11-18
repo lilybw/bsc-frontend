@@ -75,7 +75,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
          * Renders the main colony layout.
          * @returns The colony layout as a StrictJSX element.
          */
-        const colonyLayout = 
+        const colonyLayout =
             (
                 <Unwrap data={[bundleSwapColonyInfo, bundeSwapPlayerInfo]} fallback={onColonyInfoLoadError}>
                     {(colonyInfo, playerInfo) => (
@@ -142,7 +142,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             const colonyState = props.context.multiplayer.getState();
             if (colonyState === ColonyState.CLOSED) {
                 mockServer.start();
-            }else{
+            } else {
                 mockServer.shutdown();
             }
         })
@@ -168,7 +168,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
 
                 setShuntNotificationReason('NOTIFICATION.MULTIPLAYER.LOBBY_CLOSING');
             });
-            
+
             onCleanup(() => {
                 clientTracker.unmount();
                 props.context.events.unsubscribe(
@@ -193,7 +193,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
 
         return (
             <div id="colony-app">
-                <StarryBackground />
+                <StarryBackground backend={props.context.backend} />
                 {pageContent()}
                 <MinigameSequenceOverlay
                     clientTracker={clientTracker}

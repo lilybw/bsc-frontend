@@ -299,7 +299,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
 
     return (
         <div id="asteroids-display-component" class={css({ position: "absolute", width: "100%", height: "100%" })}>
-            <StarryBackground blur={1} />
+            <StarryBackground backend={context.backend} />
             <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
                 zIndex: -1, position: "absolute",
                 width: "30vw", height: "30vw",

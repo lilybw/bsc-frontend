@@ -37,7 +37,7 @@ export default function LanguagePage(props: LanguagePageProps): JSX.Element {
 
     return (
         <div class="language-tutorial-page">
-            <StarryBackground />
+            <StarryBackground backend={props.backend} />
             <div class={languageListStyle}>
                 <For each={props.text.getAvailableLanguages()}>
                     {(language) => (

@@ -20,7 +20,7 @@ export default function TutorialCompletePage(props: TutorialCompletePageProps): 
 
     return (
         <div class="tutorial-complete-page">
-            <StarryBackground />
+            <StarryBackground backend={props.backend} />
             <NTAwait func={() => props.backend.assets.getMetadata(1018)}>
                 {(asset) => <GraphicalAsset styleOverwrite={imageOverwrite} metadata={asset} backend={props.backend} />}
             </NTAwait>

@@ -234,7 +234,7 @@ const MultiplayerTrial: Component<MultiplayerTrialProps> = (props) => {
 
     return (
         <div class={tutorialStyles.layout.container}>
-            <StarryBackground />
+            <StarryBackground backend={props.backend} />
             {props.text.Title('TUTORIAL.TRIAL.TITLE')({
                 styleOverwrite: tutorialStyles.typography.title
             })}

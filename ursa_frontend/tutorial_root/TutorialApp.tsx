@@ -105,7 +105,7 @@ const TutorialApp: BundleComponent<ApplicationProps> = Object.assign(
 
         return (
             <div class={containerStyle} id="the-tutorial-app">
-                <StarryBackground />
+                <StarryBackground backend={props.context.backend} />
                 <ProgressTracker
                     currentSlide={currentSlide}
                     slideStore={slideStore}

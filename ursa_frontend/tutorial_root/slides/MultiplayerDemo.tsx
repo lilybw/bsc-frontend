@@ -173,7 +173,7 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
 
     return (
         <div class={tutorialStyles.layout.container}>
-            <StarryBackground />
+            <StarryBackground backend={props.backend} />
             {props.text.SubTitle("TUTORIAL.MULTPLAYER.DESCRIPTION")({
                 styleOverwrite: tutorialStyles.typography.subtitle
             })}

@@ -16,7 +16,7 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
     }, 5000);
     return (
         <div class="welcome-tutorial-page">
-            <StarryBackground styleOverwrite={backgroundStyleOverwrite} />
+            <StarryBackground styleOverwrite={backgroundStyleOverwrite} backend={props.backend} />
             <div class={starStyle} id="moving-star" />
             <div class={planetContainerStyle} id="shadow-container">
                 <div class={solarPlanetShadowStyle} id="planet-shadow" />

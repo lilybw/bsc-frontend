@@ -100,7 +100,7 @@ const ColonyListPage: Component<MenuPageProps> = (props) => {
                 goNext={{ name: 'MENU.NAVIGATION.CONFIRM', func: handleGoToColony }}
                 goNextEnabled={() => selectedColonyId() !== null}
             />
-            <StarryBackground />
+            <StarryBackground backend={props.context.backend} />
         </div>
     );
 };
@@ -127,7 +127,7 @@ const pageTitleStyle = css`
 `;
 
 const backgroundTopVh = 14;
-const backgroundHeightVh = 65; 
+const backgroundHeightVh = 65;
 const colonyListBackgroundStyle = css`
     display: flex;
     flex-direction: column;
