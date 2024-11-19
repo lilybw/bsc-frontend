@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import { Accessor, Component, createEffect, createSignal, onMount, onCleanup, Setter } from 'solid-js';
+import { Accessor, Component, createEffect, createSignal, onMount, Setter } from 'solid-js';
 import { BufferSubscriber, TypeIconTuple } from '../../ts/actionContext';
 import { IBackendBased, IInternationalized, IStyleOverwritable } from '../../ts/types';
 import { ArrayStore } from '../../ts/arrayStore';
@@ -34,33 +34,6 @@ const ActionInput: Component<ActionInputProps> = (props) => {
     const [enterSuccessfullyPressed, setEnterSuccessfullyPressed] = createSignal(false);
     let inputRef: HTMLInputElement | undefined;
 
-    // Add global keyboard handler
-    const handleGlobalKeyPress = (e: KeyboardEvent) => {
-        if (props.demoMode) return;
-
-        if (e.key === 'Enter') {
-            handleEnter();
-        } else if (e.key === 'Backspace') {
-            props.setInputBuffer(props.inputBuffer().slice(0, -1));
-        } else if (e.key.length === 1) { // Only handle printable characters
-            props.setInputBuffer(props.inputBuffer() + e.key);
-        }
-        // Prevent the default behavior for all keys
-        e.preventDefault();
-    };
-
-    // Set up global listener on mount
-    onMount(() => {
-        if (props.demoMode) return;
-        window.addEventListener('keydown', handleGlobalKeyPress, { capture: true });
-    });
-
-    // Clean up listener on unmount
-    onCleanup(() => {
-        if (props.demoMode) return;
-        window.removeEventListener('keydown', handleGlobalKeyPress, { capture: true });
-    });
-
     createEffect(() => {
         if (isVisible() && !props.demoMode) {
             inputRef?.focus();
@@ -94,6 +67,24 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             triggerEnterAnimation();
         });
     }
+
+    onMount(() => {
+        if (props.demoMode) return;
+        inputRef?.focus();
+    });
+
+    const onKeyDown = (e: KeyboardEvent) => {
+        if (props.demoMode) return;
+
+        if (e.key !== 'Enter') {
+            setTimeout(() => {
+                const value = (e.target as HTMLInputElement).value;
+                props.setInputBuffer(value);
+            }, 0);
+        } else {
+            handleEnter();
+        }
+    };
 
     const triggerShake = () => {
         setIsShaking(true);
@@ -157,9 +148,11 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                 <input
                     type="text"
                     class={inputFieldStyle}
+                    onKeyDown={onKeyDown}
                     value={props.inputBuffer()}
                     disabled={props.demoMode}
                     placeholder={props.text.get('ACTION_INPUT.WRITE_HERE').get()}
+                    autofocus={!props.demoMode}
                     ref={inputRef}
                     id="main-input-field"
                     autocomplete="off"
@@ -168,6 +161,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
         </div>
     );
 };
+export default ActionInput;
 
 const demoEnterIconStyleOverwrite = css`
     position: absolute;
@@ -286,10 +280,8 @@ const backgroundTrapezoidStyle = css`
     z-index: 1;
     width: 100%;
     min-width: 5rem;
-    height: auto;
+    height: auto; /* Let the height be determined by the SVG content */
     min-height: 5rem;
 
     filter: drop-shadow(0 0 0.5rem black);
 `;
-
-export default ActionInput;
