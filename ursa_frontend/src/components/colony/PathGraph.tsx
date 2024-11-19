@@ -295,7 +295,17 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 </For>
 
                 <For each={props.clients.get}>
-                    {(client) => <Player GAS={GAS.get} client={client} transformMap={transformMap} backend={props.context.backend} showNamePlate />}
+                    {(client, index) => (
+                        <Player
+                            GAS={GAS.get}
+                            client={client}
+                            transformMap={transformMap}
+                            backend={props.context.backend}
+                            showNamePlate
+                            totalClients={props.clients.get.length + 1} // +1 for local player
+                            clientIndex={index() + 1} // +1 since index starts at 0
+                        />
+                    )}
                 </For>
             </div>
 
@@ -322,6 +332,8 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 backend={props.context.backend}
                 styleOverwrite={localPlayerStyle}
                 isLocalPlayer={true}
+                totalClients={props.clients.get.length + 1}
+                clientIndex={0}  // This ensures local player gets no hue shift
             />
         </div>
     );
