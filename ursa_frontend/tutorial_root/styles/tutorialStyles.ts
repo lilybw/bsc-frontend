@@ -62,10 +62,9 @@ export const tutorialStyles = {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 32px;
-            height: 32px;
-            background-color: #ef4444;
-            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         `,
 
         movementPath: css`

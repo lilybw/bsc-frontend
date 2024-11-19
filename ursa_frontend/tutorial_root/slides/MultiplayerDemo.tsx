@@ -201,7 +201,7 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
                     styleOverwrite={tutorialStyles.elements.locationPin}
                     backend={props.backend}
                 />
-                <NTAwait func={() => props.backend.assets.getMetadata(4001)}>
+                <NTAwait func={() => props.backend.assets.getMetadata(4002)}>
                     {(asset) => (
                         <GraphicalAsset
                             styleOverwrite={computedPlayerStyle()}

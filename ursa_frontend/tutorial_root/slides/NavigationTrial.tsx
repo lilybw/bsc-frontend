@@ -332,7 +332,17 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
                 </For>
             </div>
 
-            <div class={tutorialStyles.elements.localPlayer} />
+            {/*player*/}
+            <NTAwait func={() => props.backend.assets.getMetadata(4002)}>
+                {(asset) => (
+                    <div class={tutorialStyles.elements.localPlayer}>
+                        <GraphicalAsset
+                            metadata={asset}
+                            backend={props.backend}
+                        />
+                    </div>
+                )}
+            </NTAwait>
 
             <ActionInput
                 subscribers={bufferSubscribers}
