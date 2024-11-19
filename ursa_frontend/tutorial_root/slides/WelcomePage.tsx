@@ -22,7 +22,11 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
                 <div class={solarPlanetShadowStyle} id="planet-shadow" />
             </div>
             <NTAwait func={() => props.backend.assets.getMetadata(3001)}>
-                {(asset) => <GraphicalAsset styleOverwrite={gasGiantStyleOverwrite} metadata={asset} backend={props.backend} />}
+                {(asset) => (
+                    <div class={planetWrapper}>
+                        <GraphicalAsset styleOverwrite={gasGiantStyleOverwrite} metadata={asset} backend={props.backend} />
+                    </div>
+                )}
             </NTAwait>
 
             <div class={planetAtmosphereStyle} />
@@ -31,28 +35,40 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
         </div>
     );
 }
+
 const sunMoveSpeedS = 30;
 
-const planetContainerStyle = css`
+const planetWrapper = css`
     position: absolute;
-    object-fit: none;
-
-    border-radius: 50%;
-
     width: 122%;
     height: 100%;
     bottom: -69%;
     left: 50%;
     transform: translateX(-50%);
-
     overflow: hidden;
+    border-radius: 50%;
+`;
+
+const planetContainerStyle = css`
+    position: absolute;
+    width: 122%;
+    height: 100%;
+    bottom: -69%;
+    left: 50%;
+    transform: translateX(-50%);
+    overflow: hidden;
+    border-radius: 50%;
 `;
 
 const gasGiantStyleOverwrite = css`
-    ${planetContainerStyle}
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     z-index: -1;
     filter: contrast(2) hue-rotate(80deg);
 `;
+
 const solarPlanetShadowStyle = css`
     position: relative;
     z-index: 1;
@@ -76,29 +92,30 @@ const solarPlanetShadowStyle = css`
 `;
 
 const animMovingStars = keyframes`
-0% {
-    transform: scale(2) translateX(25%);
-}
-100% {
-    transform: scale(2.5) translateX(-25%);
-}
+    0% {
+        transform: scale(2) translateX(25%);
+    }
+    100% {
+        transform: scale(2.5) translateX(-25%);
+    }
 `;
+
 const animSunMovement = keyframes`
-0% {
-    top: 33%;
-    left: -5%;
-    filter: drop-shadow(0 0 3rem white);
-}  
-50% {
-    top: 26.5%;
-    left: 50%;
-    filter: drop-shadow(0 0 .5rem white);
-}
-100% {
-    top: 30%;
-    left: 105%;
-    filter: drop-shadow(0 0 3rem white);
-}
+    0% {
+        top: 33%;
+        left: -5%;
+        filter: drop-shadow(0 0 3rem white);
+    }  
+    50% {
+        top: 26.5%;
+        left: 50%;
+        filter: drop-shadow(0 0 .5rem white);
+    }
+    100% {
+        top: 30%;
+        left: 105%;
+        filter: drop-shadow(0 0 3rem white);
+    }
 `;
 
 const backgroundStyleOverwrite = css`
@@ -142,13 +159,14 @@ const planetAtmosphereStyle = css`
         transparent 100%
     );
 `;
+
 const animTitleHighlight = keyframes`
-0% {
-    filter: drop-shadow(-.5rem -.5rem .5rem hsla(0, 0%, 100%, .5));
-}
-100% {
-    filter: drop-shadow(.5rem -.5rem .5rem hsla(0, 0%, 100%, .5));
-}
+    0% {
+        filter: drop-shadow(-.5rem -.5rem .5rem hsla(0, 0%, 100%, .5));
+    }
+    100% {
+        filter: drop-shadow(.5rem -.5rem .5rem hsla(0, 0%, 100%, .5));
+    }
 `;
 
 const titleStyle = css`
@@ -164,18 +182,18 @@ const titleStyle = css`
 `;
 
 const animFrontShadow = keyframes`
-0% {
-    left: 50.3%;
-    bottom: 32.5%;
-}
-50% {
-    left: 50%;
-    bottom: 32.25%;
-}
-100% {
-    left: 49.7%;
-    bottom: 32.5%;
-}
+    0% {
+        left: 50.3%;
+        bottom: 32.5%;
+    }
+    50% {
+        left: 50%;
+        bottom: 32.25%;
+    }
+    100% {
+        left: 49.7%;
+        bottom: 32.5%;
+    }
 `;
 
 const titleFrontShadow = css`
