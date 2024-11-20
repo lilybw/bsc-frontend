@@ -4,22 +4,7 @@ import GraphicalAsset from './GraphicalAsset';
 import NTAwait from '../util/NoThrowAwait';
 import { IBackendBased, IStyleOverwritable } from '@/ts/types';
 
-interface PlanetSurfaceProps extends IStyleOverwritable, IBackendBased {}
-
-const PlanetSurface: Component<PlanetSurfaceProps> = (props) => {
-    return (
-        <div class={css([containerStyle, props.styleOverwrite])} id="planet-surface-container">
-        <NTAwait func={() => props.backend.assets.getMetadata(7005)}>{ asset => 
-            <GraphicalAsset
-                backend={props.backend}
-                metadata={asset}
-                styleOverwrite={css(imageStyle)}
-            />
-        }</NTAwait>
-        </div>
-    );
-};
-export default PlanetSurface;
+interface PlanetSurfaceProps extends IStyleOverwritable, IBackendBased { }
 
 const colorSchemes = [
     'hue-rotate(210deg) saturate(20%) brightness(95%)',
@@ -33,20 +18,63 @@ const getRandomFilter = () => {
     return colorSchemes[Math.floor(Math.random() * colorSchemes.length)];
 };
 
-const containerStyle = css({
-    position: "absolute",
-    width: "100%",
-    height: "55%",
-    bottom: 0,
-    //Fog / dust effect
-    backgroundImage: "linear-gradient(transparent 10%, rgba(255, 255, 255, 0.5) 13%, transparent 55%)"
-})
+const currentFilter = getRandomFilter();
 
 const imageStyle = css({
-    filter: getRandomFilter(),
+    filter: currentFilter,
     objectFit: "fill",
-    top: "5%",
+    width: "100%",
+    height: "50%",
+    position: "absolute",
+    bottom: 0,
+    zIndex: -1
+});
+
+const gradientStyle = css({
+    position: "absolute",
     width: "100%",
     height: "100%",
-    zIndex: -1,
+    bottom: 0,
+    pointerEvents: "none",
+    filter: currentFilter,
+    backgroundImage: `
+        linear-gradient(
+            transparent 35%,
+            rgba(255, 235, 220, 0.1) 42%,
+            rgba(255, 235, 220, 0.2) 45%,
+            rgba(255, 235, 220, 0.3) 47%,
+            rgba(255, 245, 235, 0.5) 49%,
+            rgba(255, 250, 245, 0.7) 50%,
+            transparent 60%
+        ),
+        linear-gradient(
+            transparent 40%,
+            rgba(244, 164, 96, 0.05) 45%,
+            rgba(244, 164, 96, 0.15) 48%,
+            rgba(244, 164, 96, 0.2) 50%,
+            transparent 60%
+        )
+    `
 });
+
+const PlanetSurface: Component<PlanetSurfaceProps> = (props) => {
+    return (
+        <div class={css([{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            bottom: 0
+        }, props.styleOverwrite])} id="planet-surface-container">
+            <NTAwait func={() => props.backend.assets.getMetadata(7005)}>{asset =>
+                <GraphicalAsset
+                    backend={props.backend}
+                    metadata={asset}
+                    styleOverwrite={css(imageStyle)}
+                />
+            }</NTAwait>
+            <div class={gradientStyle} />
+        </div>
+    );
+};
+
+export default PlanetSurface;
