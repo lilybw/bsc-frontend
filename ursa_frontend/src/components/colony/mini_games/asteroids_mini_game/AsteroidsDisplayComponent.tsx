@@ -15,7 +15,7 @@ import GraphicalAsset from "@/components/base/GraphicalAsset";
 import NTAwait from "@/components/util/NoThrowAwait";
 import BufferBasedButton from "@/components/base/BufferBasedButton";
 import { StrictJSX } from "@colony/ColonyApp";
-import { Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
+import { angle, angleBetween, Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
 import { Styles } from "@/styles/sharedCSS";
 import Countdown from "@/components/util/Countdown";
 import BurstEmitter, { BurstEmitterProps } from "../utils/BurstEmitter";
@@ -26,6 +26,7 @@ import { AsteroidsSettingsDTO } from "./AsteroidsGameLoop";
 import PlanetMoonSystem from "@/components/base/PlanetWithMoon";
 import { lerp } from "@/ts/ursaMath";
 import { fireParticleStyle } from "./entities/particles/fireParticleStyle";
+import ContinuousEmitter from "../utils/ContinuousEmitter";
 
 interface AsteroidsDisplayComponentProps {
     context: ApplicationContext;
@@ -40,6 +41,7 @@ interface ExtendedAsteroidDTO extends AsteroidsAsteroidSpawnMessageDTO {
 interface ExtendedPlayerDTO extends AsteroidsAssignPlayerDataMessageDTO {
     disabled: WrappedSignal<boolean>;
     transform: WrappedSignal<TransformDTO>;
+    barrelRotation: WrappedSignal<number>;
 }
 
 const INTERNAL_ORIGIN = 'asteroids_display_component';
@@ -145,10 +147,11 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     onMount(() => {
         const subscribe = context.events.subscribe;
         const playerDataAssignSubID = subscribe(ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, assignOrigin((data) => {
-            const instance = {
+            const instance: ExtendedPlayerDTO = {
                 ...data,
                 transform: createWrappedSignal(toTransformPlayer(data, viewportDim.get)),
                 disabled: createWrappedSignal(false),
+                barrelRotation: createWrappedSignal(0),
             }
             if (data.id === context.backend.player.local.id) {
                 localPlayer = instance;
@@ -263,6 +266,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         const playerCenter = getComputedCenter(player.id, "player");
 
         //Handling shot on asteroid
+        let centerLatestElementHit: Vec2 | undefined;
         const asteroidsHit: ExtendedAsteroidDTO[] = [];
         const asteroidsDestroyed: number[] = [];
         asteroids.mutateByPredicate(a => a.charCode === charCode, (asteroid) => {
@@ -272,6 +276,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         });
         for (const asteroid of asteroidsHit) {
             const asteroidCenter = getComputedCenter(asteroid.id, "asteroid");
+            centerLatestElementHit = asteroidCenter;
 
             spawnLaser(playerCenter, asteroidCenter);
             const incomingVector = { x: (asteroidCenter.x - playerCenter.x), y: (asteroidCenter.y - playerCenter.y) };
@@ -286,9 +291,17 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         //Handling shot on player
         players.get.filter(p => p.code === charCode).forEach(player2 => {
             const player2Center = getComputedCenter(player2.id, "player");
+            centerLatestElementHit = player2Center;
             spawnLaser(playerCenter, player2Center);
             disablePlayer(player2, settings.stunDurationS * 1000, "firedUpon");
         });
+
+        if (centerLatestElementHit) {
+
+            const anglePlayerTarget = angleBetween(playerCenter, centerLatestElementHit)
+
+            player.barrelRotation.set(anglePlayerTarget)
+        }
     }
 
     const computedCameraShakeStyles = createMemo(() => {
@@ -343,6 +356,13 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                                 styleOverwrite={css({ width: "100%", height: "100%" })}
                             />
                         }</NTAwait>
+
+                        <ContinuousEmitter
+                            coords={{ x: player.transform.get().xOffset, y: player.transform.get().yOffset }}
+                            additionalParticleContent={() => <div style={"width: 100%; height: 100%; background: radial-gradient(circle, white, transparent 70%)"} />}
+                            active={createMemo(() => !player.disabled.get())}
+                        />
+
                         <BufferBasedButton
                             register={subscribers.add}
                             buffer={buffer.get}
