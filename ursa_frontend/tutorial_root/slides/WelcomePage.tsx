@@ -18,18 +18,25 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
         <div class="welcome-tutorial-page">
             <StarryBackground styleOverwrite={backgroundStyleOverwrite} backend={props.backend} />
             <div class={starStyle} id="moving-star" />
-            <div class={planetContainerStyle} id="shadow-container">
-                <div class={solarPlanetShadowStyle} id="planet-shadow" />
-            </div>
-            <NTAwait func={() => props.backend.assets.getMetadata(3001)}>
-                {(asset) => (
-                    <div class={planetWrapper}>
-                        <GraphicalAsset styleOverwrite={gasGiantStyleOverwrite} metadata={asset} backend={props.backend} />
-                    </div>
-                )}
-            </NTAwait>
 
+            <div class={planetContainerStyle}>
+                <NTAwait func={() => props.backend.assets.getMetadata(3001)}>
+                    {(asset) => (
+                        <div class={planetWrapper}>
+                            <GraphicalAsset
+                                styleOverwrite={gasGiantStyleOverwrite}
+                                metadata={asset}
+                                backend={props.backend}
+                            />
+                            <div class={solarPlanetShadowStyle} />
+                        </div>
+                    )}
+                </NTAwait>
+            </div>
+
+            {/* Atmosphere layer moved outside planetContainer for proper layering */}
             <div class={planetAtmosphereStyle} />
+
             {props.text.Title('TUTORIAL.WELCOME.TITLE')({ styleOverwrite: titleStyle })}
             {props.text.Title('TUTORIAL.WELCOME.TITLE')({ styleOverwrite: titleFrontShadow })}
         </div>
@@ -39,14 +46,10 @@ export default function WelcomePage(props: WelcomePageProps): JSX.Element {
 const sunMoveSpeedS = 30;
 
 const planetWrapper = css`
-    position: absolute;
-    width: 122%;
+    position: relative;
+    width: 100%;
     height: 100%;
-    bottom: -69%;
-    left: 50%;
-    transform: translateX(-50%);
-    overflow: hidden;
-    border-radius: 50%;
+    z-index: 1;
 `;
 
 const planetContainerStyle = css`
@@ -58,6 +61,7 @@ const planetContainerStyle = css`
     transform: translateX(-50%);
     overflow: hidden;
     border-radius: 50%;
+    z-index: 1;
 `;
 
 const gasGiantStyleOverwrite = css`
@@ -65,28 +69,31 @@ const gasGiantStyleOverwrite = css`
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: -1;
+    z-index: 1;
     filter: contrast(2) hue-rotate(80deg);
 `;
 
 const solarPlanetShadowStyle = css`
-    position: relative;
-    z-index: 1;
-    background-image: radial-gradient(black 50%, transparent 70%);
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 120%;
     height: 120%;
+    z-index: 2;
+    background-image: radial-gradient(black 50%, transparent 70%);
+    mix-blend-mode: multiply;
     --lr-offset: 30%;
     animation: matchSunMovement ${sunMoveSpeedS}s linear infinite;
 
     @keyframes matchSunMovement {
         0% {
-            left: var(--lr-offset);
+            transform: translateX(var(--lr-offset));
         }
         50% {
-            left: 0%;
+            transform: translateX(0%);
         }
         100% {
-            left: calc(var(--lr-offset) * -1);
+            transform: translateX(calc(var(--lr-offset) * -1));
         }
     }
 `;
@@ -123,6 +130,7 @@ const backgroundStyleOverwrite = css`
     transform: scale(2) translateX(25%);
     opacity: 0.5;
     animation: ${animMovingStars} ${sunMoveSpeedS * 2}s linear infinite;
+    z-index: 0;
 `;
 
 const starStyle = css`
@@ -136,16 +144,18 @@ const starStyle = css`
     background-image: radial-gradient(circle, hsla(0, 0%, 100%, 1) 50%, hsla(30, 80%, 50%, 0.9) 75%, transparent 100%);
     filter: drop-shadow(0 0 2rem white);
     animation: ${animSunMovement} ${sunMoveSpeedS}s linear infinite;
+    z-index: 0;
 `;
 
 const planetAtmosphereStyle = css`
-    z-index: 1;
     position: absolute;
     border-radius: 50%;
     width: 200%;
     height: 200%;
     bottom: -140%;
     transform: translateX(-25%);
+    z-index: 2;
+    pointer-events: none;
     --solid-edge: 50%;
     background-image: radial-gradient(
         ellipse,
@@ -170,7 +180,7 @@ const animTitleHighlight = keyframes`
 `;
 
 const titleStyle = css`
-    z-index: 2;
+    z-index: 3;
     position: absolute;
     left: 50%;
     bottom: 33%;
@@ -197,7 +207,7 @@ const animFrontShadow = keyframes`
 `;
 
 const titleFrontShadow = css`
-    z-index: 3;
+    z-index: 4;
     color: hsla(0, 0%, 0%, 0.8);
     position: absolute;
     left: 50.3%;
