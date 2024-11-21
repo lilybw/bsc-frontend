@@ -49,7 +49,7 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
             setIsConnecting(false);
             return openResponse.err;
         }
-        const err = await props.multiplayer.connect(openResponse.res.code, () => {});
+        const err = await props.multiplayer.connect(openResponse.res.code, () => { });
 
         if (err) {
             log.error('Failed to connect to multiplayer: ' + err);
@@ -173,10 +173,10 @@ const SpacePortLocationCard: Component<SpacePortCardProps> = (props) => {
             {props.text.Title(props.info.name)({ styleOverwrite: STYLE_LOC_CARD_titleStyleOverwrite })}
 
             {getBody()}
-            {connectErr() && 
+            {connectErr() &&
                 <div class={errorMessageStyle}>connectErr()</div>}
-            {isConnecting() && 
-                <Spinner styleOverwrite={spinnerStyle}/>}
+            {isConnecting() &&
+                <Spinner styleOverwrite={spinnerStyle} />}
         </div>
     );
 };
@@ -187,15 +187,17 @@ const codeDisplayStyle = css`
     position: absolute;
     top: 50%;
     left: 50%;
-    height: fit-content;
+    height: 8rem;
     width: 80%;
     transform: translate(-50%, -50%);
 
     z-index: 1;
     font-size: 8rem;
+    line-height: 8rem;
     text-align: center;
     ${Styles.GLASS.BACKGROUND}
 `;
+
 const spinnerStyle = css`
     position: absolute;
     top: 50%;
