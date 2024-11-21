@@ -4,7 +4,7 @@ import { ArrayStore } from "@/ts/arrayStore";
 import { Vec2 } from "@/ts/geometry";
 import { IBackendBased } from "@/ts/types";
 import { css } from "@emotion/css";
-import { Accessor, For } from "solid-js";
+import { Accessor, For, createSignal } from "solid-js";
 
 interface ColonyWallProps extends IBackendBased {
     health: Accessor<number>;
@@ -14,9 +14,7 @@ interface ColonyWallProps extends IBackendBased {
 export default function ColonyWall({
     health, impactPositions, backend
 }: ColonyWallProps) {
-    const log = backend.logger.copyFor("col wall");
-
-    const wallHeight = "60vh";
+    const [wallRef, setWallRef] = createSignal<HTMLImageElement | null>(null);
     const wallWidth = "10vw";
 
     return (
@@ -24,50 +22,61 @@ export default function ColonyWall({
             class={css({
                 position: "absolute",
                 bottom: 0,
-                height: wallHeight,
+                height: "60vh",
                 width: wallWidth,
                 overflow: "hidden"
             })}
         >
             <NTAwait func={() => backend.assets.getMetadata(7003)}>{metadata =>
-                <GraphicalAsset
-                    backend={backend}
-                    metadata={metadata}
-                    styleOverwrite={css({
-                        objectFit: "fill", // Changed to fill to stretch completely
-                        height: "100%",
-                        width: "100%",
-                        display: "block",
-                        imageRendering: "auto"
-                    })}
-                />
-            }</NTAwait>
-
-            <For each={impactPositions.get}>{(pos, index) =>
-                <div id="crack-decal-wrapper"
-                    class={css({
+                <>
+                    <GraphicalAsset
+                        backend={backend}
+                        metadata={metadata}
+                        onImageLoad={setWallRef}
+                        styleOverwrite={css({
+                            objectFit: "fill",
+                            height: "100%",
+                            width: "100%"
+                        })}
+                    />
+                    <div class={css({
                         position: "absolute",
-                        top: `calc(${pos.y}px - 40vh)`,
-                        left: wallWidth
-                    })}
-                >
-                    <NTAwait func={() => backend.assets.getMetadata(9001)}>{metadata =>
-                        <GraphicalAsset
-                            backend={backend}
-                            metadata={metadata}
-                            styleOverwrite={css({
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        maskImage: wallRef() ? `url(${wallRef()?.src})` : "none",
+                        maskSize: "100% 100%",
+                        WebkitMaskImage: wallRef() ? `url(${wallRef()?.src})` : "none",
+                        WebkitMaskSize: "100% 100%"
+                    })}>
+                        <For each={impactPositions.get}>{(pos, index) =>
+                            <div class={css({
+                                position: "absolute",
+                                top: `calc(${pos.y}px - 40vh)`,
                                 width: "20vw",
                                 height: "20vh",
-                                transform: "translateX(-100%)" + (index() % 2 === 0 ? " rotateY(180deg)" : ""),
-                                filter: "contrast(0.8) brightness(0.6) saturate(0.8)",
-                                objectFit: "fill",
-                                display: "block",
-                                imageRendering: "auto"
-                            })}
-                        />
-                    }</NTAwait>
-                </div>
-            }</For>
+                                transform: `translateX(${-parseInt(wallWidth)})`
+                            })}>
+                                <NTAwait func={() => backend.assets.getMetadata(9001)}>{metadata =>
+                                    <GraphicalAsset
+                                        backend={backend}
+                                        metadata={metadata}
+                                        styleOverwrite={css({
+                                            objectFit: "fill",
+                                            height: "100%",
+                                            width: "100%",
+                                            transform: index() % 2 === 0 ? "rotateY(180deg)" : "none",
+                                            filter: "contrast(0.8) brightness(0.6) saturate(0.8)",
+                                            pointerEvents: "none"
+                                        })}
+                                    />
+                                }</NTAwait>
+                            </div>
+                        }</For>
+                    </div>
+                </>
+            }</NTAwait>
         </div>
     );
 }
