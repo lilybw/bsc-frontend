@@ -11,35 +11,62 @@ interface ColonyWallProps extends IBackendBased {
     impactPositions: ArrayStore<Vec2>;
 }
 
-export default function ColonyWall({ 
+export default function ColonyWall({
     health, impactPositions, backend
 }: ColonyWallProps) {
     const log = backend.logger.copyFor("col wall");
 
     const wallHeight = "60vh";
     const wallWidth = "10vw";
+
     return (
-        <div id="colony-wall" 
-            class={css({ position: "absolute", bottom: 0, height: wallHeight, width: wallWidth, backgroundColor: "LightSteelBlue" })}
+        <div id="colony-wall"
+            class={css({
+                position: "absolute",
+                bottom: 0,
+                height: wallHeight,
+                width: wallWidth,
+                overflow: "hidden"
+            })}
         >
-            <NTAwait func={() => backend.assets.getMetadata(7003)}>{ metadata => 
-                <GraphicalAsset backend={backend} metadata={metadata}
-                    styleOverwrite={css({ objectFit: "cover", height: "100%", width: "100%" })} 
+            <NTAwait func={() => backend.assets.getMetadata(7003)}>{metadata =>
+                <GraphicalAsset
+                    backend={backend}
+                    metadata={metadata}
+                    styleOverwrite={css({
+                        objectFit: "fill", // Changed to fill to stretch completely
+                        height: "100%",
+                        width: "100%",
+                        display: "block",
+                        imageRendering: "auto"
+                    })}
                 />
             }</NTAwait>
-            <For each={impactPositions.get}>{ (pos, index) => 
-               <div id="crack-decal-wrapper" class={css({ position: "absolute", top: `calc(${pos.y}px - 40vh)`, left: wallWidth })}>
-                <NTAwait func={() => backend.assets.getMetadata(9001)}>{metadata =>
-                    <GraphicalAsset backend={backend} metadata={metadata} 
-                        styleOverwrite={css({
-                            width: "20vw", height: "20vh",
-                            transform: "translateX(-100%)" + (index() % 2 === 0 ? " rotateY(180deg)" : ""), 
-                            filter: "contrast(0.8) brightness(0.6) saturate(0.8)",
-                            objectFit: "cover",
-                        })} 
-                    />
-                }</NTAwait>
-               </div>  
+
+            <For each={impactPositions.get}>{(pos, index) =>
+                <div id="crack-decal-wrapper"
+                    class={css({
+                        position: "absolute",
+                        top: `calc(${pos.y}px - 40vh)`,
+                        left: wallWidth
+                    })}
+                >
+                    <NTAwait func={() => backend.assets.getMetadata(9001)}>{metadata =>
+                        <GraphicalAsset
+                            backend={backend}
+                            metadata={metadata}
+                            styleOverwrite={css({
+                                width: "20vw",
+                                height: "20vh",
+                                transform: "translateX(-100%)" + (index() % 2 === 0 ? " rotateY(180deg)" : ""),
+                                filter: "contrast(0.8) brightness(0.6) saturate(0.8)",
+                                objectFit: "fill",
+                                display: "block",
+                                imageRendering: "auto"
+                            })}
+                        />
+                    }</NTAwait>
+                </div>
             }</For>
         </div>
     );
