@@ -108,7 +108,6 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     // Inputs
     const buffer = createWrappedSignal<string>('');
     const subscribers = createArrayStore<BufferSubscriber<string>>();
-    const [focusPull, triggerFocusPull] = createSignal(0);
 
     const actionContext = createMemo(() => {
         let fromLocalPlayerState = ActionContext.ASTEROIDS;
@@ -194,7 +193,6 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             { x: window.innerWidth, y: window.innerHeight }
         );
         window.addEventListener('resize', onWindowResize);
-        setInterval(() => triggerFocusPull(k => k + 1), 100);
 
         onCleanup(() => {
             context.events.unsubscribe(
@@ -331,7 +329,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 actionContext={actionContext}
                 setInputBuffer={buffer.set}
                 inputBuffer={buffer.get}
-                manTriggerFocusPull={focusPull}
+                maintainFocus={true}
             />
             <Countdown duration={settings.survivalTimeS} styleOverwrite={timeLeftStyle} />
 

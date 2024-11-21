@@ -27,14 +27,18 @@ export const EXPECTED_HEIGHT = 1080;
 interface PathGraphProps {
     colony: ColonyInfoResponseDTO;
     ownerID: PlayerID;
-
     context: ApplicationContext;
-
     clients: ArrayStore<ClientDTO>;
     bufferSubscribers: ArrayStore<BufferSubscriber<string>>;
     buffer: WrappedSignal<string>;
     actionContext: WrappedSignal<TypeIconTuple>;
     graph: ColonyPathGraphResponseDTO;
+    /**
+     * Controls whether the ActionInput should maintain focus.
+     * Passes through to ActionInput's maintainFocus prop.
+     * @default true
+     */
+    focusEnabled?: boolean;
 }
 
 const PathGraph: Component<PathGraphProps> = (props) => {
@@ -316,7 +320,9 @@ const PathGraph: Component<PathGraphProps> = (props) => {
                 actionContext={props.actionContext.get}
                 setInputBuffer={props.buffer.set}
                 inputBuffer={props.buffer.get}
+                maintainFocus={props.focusEnabled}
             />
+
             <Player
                 client={{
                     id: props.context.backend.player.local.id,

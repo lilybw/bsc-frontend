@@ -191,6 +191,7 @@ const MultiplayerDemo: Component<MultiplayerDemoProps> = (props) => {
                     manTriggerEnter={triggerEnter}
                     demoMode={true}
                 />
+
                 <div class={tutorialStyles.elements.movementPath} />
                 <ImageBufferButton
                     register={bufferSubscribers.add}

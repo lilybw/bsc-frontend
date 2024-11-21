@@ -118,6 +118,7 @@ const LocationDemo: Component<LocationDemoProps> = (props) => {
                     inputBuffer={inputBuffer}
                     manTriggerEnter={triggerEnter}
                     demoMode={true}
+                    maintainFocus
                 />
 
                 <div class={tutorialStyles.elements.movementPath} />

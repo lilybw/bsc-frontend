@@ -1,4 +1,4 @@
-import { Accessor, Component, createMemo, createSignal, onCleanup, onMount, Setter } from "solid-js";
+import { Accessor, Component, createEffect, createMemo, createSignal, onCleanup, onMount, Setter } from "solid-js";
 import { DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT, DifficultyConfirmedForMinigameMessageDTO, GENERIC_MINIGAME_SEQUENCE_RESET_EVENT, GENERIC_MINIGAME_UNTIMELY_ABORT_EVENT, GenericMinigameUntimelyAbortMessageDTO, LOAD_MINIGAME_EVENT, MINIGAME_BEGINS_EVENT, MINIGAME_LOST_EVENT, MINIGAME_WON_EVENT, MinigameLostMessageDTO, MinigameWonMessageDTO, PLAYER_LOAD_COMPLETE_EVENT, PLAYER_LOAD_FAILURE_EVENT, PLAYER_READY_FOR_MINIGAME_EVENT, PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT } from "@/integrations/multiplayer_backend/EventSpecifications";
 import { StrictJSX } from "./ColonyApp";
 import ClientTracker from "@/components/colony/mini_games/ClientTracker";
@@ -20,13 +20,14 @@ interface MinigameInitiationSequenceProps extends IRegistering<string>, IBufferB
     clientTracker: ClientTracker;
     bundleSwapData: RetainedColonyInfoForPageSwap;
     goBackToColony: () => void;
+    setSequencePhase?: Setter<LocalSequencePhase>; // Optional setter for exposing phase
 }
 
 interface DiffConfWExtraInfo extends DifficultyConfirmedForMinigameMessageDTO {
     minigameName: string;
 }
 
-enum LocalSequencePhase {
+export enum LocalSequencePhase {
     ROAMING_COLONY = 0,
     HAND_PLACEMENT_CHECK = 1,
     WAITING_SCREEN = 2,
@@ -39,10 +40,16 @@ enum LocalSequencePhase {
 
 const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (props) => {
     const [confirmedDifficulty, setConfirmedDifficulty] = createSignal<DiffConfWExtraInfo | null>(null);
-    const [localSequencePhase, setLocalSequencePhase] = createSignal<LocalSequencePhase>(LocalSequencePhase.ROAMING_COLONY);
     const [victoryInformation, setVictoryInformation] = createSignal<MinigameWonMessageDTO | null>(null);
     const [defeatInformation, setDefeatInformation] = createSignal<MinigameLostMessageDTO | null>(null);
     const [abortInformation, setAbortInformation] = createSignal<GenericMinigameUntimelyAbortMessageDTO | null>(null);
+
+    const [localSequencePhase, setLocalSequencePhase] = createSignal<LocalSequencePhase>(LocalSequencePhase.ROAMING_COLONY);
+    createEffect(() => {
+        if (props.setSequencePhase) {
+            props.setSequencePhase(localSequencePhase());
+        }
+    });
 
     const log = props.context.logger.copyFor('mg seq');
 
@@ -127,7 +134,7 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
             setDefeatInformation(data);
             setLocalSequencePhase(LocalSequencePhase.RESULT_SCREEN_DEFEAT);
         });
-        
+
         onCleanup(() => {
             props.context.events.unsubscribe(
                 diffConfirmedSubId,
@@ -141,11 +148,11 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
             );
         })
     })
-    
+
     const appendSequenceOverlay: Accessor<StrictJSX> = createMemo(() => {
         switch (localSequencePhase()) {
             case LocalSequencePhase.WAITING_SCREEN:
-                return props.clientTracker.getComponent({backend: props.context.backend, text: props.context.text});
+                return props.clientTracker.getComponent({ backend: props.context.backend, text: props.context.text });
             case LocalSequencePhase.HAND_PLACEMENT_CHECK: return (
                 <HandPlacementCheck
                     nameOfOwner={props.clientTracker.getByID(props.bundleSwapData.owner)?.IGN || props.context.backend.player.local.firstName}
@@ -156,12 +163,12 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
                     text={props.context.text}
                     clearSelf={() => {
                         setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
-                        setConfirmedDifficulty(null); 
+                        setConfirmedDifficulty(null);
                     }}
                     goToWaitingScreen={() => setLocalSequencePhase(LocalSequencePhase.WAITING_SCREEN)}
                 />) as StrictJSX;
             case LocalSequencePhase.RESULT_SCREEN_VICTORY: return (
-                <VictoryScreen 
+                <VictoryScreen
                     backend={props.context.backend}
                     text={props.context.text}
                     data={victoryInformation()!}
@@ -169,11 +176,11 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
                     buffer={props.buffer}
                     clearSelf={() => {
                         setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
-                        setVictoryInformation(null); 
+                        setVictoryInformation(null);
                     }}
                 />) as StrictJSX;
             case LocalSequencePhase.RESULT_SCREEN_DEFEAT: return (
-                <DefeatScreen 
+                <DefeatScreen
                     backend={props.context.backend}
                     text={props.context.text}
                     data={defeatInformation()!}
@@ -181,11 +188,11 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
                     buffer={props.buffer}
                     clearSelf={() => {
                         setLocalSequencePhase(LocalSequencePhase.ROAMING_COLONY)
-                        setDefeatInformation(null); 
+                        setDefeatInformation(null);
                     }}
                 />) as StrictJSX;
             case LocalSequencePhase.RESULT_SCREEN_ABORT: return (
-                <BufferBasedPopUp 
+                <BufferBasedPopUp
                     text={props.context.text}
                     title={props.context.text.get('SYSTEM.SOMETHING_WENT_WRONG').get()}
                     buffer={props.buffer}
@@ -205,7 +212,7 @@ const MinigameSequenceOverlay: Component<MinigameInitiationSequenceProps> = (pro
             default: return <></> as StrictJSX;
         }
     });
-    
+
     return (<div id="sequence-tracking-overlay">
         {appendSequenceOverlay()}
     </div>) as StrictJSX;
