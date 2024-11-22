@@ -150,7 +150,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 ...data,
                 transform: createWrappedSignal(toTransformPlayer(data, viewportDim.get)),
                 disabled: createWrappedSignal(false),
-                barrelRotation: createWrappedSignal(0),
+                barrelRotation: createWrappedSignal(Math.PI / 2),  // Initialize at 90 degrees
             }
             if (data.id === context.backend.player.local.id) {
                 localPlayer = instance;
@@ -340,33 +340,53 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 <ColonyWall backend={context.backend} impactPositions={impactPositions} health={health} />
 
                 <For each={players.get}>{player =>
-                    <div class={css([
-                        { width: "10vw", height: "10vw" },
-                        Styles.POSITION.transformToCSSVariables(player.transform.get()),
-                        Styles.POSITION.TRANSFORM_APPLICATOR
-                    ])}
-                        ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
-                    >
-                        <NTAwait func={() => context.backend.assets.getMetadata(7002)}>{(asset) =>
-                            <GraphicalAsset
-                                metadata={asset}
-                                backend={context.backend}
-                                styleOverwrite={css({ width: "100%", height: "100%" })}
+                    <div style={{ position: "relative" }}>
+                        {/* Non-rotating container with emitter */}
+                        <div class={css([
+                            { width: "10vw", height: "10vw" },
+                            Styles.POSITION.transformToCSSVariables(player.transform.get()),
+                            Styles.POSITION.TRANSFORM_APPLICATOR,
+                            { transform: `translate(-50%, -50%)` }
+                        ])}>
+                            <ContinuousEmitter
+                                coords={{ x: player.transform.get().xOffset, y: player.transform.get().yOffset }}
+                                additionalParticleContent={() => <div style={"width: 100%; height: 100%; background: radial-gradient(circle, white, transparent 70%)"} />}
+                                active={createMemo(() => !player.disabled.get())}
                             />
-                        }</NTAwait>
+                        </div>
 
-                        <ContinuousEmitter
-                            coords={{ x: player.transform.get().xOffset, y: player.transform.get().yOffset }}
-                            additionalParticleContent={() => <div style={"width: 100%; height: 100%; background: radial-gradient(circle, white, transparent 70%)"} />}
-                            active={createMemo(() => !player.disabled.get())}
-                        />
+                        {/* Rotating container with just the player sprite */}
+                        <div class={css([
+                            { width: "10vw", height: "10vw" },
+                            Styles.POSITION.transformToCSSVariables(player.transform.get()),
+                            Styles.POSITION.TRANSFORM_APPLICATOR,
+                            { transform: `translate(-50%, -50%) rotate(${player.barrelRotation.get() - Math.PI / 2}rad)` }
+                        ])}
+                            ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
+                        >
+                            <NTAwait func={() => context.backend.assets.getMetadata(7002)}>{(asset) =>
+                                <GraphicalAsset
+                                    metadata={asset}
+                                    backend={context.backend}
+                                    styleOverwrite={css({ width: "100%", height: "100%" })}
+                                />
+                            }</NTAwait>
+                        </div>
 
+                        {/* Non-rotating button */}
                         <BufferBasedButton
                             register={subscribers.add}
                             buffer={buffer.get}
                             onActivation={() => onPlayerFire(player.code)}
                             name={player.code}
-                            styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, { top: 0 }])}
+                            styleOverwrite={css([
+                                Styles.POSITION.TRANSFORM_CENTER_X,
+                                {
+                                    position: "absolute",
+                                    left: `${player.transform.get().xOffset}px`,
+                                    top: `${player.transform.get().yOffset - (viewportDim.get().y * 0.1)}px`  // 10% of viewport height in pixels
+                                }
+                            ])}
                             activationDelay={100}
                         />
                     </div>
