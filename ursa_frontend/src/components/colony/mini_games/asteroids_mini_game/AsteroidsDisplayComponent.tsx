@@ -362,7 +362,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                             <BufferBasedButton
                                 register={subscribers.add}
                                 buffer={buffer.get}
-                                onActivation={() => {}}
+                                onActivation={() => onPlayerFire(player.code, player)}
                                 name={player.code}
                                 styleOverwrite={AsteroidsStyles.player.button}
                                 activationDelay={100}

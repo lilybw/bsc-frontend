@@ -3,18 +3,18 @@ import { createArrayStore } from "@/ts/arrayStore";
 import { normalizeVec2, Vec2, Vec2_TWENTY, Vec2_ZERO } from "@/ts/geometry";
 import { GlobalHashPool, GlobalRandom } from "@/ts/ursaMath";
 import { css } from "@emotion/css";
-import { Accessor, createEffect, createMemo, For } from "solid-js";
+import { Accessor, createEffect, createMemo, For, onCleanup } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 
 interface ContinuousEmitterProps {
     /** Where on the screen to place the emitter */
     coords: Vec2;
-    /** Turns emitter placement coords from being intepreted in "px" to "%" */
-    relativePositioning?: boolean;
     /** Whether or not the emitter is on. Reactive. If not provided, the emitter is on. 
      * When turned off, any remaining particles will finish their animation and then be removed.
     */
     active?: Accessor<boolean>;
+    /** Turns emitter placement coords from being intepreted in "px" to "%" */
+    relativePositioning?: boolean;
     /** size of emitter on each axis in vw @default {x: 20, y: 20} */
     size?: Vec2;
     /** zIndex of emitter @default 1 */
@@ -59,7 +59,7 @@ interface ContinuousEmitterProps {
     additionalParticleContent?: (particle: ComputeData) => JSX.Element;
     /** EXPENSIVE. For each particle, for each unit of time, generate some additional/alternative
      * styling to apply to the particle. For clarification: The overall computed animation is applied
-     * to a parent of each particle and cannot be interferred with.*/
+     * to a parent of each particle and cannot be interferred with. NOT IMPLIMENTED. */
     particleModulator?: (data: ModulatorData) => string;
 }
 
@@ -92,10 +92,9 @@ interface ParticleData {
 }
 
 export const NULL_JSX: JSX.Element = <></>;
-const defaults: Omit<Required<ContinuousEmitterProps>, 'particleModulator'> & Partial<Pick<ContinuousEmitterProps, 'particleModulator'>> = {
+const defaults: Omit<Required<ContinuousEmitterProps>, 'particleModulator' | 'active' > & Partial<Pick<ContinuousEmitterProps, 'particleModulator'>> = {
     coords: Vec2_ZERO,
     relativePositioning: false,
-    active: () => true,
     zIndex: 1,
     size: Vec2_TWENTY,
     spawnRate: 10,
@@ -115,8 +114,8 @@ const defaults: Omit<Required<ContinuousEmitterProps>, 'particleModulator'> & Pa
     particlePoolSize: 0,
     additionalParticleContent: () => NULL_JSX,
 }
-
-const mapToCSSPercentSpace = (vec: Vec2) => ({ x: .5 + (vec.x * .5), y: .5 + (vec.y * .5) });
+/** Mapping from [-1, 1] to [0, 1] */
+const mapToCSSPercentSpace = (vec: Vec2): Vec2 => ({ x: .5 + (vec.x * .5), y: .5 + (vec.y * .5) });
 
 export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
     const props = Object.assign({}, defaults, rawProps);
@@ -138,16 +137,19 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
         const fadeoutStartPercentOfTime = props.fadeoutStart * (1 - GlobalRandom.next() * props.fadeoutStartVariance);
         const dir = props.direction();
         const computedDirection = normalizeVec2({
+            // Direction is weighted towards the random vector, but equally diminishing the original vector
+            // for completely random direction at spread = 1. 
             x: (dir.x * (1 - props.spread)) + ((GlobalRandom.next() * 2 - 1) * props.spread),
             y: (dir.y * (1 - props.spread)) + ((GlobalRandom.next() * 2 - 1) * props.spread)
         })
         const orth = orthogonal();
+        // Mapping random weight to [-1, 1] and multiplying by offset weight
         const startVariance = (GlobalRandom.next() * 2 - 1) * props.spawnOffsetVariance;
-        const spawnOffsetRelative = { //Intentionally not normalized
-            x: orth.x * startVariance,
+        const spawnOffsetRelative = {
+            x: orth.x * startVariance, //"sliding" a point along the orthogonal vector
             y: orth.y * startVariance
         }
-        const endPositionPercent = {
+        const endPositionPercent = { // adding spawn offset to have each particle maintain its path
             x: spawnOffsetRelative.x + computedDirection.x * lengthPercentOfParent,
             y: spawnOffsetRelative.y + computedDirection.y * lengthPercentOfParent
         }
@@ -175,16 +177,27 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
 
     let interval: NodeJS.Timeout | undefined;
     createEffect(() => {
-        const active = props.active();
-        if (active && !interval) {
-            interval = setInterval(generateParticle, 1000 / props.spawnRate);
-            console.log("Activating: ", active);
-        } else {
-            console.log("Activating: ", active);
+        // Access the active signal directly to track it
+        const isActive = props.active?.() ?? true;
+        
+        // Clean up existing interval if any
+        if (interval) {
             clearInterval(interval);
             interval = undefined;
         }
+
+        // Start new interval if active
+        if (isActive) {
+            interval = setInterval(generateParticle, 1000 / props.spawnRate);
+        }
     })
+
+    onCleanup(() => {
+        if (interval) {
+            clearInterval(interval);
+            interval = undefined;
+        }
+    });
 
     return (
         <div class={css`${baseContainerStyle}

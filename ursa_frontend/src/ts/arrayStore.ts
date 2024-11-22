@@ -126,7 +126,7 @@ export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<
         },
         findFirst: (predicate) => proxy.find(predicate),
         findAll: (predicate) => proxy.filter(predicate),
-        forEach: proxy.forEach,
+        forEach: (func) => proxy.forEach(func),
         forAny: (predicate, func) => {
             for (let i = 0; i < proxy.length; i++) {
                 if (predicate(proxy[i])) {
