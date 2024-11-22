@@ -15,7 +15,7 @@ import GraphicalAsset from "@/components/base/GraphicalAsset";
 import NTAwait from "@/components/util/NoThrowAwait";
 import BufferBasedButton from "@/components/base/BufferBasedButton";
 import { StrictJSX } from "@colony/ColonyApp";
-import { angle, angleBetween, Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
+import { angle, angleBetween, Circle, Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
 import { Styles } from "@/styles/sharedCSS";
 import Countdown from "@/components/util/Countdown";
 import BurstEmitter, { BurstEmitterProps } from "../utils/BurstEmitter";
@@ -101,6 +101,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     // World state
     const viewportDim = createDelayedSignal<Vec2>({ x: window.innerWidth, y: window.innerHeight });
     const laserBeams = createArrayStore<Line>();
+    const laserImpacts = createArrayStore<Circle>();
     const elements = new Map<ComputedMapKey, HTMLElement>();
     const explosions = createArrayStore<BurstEmitterProps>();
     const cameraShake = createCooldownSignal(false, { cooldown: CAMERA_SHAKE_DURATION_MS });
@@ -247,8 +248,17 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     }
 
     const spawnLaser = (from: Vec2, to: Vec2) => {
-        const removeFunc = laserBeams.add({ x1: from.x, y1: from.y, x2: to.x, y2: to.y });
-        setTimeout(removeFunc, LASER_DURATION_MS);
+        const removeBeam = laserBeams.add({ x1: from.x, y1: from.y, x2: to.x, y2: to.y });
+        const removeImpact = laserImpacts.add({
+            x: to.x,
+            y: to.y,
+            radius: 15  // Base radius for impact circle
+        });
+
+        setTimeout(() => {
+            removeBeam();
+            removeImpact();
+        }, LASER_DURATION_MS);
     }
 
     const onPlayerFire = (charCode: string, player: ExtendedPlayerDTO = localPlayer!) => {
@@ -339,58 +349,174 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 <PlanetSurface backend={context.backend} />
                 <ColonyWall backend={context.backend} impactPositions={impactPositions} health={health} />
 
-                <For each={players.get}>{player =>
-                    <div style={{ position: "relative" }}>
-                        {/* Non-rotating container with emitter */}
-                        <div class={css([
-                            { width: "10vw", height: "10vw" },
-                            Styles.POSITION.transformToCSSVariables(player.transform.get()),
-                            Styles.POSITION.TRANSFORM_APPLICATOR,
-                            { transform: `translate(-50%, -50%)` }
-                        ])}>
-                            <ContinuousEmitter
-                                coords={{ x: player.transform.get().xOffset, y: player.transform.get().yOffset }}
-                                additionalParticleContent={() => <div style={"width: 100%; height: 100%; background: radial-gradient(circle, white, transparent 70%)"} />}
-                                active={createMemo(() => !player.disabled.get())}
-                            />
-                        </div>
+                <For each={players.get}>{player => {
+                    const commonContainerStyle = css([
+                        { width: "10vw", height: "10vw" },
+                        Styles.POSITION.transformToCSSVariables(player.transform.get()),
+                        Styles.POSITION.TRANSFORM_APPLICATOR,
+                        { transform: `translate(-50%, -50%)` }
+                    ]);
 
-                        {/* Rotating container with just the player sprite */}
-                        <div class={css([
-                            { width: "10vw", height: "10vw" },
-                            Styles.POSITION.transformToCSSVariables(player.transform.get()),
-                            Styles.POSITION.TRANSFORM_APPLICATOR,
-                            { transform: `translate(-50%, -50%) rotate(${player.barrelRotation.get() - Math.PI / 2}rad)` }
-                        ])}
-                            ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
-                        >
-                            <NTAwait func={() => context.backend.assets.getMetadata(7002)}>{(asset) =>
-                                <GraphicalAsset
-                                    metadata={asset}
-                                    backend={context.backend}
-                                    styleOverwrite={css({ width: "100%", height: "100%" })}
-                                />
-                            }</NTAwait>
-                        </div>
+                    const commonAssetStyle = css({
+                        width: "100%",
+                        height: "100%"
+                    });
 
-                        {/* Non-rotating button */}
-                        <BufferBasedButton
-                            register={subscribers.add}
-                            buffer={buffer.get}
-                            onActivation={() => onPlayerFire(player.code)}
-                            name={player.code}
-                            styleOverwrite={css([
-                                Styles.POSITION.TRANSFORM_CENTER_X,
+                    return (
+                        <div style={{ position: "relative" }}>
+                            {/* Static base image container */}
+                            <div class={css([
+                                commonContainerStyle,
+                                { zIndex: 1 }
+                            ])}>
+                                <NTAwait func={() => context.backend.assets.getMetadata(7007)}>{(asset) =>
+                                    <GraphicalAsset
+                                        metadata={asset}
+                                        backend={context.backend}
+                                        styleOverwrite={commonAssetStyle}
+                                    />
+                                }</NTAwait>
+                            </div>
+
+                            {/* Rotating cannon container */}
+                            <div class={css([
+                                commonContainerStyle,
                                 {
-                                    position: "absolute",
-                                    left: `${player.transform.get().xOffset}px`,
-                                    top: `${player.transform.get().yOffset - (viewportDim.get().y * 0.1)}px`  // 10% of viewport height in pixels
+                                    transform: `translate(-50%, -50%) rotate(${player.barrelRotation.get() - Math.PI / 2}rad)`,
+                                    zIndex: 3
                                 }
                             ])}
-                            activationDelay={100}
-                        />
-                    </div>
-                }</For>
+                                ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
+                            >
+                                <NTAwait func={() => context.backend.assets.getMetadata(7008)}>{(asset) =>
+                                    <GraphicalAsset
+                                        metadata={asset}
+                                        backend={context.backend}
+                                        styleOverwrite={commonAssetStyle}
+                                    />
+                                }</NTAwait>
+                            </div>
+
+                            {/* Emitter container */}
+                            <div class={css([
+                                commonContainerStyle,
+                                { zIndex: 4 }
+                            ])}>
+                                <ContinuousEmitter
+                                    coords={{ x: player.transform.get().xOffset, y: player.transform.get().yOffset }}
+                                    additionalParticleContent={() => <div style={"width: 100%; height: 100%; background: radial-gradient(circle, white, transparent 70%)"} />}
+                                    active={createMemo(() => !player.disabled.get())}
+                                />
+                            </div>
+
+                            {/* Laser impact effects */}
+                            <For each={laserImpacts.get}>{circle =>
+                                <div
+                                    class={css([
+                                        commonContainerStyle,
+                                        {
+                                            zIndex: 5,
+                                            position: 'absolute',
+                                            left: `${circle.x}px`,
+                                            top: `${circle.y}px`,
+                                            pointerEvents: 'none',
+                                            animation: `laserImpactFade ${LASER_DURATION_MS}ms forwards`
+                                        },
+                                        css`
+                                            @keyframes laserImpactFade {
+                                                0% {
+                                                    transform: translate(-50%, -50%) scale(0);
+                                                    opacity: 1;
+                                                }
+                                                50% {
+                                                    transform: translate(-50%, -50%) scale(1);
+                                                    opacity: 1;
+                                                }
+                                                100% {
+                                                    transform: translate(-50%, -50%) scale(1);
+                                                    opacity: 0;
+                                                }
+                                            }
+                                            &::before, &::after {
+                                                content: '';
+                                                position: absolute;
+                                                left: 50%;
+                                                top: 50%;
+                                                border-radius: 50%;
+                                            }
+                                            &::before {
+                                                width: ${circle.radius * 2}px;
+                                                height: ${circle.radius * 2}px;
+                                                transform: translate(-50%, -50%);
+                                                background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,0,0,0.4) 50%, transparent 70%);
+                                                box-shadow: 0 0 10px rgba(255,0,0,0.6);
+                                            }
+                                            &::after {
+                                                width: ${circle.radius}px;
+                                                height: ${circle.radius}px;
+                                                transform: translate(-50%, -50%);
+                                                background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,0,0,0.8) 50%, transparent 70%);
+                                            }
+                                        `
+                                    ])}
+                                />
+                            }</For>
+
+                            <BufferBasedButton
+                                register={subscribers.add}
+                                buffer={buffer.get}
+                                onActivation={() => onPlayerFire(player.code)}
+                                name={player.code}
+                                styleOverwrite={css([
+                                    Styles.POSITION.TRANSFORM_CENTER_X,
+                                    {
+                                        position: "absolute",
+                                        left: `${player.transform.get().xOffset}px`,
+                                        top: `${player.transform.get().yOffset - (viewportDim.get().y * 0.12)}px`,
+                                        zIndex: 6
+                                    }
+                                ])}
+                                activationDelay={100}
+                            />
+                        </div>
+                    );
+                }}</For>
+
+                {/* Laser beams container */}
+                <svg class={css([
+                    Styles.POSITION.FULL_SCREEN,
+                    {
+                        filter: "drop-shadow(0 0 .5rem red)",
+                        zIndex: 2  // Between base and cannon
+                    }
+                ])}>
+                    <For each={laserBeams.get}>{line =>
+                        <g class={css`
+                            animation: laserFade ${LASER_DURATION_MS}ms forwards linear;
+                            @keyframes laserFade {
+                                0% { opacity: 1; }
+                                100% { opacity: 0; }
+                            }
+                        `}>
+                            <line
+                                x1={line.x1}
+                                y1={line.y1}
+                                x2={line.x2}
+                                y2={line.y2}
+                                stroke="white"
+                                stroke-width="6"
+                            />
+                            <line
+                                x1={line.x1}
+                                y1={line.y1}
+                                x2={line.x2}
+                                y2={line.y2}
+                                stroke="red"
+                                stroke-width="2"
+                            />
+                        </g>
+                    }</For>
+                </svg>
 
                 <For each={asteroids.get}>{asteroid =>
                     <div class={css([
@@ -421,10 +547,6 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                         />
                     </div>
                 }</For>
-
-                <svg class={css([Styles.POSITION.FULL_SCREEN, { filter: "drop-shadow(0 0 .5rem red)", zIndex: 10 }])}>
-                    <For each={laserBeams.get}>{generateAnimatedSVGLine}</For>
-                </svg>
 
                 <For each={explosions.get}>{props => <BurstEmitter {...props} />}</For>
             </div>

@@ -28,3 +28,5 @@ export function angleBetween(vec1: Vec2, vec2: Vec2): number {
 }
 
 export type Line = { x1: number; y1: number; x2: number; y2: number };
+
+export type Circle = { x: number; y: number; radius: number };
