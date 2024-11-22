@@ -86,7 +86,7 @@ export default function ColonyWall({
                                     top: `calc(${pos.y}px - 40vh)`,
                                     width: "20vw",
                                     height: "20vh",
-                                    transform: `translateX(${-parseInt(wallWidth)})`
+                                    transform: `translateX(calc(-1*${wallWidth}))`
                                 })}>
                                     <NTAwait func={() => backend.assets.getMetadata(9001)}>{metadata =>
                                         <GraphicalAsset
