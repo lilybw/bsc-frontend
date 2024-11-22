@@ -9,7 +9,7 @@ import { JSX } from "solid-js/jsx-runtime";
 interface ContinuousEmitterProps {
     /** Where on the screen to place the emitter */
     coords: Vec2;
-    /** Turns emitter placement coords from being intepreted in "px" to "vw" & "vh" respectively */
+    /** Turns emitter placement coords from being intepreted in "px" to "%" */
     relativePositioning?: boolean;
     /** Whether or not the emitter is on. Reactive. If not provided, the emitter is on. 
      * When turned off, any remaining particles will finish their animation and then be removed.
@@ -17,9 +17,9 @@ interface ContinuousEmitterProps {
     active?: Accessor<boolean>;
     /** size of emitter on each axis in vw @default {x: 20, y: 20} */
     size?: Vec2;
-    /** Particles per second 
-     * @default 10
-    */
+    /** zIndex of emitter @default 1 */
+    zIndex?: number;
+    /** Particles per second @default 10 */
     spawnRate?: number;
     /** in percent of emitter size (0-1) on all axis @default .05 */
     particleSize?: number;
@@ -75,10 +75,15 @@ interface ComputeData {
     travelTimeS: number;
     sizePercentOfParent: number;
     fadeoutStartPercentOfTime: number;
+    /** linear / ease-out / ease-in etc */
     movementInterpolation: string;
+    /** start position in percent of parent dimensions */
     startPercent: Vec2;
+    /** end position in percent of parent dimensions */
     endPercent: Vec2;
     randHash: string;
+    /** Particle number */
+    index: number;
 }
 interface ParticleData {
     preComputed: ComputeData;
@@ -91,6 +96,7 @@ const defaults: Omit<Required<ContinuousEmitterProps>, 'particleModulator'> & Pa
     coords: Vec2_ZERO,
     relativePositioning: false,
     active: () => true,
+    zIndex: 1,
     size: Vec2_TWENTY,
     spawnRate: 10,
     particleSize: .05,
@@ -116,7 +122,6 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
     const props = Object.assign({}, defaults, rawProps);
     const particles = createArrayStore<ParticleData>([]);
 
-    // As memo so that direction can be reactive in the future
     const orthogonal = createMemo(() => {
         const dir = props.direction();
         return {
@@ -125,6 +130,7 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
         }
     })
 
+    let nextParticleIndex = 0;
     const generateParticle = () => {
         const lengthPercentOfParent = props.travelLength * (1 - GlobalRandom.next() * props.travelLengthVariance);
         const travelSpeedS = props.travelTime * (1 - GlobalRandom.next() * props.travelTimeVariance);
@@ -147,6 +153,7 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
         }
 
         const computeData: ComputeData = {
+            index: nextParticleIndex++,
             travelTimeS: travelSpeedS,
             sizePercentOfParent,
             fadeoutStartPercentOfTime,
@@ -169,9 +176,11 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
     let interval: NodeJS.Timeout | undefined;
     createEffect(() => {
         const active = props.active();
-        if (active) {
+        if (active && !interval) {
             interval = setInterval(generateParticle, 1000 / props.spawnRate);
+            console.log("Activating: ", active);
         } else {
+            console.log("Activating: ", active);
             clearInterval(interval);
             interval = undefined;
         }
@@ -181,9 +190,10 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
         <div class={css`${baseContainerStyle}
             width: ${props.size.x}vw; 
             height: ${props.size.y}vw; 
-            top: ${props.coords.y}${props.relativePositioning ? "vh" : "px"}; 
-            left: ${props.coords.x}${props.relativePositioning ? "vw" : "px"};
-            ${props.showEmitterOutline ? "border: 1px solid red;" : ""}` //Slightly slower than duration
+            top: ${props.coords.y}${props.relativePositioning ? "%" : "px"}; 
+            left: ${props.coords.x}${props.relativePositioning ? "%" : "px"};
+            z-index: ${props.zIndex};
+            ${props.showEmitterOutline ? "border: 1px solid red;" : ""}`
         }>
             <For each={particles.get}>{ particle => 
                 <div class={particle.parentAnimation}>

@@ -45,4 +45,4 @@ export class CharCodeGenerator {
     }
 }
 
-export const SYMBOL_SET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+export const SYMBOL_SET = 'abcdefghijklmnopqrstuvwxyz';

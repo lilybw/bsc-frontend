@@ -40,6 +40,7 @@ const LandingPage: Component<MenuPageProps> = (props) => {
                 fadeoutStart={1}
                 travelTime={10}
                 particleSize={0.005}
+                zIndex={0}
                 additionalParticleContent={() => <div class={speedParticleSize}/>}
             />
             <div class={css([{

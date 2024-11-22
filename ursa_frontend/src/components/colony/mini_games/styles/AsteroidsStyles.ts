@@ -93,21 +93,27 @@ export const AsteroidsStyles = {
             Styles.POSITION.TRANSFORM_APPLICATOR,
             { transform: `translate(-50%, -50%)` }
         ]),
-        base: { zIndex: 1 },
-        cannon: (rotation: number) => ({
-            transform: `translate(-50%, -50%) rotate(${rotation - Math.PI / 2}rad)`,
+        base: css({ 
+            width: "100%", 
+            height: "100%",
+            zIndex: 1, 
+            position: "absolute" 
+        }),
+        cannon: (rotation: number) => css({
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            transformOrigin: "center",
+            transform: `rotate(${rotation - Math.PI / 2}rad)`,
             zIndex: 3
         }),
-        emitter: { zIndex: 4 },
-        button: (xOffset: number, yOffset: number, viewportHeight: number) => css([
-            Styles.POSITION.TRANSFORM_CENTER_X,
-            {
-                position: "absolute",
-                left: `${xOffset}px`,
-                top: `${yOffset - (viewportHeight * 0.12)}px`,
-                zIndex: 6
-            }
-        ])
+        emitter: css({ zIndex: 4 }),
+        button: css({
+            position: "absolute",
+            transform: "translateX(50%)",
+            top: 0,
+            zIndex: 6
+        })
     },
 
     getImpactStyle: (circle: Circle) => css([

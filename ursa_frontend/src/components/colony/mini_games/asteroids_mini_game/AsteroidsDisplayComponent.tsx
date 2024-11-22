@@ -32,12 +32,12 @@ interface AsteroidsDisplayComponentProps {
     settings: AsteroidsSettingsDTO;
 }
 
-interface ExtendedAsteroidDTO extends AsteroidsAsteroidSpawnMessageDTO {
+export interface ExtendedAsteroidDTO extends AsteroidsAsteroidSpawnMessageDTO {
     /** Intentionally not reactive */
     startPosition: TransformDTO;
 }
 
-interface ExtendedPlayerDTO extends AsteroidsAssignPlayerDataMessageDTO {
+export interface ExtendedPlayerDTO extends AsteroidsAssignPlayerDataMessageDTO {
     disabled: WrappedSignal<boolean>;
     transform: WrappedSignal<TransformDTO>;
     barrelRotation: WrappedSignal<number>;
@@ -51,36 +51,21 @@ function assignOrigin<T>(handler: OnEventCallback<T>): OnEventCallback<T> {
     return handler;
 }
 
-const toTransformPlayer = (data: AsteroidsAssignPlayerDataMessageDTO, viewport: Accessor<Vec2>) => {
+const toTransformPlayer = (data: AsteroidsAssignPlayerDataMessageDTO, viewport: Vec2) => {
     //Draws from original x and y relative values from server, so doesn't need to carry the
     //"original" transform to assure consistency
     return {
-        xOffset: data.x * viewport().x,
-        yOffset: data.y * viewport().y,
+        xOffset: data.x * viewport.x,
+        yOffset: data.y * viewport.y,
         zIndex: 10,
         xScale: 1,
         yScale: 1,
     };
 }
 const toTransformAsteroid = (data: AsteroidsAsteroidSpawnMessageDTO, viewport: Accessor<Vec2>) => {
-    const width = viewport().x;
-    const height = viewport().y;
-
-    // Default values are slightly offset off-screen
-    let computedX = width * 1.05;
-    let computedY = height - (height * 1.05);
-
-    // Deterministic randomness by using modulus on ID
-    // (all clients should come to the same result)
-    if (data.id % 2 === 0) {
-        computedX = data.x * viewport().x;
-    } else {
-        computedY = data.y * viewport().y;
-    }
-
     return {
-        xOffset: computedX,
-        yOffset: computedY,
+        xOffset: viewport().x * 1.05,
+        yOffset: data.y * viewport().y,
         zIndex: 11,
         xScale: 1,
         yScale: 1,
@@ -90,7 +75,6 @@ const mapKeyOfAsteroid = (id: number): ComputedMapKey => `a-${id}`;
 const mapKeyOfPlayer = (id: number): ComputedMapKey => `p-${id}`;
 type ComputedMapKey = string;
 
-//prev size: 203.83 kB, w new: 167.81 kB
 export default function AsteroidsDisplayComponent({ context, settings }: AsteroidsDisplayComponentProps): JSX.Element {
     const log = context.logger.copyFor('ast disp comp');
     // Game state
@@ -111,17 +95,15 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
 
     const actionContext = createMemo(() => {
         let fromLocalPlayerState = ActionContext.ASTEROIDS;
-        for (const player of players.get) {
-            if (player.id !== context.backend.player.local.id) continue;
-
-            fromLocalPlayerState = player.disabled.get() ? ActionContext.TEMPORARILY_DISABLED : ActionContext.ASTEROIDS;
-        }
+        players.forAny(p => p.id === context.backend.player.local.id, p => {
+            fromLocalPlayerState = p.disabled.get() ? ActionContext.TEMPORARILY_DISABLED : ActionContext.ASTEROIDS;
+        })  
         return fromLocalPlayerState;
     })
 
     createEffect(() => {
         // Accessor invoked, statement is now reactive
-        const dim = viewportDim.get;
+        const dim = viewportDim.get();
 
         // Untrack lets this ignore any updates to the array store
         untrack(() => {
@@ -148,7 +130,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         const playerDataAssignSubID = subscribe(ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, assignOrigin((data) => {
             const instance: ExtendedPlayerDTO = {
                 ...data,
-                transform: createWrappedSignal(toTransformPlayer(data, viewportDim.get)),
+                transform: createWrappedSignal(toTransformPlayer(data, viewportDim.get())),
                 disabled: createWrappedSignal(false),
                 barrelRotation: createWrappedSignal(Math.PI / 2),  // Initialize at 90 degrees
             }
@@ -207,14 +189,6 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     })
 
     const maxParticleCount = 50;
-    const explosionColors: string[] = Array.from({ length: maxParticleCount }, (_, i) => {
-        switch (i % 4) {
-            case 0: return "red";
-            case 1: return "orange";
-            case 2: return "black";
-            default: return "white";
-        }
-    })
     const queueAsteroidExplosion = (asteroid: ExtendedAsteroidDTO, theBigOne = false, incomingNormalized?: Vec2, center?: Vec2) => {
         const duration = theBigOne ? 1000 : 500;
         const removeFunc = explosions.add({
@@ -349,62 +323,48 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 <ColonyWall backend={context.backend} impactPositions={impactPositions} health={health} />
 
                 <For each={players.get}>{player => {
-                    const commonContainerStyle = AsteroidsStyles.player.container(player.transform.get());
-                    const commonAssetStyle = css({ width: "100%", height: "100%" });
-
                     return (
-                        <div style={{ position: "relative" }}>
+                        <div class={AsteroidsStyles.player.container(player.transform.get())}
+                        >
                             {/* Static base image container */}
-                            <div class={css([commonContainerStyle, AsteroidsStyles.player.base])}>
-                                <NTAwait func={() => context.backend.assets.getMetadata(7007)}>{(asset) =>
-                                    <GraphicalAsset
-                                        metadata={asset}
-                                        backend={context.backend}
-                                        styleOverwrite={commonAssetStyle}
-                                    />
-                                }</NTAwait>
-                            </div>
-
-                            {/* Rotating cannon container */}
-                            <div
-                                class={css([commonContainerStyle, AsteroidsStyles.player.cannon(player.barrelRotation.get())])}
-                                ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
-                            >
-                                <NTAwait func={() => context.backend.assets.getMetadata(7008)}>{(asset) =>
-                                    <GraphicalAsset
-                                        metadata={asset}
-                                        backend={context.backend}
-                                        styleOverwrite={commonAssetStyle}
-                                    />
-                                }</NTAwait>
-                            </div>
-
-                            {/* Emitter container */}
-                            <div class={css([commonContainerStyle, AsteroidsStyles.player.emitter])}>
-                                <ContinuousEmitter
-                                    coords={{ x: player.transform.get().xOffset, y: player.transform.get().yOffset }}
-                                    additionalParticleContent={() =>
-                                        <div style={"width: 100%; height: 100%; background: radial-gradient(circle, white, transparent 70%)"} />
-                                    }
-                                    active={createMemo(() => !player.disabled.get())}
+                            <NTAwait func={() => context.backend.assets.getMetadata(7007)}>{(asset) =>
+                                <GraphicalAsset
+                                    metadata={asset}
+                                    backend={context.backend}
+                                    styleOverwrite={AsteroidsStyles.player.base}
                                 />
-                            </div>
+                            }</NTAwait>
 
-                            {/* Laser impact effects */}
-                            <For each={laserImpacts.get}>{circle =>
-                                <div class={AsteroidsStyles.getImpactStyle(circle)} />
-                            }</For>
+                            <NTAwait func={() => context.backend.assets.getMetadata(7008)}>{(asset) =>
+                                <GraphicalAsset
+                                    metadata={asset}
+                                    backend={context.backend}
+                                    styleOverwrite={AsteroidsStyles.player.cannon(player.barrelRotation.get())}
+                                />
+                            }</NTAwait>
+
+                            {/* Smoke Emitter */}
+                            <ContinuousEmitter
+                                coords={{ x: 50, y: 50 }}
+                                relativePositioning
+                                zIndex={10}
+                                spawnRate={2}
+                                spread={.35}
+                                size={{x: 10, y: 20}}
+                                particleSize={.3}
+                                additionalParticleContent={(data) => 
+                                    <div style={`width: 100%; height: 100%; 
+                                        background: radial-gradient(circle, ${data.index % 2 === 0 ? "grey" : "black"}, transparent 50%)`} />
+                                }
+                                active={player.disabled.get}
+                            />
 
                             <BufferBasedButton
                                 register={subscribers.add}
                                 buffer={buffer.get}
-                                onActivation={() => onPlayerFire(player.code)}
+                                onActivation={() => {}}
                                 name={player.code}
-                                styleOverwrite={AsteroidsStyles.player.button(
-                                    player.transform.get().xOffset,
-                                    player.transform.get().yOffset,
-                                    viewportDim.get().y
-                                )}
+                                styleOverwrite={AsteroidsStyles.player.button}
                                 activationDelay={100}
                             />
                         </div>
