@@ -26,6 +26,7 @@ import { lerp } from "@/ts/ursaMath";
 import { fireParticleStyle } from "./entities/particles/fireParticleStyle";
 import ContinuousEmitter from "../utils/ContinuousEmitter";
 import { AsteroidsStyles } from "../styles/AsteroidsStyles";
+import { c } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
 
 interface AsteroidsDisplayComponentProps {
     context: ApplicationContext;
@@ -352,9 +353,9 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                                 spread={.35}
                                 size={{x: 10, y: 20}}
                                 particleSize={.3}
-                                additionalParticleContent={(data) => 
-                                    <div style={`width: 100%; height: 100%; 
-                                        background: radial-gradient(circle, ${data.index % 2 === 0 ? "grey" : "black"}, transparent 50%)`} />
+                                generatorFunc={(d, a, c) => 
+                                    <div class={a} style={`background: radial-gradient(circle, ${d.index % 2 === 0 ? "grey" : "black"}, transparent 50%)`}>{c}
+                                    </div>
                                 }
                                 active={player.disabled.get}
                             />

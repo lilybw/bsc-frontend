@@ -1,16 +1,14 @@
 import { Component, createMemo } from 'solid-js';
-import { MenuPageProps, MenuPages } from '../MainMenuApp';
+import { MenuPages } from '../MainMenuApp';
 import { css } from '@emotion/css';
 import BigMenuButton from '../../src/components/base/BigMenuButton';
-import { RuntimeMode } from '../../src/meta/types';
+import { ApplicationContext, RuntimeMode } from '../../src/meta/types';
 import SectionTitle from '../../src/components/base/SectionTitle';
-import StarryBackground from '../../src/components/base/StarryBackground';
 import GraphicalAsset from '@/components/base/GraphicalAsset';
 import NTAwait from '@/components/util/NoThrowAwait';
-import { Styles } from '@/styles/sharedCSS';
 import ContinuousEmitter from '@/components/colony/mini_games/utils/ContinuousEmitter';
 
-const LandingPage: Component<MenuPageProps> = (props) => {
+const LandingPage: Component<{ context: ApplicationContext, goToPage: (page: MenuPages) => void, goBack: () => void}> = (props) => {
     const tutorialOnly = createMemo(() => {
         return !(props.context.env.runtimeMode === RuntimeMode.PRODUCTION && props.context.backend.player.local.hasCompletedTutorial);
     });
@@ -41,7 +39,7 @@ const LandingPage: Component<MenuPageProps> = (props) => {
                 travelTime={10}
                 particleSize={0.005}
                 zIndex={0}
-                additionalParticleContent={() => <div class={speedParticleSize}/>}
+                generatorFunc={(i, a, c) => <div class={a} style={"background: rgba(255, 255, 255, .5)"}>{c}</div>}
             />
             <div class={css([{
                     position: 'absolute',
@@ -75,12 +73,6 @@ const LandingPage: Component<MenuPageProps> = (props) => {
     );
 };
 export default LandingPage;
-
-const speedParticleSize = css`
-width: 100%;
-height: 100%;
-background: rgba(255, 255, 255, .5);
-`
 
 const menuOptionsListStyle = css({
     position: "absolute",

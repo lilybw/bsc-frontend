@@ -1,4 +1,4 @@
-import { createResource } from "solid-js";
+import { createResource, InitializedResourceOptions, ResourceOptions } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 
 type AsyncFunction<T> = () => Promise<T>;
@@ -9,6 +9,7 @@ interface MultiAwaitProps<T extends any[]> {
     fallback?: (error: any) => JSX.Element;
     whilestLoading?: JSX.Element;
     children: (...args: T) => JSX.Element;
+    options?: ResourceOptions<T> | InitializedResourceOptions<T>;
 }
 
 /**
@@ -35,15 +36,14 @@ interface MultiAwaitProps<T extends any[]> {
  * @author GustavBW
  */
 export const MultiAwait = <T extends any[]>(props: MultiAwaitProps<T>) => {
-    const executeFuncs = async () => {
-        // props.func is either one function, or an array
+    const executeFuncs = async (): Promise<T[number]> => {
         if (typeof props.func === 'function') {
             return await props.func();
         } else {
             return await Promise.all(props.func.map(f => f()));
         }
     };
-    const [resource] = createResource(executeFuncs);
+    const [resource] = createResource(executeFuncs, props.options);
 
     const onFallback = (error: any) => {
         if (props.fallback) {

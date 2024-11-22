@@ -61,14 +61,15 @@ interface ContinuousEmitterProps {
      * styling to apply to the particle. For clarification: The overall computed animation is applied
      * to a parent of each particle and cannot be interferred with. NOT IMPLIMENTED. */
     particleModulator?: (data: ModulatorData) => string;
-}
-
-/** Data pertaining to some particle to be used for a continuous modulator */
-interface ModulatorData {
-    /** particle index */
-    index: number;
-    /** how far the particle is in its lifetime in percent 0-1. */
-    completion: number;
+    /** Fragile. 
+     * @param animation The computed animation style for the particle. Must be applied as the "class" prop. Unique. Volatile.
+     * @param children Any contents. Should at all times be included.
+     * @param data The computed data for the particle. 
+     * 
+     * Any additional style should be applied through the "style" prop. Careful not overwrite properties like 
+     * width, height, top, left & opacity, which are used for the animation as "style" takes precendance over "class"
+     */
+    generatorFunc?: (data: ComputeData, animation: string, children: JSX.Element) => JSX.Element;
 }
 
 interface ComputeData {
@@ -85,9 +86,18 @@ interface ComputeData {
     /** Particle number */
     index: number;
 }
+
+/** Data pertaining to some particle to be used for continuous mutation while the particle is spawned */
+interface ModulatorData extends ComputeData {
+    /** How many times this particle have been re-evaluated by this modulator function */
+    evalCount: number;
+    /** how far the particle is in its lifetime in percent (0-1). */
+    completion: number;
+}
+
 interface ParticleData {
     preComputed: ComputeData;
-    element?: HTMLElement;
+    element: JSX.Element;
     parentAnimation: string;
 }
 
@@ -113,12 +123,13 @@ const defaults: Omit<Required<ContinuousEmitterProps>, 'particleModulator' | 'ac
     showEmitterOutline: false,
     particlePoolSize: 0,
     additionalParticleContent: () => NULL_JSX,
+    generatorFunc: (i, a, c) => <div class={a}>{c}</div>
 }
 /** Mapping from [-1, 1] to [0, 1] */
 const mapToCSSPercentSpace = (vec: Vec2): Vec2 => ({ x: .5 + (vec.x * .5), y: .5 + (vec.y * .5) });
 
 export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
-    const props = Object.assign({}, defaults, rawProps);
+    const props = Object.assign({}, defaults, rawProps); // signals passed from rawProps remain reactive
     const particles = createArrayStore<ParticleData>([]);
 
     const orthogonal = createMemo(() => {
@@ -166,9 +177,12 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
         }
 
         const animation = computeParticleStyles(computeData);
+        const element = props.generatorFunc(computeData, animation, props.additionalParticleContent(computeData));
+
         const particle: ParticleData = {
             preComputed: computeData,
-            parentAnimation: animation
+            parentAnimation: animation,
+            element
         }
 
         const removeFunc = particles.add(particle);
@@ -208,11 +222,7 @@ export default function ContinuousEmitter(rawProps: ContinuousEmitterProps) {
             z-index: ${props.zIndex};
             ${props.showEmitterOutline ? "border: 1px solid red;" : ""}`
         }>
-            <For each={particles.get}>{ particle => 
-                <div class={particle.parentAnimation}>
-                    {props.additionalParticleContent(particle.preComputed)}
-                </div>
-            }</For>
+            <For each={particles.get}>{ particle => particle.element }</For>
         </div>
     );
 }

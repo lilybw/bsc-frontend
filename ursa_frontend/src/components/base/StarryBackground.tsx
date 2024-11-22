@@ -33,7 +33,7 @@ const SpaceBackground: Component<SpaceBackgroundProps> = (props) => {
                     </div>
                 }
             >
-                <NTAwait func={() => props.backend!.assets.getMetadata(assetId)}>
+                <NTAwait func={() => props.backend!.assets.getMetadata(assetId)} whilestLoading={<></>}>
                     {asset => (
                         <div class={backgroundContainer}>
                             <div class={imageWrapper}>
