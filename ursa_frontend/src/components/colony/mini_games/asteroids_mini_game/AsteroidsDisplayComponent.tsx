@@ -10,16 +10,14 @@ import { css } from "@emotion/css";
 import StarryBackground from "@/components/base/StarryBackground";
 import ActionInput from "../../MainActionInput";
 import { createCooldownSignal, createDelayedSignal, createWrappedSignal, WrappedSignal } from "@/ts/wrappedSignal";
-import { ActionContext, ActionContextTypes, BufferSubscriber, TypeIconTuple } from "@/ts/actionContext";
+import { ActionContext, BufferSubscriber } from "@/ts/actionContext";
 import GraphicalAsset from "@/components/base/GraphicalAsset";
 import NTAwait from "@/components/util/NoThrowAwait";
 import BufferBasedButton from "@/components/base/BufferBasedButton";
-import { StrictJSX } from "@colony/ColonyApp";
 import { angle, angleBetween, Circle, Line, normalizeVec2, Vec2, Vec2_ZERO } from "@/ts/geometry";
 import { Styles } from "@/styles/sharedCSS";
 import Countdown from "@/components/util/Countdown";
 import BurstEmitter, { BurstEmitterProps } from "../utils/BurstEmitter";
-import { get } from "http";
 import PlanetSurface from "@/components/base/PlanetSurface";
 import ColonyWall from "../utils/ColonyWall";
 import { AsteroidsSettingsDTO } from "./AsteroidsGameLoop";
@@ -27,6 +25,7 @@ import PlanetMoonSystem from "@/components/base/PlanetWithMoon";
 import { lerp } from "@/ts/ursaMath";
 import { fireParticleStyle } from "./entities/particles/fireParticleStyle";
 import ContinuousEmitter from "../utils/ContinuousEmitter";
+import { AsteroidsStyles } from "../styles/AsteroidsStyles";
 
 interface AsteroidsDisplayComponentProps {
     context: ApplicationContext;
@@ -319,18 +318,18 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     })
 
     return (
-        <div id="asteroids-display-component" class={css({ position: "absolute", width: "100%", height: "100%" })}>
+        <div id="asteroids-display-component" class={AsteroidsStyles.component}>
             <StarryBackground backend={context.backend} />
-            <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
-                zIndex: -1, position: "absolute",
-                width: "30vw", height: "30vw",
-                right: "1vw"
-            })} />
-            <PlanetMoonSystem backend={context.backend} moonCount={1} styleOverwrite={css({
-                zIndex: -1, position: "absolute",
-                width: "20vw", height: "20vw",
-                right: "-1vw", top: "25vh"
-            })} />
+            <PlanetMoonSystem
+                backend={context.backend}
+                moonCount={1}
+                styleOverwrite={AsteroidsStyles.planets.system1}
+            />
+            <PlanetMoonSystem
+                backend={context.backend}
+                moonCount={1}
+                styleOverwrite={AsteroidsStyles.planets.system2}
+            />
 
             <ActionInput
                 subscribers={subscribers}
@@ -350,25 +349,13 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 <ColonyWall backend={context.backend} impactPositions={impactPositions} health={health} />
 
                 <For each={players.get}>{player => {
-                    const commonContainerStyle = css([
-                        { width: "10vw", height: "10vw" },
-                        Styles.POSITION.transformToCSSVariables(player.transform.get()),
-                        Styles.POSITION.TRANSFORM_APPLICATOR,
-                        { transform: `translate(-50%, -50%)` }
-                    ]);
-
-                    const commonAssetStyle = css({
-                        width: "100%",
-                        height: "100%"
-                    });
+                    const commonContainerStyle = AsteroidsStyles.player.container(player.transform.get());
+                    const commonAssetStyle = css({ width: "100%", height: "100%" });
 
                     return (
                         <div style={{ position: "relative" }}>
                             {/* Static base image container */}
-                            <div class={css([
-                                commonContainerStyle,
-                                { zIndex: 1 }
-                            ])}>
+                            <div class={css([commonContainerStyle, AsteroidsStyles.player.base])}>
                                 <NTAwait func={() => context.backend.assets.getMetadata(7007)}>{(asset) =>
                                     <GraphicalAsset
                                         metadata={asset}
@@ -379,13 +366,8 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                             </div>
 
                             {/* Rotating cannon container */}
-                            <div class={css([
-                                commonContainerStyle,
-                                {
-                                    transform: `translate(-50%, -50%) rotate(${player.barrelRotation.get() - Math.PI / 2}rad)`,
-                                    zIndex: 3
-                                }
-                            ])}
+                            <div
+                                class={css([commonContainerStyle, AsteroidsStyles.player.cannon(player.barrelRotation.get())])}
                                 ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
                             >
                                 <NTAwait func={() => context.backend.assets.getMetadata(7008)}>{(asset) =>
@@ -398,68 +380,19 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                             </div>
 
                             {/* Emitter container */}
-                            <div class={css([
-                                commonContainerStyle,
-                                { zIndex: 4 }
-                            ])}>
+                            <div class={css([commonContainerStyle, AsteroidsStyles.player.emitter])}>
                                 <ContinuousEmitter
                                     coords={{ x: player.transform.get().xOffset, y: player.transform.get().yOffset }}
-                                    additionalParticleContent={() => <div style={"width: 100%; height: 100%; background: radial-gradient(circle, white, transparent 70%)"} />}
+                                    additionalParticleContent={() =>
+                                        <div style={"width: 100%; height: 100%; background: radial-gradient(circle, white, transparent 70%)"} />
+                                    }
                                     active={createMemo(() => !player.disabled.get())}
                                 />
                             </div>
 
                             {/* Laser impact effects */}
                             <For each={laserImpacts.get}>{circle =>
-                                <div
-                                    class={css([
-                                        commonContainerStyle,
-                                        {
-                                            zIndex: 5,
-                                            position: 'absolute',
-                                            left: `${circle.x}px`,
-                                            top: `${circle.y}px`,
-                                            pointerEvents: 'none',
-                                            animation: `laserImpactFade ${LASER_DURATION_MS}ms forwards`
-                                        },
-                                        css`
-                                            @keyframes laserImpactFade {
-                                                0% {
-                                                    transform: translate(-50%, -50%) scale(0);
-                                                    opacity: 1;
-                                                }
-                                                50% {
-                                                    transform: translate(-50%, -50%) scale(1);
-                                                    opacity: 1;
-                                                }
-                                                100% {
-                                                    transform: translate(-50%, -50%) scale(1);
-                                                    opacity: 0;
-                                                }
-                                            }
-                                            &::before, &::after {
-                                                content: '';
-                                                position: absolute;
-                                                left: 50%;
-                                                top: 50%;
-                                                border-radius: 50%;
-                                            }
-                                            &::before {
-                                                width: ${circle.radius * 2}px;
-                                                height: ${circle.radius * 2}px;
-                                                transform: translate(-50%, -50%);
-                                                background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,0,0,0.4) 50%, transparent 70%);
-                                                box-shadow: 0 0 10px rgba(255,0,0,0.6);
-                                            }
-                                            &::after {
-                                                width: ${circle.radius}px;
-                                                height: ${circle.radius}px;
-                                                transform: translate(-50%, -50%);
-                                                background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,0,0,0.8) 50%, transparent 70%);
-                                            }
-                                        `
-                                    ])}
-                                />
+                                <div class={AsteroidsStyles.getImpactStyle(circle)} />
                             }</For>
 
                             <BufferBasedButton
@@ -467,15 +400,11 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                                 buffer={buffer.get}
                                 onActivation={() => onPlayerFire(player.code)}
                                 name={player.code}
-                                styleOverwrite={css([
-                                    Styles.POSITION.TRANSFORM_CENTER_X,
-                                    {
-                                        position: "absolute",
-                                        left: `${player.transform.get().xOffset}px`,
-                                        top: `${player.transform.get().yOffset - (viewportDim.get().y * 0.12)}px`,
-                                        zIndex: 6
-                                    }
-                                ])}
+                                styleOverwrite={AsteroidsStyles.player.button(
+                                    player.transform.get().xOffset,
+                                    player.transform.get().yOffset,
+                                    viewportDim.get().y
+                                )}
                                 activationDelay={100}
                             />
                         </div>
@@ -483,21 +412,9 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 }}</For>
 
                 {/* Laser beams container */}
-                <svg class={css([
-                    Styles.POSITION.FULL_SCREEN,
-                    {
-                        filter: "drop-shadow(0 0 .5rem red)",
-                        zIndex: 2  // Between base and cannon
-                    }
-                ])}>
+                <svg class={AsteroidsStyles.laser.container}>
                     <For each={laserBeams.get}>{line =>
-                        <g class={css`
-                            animation: laserFade ${LASER_DURATION_MS}ms forwards linear;
-                            @keyframes laserFade {
-                                0% { opacity: 1; }
-                                100% { opacity: 0; }
-                            }
-                        `}>
+                        <g class={AsteroidsStyles.laser.fadeAnimation}>
                             <line
                                 x1={line.x1}
                                 y1={line.y1}
@@ -519,9 +436,8 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 </svg>
 
                 <For each={asteroids.get}>{asteroid =>
-                    <div class={css([
-                        getAsteroidStyles(asteroid, viewportDim.get()),
-                    ])}
+                    <div
+                        class={getAsteroidStyles(asteroid, viewportDim.get())}
                         ref={e => elements.set(mapKeyOfAsteroid(asteroid.id), e)}
                     >
                         <NTAwait func={() => context.backend.assets.getMetadata(7001)}>{(asset) =>
@@ -539,10 +455,13 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                             buffer={buffer.get}
                             onActivation={() => onPlayerFire(asteroid.charCode)}
                             name={asteroid.charCode}
-                            styleOverwrite={css([Styles.POSITION.TRANSFORM_CENTER_X, {
-                                bottom: 0,
-                                filter: "drop-shadow(0 0 0.5rem black)"
-                            }])}
+                            styleOverwrite={css([
+                                Styles.POSITION.TRANSFORM_CENTER_X,
+                                {
+                                    bottom: 0,
+                                    filter: "drop-shadow(0 0 0.5rem black)"
+                                }
+                            ])}
                             activationDelay={100}
                         />
                     </div>
