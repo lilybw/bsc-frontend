@@ -56,7 +56,7 @@ export const createCooldownSignal = <T>(value: T, options?: CooldownSignalOption
     let timeout: NodeJS.Timeout | undefined;
     let isAvailable = true;
     return {
-        get: wrapped.get,
+        ...wrapped,
         set: (newValue: T) => {
             if (!isAvailable) return;
             wrapped.set(() => newValue);
@@ -67,4 +67,77 @@ export const createCooldownSignal = <T>(value: T, options?: CooldownSignalOption
         },
     };
 
+}
+export interface TimedTriggerOptions<T> extends SignalOptions<T> {}
+export interface TimedSwitch<T> {
+    get: Accessor<T>;
+    flip: (val: T, ms: number) => void;
+}
+/** An abstract signal which can be flipped to some other value temporarily.
+ * After the time given when flipped has passed, it will revert to its original state.
+ * Any additional flips will reset the timer.
+ * Any additional flips with the same new value, will extend the timer.
+ * 
+ * @author GustavBW
+ */
+export function createTimedSwitch<T>(
+    initialValue: T, 
+    options?: TimedTriggerOptions<T>
+): TimedSwitch<T> {
+    const [get, set] = createSignal(initialValue, options);
+    
+    // State tracking
+    let originalValue = initialValue;
+    let currentTimeout: NodeJS.Timeout | undefined;
+    let lastFlipTime = 0;
+    let lastFlipDuration = 0;
+    let tempValue: T | undefined;
+
+    const scheduleReset = (ms: number) => {
+        // Clear any existing timeout
+        if (currentTimeout) {
+            clearTimeout(currentTimeout);
+        }
+
+        // Schedule the reset
+        currentTimeout = setTimeout(() => {
+            set(() => originalValue);
+            currentTimeout = undefined;
+            tempValue = undefined;
+            lastFlipDuration = 0;
+        }, ms);
+    };
+
+    const flip = (newValue: T, duration: number) => {
+        if (duration <= 0) {
+            console.warn('Duration must be positive');
+            return;
+        }
+
+        const now = Date.now();
+        let effectiveDuration = duration;
+
+        if (newValue === tempValue && currentTimeout) {
+            // Extending existing flip
+            const remainingTime = (lastFlipTime + lastFlipDuration) - now;
+            if (remainingTime > 0) {
+                effectiveDuration = duration + remainingTime;
+            }
+        } else {
+            // New flip value
+            set(() => newValue);
+        }
+
+        scheduleReset(effectiveDuration);
+        
+        // Update state
+        tempValue = newValue;
+        lastFlipTime = now;
+        lastFlipDuration = effectiveDuration;
+    };
+
+    return {
+        get,
+        flip
+    };
 }

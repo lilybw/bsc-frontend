@@ -9,7 +9,7 @@ import { OnEventCallback } from "@/integrations/multiplayer_backend/eventMultipl
 import { css } from "@emotion/css";
 import StarryBackground from "@/components/base/StarryBackground";
 import ActionInput from "../../MainActionInput";
-import { createCooldownSignal, createDelayedSignal, createWrappedSignal, WrappedSignal } from "@/ts/wrappedSignal";
+import { createCooldownSignal, createDelayedSignal, createTimedSwitch, createWrappedSignal, TimedSwitch, WrappedSignal } from "@/ts/wrappedSignal";
 import { ActionContext, BufferSubscriber } from "@/ts/actionContext";
 import GraphicalAsset from "@/components/base/GraphicalAsset";
 import NTAwait from "@/components/util/NoThrowAwait";
@@ -39,7 +39,7 @@ export interface ExtendedAsteroidDTO extends AsteroidsAsteroidSpawnMessageDTO {
 }
 
 export interface ExtendedPlayerDTO extends AsteroidsAssignPlayerDataMessageDTO {
-    disabled: WrappedSignal<boolean>;
+    disabled: TimedSwitch<boolean>;
     transform: WrappedSignal<TransformDTO>;
     barrelRotation: WrappedSignal<number>;
 }
@@ -116,8 +116,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     });
 
     const disablePlayer = (player: ExtendedPlayerDTO, durationMS: number, reason: "miss" | "friendlyFire" | "firedUpon") => {
-        player.disabled.set(true);
-        setTimeout(() => { player.disabled.set(false); }, durationMS);
+        player.disabled.flip(true, durationMS);
     }
 
     const triggerCameraShake = () => {
@@ -133,7 +132,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
             const instance: ExtendedPlayerDTO = {
                 ...data,
                 transform: createWrappedSignal(toTransformPlayer(data, viewportDim.get())),
-                disabled: createWrappedSignal(false),
+                disabled: createTimedSwitch(false),
                 barrelRotation: createWrappedSignal(Math.PI / 2),  // Initialize at 90 degrees
             }
             if (data.id === context.backend.player.local.id) {
@@ -158,10 +157,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         }));
         const playerShootAtCodeSubID = subscribe(ASTEROIDS_PLAYER_SHOOT_AT_CODE_EVENT, assignOrigin((data) => {
             players.forAny(p => p.code === data.code, playerHit => {
-                playerHit.disabled.set(true);
-                setTimeout(() => {
-                    playerHit.disabled.set(false);
-                }, settings.stunDurationS * 1000);
+                playerHit.disabled.flip(true, settings.stunDurationS * 1000);
             });
             //Handles all animations
             onPlayerFire(data.code, players.findFirst(p => p.id === data.id));
@@ -280,16 +276,14 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         });
 
         if (centerLatestElementHit) {
-
-            const anglePlayerTarget = angleBetween(playerCenter, centerLatestElementHit)
-
+            const anglePlayerTarget = angleBetween(playerCenter, centerLatestElementHit);
             player.barrelRotation.set(anglePlayerTarget)
         }
     }
 
     const computedCameraShakeStyles = createMemo(() => {
         return css([{ position: "absolute", width: "100%", height: "100%" },
-        cameraShake.get() ? Styles.ANIM.SHAKE({ seconds: CAMERA_SHAKE_DURATION_MS / 1000, strength: 2 }) : ""
+            cameraShake.get() ? Styles.ANIM.SHAKE({ seconds: CAMERA_SHAKE_DURATION_MS / 1000, strength: 2 }) : ""
         ]);
     })
 
