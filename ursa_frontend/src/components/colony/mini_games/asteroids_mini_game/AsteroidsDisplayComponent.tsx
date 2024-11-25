@@ -478,11 +478,12 @@ const getAsteroidStyles = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => css`
     ${Styles.POSITION.TRANSFORM_APPLICATOR}
     ${computeAsteroidAnimation(asteroid, dim)}
     z-index: 100000;
+    width: 10vw;
+    height: 10vw;
 `
 
 const computeAsteroidAnimation = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => {
-    let endPositionY = dim.y - asteroid.startPosition.yOffset
-    endPositionY = lerp(endPositionY, dim.y * .6, dim.y * .95);
+    const endPositionY = lerp(asteroid.y, dim.y * .6, dim.y * .95);
 
     return css`
         animation: asteroid-${asteroid.id} ${asteroid.timeUntilImpact / 1000}s forwards linear;

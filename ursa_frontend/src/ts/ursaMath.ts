@@ -9,10 +9,9 @@ export const combineTransforms = (a: TransformDTO, b: TransformDTO): TransformDT
     };
 };
 
-export const lerp = (observed: number, rangeA: number, rangeB: number): number => {
-    if (observed < rangeA) return rangeA;
-    if (observed > rangeB) return rangeB;
-    return rangeA + (rangeB - rangeA) * observed;
+/** @param t 0-1 */
+export const lerp = (t: number, min: number, max: number): number => {
+    return t * (max - min) + min;
 }
 
 export class PooledRandom {

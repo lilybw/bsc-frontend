@@ -23,7 +23,7 @@ import { uint32 } from '../../../../integrations/main_backend/mainBackendDTOs';
 import { GenericGameLoopStartFunction, KnownMinigames, loadComputedSettings, SingleplayerGameLoopInitFunc } from '../miniGame';
 import { ApplicationContext, ResErr } from '../../../../meta/types';
 import { Logger } from '../../../../logging/filteredLogger';
-import { GlobalRandom } from '@/ts/ursaMath';
+import { GlobalRandom, lerp } from '@/ts/ursaMath';
 import { MOCK_SERVER_ID } from '@/integrations/multiplayer_backend/mockServer';
 
 /**
@@ -95,12 +95,10 @@ class AsteroidsGameLoop {
     private selfHitCounts = 1;
 
     private spawnAsteroid = () => {
-        const startY = GlobalRandom.next() * 0.6 + 0.2; // Start somewhere random vertically
+        const startY = GlobalRandom.next() * 0.5 + 0.05; // Start somewhere random vertically
         const id = this.nextAsteroidID++;
         const charCode = this.charPool.generateCode();
-        const timeTillImpactMS =
-            (GlobalRandom.next() * (this.settings.maxTimeTillImpactS - this.settings.minTimeTillImpactS) +
-            this.settings.minTimeTillImpactS) * 1000;
+        const timeTillImpactMS = lerp(GlobalRandom.next(), this.settings.minTimeTillImpactS, this.settings.maxTimeTillImpactS) * 1000;
         const health = Math.ceil(this.settings.asteroidMaxHealth * GlobalRandom.next());
 
         const data: AsteroidsAsteroidSpawnMessageDTO = {
@@ -118,7 +116,7 @@ class AsteroidsGameLoop {
         this.asteroids.set(id, { ...data, spawnTimestampMS: this.gameTimeMS });
         this.events.emitRAW<AsteroidsAsteroidSpawnMessageDTO>(data, this.internalOrigin);
         this.asteroidSpawnCount++;
-        this.log.subtrace(`Spawned asteroid ${id} at ${0}, ${startY} with code ${charCode}. HP: ${health}`);
+        this.log.subtrace(`Spawned asteroid ${id} at ${1}, ${startY} with code ${charCode}. HP: ${health}`);
     };
 
     private onPlayerShot = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {
