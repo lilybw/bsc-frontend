@@ -29,6 +29,7 @@ export class PooledRandom {
         }
         this.nextIndex = 0;
     }
+    /** range 0-1 */
     public next(): number {
         if (this.nextIndex >= this.poolSize) {
             this.refreshPool();

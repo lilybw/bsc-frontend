@@ -130,7 +130,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             if (currentLocOfLocalPlayer) {
                 centerCameraOnPoint(currentLocOfLocalPlayer.transform.xOffset, currentLocOfLocalPlayer.transform.yOffset);
             }
-            log.trace("dns: " + JSON.stringify(currentDNS));
             //Updating transforms of all colony assets
             for (const colAss of colonyAssets.get) {
                 const og = colAss.originalTransform;

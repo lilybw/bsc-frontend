@@ -33,7 +33,9 @@ export interface TrackedClient extends ClientDTO {
     participation: PlayerParticipation;
 }
 
-/** Tracks the state of all non-local players */
+/** Tracks the state of all non-local players 
+ * THIS IS NOT TELEMETRY. Just game state tracking.
+*/
 class ClientTracker {
     private readonly clients = createArrayStore<TrackedClient>();
     private readonly subIDS: uint32[] = [];

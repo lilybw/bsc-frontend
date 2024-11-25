@@ -95,8 +95,7 @@ class AsteroidsGameLoop {
     private selfHitCounts = 1;
 
     private spawnAsteroid = () => {
-        const startX = GlobalRandom.next() * 0.6 + 0.4; // Start somewhere on the right side
-        const startY = GlobalRandom.next() * 0.6 + 0.4; // Start somewhere random vertically
+        const startY = GlobalRandom.next() * 0.6 + 0.2; // Start somewhere random vertically
         const id = this.nextAsteroidID++;
         const charCode = this.charPool.generateCode();
         const timeTillImpactMS =
@@ -106,7 +105,7 @@ class AsteroidsGameLoop {
 
         const data: AsteroidsAsteroidSpawnMessageDTO = {
             id,
-            x: startX,
+            x: 1,
             y: startY,
             health,
             timeUntilImpact: timeTillImpactMS,
@@ -119,7 +118,7 @@ class AsteroidsGameLoop {
         this.asteroids.set(id, { ...data, spawnTimestampMS: this.gameTimeMS });
         this.events.emitRAW<AsteroidsAsteroidSpawnMessageDTO>(data, this.internalOrigin);
         this.asteroidSpawnCount++;
-        this.log.subtrace(`Spawned asteroid ${id} at ${startX}, ${startY} with code ${charCode}. HP: ${health}`);
+        this.log.subtrace(`Spawned asteroid ${id} at ${0}, ${startY} with code ${charCode}. HP: ${health}`);
     };
 
     private onPlayerShot = (data: AsteroidsPlayerShootAtCodeMessageDTO) => {

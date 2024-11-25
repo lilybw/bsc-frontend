@@ -64,9 +64,10 @@ const toTransformPlayer = (data: AsteroidsAssignPlayerDataMessageDTO, viewport: 
     };
 }
 const toTransformAsteroid = (data: AsteroidsAsteroidSpawnMessageDTO, viewport: Accessor<Vec2>) => {
+    const dim = viewport();
     return {
-        xOffset: viewport().x * 1.05,
-        yOffset: data.y * viewport().y,
+        xOffset: dim.x * 1.05,
+        yOffset: data.y * dim.y,
         zIndex: 11,
         xScale: 1,
         yScale: 1,
@@ -326,6 +327,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 <For each={players.get}>{player => {
                     return (
                         <div class={AsteroidsStyles.player.container(player.transform.get())}
+                            ref={e => elements.set(mapKeyOfPlayer(player.id), e)}
                         >
                             {/* Static base image container */}
                             <NTAwait func={() => context.backend.assets.getMetadata(7007)}>{(asset) =>
@@ -406,6 +408,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                                 metadata={asset}
                                 backend={context.backend}
                                 styleOverwrite={css({
+                                    position: "absolute",
                                     filter: `brightness(${1 - (asteroid.health * 0.2)})`,
                                     transform: `scale(${0.5 + (asteroid.health * 0.3)})`
                                 })}
@@ -419,6 +422,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                             styleOverwrite={css([
                                 Styles.POSITION.TRANSFORM_CENTER_X,
                                 {
+                                    position: "absolute",
                                     bottom: 0,
                                     filter: "drop-shadow(0 0 0.5rem black)"
                                 }
@@ -473,6 +477,7 @@ const getAsteroidStyles = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => css`
     ${Styles.POSITION.transformToCSSVariables(asteroid.startPosition)}
     ${Styles.POSITION.TRANSFORM_APPLICATOR}
     ${computeAsteroidAnimation(asteroid, dim)}
+    z-index: 100000;
 `
 
 const computeAsteroidAnimation = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => {
@@ -488,7 +493,7 @@ const computeAsteroidAnimation = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => {
             }
             100% { 
                 top: ${endPositionY}px;
-                left: ${dim.x - (dim.x * 1.05)}px;
+                left: ${dim.x * -0.05}px;
             }
         }`
 }
