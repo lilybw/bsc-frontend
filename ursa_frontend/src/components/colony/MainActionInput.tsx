@@ -59,6 +59,8 @@ interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternati
      * @default true
      */
     maintainFocus?: boolean;
+
+    disabled?: Accessor<boolean>;
 }
 
 /**
@@ -92,12 +94,10 @@ const ActionInput: Component<ActionInputProps> = (props) => {
     const [isShaking, setIsShaking] = createSignal(false);
     const [enterWasJustPressed, setEnterWasJustPressed] = createSignal(false);
     const [enterSuccessfullyPressed, setEnterSuccessfullyPressed] = createSignal(false);
-
     // Focus management
     const [focusPull, triggerFocusPull] = createSignal(0);
     let inputRef: HTMLInputElement | undefined;
     let focusIntervalId: NodeJS.Timeout | undefined;
-
     /**
      * Sets up or tears down the focus maintenance interval based on props.
      * The interval will pull focus back to the input field periodically.
@@ -109,13 +109,15 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                 clearInterval(focusIntervalId);
             }
             // Start new interval for focus maintenance
-            focusIntervalId = setInterval(() => triggerFocusPull(k => k + 1), 100);
+            focusIntervalId = setInterval(() => {
+                if (props.disabled && props.disabled()) return;
+                triggerFocusPull(k => k + 1)
+            }, 100);
         } else if (focusIntervalId) {
             clearInterval(focusIntervalId);
             focusIntervalId = undefined;
         }
     });
-
     /**
      * Handles focus pulling when the counter changes.
      * Skips the initial value (0) to avoid unnecessary focus.
@@ -124,7 +126,6 @@ const ActionInput: Component<ActionInputProps> = (props) => {
         if (focusPull() === 0) return;
         inputRef?.focus();
     });
-
     /**
      * Handles initial visibility-based focus.
      */
@@ -133,7 +134,6 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             inputRef?.focus();
         }
     });
-
     /**
      * Sets up external trigger effects for animations and actions.
      */
@@ -143,34 +143,29 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             triggerShake();
         });
     }
-
     if (props.manTriggerEnter) {
         createEffect(() => {
             if (props.manTriggerEnter!() === 0) return;
             handleEnter();
         });
     }
-
     if (props.manTriggerEnterAnimation) {
         createEffect(() => {
             if (props.manTriggerEnterAnimation!() === 0) return;
             triggerEnterAnimation();
         });
     }
-
     // Lifecycle hooks
     onMount(() => {
         if (!props.demoMode) {
             inputRef?.focus();
         }
     });
-
     onCleanup(() => {
         if (focusIntervalId) {
             clearInterval(focusIntervalId);
         }
     });
-
     /**
      * Handles keyboard input events.
      * Processes Enter key specially, updates input buffer for other keys.
@@ -187,7 +182,6 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             handleEnter();
         }
     };
-
     /**
      * Triggers the error shake animation.
      * Used when input cannot be consumed by any subscriber.
@@ -226,7 +220,6 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             triggerShake();
         }
     };
-
     /**
      * Triggers the success animation.
      * Used when input is successfully consumed by a subscriber.
@@ -283,7 +276,28 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                 </div>
                 <input
                     type="text"
-                    class={inputFieldStyle}
+                    class={css`
+                        background-color: transparent;
+                        color: white;
+                        border: none;
+                        outline: none;
+                        width: 88%;
+                        font-size: 1.5rem;
+                        font-family: 'Orbitron', sans-serif;
+                        ${props.disabled?.() ?? false ? 
+                            `cursor: not-allowed; 
+                            pointer-events: none;
+                            background-image: repeating-linear-gradient(
+                                45deg,
+                                transparent,
+                                transparent 10px,
+                                rgba(128, 128, 128, 0.5) 10px,
+                                rgba(128, 128, 128, 0.5) 20px
+                            );
+                            background-size: 28.28px 28.28px;
+                            `
+                        : '' }
+                    `}
                     onKeyDown={onKeyDown}
                     value={props.inputBuffer()}
                     disabled={props.demoMode}
@@ -341,16 +355,6 @@ const enterAnimation = css`
             filter: drop-shadow(0 0 0.5rem var(--color-1));
         }
     }
-`;
-
-const inputFieldStyle = css`
-    background-color: transparent;
-    color: white;
-    border: none;
-    outline: none;
-    width: 88%;
-    font-size: 1.5rem;
-    font-family: 'Orbitron', sans-serif;
 `;
 
 const actionContextIconStyle = css`

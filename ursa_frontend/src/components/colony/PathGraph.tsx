@@ -257,7 +257,7 @@ const PathGraph: Component<PathGraphProps> = (props) => {
             <div class={computedCameraContainerStyles()} id="camera-container">
                 <svg id="paths" class={svgContainerStyle}>
                     <For each={computedPaths.get}>
-                        {(line) => <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="white" stroke-width={10} />}
+                        {(line) => <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="rgba(0,0,0,0.3)" stroke-width={10} />}
                     </For>
                 </svg>
 
@@ -361,7 +361,7 @@ const svgContainerStyle = css`
     z-index: 1;
     overflow: visible !important;
 
-    filter: drop-shadow(0 0 10px black) drop-shadow(0 10px 10px grey);
+    filter: drop-shadow(0 10px 10px rgba(255, 255, 255, 0.5));
 `;
 
 const cameraContainer = css`

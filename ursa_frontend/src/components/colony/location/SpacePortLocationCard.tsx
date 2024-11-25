@@ -256,9 +256,10 @@ export const STYLE_LOC_CARD_titleStyleOverwrite = css`
     top: 2rem;
     left: 0;
     width: 100%;
-    height: auto;
+    height: 1.75rem;
     font-size: 2.5rem;
     text-align: center;
+    align-content: center;
     z-index: 1;
     margin: 0;
     filter: drop-shadow(0 0 10px black);

@@ -125,7 +125,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
     }
 
     /** non-reactive copy, altough updated with element ref */
-    let localPlayer: ExtendedPlayerDTO | undefined;
+    const localPlayer = createWrappedSignal<ExtendedPlayerDTO | undefined>(undefined);
     onMount(() => {
         const subscribe = context.events.subscribe;
         const playerDataAssignSubID = subscribe(ASTEROIDS_ASSIGN_PLAYER_DATA_EVENT, assignOrigin((data) => {
@@ -136,7 +136,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 barrelRotation: createWrappedSignal(Math.PI / 2),  // Initialize at 90 degrees
             }
             if (data.id === context.backend.player.local.id) {
-                localPlayer = instance;
+                localPlayer.set(instance);
             }
             players.add(instance);
         }));
@@ -232,7 +232,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         }, LASER_DURATION_MS);
     }
 
-    const onPlayerFire = (charCode: string, player: ExtendedPlayerDTO = localPlayer!) => {
+    const onPlayerFire = (charCode: string, player: ExtendedPlayerDTO = localPlayer.get()!) => {
         // Events are never replicated back to sender (not counting mock server)
         // so if this is the local player, the event must be emitted
         if (player.id === context.backend.player.local.id) {
@@ -287,6 +287,22 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
         ]);
     })
 
+    const appendInput = () => {
+        const local = localPlayer.get();
+        if (!local) return null;
+
+        return <ActionInput
+            subscribers={subscribers}
+            text={context.text}
+            backend={context.backend}
+            actionContext={actionContext}
+            setInputBuffer={buffer.set}
+            inputBuffer={buffer.get}
+            maintainFocus={true}
+            disabled={local.disabled.get}
+        />
+    }
+
     return (
         <div id="asteroids-display-component" class={AsteroidsStyles.component}>
             <StarryBackground backend={context.backend} />
@@ -301,15 +317,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                 styleOverwrite={AsteroidsStyles.planets.system2}
             />
 
-            <ActionInput
-                subscribers={subscribers}
-                text={context.text}
-                backend={context.backend}
-                actionContext={actionContext}
-                setInputBuffer={buffer.set}
-                inputBuffer={buffer.get}
-                maintainFocus={true}
-            />
+            {appendInput()}
             <Countdown duration={settings.survivalTimeS} styleOverwrite={timeLeftStyle} />
 
             <div id="camera-shake-container" class={computedCameraShakeStyles()}>
