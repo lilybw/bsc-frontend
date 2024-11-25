@@ -1,14 +1,15 @@
 import { Component, createSignal, JSX } from 'solid-js';
 import { css } from '@emotion/css';
-import { MenuPageProps } from '../MainMenuApp';
 import NavigationFooter from '../NavigationFooter';
 import { CreateColonyRequestDTO } from '../../src/integrations/main_backend/mainBackendDTOs';
 import { Styles } from '../../src/styles/sharedCSS';
 import SectionSubTitle from '../../src/components/base/SectionSubTitle';
 import StarryBackground from '../../src/components/base/StarryBackground';
 import PlanetMoonSystem from '@/components/base/PlanetWithMoon';
+import { ApplicationContext } from '@/meta/types';
+import { MenuPages } from '@menu/MainMenuApp';
 
-const NewColonyPage: Component<MenuPageProps> = (props) => {
+const NewColonyPage: Component<{ context: ApplicationContext, goToPage: (page: MenuPages) => void, goBack: () => void}> = (props) => {
     const [colonyName, setColonyName] = createSignal('');
     const [textError, setTextError] = createSignal<string | undefined>(undefined);
     const [inputEngaged, setInputEngaged] = createSignal(false);

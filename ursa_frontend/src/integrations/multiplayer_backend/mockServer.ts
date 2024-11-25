@@ -1,4 +1,5 @@
-import { IExpandedAccessMultiplexer } from '../integrations/multiplayer_backend/eventMultiplexer';
+import { Logger } from '@/logging/filteredLogger';
+import { IExpandedAccessMultiplexer } from './eventMultiplexer';
 import {
     DIFFICULTY_CONFIRMED_FOR_MINIGAME_EVENT,
     PLAYERS_DECLARE_INTENT_FOR_MINIGAME_EVENT,
@@ -18,11 +19,10 @@ import {
     LoadMinigameMessageDTO,
     MINIGAME_WON_EVENT,
     MINIGAME_LOST_EVENT,
-} from '../integrations/multiplayer_backend/EventSpecifications';
-import { ApplicationContext } from '../meta/types';
-import { loadMinigameSingleplayerLoop, SingleplayerGameLoopInitFunc } from '../components/colony/mini_games/miniGame';
-import { Logger } from '../logging/filteredLogger';
+} from './EventSpecifications';
 import { uint32 } from '@/integrations/main_backend/mainBackendDTOs';
+import { SingleplayerGameLoopInitFunc, loadMinigameSingleplayerLoop } from '@/components/colony/mini_games/miniGame';
+import { ApplicationContext } from '@/meta/types';
 
 /**
  * Interface defining the basic operations of the MockServer.

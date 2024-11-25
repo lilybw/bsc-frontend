@@ -39,9 +39,8 @@ import ErrorPage from '@/ErrorPage';
 import { ColonyCode } from '@/integrations/main_backend/mainBackendDTOs';
 import { Styles } from '@/styles/sharedCSS';
 import { createArrayStore } from '@/ts/arrayStore';
-import { MockServer } from '@/ts/mockServer';
 import TimedFullScreenNotification from './TimedFullScreenNotification';
-import HandPlacementCheck from '@/components/colony/HandPlacementCheck';
+import { MockServer } from '@/integrations/multiplayer_backend/mockServer';
 
 /**
  * Type definition for JSX elements in the colony app.
@@ -291,8 +290,9 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                 showNotification() && (
                     <TimedFullScreenNotification
                         text={props.context.text}
-                        reason={shuntNotaficationReason()}
+                        title={shuntNotaficationReason()}
                         durationMS={5000}
+                        subTitle={"NOTIFICATION.RETURNING_TO_MENU_IN"}
                         onClose={() => setShowShuntNotification(false)}
                         onCompletion={() => props.context.nav.goToMenu()}
                     />

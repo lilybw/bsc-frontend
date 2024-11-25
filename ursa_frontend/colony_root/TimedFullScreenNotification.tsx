@@ -3,28 +3,40 @@ import Countdown from '@/components/util/Countdown';
 import { Styles } from '@/styles/sharedCSS';
 import { IInternationalized, IParenting } from '@/ts/types';
 import { css } from '@emotion/css';
-import { Component } from 'solid-js';
+import { Component, Show } from 'solid-js';
 
 interface TimedFullScreenNotificationProps extends IInternationalized, IParenting {
     /** intl key */
-    reason: string;
-    durationMS?: number;
+    title: string;
+    /** intl key */
+    subTitle?: string;
     onClose?: () => void;
+    /** Show a countdown, and do something on completion */
     onCompletion?: () => void;
+    /** countdown time @default 5000 */
+    durationMS?: number;
 }
 
 const TimedFullScreenNotification: Component<TimedFullScreenNotificationProps> = (props) => {
     return (
         <div class={closureNotificationContainer}>
             <div class={contentAreaStyle}>
-                {props.text.Title(props.reason)({ styleOverwrite: titleStyle })}
-                {props.text.SubTitle('NOTIFICATION.RETURNING_TO_MENU_IN')({ styleOverwrite: subTitleStyle })}
-                <Countdown duration={(props.durationMS ?? 5000) / 1000} onComplete={props.onCompletion} styleOverwrite={countDownStyle} />
+                <Show when={props.title}>
+                    {props.text.Title(props.title)({ styleOverwrite: titleStyle })} 
+                </Show>
+                <Show when={props.subTitle}>
+                    {props.text.SubTitle(props.subTitle!)({ styleOverwrite: subTitleStyle })}
+                </Show>
+                <Show when={props.onCompletion}>
+                    <Countdown duration={(props.durationMS ?? 5000) / 1000} onComplete={props.onCompletion} styleOverwrite={countDownStyle} />
+                </Show>
                 {props.children}
             </div>
-            <BigMenuButton onClick={props.onClose} styleOverwrite={closeButtonStyle}>
-                X
-            </BigMenuButton>
+            <Show when={props.onClose}>
+                <BigMenuButton onClick={props.onClose} styleOverwrite={closeButtonStyle}>
+                    X
+                </BigMenuButton>
+            </Show>
         </div>
     );
 };

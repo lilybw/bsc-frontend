@@ -1,5 +1,5 @@
 import { Component, createSignal, For } from 'solid-js';
-import { MenuPageProps, MenuPages } from '../MainMenuApp';
+import { MenuPages } from '../MainMenuApp';
 import { ColonyInfoResponseDTO, ColonyOverviewReponseDTO, UpdateLatestVisitRequestDTO } from '../../src/integrations/main_backend/mainBackendDTOs';
 import { css } from '@emotion/css';
 import ColonyListEntry from './ColonyListEntry';
@@ -8,8 +8,9 @@ import NTAwait from '../../src/components/util/NoThrowAwait';
 import BigMenuButton from '../../src/components/base/BigMenuButton';
 import { Styles } from '../../src/styles/sharedCSS';
 import StarryBackground from '../../src/components/base/StarryBackground';
+import { ApplicationContext } from '@/meta/types';
 
-const ColonyListPage: Component<MenuPageProps> = (props) => {
+const ColonyListPage: Component<{ context: ApplicationContext, goToPage: (page: MenuPages) => void, goBack: () => void}> = (props) => {
     const [selectedColonyId, setSelectedColonyId] = createSignal<number | null>(null);
 
     const sortedColonies = (colonyListReq: ColonyOverviewReponseDTO) => {

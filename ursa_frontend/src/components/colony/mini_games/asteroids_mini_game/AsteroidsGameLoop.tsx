@@ -22,9 +22,9 @@ import { CharCodeGenerator, SYMBOL_SET } from '../utils/charCodeGenerator';
 import { uint32 } from '../../../../integrations/main_backend/mainBackendDTOs';
 import { GenericGameLoopStartFunction, KnownMinigames, loadComputedSettings, SingleplayerGameLoopInitFunc } from '../miniGame';
 import { ApplicationContext, ResErr } from '../../../../meta/types';
-import { MOCK_SERVER_ID } from '../../../../ts/mockServer';
 import { Logger } from '../../../../logging/filteredLogger';
 import { GlobalRandom } from '@/ts/ursaMath';
+import { MOCK_SERVER_ID } from '@/integrations/multiplayer_backend/mockServer';
 
 /**
  * Settings DTO for the Asteroids minigame

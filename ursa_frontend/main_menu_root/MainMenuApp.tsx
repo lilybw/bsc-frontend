@@ -1,4 +1,4 @@
-import { createSignal, JSX, type Component } from 'solid-js';
+import { createSignal, JSX } from 'solid-js';
 import { css } from '@emotion/css';
 import LandingPage from './pages/LandingPage';
 import ColonyListPage from './pages/ColonyListPage';
