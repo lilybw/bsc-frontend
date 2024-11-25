@@ -74,6 +74,7 @@ const PostGameScreen: Component<PostGameScreenProps> = (props) => {
                         ${STYLE_LOC_CARD_titleStyleOverwrite}
                         color: ${titleStyles.color};
                         text-shadow: ${titleStyles.shadow};
+                        height: 5rem;
                         font-size: 5rem;
                     `
                 })}
