@@ -95,6 +95,9 @@ const Player: Component<PlayerProps> = (props) => {
                 ${Styles.POSITION.transformToCSSVariables(currentTransform())}
                 ${Styles.POSITION.TRANSFORM_APPLICATOR}
                 ${props.styleOverwrite}
+                transition:
+                    top 0.5s ease-in-out,
+                    left 0.5s ease-in-out;
             `}
             id={'player-' + props.client.IGN}
         >
