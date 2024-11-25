@@ -97,7 +97,7 @@ export default function ColonyWall({
                                                 height: "100%",
                                                 width: "100%",
                                                 transform: index() % 2 === 0 ? "rotateY(180deg)" : "none",
-                                                filter: "contrast(0.8) brightness(0.6) saturate(0.8)",
+                                                filter: "contrast(0.8) brightness(0.4) saturate(0.8)",
                                                 pointerEvents: "none"
                                             })}
                                         />

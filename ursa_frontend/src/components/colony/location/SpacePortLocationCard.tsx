@@ -256,6 +256,7 @@ export const STYLE_LOC_CARD_titleStyleOverwrite = css`
     top: 2rem;
     left: 0;
     width: 100%;
+    height: auto;
     font-size: 2.5rem;
     text-align: center;
     z-index: 1;

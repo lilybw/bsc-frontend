@@ -177,7 +177,7 @@ class MultiplayerIntegrationImpl implements IMultiplayerIntegration {
      * Exceptionally allowed to THROW
      */
     private send = async <T extends IMessage>(data: T, spec: EventSpecification<T>) => {
-        this.log.info(`Sending message with event id: ${spec.id} name: ${spec.name}`);
+        this.log.subtrace(`Sending message with event id: ${spec.id} name: ${spec.name}`);
         this.connection?.send(createViewAndSerializeMessage(data, spec));
     };
 
