@@ -19,7 +19,7 @@ import { Styles } from "@/styles/sharedCSS";
 import Countdown from "@/components/util/Countdown";
 import BurstEmitter, { BurstEmitterProps } from "../utils/BurstEmitter";
 import PlanetSurface from "@/components/base/PlanetSurface";
-import ColonyWall from "../utils/ColonyWall";
+import ColonyWall from "./ColonyWall";
 import { AsteroidsSettingsDTO } from "./AsteroidsGameLoop";
 import PlanetMoonSystem from "@/components/base/PlanetWithMoon";
 import { lerp } from "@/ts/ursaMath";

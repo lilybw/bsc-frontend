@@ -39,19 +39,16 @@ interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternati
 
     /**
      * Counter signal that triggers an Enter key simulation when changed.
-     * @default undefined
      */
     manTriggerEnter?: Accessor<number>;
 
     /**
      * Counter signal that triggers the Enter animation when changed.
-     * @default undefined
      */
     manTriggerEnterAnimation?: Accessor<number>;
 
     /**
      * Counter signal that triggers the shake animation when changed.
-     * @default undefined
      */
     manTriggerShake?: Accessor<number>;
 
