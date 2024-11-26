@@ -99,29 +99,41 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
     const handlePlanetLoad = async (url: ObjectURL) => {
         const div = planetDiv();
         if (div) {
-            const dominantColor = getDominantColor(url);
-            div.style.backgroundImage = `url(${url})`;
-            div.style.boxShadow = `inset -2em -2em 2em black, -0.5rem -0.5em 1em ${dominantColor}`;
-            const newPlanetSize = div.offsetWidth;
-            setPlanetSize(newPlanetSize);
-            log.subtrace(`Planet image loaded - size: ${newPlanetSize}, dominantColor: ${dominantColor}`);
+            try {
+                const dominantColor = await getDominantColor(url);
+
+                // Create a promise that resolves when the div has a non-zero size
+                const sizePromise = new Promise<number>((resolve) => {
+                    const resizeObserver = new ResizeObserver((entries) => {
+                        const width = entries[0].contentRect.width;
+                        if (width > 0) {
+                            resizeObserver.disconnect();
+                            resolve(width);
+                        }
+                    });
+                    resizeObserver.observe(div);
+
+                    // Fallback in case the div already has size
+                    if (div.offsetWidth > 0) {
+                        resizeObserver.disconnect();
+                        resolve(div.offsetWidth);
+                    }
+                });
+
+                div.style.backgroundImage = `url(${url})`;
+                div.style.boxShadow = `inset -2em -2em 2em black, -0.5rem -0.5em 1em ${dominantColor}`;
+
+                // Wait for size
+                const newPlanetSize = await sizePromise;
+                setPlanetSize(newPlanetSize);
+                log.subtrace(`Planet image loaded - size: ${newPlanetSize}, dominantColor: ${dominantColor}`);
+            } catch (error) {
+                log.error("Failed during planet load handling:" + error);
+            }
         } else {
             log.warn('Planet div not found during image load');
         }
     };
-
-    onMount(async () => {
-        const urlAttempt = await props.backend.objectUrlCache.get(getRandomAsset(planetAssets), 0)
-        if (urlAttempt.err !== null ) {
-            log.error(`Failed to load planet asset: ${urlAttempt.err}`);
-            return;
-        }
-        const url = urlAttempt.res;
-        await handlePlanetLoad(url);
-        url.release();
-
-        //Also do moon stuff here
-    })
 
     const handleMoonLoad = async (img: HTMLImageElement, moonId: number) => {
         const moonDiv = moonDivs().get(moonId);
@@ -143,6 +155,41 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
             return next;
         });
     };
+
+    onMount(async () => {
+        const urlAttempt = await props.backend.objectUrlCache.get(getRandomAsset(planetAssets), 0)
+        if (urlAttempt.err !== null) {
+            log.error(`Failed to load planet asset: ${urlAttempt.err}`);
+            return;
+        }
+        const url = urlAttempt.res;
+
+        try {
+            // Wait for initial image load
+            await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = url.toString();
+            });
+
+            // Wait for planet load and verify size
+            const checkInterval = setInterval(() => {
+                const div = planetDiv();
+                if (div && div.offsetWidth > 0) {
+                    clearInterval(checkInterval);
+                    handlePlanetLoad(url);
+                }
+            }, 100);
+
+            // Clean up interval on component unmount
+            onCleanup(() => clearInterval(checkInterval));
+
+        } catch (error) {
+            log.error("Error during planet load: " + error);
+            // Removed url.release() here
+        }
+    });
 
     return (
         <div
@@ -300,7 +347,11 @@ const getRandomRotationSpeed = () => Math.floor(Math.random() * 120) + 120;
 const getRandomOrbitSpeed = () => Math.floor(Math.random() * 80) + 80;
 const getRandomMoonCount = () => Math.floor(Math.random() * 5) + 1;
 const getRandomMoonSize = () => (1 / 12) + Math.random() * ((1 / 8) - (1 / 12));
-const getRandomOrbitDistance = () => 0.6 + (Math.random() * 0.1);
+const getRandomOrbitDistance = () => {
+    const MIN_ORBIT = 0.6;
+    const MAX_ORBIT = 0.7;
+    return MIN_ORBIT + (Math.random() * (MAX_ORBIT - MIN_ORBIT));
+};
 
 const getTiltWrapperStyle = (tiltAngle: number, orbitSpeed: number, moonId: number) => css`
   position: absolute;
@@ -374,7 +425,7 @@ const getDominantColor = async (url: ObjectURL): Promise<string> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return '#ffffff';
-    
+
     const img = new Image();
     img.src = url;
     const promise = new Promise<string>((resolve, reject) => {
