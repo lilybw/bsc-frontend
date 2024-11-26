@@ -88,11 +88,9 @@ const NewColonyPage: Component<{ context: ApplicationContext, goToPage: (page: M
             </div>
             {textError() && inputEngaged() && <SectionSubTitle styleOverwrite={errMsgStyle}>{textError()}</SectionSubTitle>}
             <StarryBackground backend={props.context.backend} />
-            <div class={planetContainerStyle}>
-                <PlanetMoonSystem backend={props.context.backend}
-                    styleOverwrite={css({ width: '50vw', height: '50vw' })}
-                />
-            </div>
+            <PlanetMoonSystem backend={props.context.backend}
+                styleOverwrite={planetContainerStyle}
+            />
             <NavigationFooter
                 text={props.context.text}
                 goBack={{ name: 'MENU.NAVIGATION.BACK', func: props.goBack }}
@@ -116,11 +114,13 @@ const errMsgStyle = css`
 
 const planetContainerStyle = css`
     position: fixed;
-    right: 0;
-    top: 0;
-    width: 50vw;
-    height: 100vh;
+    right: 5vw;
+    top: 50%;
+    width: 40vw;
+    height: 40vw;
     display: flex;
+    z-index: -1;
+    transform: translateY(-50%);
     justify-content: center;
     align-items: center;
     pointer-events: none;

@@ -411,6 +411,7 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                                 backend={context.backend}
                                 styleOverwrite={css({
                                     position: "absolute",
+                                    objectFit: "contain",
                                     filter: `brightness(${1 - (asteroid.health * 0.2)})`,
                                     transform: `scale(${0.5 + (asteroid.health * 0.3)})`
                                 })}
@@ -424,12 +425,18 @@ export default function AsteroidsDisplayComponent({ context, settings }: Asteroi
                             styleOverwrite={css([
                                 Styles.POSITION.TRANSFORM_CENTER_X,
                                 {
-                                    position: "absolute",
                                     bottom: 0,
                                     filter: "drop-shadow(0 0 0.5rem black)"
                                 }
                             ])}
                             activationDelay={100}
+                            enable={createMemo(() => {
+                                const local = localPlayer.get();
+                                if (local) {
+                                    return !local.disabled.get()
+                                }
+                                return true;
+                            })}
                         />
                     </div>
                 }</For>
@@ -479,6 +486,9 @@ const getAsteroidStyles = (asteroid: ExtendedAsteroidDTO, dim: Vec2) => css`
     ${Styles.POSITION.transformToCSSVariables(asteroid.startPosition)}
     ${Styles.POSITION.TRANSFORM_APPLICATOR}
     ${computeAsteroidAnimation(asteroid, dim)}
+    display: flex;
+    justify-content: center;
+    align-items: center;
     z-index: 100000;
     width: 10vw;
     height: 10vw;

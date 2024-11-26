@@ -108,12 +108,16 @@ export const AsteroidsStyles = {
             zIndex: 3
         }),
         emitter: css({ zIndex: 4 }),
-        button: css({
+        button: css([{
+            display: "flex",
             position: "absolute",
-            transform: "translateX(50%)",
-            top: 0,
+            justifyContent: "center",
+            bottom: 0,
+            left: "50%",
+            borderRadius: ".5rem",
+            transform: "translate(-50%, 0)",
             zIndex: 6
-        })
+        }, Styles.GLASS.FAINT_BACKGROUND])
     },
 
     getImpactStyle: (circle: Circle) => css([
