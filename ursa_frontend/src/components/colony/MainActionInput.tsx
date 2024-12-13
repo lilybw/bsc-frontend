@@ -7,101 +7,36 @@ import NTAwait from '../util/NoThrowAwait';
 import GraphicalAsset from '../base/GraphicalAsset';
 import { Styles } from '@/styles/sharedCSS';
 
-/**
- * Props interface for the ActionInput component.
- * @interface ActionInputProps
- * @extends {IStyleOverwritable} - Allows custom CSS styling
- * @extends {IBackendBased} - Provides backend connectivity
- * @extends {IInternationalized} - Provides internationalization support
- */
 interface ActionInputProps extends IStyleOverwritable, IBackendBased, IInternationalized {
-    /** Current action context accessor providing type and icon information */
     actionContext: Accessor<TypeIconTuple>;
 
-    /** Setter function for the input buffer value */
     setInputBuffer: Setter<string>;
 
-    /** Accessor for the current input buffer value */
     inputBuffer: Accessor<string>;
 
-    /** 
-     * Store of subscribers that process the input buffer on Enter key press.
-     * Each subscriber can consume the input, preventing further processing.
-     */
     subscribers: ArrayStore<BufferSubscriber<string>>;
 
-    /**
-     * When true, disables user interaction and auto-focus.
-     * Shows a giant floating Enter animation instead.
-     * @default false
-     */
     demoMode?: boolean;
 
-    /**
-     * Counter signal that triggers an Enter key simulation when changed.
-     */
     manTriggerEnter?: Accessor<number>;
 
-    /**
-     * Counter signal that triggers the Enter animation when changed.
-     */
     manTriggerEnterAnimation?: Accessor<number>;
 
-    /**
-     * Counter signal that triggers the shake animation when changed.
-     */
     manTriggerShake?: Accessor<number>;
 
-    /**
-     * Controls whether focus pulling is active.
-     * When true, the input will maintain focus with an internal interval.
-     * When false, focus must be managed externally.
-     * @default true
-     */
     maintainFocus?: boolean;
 
     disabled?: Accessor<boolean>;
 }
 
-/**
- * ActionInput component provides a stylized input field with context-aware
- * functionality, focus management, and input processing capabilities.
- * 
- * Features:
- * - Automatic focus maintenance (configurable)
- * - Context-aware styling and icon display
- * - Input buffer management with subscriber pattern
- * - Enter key handling with success/error animations
- * - Demo mode for tutorials
- * 
- * @component
- * @example
- * ```tsx
- * <ActionInput
- *   actionContext={createMemo(() => someContext)}
- *   setInputBuffer={setBuffer}
- *   inputBuffer={buffer}
- *   subscribers={subscribers}
- *   maintainFocus={true}
- *   backend={backend}
- *   text={i18n}
- * />
- * ```
- */
 const ActionInput: Component<ActionInputProps> = (props) => {
-    // Internal state management
     const [isVisible, setIsVisible] = createSignal(false);
     const [isShaking, setIsShaking] = createSignal(false);
     const [enterWasJustPressed, setEnterWasJustPressed] = createSignal(false);
     const [enterSuccessfullyPressed, setEnterSuccessfullyPressed] = createSignal(false);
-    // Focus management
     const [focusPull, triggerFocusPull] = createSignal(0);
     let inputRef: HTMLInputElement | undefined;
     let focusIntervalId: NodeJS.Timeout | undefined;
-    /**
-     * Sets up or tears down the focus maintenance interval based on props.
-     * The interval will pull focus back to the input field periodically.
-     */
     createEffect(() => {
         if (props.maintainFocus !== false && !props.demoMode) {
             // Clear any existing interval first
@@ -118,25 +53,15 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             focusIntervalId = undefined;
         }
     });
-    /**
-     * Handles focus pulling when the counter changes.
-     * Skips the initial value (0) to avoid unnecessary focus.
-     */
     createEffect(() => {
         if (focusPull() === 0) return;
         inputRef?.focus();
     });
-    /**
-     * Handles initial visibility-based focus.
-     */
     createEffect(() => {
         if (isVisible() && !props.demoMode) {
             inputRef?.focus();
         }
     });
-    /**
-     * Sets up external trigger effects for animations and actions.
-     */
     if (props.manTriggerShake) {
         createEffect(() => {
             if (props.manTriggerShake!() === 0) return;
@@ -166,10 +91,6 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             clearInterval(focusIntervalId);
         }
     });
-    /**
-     * Handles keyboard input events.
-     * Processes Enter key specially, updates input buffer for other keys.
-     */
     const onKeyDown = (e: KeyboardEvent) => {
         if (props.demoMode) return;
 
@@ -182,19 +103,10 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             handleEnter();
         }
     };
-    /**
-     * Triggers the error shake animation.
-     * Used when input cannot be consumed by any subscriber.
-     */
     const triggerShake = () => {
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), shakeTimeS * 1000);
     };
-
-    /**
-     * Processes an Enter key press event.
-     * Attempts to process input through all subscribers until consumed.
-     */
     const handleEnter = async () => {
         let consumed = false;
         setEnterWasJustPressed(true);
@@ -220,10 +132,6 @@ const ActionInput: Component<ActionInputProps> = (props) => {
             triggerShake();
         }
     };
-    /**
-     * Triggers the success animation.
-     * Used when input is successfully consumed by a subscriber.
-     */
     const triggerEnterAnimation = () => {
         setEnterSuccessfullyPressed(true);
         setTimeout(() => setEnterSuccessfullyPressed(false), confirmTimeS * 1000);
@@ -284,7 +192,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                         width: 88%;
                         font-size: 1.5rem;
                         font-family: 'Orbitron', sans-serif;
-                        ${props.disabled?.() ?? false ? 
+                        ${props.disabled?.() ?? false ?
                             `cursor: not-allowed; 
                             pointer-events: none;
                             background-image: repeating-linear-gradient(
@@ -296,7 +204,7 @@ const ActionInput: Component<ActionInputProps> = (props) => {
                             );
                             background-size: 28.28px 28.28px;
                             `
-                        : '' }
+                            : ''}
                     `}
                     onKeyDown={onKeyDown}
                     value={props.inputBuffer()}

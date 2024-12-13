@@ -114,7 +114,6 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         }
     ];
 
-    // Create a more strategic path layout where not everything is connected
     const MOCK_PATHS = [
         // Paths from HOME (central hub)
         { from: 1, to: 2 },
@@ -203,7 +202,6 @@ const NavigationTrial: Component<NavigationTrialProps> = (props) => {
         checkCompletion();
     };
 
-    // Lifecycle handlers
     onMount(() => {
         const handleResize = () => {
             const dims = calculateViewportScalars(window.innerWidth, window.innerHeight);

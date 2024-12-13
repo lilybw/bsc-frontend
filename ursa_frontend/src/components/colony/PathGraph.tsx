@@ -33,11 +33,6 @@ interface PathGraphProps {
     buffer: WrappedSignal<string>;
     actionContext: WrappedSignal<TypeIconTuple>;
     graph: ColonyPathGraphResponseDTO;
-    /**
-     * Controls whether the ActionInput should maintain focus.
-     * Passes through to ActionInput's maintainFocus prop.
-     * @default true
-     */
     focusEnabled?: boolean;
 }
 

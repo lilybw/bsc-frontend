@@ -30,16 +30,12 @@ interface LocationProps extends IBackendBased, IBufferBased, IStyleOverwritable,
     plexer: IEventMultiplexer;
     actionContext: WrappedSignal<TypeIconTuple>;
     multiplayer: IMultiplayerIntegration;
-    /**
-     * Graphical Asset Scalar
-     */
     gas: Accessor<number>;
     transform: WrappedSignal<TransformDTO>;
     enable: Accessor<boolean>;
 }
 
 const calcNamePlatePosition = (y: number) => {
-    //However this should bring the nameplate towards the center of the location in case we're close to the top of the screen.
     return y < 100 ? y + 100 : y - 50;
 };
 

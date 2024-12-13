@@ -2,9 +2,6 @@ import { createSignal, onCleanup, Component, createEffect, Accessor, onMount } f
 import { IStyleOverwritable } from '../../ts/types';
 
 interface CountdownProps extends IStyleOverwritable {
-    /**
-     * In seconds.
-     */
     duration: number;
     onComplete?: () => void;
     cancelSignal?: Accessor<boolean>;

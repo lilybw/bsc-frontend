@@ -4,14 +4,11 @@ import { IStyleOverwritable, IBufferBased } from '../../ts/types';
 import SectionTitle from './SectionTitle';
 
 export interface BufferHighlightedNameProps extends IStyleOverwritable, IBufferBased {
-    /** Not translated */
     name: Accessor<string> | string;
     nameCompleteOverwrite?: string;
     charHighlightOverwrite?: string;
     charBaseStyleOverwrite?: string;
-    /** Akin to MouseEnter, however, called when the current buffer input is a subset of the name */
     onHoverBegin?: () => void;
-    /** Akin to MouseLeave, however, called when the current buffer input is not a subset of the name */
     onHoverEnd?: () => void;
 }
 

@@ -42,10 +42,6 @@ import { createArrayStore } from '@/ts/arrayStore';
 import TimedFullScreenNotification from './TimedFullScreenNotification';
 import { MockServer } from '@/integrations/multiplayer_backend/mockServer';
 
-/**
- * Type definition for JSX elements in the colony app.
- * Ensures strict type checking for rendered content.
- */
 export type StrictJSX =
     | Node
     | JSX.ArrayElement
@@ -53,38 +49,10 @@ export type StrictJSX =
     | NonNullable<Exclude<Exclude<Exclude<JSX.Element, string>, number>, boolean>>
     | Element;
 
-/**
- * Extended interface for minigame difficulty confirmation data.
- * Adds the minigame name for UI display purposes.
- */
 interface DiffConfWExtraInfo extends DifficultyConfirmedForMinigameMessageDTO {
     minigameName: string;
 }
 
-/**
- * ColonyApp component responsible for managing the colony view and minigames.
- * 
- * Core responsibilities:
- * - Manages the main colony view and minigame transitions
- * - Handles both online and offline (mock) server scenarios
- * - Controls input focus based on current game state
- * - Manages multiplayer connections and client tracking
- * - Handles error states and notifications
- * 
- * Focus Management:
- * - Controls ActionInput focus through PathGraph's focusEnabled prop
- * - Automatically disables focus maintenance during minigames
- * - Restores focus maintenance when returning to colony view
- * - Uses isShowingColonyLayout memo to track current state
- * 
- * Multiplayer Handling:
- * - Manages connection to multiplayer sessions
- * - Tracks client states and updates
- * - Handles server and lobby closure events
- * - Provides mock server functionality when needed
- * 
- * @component
- */
 const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
     (props: ApplicationProps) => {
         // Core state management
@@ -106,13 +74,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             LocalSequencePhase.ROAMING_COLONY
         );
 
-        /**
-         * Handles colony info load errors by displaying an error page
-         * and redirecting to the menu after a countdown.
-         * 
-         * @param error - Array of error messages to display
-         * @returns ErrorPage component with countdown
-         */
+
         const onColonyInfoLoadError = (error: string[]) => {
             log.error('Failed to load colony: ' + error);
             return (
@@ -127,10 +89,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             );
         };
 
-        /**
-         * Main colony layout component containing the PathGraph and navigation.
-         * Wrapped in Unwrap to handle loading states and errors.
-         */
         const colonyLayout = (
             <Unwrap
                 data={[bundleSwapColonyInfo, bundeSwapPlayerInfo]}
@@ -167,7 +125,7 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
                                     clients={clientTracker.getAsClients()}
                                     context={props.context}
                                     buffer={inputBuffer}
-                                    focusEnabled={isShowingColonyLayout()} // Controls ActionInput focus
+                                    focusEnabled={isShowingColonyLayout()}
                                 />
                             )}
                         </MNTAwait>
@@ -179,29 +137,15 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
         // Page content management
         const [pageContent, setPageContent] = createSignal<StrictJSX>(colonyLayout);
 
-        /**
-         * Determines whether the colony layout is currently being shown.
-         * Used to control ActionInput focus behavior through PathGraph.
-         * 
-         * @returns true when showing colony layout, false during minigames
-         */
         const isShowingColonyLayout = createMemo(() =>
             pageContent() === colonyLayout &&
             minigameSequencePhase() !== LocalSequencePhase.HAND_PLACEMENT_CHECK
         );
 
-
         // Client and server management
         const clientTracker = new ClientTracker(props.context.events, props.context.logger);
         const mockServer = new MockServer(props.context, bundleSwapColonyInfo.res!.id, props.context.logger);
 
-        /**
-         * Initializes a multiplayer session with the given colony code.
-         * Handles connection setup, lobby state retrieval, and client tracking.
-         * 
-         * @param code - Colony code for multiplayer session
-         * @returns Error if connection fails, undefined on success
-         */
         const initializeMultiplayerSession = async (code: ColonyCode): Promise<Error | undefined> => {
             log.trace('Connecting to multiplayer, code: ' + code);
             const onConnClose = () => {
@@ -230,10 +174,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             );
         };
 
-        /**
-         * Manages mock server state based on colony state changes.
-         * Starts mock server when colony is closed, shuts it down otherwise.
-         */
         createEffect(() => {
             const colonyState = props.context.multiplayer.getState();
             if (colonyState === ColonyState.CLOSED) {
@@ -243,10 +183,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             }
         });
 
-        /**
-         * Component initialization and cleanup.
-         * Handles multiplayer setup, event subscriptions, and cleanup.
-         */
         onMount(async () => {
             // Initialize multiplayer if needed
             if (bundleSwapColonyInfo.res?.colonyCode) {
@@ -281,10 +217,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
             });
         });
 
-        /**
-         * Memoized notification component.
-         * Shows notification when colony/server state changes require user attention.
-         */
         const shuntNotaMemo = createMemo(
             () =>
                 showNotification() && (
@@ -327,10 +259,6 @@ const ColonyApp: BundleComponent<ApplicationProps> = Object.assign(
 
 export default ColonyApp;
 
-/**
- * Styles for the colony title.
- * Positions the title at the top-left with appropriate z-index and sizing.
- */
 const colonyTitleStyle = css`
     position: absolute;
     z-index: 100000;

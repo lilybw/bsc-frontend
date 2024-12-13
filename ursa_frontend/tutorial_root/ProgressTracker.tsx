@@ -14,7 +14,7 @@ interface ProgressTrackerProps extends IBackendBased {
     slideStore: Store<SlideEntry[]>;
     setSlideStore: SetStoreFunction<SlideEntry[]>;
     styleOverwrite?: string;
-    backend: BackendIntegration; // Add this line. Replace 'any' with the actual type of your backend
+    backend: BackendIntegration;
 }
 
 export default function ProgressTracker(props: ProgressTrackerProps): JSX.Element {

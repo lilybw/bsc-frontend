@@ -6,17 +6,10 @@ import { IParenting, IRegistering, IStyleOverwritable } from '../../ts/types';
 
 export interface BufferBasedButtonProps extends BufferHighlightedNameProps, IParenting, IRegistering<string> {
     onActivation: () => void;
-    /** Signal-based, inverted disable. Will show a small animation after being re-enabled. */
     enable?: Accessor<boolean>;
     disabledStyleOverwrite?: string;
-    /** Akin to onHover, however is active as long as the buffer input is a subset of the name and applied to the root level
-     * container of the button */
     onHoverContainerStyle?: string;
     setElementRef?: Setter<HTMLButtonElement | undefined>;
-    /** Delay for the input confirmation / rejection animation in milliseoncds.
-     * Does not change the animation itself.
-     * @default 500
-     */
     activationDelay?: number;
 }
 
@@ -92,8 +85,8 @@ const BufferBasedButton: Component<BufferBasedButtonProps> = (props) => {
     });
 
     return (
-        <button class={computedContainerStyles()} id={'buffer-based-button-' + getNameValue()} 
-            disabled={isDisabled()} ref={r => {props.setElementRef && props.setElementRef(r);}}
+        <button class={computedContainerStyles()} id={'buffer-based-button-' + getNameValue()}
+            disabled={isDisabled()} ref={r => { props.setElementRef && props.setElementRef(r); }}
         >
             <BufferHighlightedName
                 buffer={isDisabled() ? disabledBuffer : props.buffer}

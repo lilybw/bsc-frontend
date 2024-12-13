@@ -10,9 +10,6 @@ interface DevOverlayProps {
     hide: () => void;
 }
 
-/**
- * Compact optional view access on ctrl + f3 when runtime mode is dev
- */
 const DevOverlay: Component<DevOverlayProps> = (props) => {
     return (
         <div class={devOverlayContainer}>

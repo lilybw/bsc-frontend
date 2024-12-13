@@ -187,7 +187,6 @@ const PlanetMoonSystem: Component<PlanetMoonSystemProps> = (props) => {
 
         } catch (error) {
             log.error("Error during planet load: " + error);
-            // Removed url.release() here
         }
     });
 

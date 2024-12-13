@@ -1,5 +1,3 @@
-// src/styles/tutorialStyles.ts
-
 import { css } from '@emotion/css';
 import { Styles } from '@/styles/sharedCSS';
 

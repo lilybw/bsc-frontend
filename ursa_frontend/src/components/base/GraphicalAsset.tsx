@@ -10,13 +10,7 @@ import SomethingWentWrongIcon from './SomethingWentWrongIcon';
 
 interface ProgressiveImageProps extends IStyleOverwritable, IParentingImages, IBackendBased {
     metadata: AssetResponseDTO | MinimizedAssetDTO;
-    /**
-     * Applied first if provided and only to the container of the image
-     */
     transform?: TransformDTO;
-    /**
-     * Callback for when the image is loaded
-     */
     onImageLoad?: (img: HTMLImageElement) => void;
 }
 
@@ -126,7 +120,7 @@ const GraphicalAsset: Component<ProgressiveImageProps> = (props) => {
                         src={currentSrc()!}
                         alt={props.metadata.alias + `-LOD-${currentLODLevel()}`}
                         class={computedStyles()}
-                        ref={props.onImageLoad ?? (() => {})}
+                        ref={props.onImageLoad ?? (() => { })}
                     />
                     {appendChildren()}
                 </>
