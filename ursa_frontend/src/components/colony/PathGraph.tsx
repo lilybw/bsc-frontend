@@ -84,7 +84,6 @@ const PathGraph: Component<PathGraphProps> = (props) => {
 
             //Updating transforms of locations and paths
             for (const colLoc of colonyLocations.get) {
-                //Issue here, we are taking from the previous transform, and not the initial
                 const computedTransform: TransformDTO = {
                     zIndex: colLoc.originalTransform.zIndex,
                     // Camera is applied to the parent (camera-container). Not here.
