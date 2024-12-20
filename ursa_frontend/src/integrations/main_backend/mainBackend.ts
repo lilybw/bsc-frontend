@@ -168,7 +168,7 @@ export async function initializeBackendIntegration(
         log.info('Proxying main backend requests');
 
         if (mainBackendRootUrl === undefined || mainBackendRootUrl === null) {
-            log.error('  Proxying main backend requests is enabled, but no proxy url is provided');
+            log.error('Proxying main backend requests is enabled, but no proxy url is provided');
             return { res: null, err: 'Proxying main backend requests is enabled, but no proxy url is provided' };
         }
 

@@ -13,8 +13,8 @@ export type ENV = {
     vitecInfo?: VitecIntegrationInformation;
     authHeaderName: string;
     /**
-     * When the backend is proxied, any request to the backend shall omit "<protocol>://<ip>:<port>/<suburl>"
-     * and just go with "/backend/<suburl>"
+     * When the backend is proxied, omit "<protocol>://<ip>:<port>/..." from base url
+     * and just use the value of mainBackendURLWhenProxied (e.g. "/ursa_backend")
      */
     proxyMainBackendRequests?: boolean;
     mainBackendURLWhenProxied?: string;
