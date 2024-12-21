@@ -94,30 +94,29 @@ const defaults: Omit<Required<BurstEmitterProps>, 'preComputedParticles'> & Part
 /** Simple explosion-like effect */
 export default function BurstEmitter(
     // these props are destructured and thus not reactive. They are not meant to be reactive any way.
-    rawProps: BurstEmitterProps) 
-{
+    rawProps: BurstEmitterProps) {
     // According to Claude, this is more performant than "{...defaults, ...rawProps}"
     const props = Object.assign({}, defaults, rawProps);
     const generateParticles = () => {
         //Takes 8ms for 50 particles on good hardware, i.e. not the bottleneck
         const particles: JSX.Element[] = [];
         for (let i = 0; i < props.particleCount; i++) {
-            const normalizedRandomDirection = normalizeVec2({ 
-                x: (GlobalRandom.next() - .5) + (props.incomingNormalized.x * props.incomingWeight), 
+            const normalizedRandomDirection = normalizeVec2({
+                x: (GlobalRandom.next() - .5) + (props.incomingNormalized.x * props.incomingWeight),
                 y: (GlobalRandom.next() - .5) + (props.incomingNormalized.y * props.incomingWeight)
             });
             const variedSpread = props.spread * (1 - GlobalRandom.next() * props.spreadVariance);
             const endState: ParticleData = {
                 x: 50 + (normalizedRandomDirection.x * variedSpread * 100),
                 y: 50 + (normalizedRandomDirection.y * variedSpread * 100),
-                scale: props.particleSize * ( 1 - GlobalRandom.next() * props.particleSizeVariance ),
-                computedDelayMS: props.staggerMS * (1 - GlobalRandom.next() * props.staggerVariance ),
+                scale: props.particleSize * (1 - GlobalRandom.next() * props.particleSizeVariance),
+                computedDelayMS: props.staggerMS * (1 - GlobalRandom.next() * props.staggerVariance),
                 randHash: GlobalHashPool.next(),
             }
             particles.push(
                 props.particleGeneratorFunc(
-                    i, 
-                    computeParticleAnimation(endState, props.durationMS), 
+                    i,
+                    computeParticleAnimation(endState, props.durationMS),
                     props.additionalChildContent()
                 )
             );
@@ -143,7 +142,7 @@ export default function BurstEmitter(
 const baseContainerStyle = css`
     position: absolute;
     contain: paint;
-    background: radial-gradient(circle, rgba(0,0,0,1), transparent 70%);
+    background: radial-gradient(circle, rgba(0, 0, 0, 0), transparent 70%);
     will-change: contents;
     transform: translate(-50%, -50%);
 `;
