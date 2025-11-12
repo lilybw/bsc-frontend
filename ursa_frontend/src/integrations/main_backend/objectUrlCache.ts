@@ -15,7 +15,7 @@ export type ObjectURL = string & {
  * Else we're going to get a memory leak.
  *
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 export interface IObjectURLCache {
     get: (asset: AssetID, lodLevel: uint32) => Promise<ResCodeErr<ObjectURL>>;

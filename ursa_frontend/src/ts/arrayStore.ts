@@ -16,7 +16,7 @@ export interface Predicate<T> {
  * Wrapper for solid-js/store specifically for storing arrays of elements
  * and providing array manipulation functionality while remaining reactive.
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 export interface ArrayStore<T> {
     get: T[];
@@ -98,7 +98,7 @@ export interface ArrayStore<T> {
 /**
  * Create a new array store with the given initial value. If no initial value is provided, an empty array is used.
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 export function createArrayStore<T extends object>(initValue?: T[]): ArrayStore<T> {
     const [proxy, setStore] = createStore<T[]>(initValue ?? []);

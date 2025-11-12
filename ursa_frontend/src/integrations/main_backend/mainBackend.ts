@@ -47,7 +47,7 @@ import { LobbyStateResponseDTO } from '../multiplayer_backend/multiplayerDTO';
 import { UNIT_TRANSFORM } from '@/ts/geometry';
 /**
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 export enum HTTPMethod {
     GET = 'GET',
@@ -60,7 +60,7 @@ export const NO_BACKEND_CONNECTION_ERROR = 'No connection to backend';
 export const BACKEND_INTERNAL_ERROR = 'Backend internal error';
 /**
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 export type BaseBackendIntegration = {
     mainBackendRootUrl: string;
@@ -83,7 +83,7 @@ export type BaseBackendIntegration = {
 
 /**
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 export interface BackendIntegration extends BaseBackendIntegration {
     healthCheck: () => Promise<ResCodeErr<MBHealthCheckResponseDTO>>;
@@ -153,7 +153,7 @@ export const URSA_HEADER_ASSET_ID = 'URSA-ASSET-ID';
 
 /**
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 export async function initializeBackendIntegration(
     environment: ENV,
@@ -206,7 +206,7 @@ export async function initializeBackendIntegration(
 }
 /**
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 const applyRouteImplementations = (base: BaseBackendIntegration, localPlayer: PlayerInfoResponseDTO): BackendIntegration => {
     return {
@@ -358,7 +358,7 @@ const cachedGetCollectionMetadata = async (id: uint32, base: BaseBackendIntegrat
 } 
 /**
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 async function handleArbitraryRequest<T>(
     integration: BaseBackendIntegration,
@@ -419,7 +419,7 @@ async function handleArbitraryRequest<T>(
 }
 /**
  * @since 0.0.1
- * @author GustavBW
+ * @author lilybw
  */
 async function beginSession(
     base: BaseBackendIntegration,

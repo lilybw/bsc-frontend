@@ -33,7 +33,7 @@ interface MultiAwaitProps<T extends any[]> {
  * )}</Await>
  * ```
  * 
- * @author GustavBW
+ * @author lilybw
  */
 export const MultiAwait = <T extends any[]>(props: MultiAwaitProps<T>) => {
     const executeFuncs = async (): Promise<T[number]> => {

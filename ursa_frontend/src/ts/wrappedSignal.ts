@@ -26,7 +26,7 @@ export interface SimpleWrappedSignal<T> {
  * are ignored on any new mutation within the delay (default: 500 ms).
  * The update will go through when the delay has passed without any new mutations.
  * 
- * @author GustavBW
+ * @author lilybw
  */
 export const createDelayedSignal = <T>(value: T, options?: DelayedSignalOptions<T>): SimpleWrappedSignal<T> => {
     const wrapped = createWrappedSignal(value, options);
@@ -49,7 +49,7 @@ export interface CooldownSignalOptions<T> extends SignalOptions<T> {
  * 
  * Default cooldown is 500ms
  * 
- * @author GustavBW
+ * @author lilybw
  */
 export const createCooldownSignal = <T>(value: T, options?: CooldownSignalOptions<T>): SimpleWrappedSignal<T> => {
     const wrapped = createWrappedSignal(value);
@@ -78,7 +78,7 @@ export interface TimedSwitch<T> {
  * Any additional flips will reset the timer.
  * Any additional flips with the same new value, will extend the timer.
  * 
- * @author GustavBW
+ * @author lilybw
  */
 export function createTimedSwitch<T>(
     initialValue: T, 
